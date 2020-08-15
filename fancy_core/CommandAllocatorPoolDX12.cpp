@@ -84,7 +84,7 @@ namespace Fancy {
       ASSERT(allocatorEntry.second != anAllocator);
 #endif // FANCY_RENDERSYSTEM_USE_VALIDATION
 
-    myReleasedWaitingAllocators.push_back(std::make_pair(anAllocatorDoneFenceVal, anAllocator));
+    myReleasedWaitingAllocators.push_back({ anAllocatorDoneFenceVal, anAllocator });
   }
 //---------------------------------------------------------------------------//
 }

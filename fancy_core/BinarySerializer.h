@@ -1,8 +1,6 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
-#include "DynamicArray.h"
-#include "StaticArray.h"
 #include "String.h"
 #include "Log.h"
 
@@ -42,9 +40,7 @@ namespace Fancy
     void Serialize(T& aVal);
 
     template <class T> void Serialize(eastl::vector<T>& aVal);
-    template <class T> void Serialize(DynamicArray<T>& aVal);
     template <class T, uint N> void Serialize(eastl::fixed_vector<T, N>& aVal);
-    template <class T, uint N> void Serialize(StaticArray<T, N>& aVal);
     template <class T, uint N> void Serialize(T(&aVal)[N]);
     void Serialize(String& aString);
     void Serialize(eastl::string& aString);
@@ -97,32 +93,6 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  template <class T>
-  void BinarySerializer::Serialize(DynamicArray<T>& aVal)
-  {
-    if (IsReading())
-    {
-      uint size = 0u;
-      Serialize(size);
-      aVal.resize(size);
-    }
-    else
-    {
-      uint size = static_cast<uint>(aVal.size());
-      Serialize(size);
-    }
-
-    if (std::is_trivially_copyable<T>::value)
-    {
-      Serialize((uint8*)aVal.data(), aVal.size() * sizeof(T));
-    }
-    else
-    {
-      for (T& element : aVal)
-        Serialize(element);
-    }
-  }
-//---------------------------------------------------------------------------//
   template <class T, uint N>
   void BinarySerializer::Serialize(eastl::fixed_vector<T, N>& aVal)
   {
@@ -146,33 +116,6 @@ namespace Fancy
     {
       for (T& element : aVal)
         Serialize(element);
-    }
-  }
-//---------------------------------------------------------------------------//
-  template <class T, uint N>
-  void BinarySerializer::Serialize(StaticArray<T, N>& aVal)
-  {
-    if (IsReading())
-    {
-      uint size = 0u;
-      Serialize(size);
-      aVal.Clear();
-      aVal.GrowToSize(size);
-    }
-    else
-    {
-      uint size = aVal.Size();
-      Serialize(size);
-    }
-
-    if (std::is_trivially_copyable<T>::value)
-    {
-      Serialize((uint8*)aVal.GetBuffer(), aVal.ByteSize());
-    }
-    else
-    {
-      for (uint i = 0u; i < aVal.Size(); ++i)
-        Serialize(aVal[i]);
     }
   }
 //---------------------------------------------------------------------------//

@@ -5,7 +5,6 @@
 #include "DescriptorDX12.h"
 
 #include "RenderEnums.h"
-#include "StaticArray.h"
 #include "ShaderResourceInfoDX12.h"
 #include "RootSignatureDX12.h"
 
@@ -94,16 +93,16 @@ namespace Fancy {
     bool CreateDescriptorTable(const RootSignatureBindingsDX12::DescriptorTable& aTable, DescriptorDX12& aStartDescriptorOut);
 
     UniquePtr<RootSignatureBindingsDX12> myRootSignatureBindings;
-    StaticArray<DescriptorDX12, 32> myTempAllocatedDescriptors;
+    eastl::fixed_vector<DescriptorDX12, 32> myTempAllocatedDescriptors;
     
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12GraphicsCommandList* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
-    StaticArray<D3D12_RESOURCE_BARRIER, kNumCachedBarriers> myPendingBarriers;
+    eastl::fixed_vector<D3D12_RESOURCE_BARRIER, kNumCachedBarriers, false> myPendingBarriers;
     D3D12_RESOURCE_STATES myResourceStateMask;
 
     DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    std::vector<DynamicDescriptorHeapDX12*> myRetiredDescriptorHeaps; // TODO: replace vector with a smallObjectPool
+    eastl::fixed_vector<DynamicDescriptorHeapDX12*, 64> myRetiredDescriptorHeaps;
 
     struct SubresourceHazardData
     {
@@ -113,6 +112,7 @@ namespace Fancy {
         , myIsSharedReadState(false)
       { }
 
+      // TODO: Those two could be reduced to only 24 bits
       D3D12_RESOURCE_STATES myFirstDstStates = (D3D12_RESOURCE_STATES) 0;
       D3D12_RESOURCE_STATES myStates = (D3D12_RESOURCE_STATES) 0;
       uint myWasWritten : 1;
@@ -121,9 +121,9 @@ namespace Fancy {
     };
     struct LocalHazardData
     {
-      StaticArray<SubresourceHazardData, 64> mySubresources;
+      eastl::fixed_vector<SubresourceHazardData, 16> mySubresources;
     };
-    std::unordered_map<const GpuResource*, LocalHazardData> myLocalHazardData;
+    eastl::fixed_hash_map<const GpuResource*, LocalHazardData, kNumExpectedResourcesPerDispatch> myLocalHazardData;
   };
 //---------------------------------------------------------------------------//
 }

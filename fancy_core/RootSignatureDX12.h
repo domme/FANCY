@@ -15,7 +15,7 @@ namespace Fancy
 
     struct DescriptorTable
     {
-      StaticArray<D3D12_DESCRIPTOR_RANGE1, 32> myRanges;
+      eastl::fixed_vector<D3D12_DESCRIPTOR_RANGE1, 8> myRanges;
     };
 
     struct RootParameter
@@ -27,7 +27,7 @@ namespace Fancy
       D3D12_ROOT_DESCRIPTOR1 myRootDescriptor;
     };
 
-    StaticArray<RootParameter, 32> myRootParameters;
+    eastl::fixed_vector<RootParameter, 8> myRootParameters;
   };
 //---------------------------------------------------------------------------//
   struct RootSignatureBindingsDX12
@@ -37,14 +37,14 @@ namespace Fancy
     struct DescriptorRange
     {
       D3D12_DESCRIPTOR_RANGE_TYPE myType;
-      StaticArray<D3D12_CPU_DESCRIPTOR_HANDLE, 32> myDescriptors;
+      eastl::fixed_vector<D3D12_CPU_DESCRIPTOR_HANDLE, 8> myDescriptors;
     };
 
     struct DescriptorTable
     {
       D3D12_DESCRIPTOR_HEAP_TYPE myHeapType;
       uint myNumDescriptors;
-      StaticArray<DescriptorRange, 32> myRanges;
+      eastl::fixed_vector<DescriptorRange, 8> myRanges;
     };
 
     struct RootDescriptor
@@ -60,7 +60,7 @@ namespace Fancy
       DescriptorTable myDescriptorTable;
     };
 
-    StaticArray<RootParameter, 32> myRootParameters;
+    eastl::fixed_vector<RootParameter, 8> myRootParameters;
 
     void Clear();
   };

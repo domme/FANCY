@@ -45,6 +45,7 @@
 #include "EASTL/chrono.h"
 #include "EASTL/memory.h"
 #include "EASTL/utility.h"
+#include "EASTL/span.h"
 
 #include "FancyCoreDefines.h"
 #include "MathIncludes.h"
@@ -52,8 +53,6 @@
 
 #include "Log.h"
 #include "DynamicArray.h"
-#include "FixedArray.h"
-#include "StaticArray.h"
 #include "Ptr.h"
 #include "Slot.h"
 #include "Callback.h"

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Callback.h"
-#include "DynamicArray.h"
 
 #include <algorithm>
+
+#include "EASTL/fixed_vector.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -56,7 +57,7 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
   private:
     using CallbackT = Callback<ReturnT(Args...)>;
-    DynamicArray<CallbackT> myCallbacks;
+    eastl::fixed_vector<CallbackT, 8> myCallbacks;
   };
 //---------------------------------------------------------------------------//
 }

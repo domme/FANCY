@@ -16,7 +16,7 @@ namespace Fancy
       return stringStream.str();
     }
 //---------------------------------------------------------------------------//
-    void ReadTextFileLines(const char* aPathAbs, std::vector<std::string>& someLinesOut)
+    void ReadTextFileLines(const char* aPathAbs, eastl::vector<std::string>& someLinesOut)
     {
       std::ifstream fileStream;
       fileStream.open(aPathAbs);
@@ -48,7 +48,7 @@ namespace Fancy
       }
     }
 //---------------------------------------------------------------------------//
-    bool ReadBinaryFile(const char* aPathAbs, DynamicArray<uint8>& someDataOut)
+    bool ReadBinaryFile(const char* aPathAbs, eastl::vector<uint8>& someDataOut)
     {
       std::ifstream fileStream(aPathAbs, std::ios::ate | std::ios::binary);
       if (!fileStream.is_open())

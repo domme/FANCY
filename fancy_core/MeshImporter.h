@@ -1,6 +1,5 @@
 #pragma once
 
-#include "StaticArray.h"
 #include "Shader.h"
 #include "Mesh.h"
 #include "Ptr.h"

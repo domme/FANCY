@@ -2,7 +2,8 @@
 
 #include "FancyCoreDefines.h"
 #include "MathIncludes.h"
-#include "DynamicArray.h"
+
+#include "EASTL/vector.h"
 
 namespace Fancy
 {
@@ -146,12 +147,12 @@ namespace Fancy
   struct TextureData
   {
     TextureData() = default;
-    TextureData(DynamicArray<uint8> someData, DynamicArray<TextureSubData> someSubDatas)
+    TextureData(eastl::vector<uint8> someData, eastl::vector<TextureSubData> someSubDatas)
       : myData(std::move(someData))
       , mySubDatas(std::move(someSubDatas))
     {}
-    DynamicArray<uint8> myData;
-    DynamicArray<TextureSubData> mySubDatas;
+    eastl::vector<uint8> myData;
+    eastl::vector<TextureSubData> mySubDatas;
   };
 //---------------------------------------------------------------------------//
 }

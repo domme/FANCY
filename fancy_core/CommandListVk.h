@@ -2,7 +2,6 @@
 #include "CommandList.h"
 #include "MathIncludes.h"
 #include "VkPrerequisites.h"
-#include <glm/detail/type_mat.hpp>
 
 #if FANCY_ENABLE_VK
 
@@ -117,33 +116,54 @@ namespace Fancy
 
     struct ResourceState
     {
+      union DescriptorData
+      {
+        VkDescriptorBufferInfo myBufferInfo;
+        VkDescriptorImageInfo myImageInfo;
+        VkBufferView myTexelBufferView;
+      };
+
       struct DescriptorRange
       {
-        DescriptorRange();
-        VkDescriptorType myType;
-        uint myNumBoundDescriptors;
-        union
+        VkDescriptorType myType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
+        eastl::fixed_vector<uint8, sizeof(DescriptorData) * 8> myData;
+        
+        uint GetElementSize() const;
+        uint Size() const;
+        
+        void ResizeUp(uint aNewSize);
+
+        template<class T>
+        T& Get(uint anIndex)
         {
-          VkDescriptorImageInfo myImageInfos[kVkMaxNumDescriptorsPerRange];
-          VkDescriptorBufferInfo myBufferInfos[kVkMaxNumDescriptorsPerRange];
-          VkBufferView myTexelBufferViews[kVkMaxNumDescriptorsPerRange];
-        } myData;
+          ASSERT(sizeof(T) == GetElementSize());
+          ASSERT(anIndex < Size());
+
+          return *((T*)myData.data() + anIndex);
+        }
+
+        template<class T>
+        void Set(const T& aDescriptor, uint anIndex)
+        {
+          ASSERT(sizeof(T) == GetElementSize());
+          ASSERT(anIndex < Size());
+
+          *((T*)myData.data() + anIndex) = aDescriptor;
+        }
       };
 
       struct DescriptorSet
       {
         mutable bool myIsDirty = true;
-        uint myNumBoundRanges = 0u;
         VkDescriptorSetLayout myLayout = nullptr;
-        DescriptorRange myRanges[kVkMaxNumDescriptorRangesPerSet];
+        eastl::fixed_vector<DescriptorRange, 8> myRanges;
       };
 
       void Clear();
 
       VkPipelineLayout myPipelineLayout = nullptr;
-      StaticArray<std::pair<VkBufferView, uint64>, 64> myTempBufferViews;
-      DescriptorSet myDescriptorSets[kVkMaxNumBoundDescriptorSets];
-      uint myNumBoundDescriptorSets = 0u;
+      eastl::fixed_vector<eastl::pair<VkBufferView, uint64>, 32> myTempBufferViews;
+      eastl::fixed_vector<DescriptorSet, 8> myDescriptorSets;
     };
 
     ResourceState myResourceState;
@@ -166,13 +186,13 @@ namespace Fancy
     };
     struct LocalHazardData
     {
-      StaticArray<SubresourceHazardData, 64> mySubresources;
+      eastl::fixed_vector<SubresourceHazardData, 16> mySubresources;
     };
-    std::unordered_map<const GpuResource*, LocalHazardData> myLocalHazardData;
+    eastl::fixed_hash_map<const GpuResource*, LocalHazardData, kNumExpectedResourcesPerDispatch> myLocalHazardData;
     
-    StaticArray<VkDescriptorPool, 16> myUsedDescriptorPools;
-    StaticArray<BufferMemoryBarrierData, kNumCachedBarriers> myPendingBufferBarriers;
-    StaticArray<ImageMemoryBarrierData, kNumCachedBarriers> myPendingImageBarriers;
+    eastl::fixed_vector<VkDescriptorPool, 16> myUsedDescriptorPools;
+    eastl::fixed_vector<BufferMemoryBarrierData, kNumCachedBarriers> myPendingBufferBarriers;
+    eastl::fixed_vector<ImageMemoryBarrierData, kNumCachedBarriers> myPendingImageBarriers;
 
     VkPipelineStageFlags myPendingBarrierSrcStageMask;
     VkPipelineStageFlags myPendingBarrierDstStageMask;

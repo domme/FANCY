@@ -17,7 +17,7 @@ namespace Fancy
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 
-    StaticArray<VkDescriptorSetLayout, 32> descSetLayouts;
+    eastl::fixed_vector<VkDescriptorSetLayout, 32> descSetLayouts;
 
     uint64 pipelineLayoutHash = 0ull;
     for (const DescriptorSetInfo& setInfo : someDescriptorSetInfos)
@@ -39,7 +39,7 @@ namespace Fancy
       auto it = myDescriptorSetLayouts.find(setLayoutHash);
       if (it != myDescriptorSetLayouts.end())
       {
-        descSetLayouts.Add(it->second);
+        descSetLayouts.push_back(it->second);
       }
       else
       {
@@ -53,10 +53,10 @@ namespace Fancy
         VkDescriptorSetLayout setLayout = nullptr;
         ASSERT_VK_RESULT(vkCreateDescriptorSetLayout(platformVk->myDevice, &createInfo, nullptr, &setLayout));
         myDescriptorSetLayouts[setLayoutHash] = setLayout;
-        descSetLayouts.Add(setLayout);
+        descSetLayouts.push_back(setLayout);
       }
 
-      aDescriptorSetLayoutsOut[setInfo.mySet] = descSetLayouts.GetLast();
+      aDescriptorSetLayoutsOut[setInfo.mySet] = descSetLayouts.back();
     }
 
     {
@@ -74,8 +74,8 @@ namespace Fancy
     layoutCreateInfo.pNext = nullptr;
     layoutCreateInfo.pPushConstantRanges = nullptr;  // Don't use push constants for now
     layoutCreateInfo.pushConstantRangeCount = 0u;
-    layoutCreateInfo.setLayoutCount = (uint)descSetLayouts.Size();
-    layoutCreateInfo.pSetLayouts = descSetLayouts.GetBuffer();
+    layoutCreateInfo.setLayoutCount = (uint)descSetLayouts.size();
+    layoutCreateInfo.pSetLayouts = descSetLayouts.data();
 
     VkPipelineLayout pipelineLayout = nullptr;
     ASSERT_VK_RESULT(vkCreatePipelineLayout(platformVk->myDevice, &layoutCreateInfo, nullptr, &pipelineLayout));

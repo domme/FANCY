@@ -16,7 +16,7 @@ namespace Fancy
     std::wstring ToWideString(const String& aStr);
     String ToNarrowString(const std::wstring& aStr);
 //---------------------------------------------------------------------------//
-    void Tokenize(const String& _str, const char* _szDelimiters, DynamicArray<String>& _outTokenList);
+    void Tokenize(const String& _str, const char* _szDelimiters, eastl::vector<String>& _outTokenList);
 //---------------------------------------------------------------------------//
     int FindFirstOf(const char* aStr, char aChar);
 //---------------------------------------------------------------------------//

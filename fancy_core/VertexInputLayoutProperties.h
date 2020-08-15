@@ -2,7 +2,6 @@
 
 #include "FancyCoreDefines.h"
 #include "RenderEnums.h"
-#include "StaticArray.h"
 #include "DataFormat.h"
 
 #include "EASTL/fixed_vector.h"

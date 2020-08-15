@@ -117,10 +117,10 @@ namespace Fancy
 
       GpuResourceHazardDataDX12& globalHazardData = resource->GetDX12Data()->myHazardData;
       const CommandListDX12::LocalHazardData& localHazardData = it.second;
-      ASSERT(globalHazardData.mySubresources.size() == localHazardData.mySubresources.Size());
+      ASSERT(globalHazardData.mySubresources.size() == localHazardData.mySubresources.size());
 
-      StaticArray<D3D12_RESOURCE_BARRIER, 1024> subresourceTransitions;
-      for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.Size(); ++subIdx)
+      eastl::fixed_vector<D3D12_RESOURCE_BARRIER, 64> subresourceTransitions;
+      for (uint subIdx = 0u; subIdx < (uint) localHazardData.mySubresources.size(); ++subIdx)
       {
         GpuSubresourceHazardDataDX12& globalSubData = globalHazardData.mySubresources[subIdx];
         const CommandListDX12::SubresourceHazardData& localSubData = localHazardData.mySubresources[subIdx];
@@ -163,16 +163,16 @@ namespace Fancy
             DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateBefore).c_str(), DebugUtilsDX12::ResourceStatesToString(barrier.Transition.StateAfter).c_str());
 #endif
         
-        subresourceTransitions.Add(barrier);
+        subresourceTransitions.push_back(barrier);
       }
 
-      if (!subresourceTransitions.IsEmpty())
+      if (!subresourceTransitions.empty())
       {
-        bool canTransitionAllSubresources = subresourceTransitions.Size() == globalHazardData.mySubresources.size();
+        bool canTransitionAllSubresources = (uint) subresourceTransitions.size() == globalHazardData.mySubresources.size();
         if (canTransitionAllSubresources)
         {
-          const D3D12_RESOURCE_BARRIER& firstBarrier = subresourceTransitions.GetFirst();
-          for (uint i = 1u; canTransitionAllSubresources && i < subresourceTransitions.Size(); ++i)
+          const D3D12_RESOURCE_BARRIER& firstBarrier = subresourceTransitions.front();
+          for (uint i = 1u; canTransitionAllSubresources && i < (uint) subresourceTransitions.size(); ++i)
           {
             canTransitionAllSubresources &= firstBarrier.Transition.StateBefore == subresourceTransitions[i].Transition.StateBefore &&
               firstBarrier.Transition.StateAfter == subresourceTransitions[i].Transition.StateAfter;
@@ -181,14 +181,14 @@ namespace Fancy
 
         if (canTransitionAllSubresources)
         {
-          D3D12_RESOURCE_BARRIER barrier = subresourceTransitions.GetFirst();
+          D3D12_RESOURCE_BARRIER barrier = subresourceTransitions.front();
           barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
           patchingBarriers.push_back(barrier);
         }
         else
         {
-          patchingBarriers.reserve(patchingBarriers.size() + subresourceTransitions.Size());
-          for (uint i = 0u; i < subresourceTransitions.Size(); ++i)
+          patchingBarriers.reserve(patchingBarriers.size() + subresourceTransitions.size());
+          for (uint i = 0u; i < subresourceTransitions.size(); ++i)
             patchingBarriers.push_back(subresourceTransitions[i]);
         }
 

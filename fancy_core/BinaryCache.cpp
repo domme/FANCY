@@ -4,7 +4,6 @@
 #include "RenderCore.h"
 #include "PathService.h"
 #include "StringUtil.h"
-#include "DynamicArray.h"
 #include "TextureProperties.h"
 #include "GpuBuffer.h"
 #include "Scene.h"
@@ -146,7 +145,7 @@ namespace Fancy {
 
         if (needsTempData)
         {
-          DynamicArray<uint8> rawTextureData(overallSizeBytes);
+          eastl::vector<uint8> rawTextureData(overallSizeBytes);
           uint8* dst = rawTextureData.data();
           for (TextureSubData& subData : aVal.mySubDatas)
           {

@@ -115,7 +115,7 @@ namespace Fancy
     UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::NUM];
     UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
 
-    StaticArray<std::pair<VkBufferView, uint64>, 256> myTempBufferViews;
+    eastl::fixed_vector<eastl::pair<VkBufferView, uint64>, 64> myTempBufferViews;
 
     PipelineLayoutCacheVk myPipelineLayoutCache;
     FrameBufferCacheVk myFrameBufferCache;

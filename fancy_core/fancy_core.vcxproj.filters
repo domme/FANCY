@@ -224,9 +224,6 @@
     <ClInclude Include="DynamicArray.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="FixedArray.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Ptr.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -358,9 +355,6 @@
     </ClInclude>
     <ClInclude Include="TextureReadbackTask.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="StaticArray.h">
-      <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="DxcShaderCompiler.h">
       <Filter>Rendering</Filter>
@@ -681,6 +675,9 @@
     </ClCompile>
     <ClCompile Include="ObjectCore.cpp">
       <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="EASTLAllocator.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

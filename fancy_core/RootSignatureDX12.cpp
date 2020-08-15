@@ -10,14 +10,14 @@ namespace Fancy
   void RootSignatureBindingsDX12::Clear()
   {
     // Clear bound resources but don't change parameters or descriptor table info
-    for (uint iParam = 0u; iParam < myRootParameters.Size(); ++iParam)
+    for (uint iParam = 0u; iParam < (uint) myRootParameters.size(); ++iParam)
     {
       if (myRootParameters[iParam].myIsDescriptorTable)
       {
         DescriptorTable& table = myRootParameters[iParam].myDescriptorTable;
-        for (uint iRange = 0u; iRange < table.myRanges.Size(); ++iRange)
+        for (uint iRange = 0u; iRange < (uint) table.myRanges.size(); ++iRange)
         {
-          for (uint iDesc = 0u; iDesc < table.myRanges[iRange].myDescriptors.Size(); ++iDesc)
+          for (uint iDesc = 0u; iDesc < (uint) table.myRanges[iRange].myDescriptors.size(); ++iDesc)
             table.myRanges[iRange].myDescriptors[iDesc] = { 0ull };
         }
       }
@@ -31,7 +31,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   RootSignatureLayoutDX12::RootSignatureLayoutDX12(const D3D12_ROOT_SIGNATURE_DESC1& aRootSigDesc)
   {
-    myRootParameters.GrowToSize(aRootSigDesc.NumParameters);
+    myRootParameters.resize(aRootSigDesc.NumParameters);
     for (uint iRootParam = 0u; iRootParam < aRootSigDesc.NumParameters; ++iRootParam)
     {
       const D3D12_ROOT_PARAMETER1& srcParam = aRootSigDesc.pParameters[iRootParam];
@@ -45,7 +45,7 @@ namespace Fancy
         {
           const D3D12_ROOT_DESCRIPTOR_TABLE1& srcTable = srcParam.DescriptorTable;
           DescriptorTable& dstTable = dstParam.myDescriptorTable;
-          dstTable.myRanges.GrowToSize(srcTable.NumDescriptorRanges);
+          dstTable.myRanges.resize(srcTable.NumDescriptorRanges);
 
           for (uint iRange = 0u; iRange < srcTable.NumDescriptorRanges; ++iRange)
             dstTable.myRanges[iRange] = srcTable.pDescriptorRanges[iRange];
@@ -66,9 +66,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   RootSignatureBindingsDX12::RootSignatureBindingsDX12(const RootSignatureLayoutDX12& aLayout)
   {
-    myRootParameters.GrowToSize(aLayout.myRootParameters.Size());
+    myRootParameters.resize((uint)aLayout.myRootParameters.size());
 
-    for (uint iParam = 0u; iParam < myRootParameters.Size(); ++iParam)
+    for (uint iParam = 0u; iParam < (uint) myRootParameters.size(); ++iParam)
     {
       const RootSignatureLayoutDX12::RootParameter& srcParam = aLayout.myRootParameters[iParam];
       RootParameter& dstParam = myRootParameters[iParam];
@@ -77,11 +77,11 @@ namespace Fancy
       dstParam.myIsDescriptorTable = srcParam.myType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
       if (dstParam.myIsDescriptorTable)
       {
-        dstParam.myDescriptorTable.myRanges.GrowToSize(srcParam.myDescriptorTable.myRanges.Size());
+        dstParam.myDescriptorTable.myRanges.resize((uint)srcParam.myDescriptorTable.myRanges.size());
         dstParam.myDescriptorTable.myHeapType = D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
-        if (!srcParam.myDescriptorTable.myRanges.IsEmpty())
+        if (!srcParam.myDescriptorTable.myRanges.empty())
         {
-          const D3D12_DESCRIPTOR_RANGE1& srcRange = srcParam.myDescriptorTable.myRanges.GetFirst();
+          const D3D12_DESCRIPTOR_RANGE1& srcRange = srcParam.myDescriptorTable.myRanges.front();
           switch (srcRange.RangeType)
           {
           case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
@@ -96,19 +96,19 @@ namespace Fancy
           }
 
           dstParam.myDescriptorTable.myNumDescriptors = 0u;
-          for (uint iRange = 0u; iRange < dstParam.myDescriptorTable.myRanges.Size(); ++iRange)
+          for (uint iRange = 0u; iRange < (uint) dstParam.myDescriptorTable.myRanges.size(); ++iRange)
           {
             const D3D12_DESCRIPTOR_RANGE1& srcRange = srcParam.myDescriptorTable.myRanges[iRange];
             DescriptorRange& dstRange = dstParam.myDescriptorTable.myRanges[iRange];
 
             dstRange.myType = srcRange.RangeType;
 
-            dstRange.myDescriptors.GrowToSize(glm::min(srcRange.NumDescriptors, dstRange.myDescriptors.Capacity()));
+            dstRange.myDescriptors.resize(srcRange.NumDescriptors);
 
-            for (uint iDesc = 0u; iDesc < dstRange.myDescriptors.Size(); ++iDesc)
+            for (uint iDesc = 0u; iDesc < (uint) dstRange.myDescriptors.size(); ++iDesc)
               dstRange.myDescriptors[iDesc] = { 0ull };
 
-            dstParam.myDescriptorTable.myNumDescriptors += dstRange.myDescriptors.Size();
+            dstParam.myDescriptorTable.myNumDescriptors += (uint) dstRange.myDescriptors.size();
           }
         }
       }

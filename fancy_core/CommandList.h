@@ -146,6 +146,7 @@ namespace Fancy {
 
     enum Consts {
       kNumCachedBarriers = 256,
+      kNumExpectedResourcesPerDispatch = 64,  // Mainly controls the hazard tracking data. TODO: Expose this in a better way - e.g. by making commandlists templated on the expected resource count
     };
 
     GpuQuery AllocateQuery(GpuQueryType aType);

@@ -3,7 +3,6 @@
 #include "ShaderCompiler.h"
 #include "PathService.h"
 #include "FileReader.h"
-#include "StaticArray.h"
 
 #include <dxc/dxcapi.h>
 #include <atomic>
@@ -14,7 +13,7 @@ namespace Fancy
   {
     struct IncludeHandler : IDxcIncludeHandler
     {
-      StaticArray<std::wstring, 16> myIncludeSearchPaths;
+      eastl::fixed_vector<std::wstring, 16> myIncludeSearchPaths;
       IDxcLibrary* myDxcLibrary;
 
       IncludeHandler(IDxcLibrary* aDxcLibrary, String* someIncludeSearchPaths, uint aNumPaths)
@@ -26,9 +25,9 @@ namespace Fancy
           ASSERT(!dir.empty());
 
           if (dir[dir.size() - 1] != '/' && dir[dir.size() - 1] != '\\')
-            myIncludeSearchPaths.Add(StringUtil::ToWideString(dir + '/'));
+            myIncludeSearchPaths.push_back(StringUtil::ToWideString(dir + '/'));
           else
-            myIncludeSearchPaths.Add(StringUtil::ToWideString(dir));
+            myIncludeSearchPaths.push_back(StringUtil::ToWideString(dir));
         }
       }
 
@@ -47,7 +46,7 @@ namespace Fancy
           return S_OK;
         }
 
-        for (uint i = 0u; i < myIncludeSearchPaths.Size(); ++i)
+        for (uint i = 0u; i < (uint) myIncludeSearchPaths.size(); ++i)
         {
           std::wstring path = myIncludeSearchPaths[i] + pFilename;
           if (Path::FileExists(path.c_str()))
@@ -163,26 +162,26 @@ namespace Fancy
         AddArgument(L"-fvk-invert-y");
     }
 
-    StaticArray<std::wstring, 32> defineNames;
-    StaticArray<DxcDefine, 32> defines;
+    eastl::fixed_vector<std::wstring, 32> defineNames;
+    eastl::fixed_vector<DxcDefine, 32> defines;
     for (const String& define : aDesc.myDefines)
     {
-      defineNames.Add(StringUtil::ToWideString(define));
-      defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
+      defineNames.push_back(StringUtil::ToWideString(define));
+      defines.push_back({ defineNames[defineNames.size() - 1].c_str(), nullptr });
     }
 
-    defineNames.Add(L"DXC_COMPILER");
-    defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
+    defineNames.push_back(L"DXC_COMPILER");
+    defines.push_back({ defineNames[defineNames.size() - 1].c_str(), nullptr });
 
     if (aConfig.mySpirv)
     {
-      defineNames.Add(L"VULKAN");
-      defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
+      defineNames.push_back(L"VULKAN");
+      defines.push_back({ defineNames[defineNames.size() - 1].c_str(), nullptr });
     }
 
     const char* stageDefine = ShaderCompiler::ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
-    defineNames.Add(StringUtil::ToWideString(stageDefine));
-    defines.Add({ defineNames[defineNames.Size() - 1].c_str(), nullptr });
+    defineNames.push_back(StringUtil::ToWideString(stageDefine));
+    defines.push_back({ defineNames[defineNames.size() - 1].c_str(), nullptr });
 
     String includePaths[] =
     {
@@ -200,8 +199,8 @@ namespace Fancy
       StringUtil::ToWideString(ShaderCompiler::GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage))).c_str(),
       args,
       numArgs,
-      defines.GetBuffer(),
-      defines.Size(),
+      defines.data(),
+      (uint) defines.size(),
       includeHandler.Get(),
       &compiledResult);
 

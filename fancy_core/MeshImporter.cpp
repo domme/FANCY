@@ -19,7 +19,6 @@
 #include "PathService.h"
 #include "RendererPrerequisites.h"
 #include "StaticString.h"
-#include "StaticArray.h"
 #include "Material.h"
 #include "BinaryCache.h"
 
@@ -165,19 +164,19 @@ namespace Fancy
     if (aNode->mNumMeshes == 0)
       return true;
 
-    std::unordered_map<uint, DynamicArray<aiMesh*>> materialMeshMap;
+    std::unordered_map<uint, eastl::fixed_vector<aiMesh*, 32>> materialMeshMap;
     for (uint i = 0u; i < aNode->mNumMeshes; ++i)
     {
       aiMesh* mesh = myScene->mMeshes[aNode->mMeshes[i]];
 
-      DynamicArray<aiMesh*>& meshList = materialMeshMap[mesh->mMaterialIndex];
+      eastl::fixed_vector<aiMesh*, 32>& meshList = materialMeshMap[mesh->mMaterialIndex];
       if (std::find(meshList.begin(), meshList.end(), mesh) == meshList.end())
         meshList.push_back(mesh);
     }
     
     for (auto it = materialMeshMap.begin(); it != materialMeshMap.end(); ++it)
     {
-      DynamicArray<aiMesh*>& meshList = it->second;
+      eastl::fixed_vector<aiMesh*, 32>& meshList = it->second;
       const uint aiMatIndex = it->first;
 
       aiMaterial* aiMaterial = myScene->mMaterials[aiMatIndex];
@@ -204,7 +203,7 @@ namespace Fancy
       return it->second;
 
     MeshData meshData;
-    DynamicArray<MeshPartData>& meshPartDatas = meshData.myParts;
+    eastl::vector<MeshPartData>& meshPartDatas = meshData.myParts;
     for (uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh)
     {
       const aiMesh* aiMesh = someMeshes[iAiMesh];
@@ -218,7 +217,7 @@ namespace Fancy
         uint mySourceSemanticIndex;
         uint myReadOffset = 0u;
       };
-      DynamicArray<ImportVertexStream> importStreams;
+      eastl::vector<ImportVertexStream> importStreams;
 
       ASSERT(aiMesh->HasPositions());
       {

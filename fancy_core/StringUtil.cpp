@@ -16,7 +16,7 @@ namespace Fancy
     return converter.to_bytes(aStr);
   }
 //---------------------------------------------------------------------------//
-  void StringUtil::Tokenize(const String& _str, const char* _szDelimiters, DynamicArray<String>& _outTokenList)
+  void StringUtil::Tokenize(const String& _str, const char* _szDelimiters, eastl::vector<String>& _outTokenList)
   {
     char* cstr = const_cast<char*>(_str.c_str());
     cstr = strtok(cstr, _szDelimiters);

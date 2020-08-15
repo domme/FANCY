@@ -9,6 +9,7 @@
 #include "GpuBuffer.h"
 #include "GpuResourceDataVk.h"
 #include "DebugUtilsVk.h"
+#include "MathIncludes.h"
 
 #if FANCY_ENABLE_VK
 
@@ -103,7 +104,7 @@ namespace Fancy
     VkSemaphore otherQueueSemaphore = otherQueue->myTimelineSemaphore;
     uint64 waitVal = otherQueue->myNextFenceVal - 1u;
 
-    for (uint i = 0u; i < myPendingStallSemaphores.Size(); ++i)
+    for (uint i = 0u; i < (uint) myPendingStallSemaphores.size(); ++i)
     {
       if (myPendingStallSemaphores[i].first == otherQueueSemaphore)
         myPendingStallSemaphores[i].second = glm::max(myPendingStallSemaphores[i].second, waitVal);
@@ -111,7 +112,7 @@ namespace Fancy
       return;
     }
 
-    myPendingStallSemaphores.Add({ otherQueueSemaphore, waitVal });
+    myPendingStallSemaphores.push_back({ otherQueueSemaphore, waitVal });
   }
 //---------------------------------------------------------------------------//
   void CommandQueueVk::StallForFence(uint64 aFenceVal)
@@ -121,7 +122,7 @@ namespace Fancy
 
     VkSemaphore otherQueueSemaphore = otherQueue->myTimelineSemaphore;
     
-    for (uint i = 0u; i < myPendingStallSemaphores.Size(); ++i)
+    for (uint i = 0u; i < (uint) myPendingStallSemaphores.size(); ++i)
     {
       if (myPendingStallSemaphores[i].first == otherQueueSemaphore)
         myPendingStallSemaphores[i].second = glm::max(myPendingStallSemaphores[i].second, aFenceVal);
@@ -129,7 +130,7 @@ namespace Fancy
       return;
     }
 
-    myPendingStallSemaphores.Add({ otherQueueSemaphore, aFenceVal });
+    myPendingStallSemaphores.push_back({ otherQueueSemaphore, aFenceVal });
   }
 //---------------------------------------------------------------------------//
   uint64 CommandQueueVk::ExecuteCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode)
@@ -145,30 +146,30 @@ namespace Fancy
     CommandListVk* commandListVk = static_cast<CommandListVk*>(aCommandList);
     VkCommandBuffer commandBuffer = commandListVk->GetCommandBuffer();
 
-    StaticArray<VkSemaphore, (uint)CommandListType::NUM> waitSemaphores;
-    StaticArray<uint64, (uint)CommandListType::NUM> waitValues;
-    for (uint i = 0u; i < myPendingStallSemaphores.Size(); ++i)
+    eastl::fixed_vector<VkSemaphore, (uint)CommandListType::NUM, false> waitSemaphores;
+    eastl::fixed_vector<uint64, (uint)CommandListType::NUM, false> waitValues;
+    for (uint i = 0u; i < (uint) myPendingStallSemaphores.size(); ++i)
     {
-      waitSemaphores.Add(myPendingStallSemaphores[i].first);
-      waitValues.Add(myPendingStallSemaphores[i].second);
+      waitSemaphores.push_back(myPendingStallSemaphores[i].first);
+      waitValues.push_back(myPendingStallSemaphores[i].second);
     }
-    myPendingStallSemaphores.ClearDiscard();
+    myPendingStallSemaphores.clear();
 
     uint64 fenceValPostSubmit = myNextFenceVal++;
 
     VkTimelineSemaphoreSubmitInfo timelineSubmitInfo = {};
     timelineSubmitInfo.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO;
     timelineSubmitInfo.pNext = nullptr;
-    timelineSubmitInfo.pWaitSemaphoreValues = waitValues.IsEmpty() ? nullptr : waitValues.GetBuffer();
+    timelineSubmitInfo.pWaitSemaphoreValues = waitValues.empty() ? nullptr : waitValues.data();
     timelineSubmitInfo.signalSemaphoreValueCount = 1u;
     timelineSubmitInfo.pSignalSemaphoreValues = &fenceValPostSubmit;
-    timelineSubmitInfo.waitSemaphoreValueCount = waitValues.Size();
+    timelineSubmitInfo.waitSemaphoreValueCount = (uint) waitValues.size();
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.pNext = &timelineSubmitInfo;
-    submitInfo.waitSemaphoreCount = waitSemaphores.Size();
-    submitInfo.pWaitSemaphores = waitSemaphores.IsEmpty() ? nullptr : waitSemaphores.GetBuffer();
+    submitInfo.waitSemaphoreCount = (uint) waitSemaphores.size();
+    submitInfo.pWaitSemaphores = waitSemaphores.empty() ? nullptr : waitSemaphores.data();
     submitInfo.pWaitDstStageMask = &stageFlags;
     submitInfo.commandBufferCount = 1u;
     submitInfo.pCommandBuffers = &commandBuffer;
@@ -211,7 +212,7 @@ namespace Fancy
 
       DynamicArray<CommandListVk::BufferMemoryBarrierData> subresourceBufferBarriers;
       DynamicArray<CommandListVk::ImageMemoryBarrierData> subresourceImageBarriers;
-      for (uint subIdx = 0u; subIdx < localHazardData.mySubresources.Size(); ++subIdx)
+      for (uint subIdx = 0u; subIdx < (uint) localHazardData.mySubresources.size(); ++subIdx)
       {
         GpuSubresourceHazardDataVk& globalSubData = globalHazardData.mySubresources[subIdx];
         const CommandListVk::SubresourceHazardData& localSubData = localHazardData.mySubresources[subIdx];

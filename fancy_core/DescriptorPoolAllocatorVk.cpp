@@ -18,53 +18,55 @@ namespace Fancy
   DescriptorPoolAllocatorVk::~DescriptorPoolAllocatorVk()
   {
     UpdateWaitingPools();
-    ASSERT(myWaitingPools.IsEmpty());
-    ASSERT(myAvaiablePools.Size() == myCreatedPools.Size());
+    ASSERT(myWaitingPools.empty());
+    ASSERT(myAvaiablePools.size() == myCreatedPools.size());
 
-    for (uint i = 0u; i < myCreatedPools.Size(); ++i)
-      vkDestroyDescriptorPool(RenderCore::GetPlatformVk()->myDevice, myCreatedPools[i], nullptr);
+    for (VkDescriptorPool pool : myCreatedPools)
+      vkDestroyDescriptorPool(RenderCore::GetPlatformVk()->myDevice, pool, nullptr);
   }
 //---------------------------------------------------------------------------//
   VkDescriptorPool DescriptorPoolAllocatorVk::AllocateDescriptorPool()
   {
     UpdateWaitingPools();
 
-    if (myAvaiablePools.IsEmpty())
+    if (myAvaiablePools.empty())
       CreateDescriptorPool();
 
-    ASSERT(!myAvaiablePools.IsEmpty());
-    VkDescriptorPool pool = myAvaiablePools[myAvaiablePools.Size() - 1];
-    myAvaiablePools.RemoveLast();
+    ASSERT(!myAvaiablePools.empty());
+    VkDescriptorPool pool = myAvaiablePools.front();
+    myAvaiablePools.pop_front();
+
     return pool;
   }
 //---------------------------------------------------------------------------//
   void DescriptorPoolAllocatorVk::FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence)
   {
 #if FANCY_RENDERER_DEBUG
-    for (uint i = 0u; i < myWaitingPools.Size(); ++i)
-      ASSERT(myWaitingPools[i].second != aDescriptorPool);
-    for (uint i = 0u; i < myAvaiablePools.Size(); ++i)
-      ASSERT(myAvaiablePools[i] != aDescriptorPool);
+    for(auto& waiting : myWaitingPools)
+      ASSERT(waiting.second != aDescriptorPool);
+    for (VkDescriptorPool availablePool : myAvaiablePools)
+      ASSERT(availablePool != aDescriptorPool);
 #endif
 
-    myWaitingPools.Add({ aFence, aDescriptorPool });
+    myWaitingPools.push_back({ aFence, aDescriptorPool });
   }
 //---------------------------------------------------------------------------//
   void DescriptorPoolAllocatorVk::UpdateWaitingPools()
   {
-    for (uint i = 0u; i < myWaitingPools.Size(); ++i)
+    for (auto it = myWaitingPools.begin(); it != myWaitingPools.end(); )
     {
-      const std::pair<uint64, VkDescriptorPool>& waitingPool = myWaitingPools[i];
+      const eastl::pair<uint64, VkDescriptorPool>& waitingPool = *it;
 
       if (RenderCore::IsFenceDone(waitingPool.first))
       {
         VkDescriptorPool pool = waitingPool.second;
         ASSERT_VK_RESULT(vkResetDescriptorPool(RenderCore::GetPlatformVk()->myDevice, pool, 0u));
 
-        myAvaiablePools.Add(pool);
-        myWaitingPools.RemoveCyclicAt(i);
-        --i;
+        myAvaiablePools.push_back(pool);
+        it = myWaitingPools.erase(it);
       }
+      else
+        ++it;
     }
   }
 //---------------------------------------------------------------------------//
@@ -97,8 +99,8 @@ namespace Fancy
     VkDescriptorPool descriptorPool;
     ASSERT_VK_RESULT(vkCreateDescriptorPool(platformVk->myDevice, &poolCreateInfo, nullptr, &descriptorPool));
 
-    myCreatedPools.Add(descriptorPool);
-    myAvaiablePools.Add(descriptorPool);
+    myCreatedPools.push_back(descriptorPool);
+    myAvaiablePools.push_back(descriptorPool);
   }
 //---------------------------------------------------------------------------//
 }

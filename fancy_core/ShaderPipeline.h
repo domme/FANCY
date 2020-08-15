@@ -3,10 +3,10 @@
 #include "FancyCoreDefines.h"
 #include "ShaderPipelineDesc.h"
 
-#include "FixedArray.h"
 #include "Ptr.h"
 #include "Shader.h"
 #include "Log.h"
+#include "eastl/span.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -17,7 +17,7 @@ namespace Fancy {
       virtual ~ShaderPipeline();
 
       ShaderPipelineDesc GetDescription() const;
-      void Create(const FixedArray<SharedPtr<Shader>, (uint)ShaderStage::NUM>& someShaders);
+      void Create(const eastl::span<SharedPtr<Shader>, (uint) ShaderStage::NUM>& someShaders);
       void Recreate();
 
       uint64 GetHash() const { return GetDescription().GetHash(); }

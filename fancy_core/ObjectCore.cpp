@@ -300,10 +300,11 @@ namespace Fancy
     tempTexProps.myTextureProperties.myNumMipLevels = 1u;
     TempTextureResource tempTexture = RenderCore::AllocateTempTexture(tempTexProps, 0u, "Temp mipmapping texture");
 
-    const uint kMaxNumMips = 17;
-    ASSERT(numMips <= kMaxNumMips);
-    FixedArray<SharedPtr<TextureView>, kMaxNumMips> readViews;
-    FixedArray<SharedPtr<TextureView>, kMaxNumMips> writeViews;
+    eastl::fixed_vector<SharedPtr<TextureView>, 10> readViews;
+    eastl::fixed_vector<SharedPtr<TextureView>, 10> writeViews;
+
+    readViews.resize(numMips);
+    writeViews.resize(numMips);
 
     TextureViewProperties props;
     props.mySubresourceRange.myNumMipLevels = 1;

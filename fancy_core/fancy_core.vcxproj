@@ -148,7 +148,6 @@
     <ClInclude Include="DynamicArray.h" />
     <ClInclude Include="DynamicDescriptorHeapDX12.h" />
     <ClInclude Include="EASTLAllocator.h" />
-    <ClInclude Include="FixedArray.h" />
     <ClInclude Include="FrameBufferCacheVk.h" />
     <ClInclude Include="GpuBufferProperties.h" />
     <ClInclude Include="GpuBufferVk.h" />
@@ -190,7 +189,6 @@
     <ClInclude Include="RenderOutputVk.h" />
     <ClInclude Include="spirv_reflect\spirv.h" />
     <ClInclude Include="spirv_reflect\spirv_reflect.h" />
-    <ClInclude Include="StaticArray.h" />
     <ClInclude Include="StaticString.h" />
     <ClInclude Include="stb\stb_image.h" />
     <ClInclude Include="TempResourcePool.h" />
@@ -272,6 +270,7 @@
     <ClCompile Include="DescriptorPoolAllocatorVk.cpp" />
     <ClCompile Include="DxcShaderCompiler.cpp" />
     <ClCompile Include="DynamicDescriptorHeapDX12.cpp" />
+    <ClCompile Include="EASTLAllocator.cpp" />
     <ClCompile Include="FileWatcher.cpp" />
     <ClCompile Include="FrameBufferCacheVk.cpp" />
     <ClCompile Include="GpuBuffer.cpp" />

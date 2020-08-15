@@ -43,7 +43,7 @@ namespace Fancy
 
     static CommandLine* ourInstance;
 
-    DynamicArray<Argument> myArguments;
+    eastl::fixed_vector<Argument, 16> myArguments;
   };
 }
 

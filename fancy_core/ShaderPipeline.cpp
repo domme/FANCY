@@ -29,7 +29,7 @@ namespace Fancy {
     return desc;
   }
 //---------------------------------------------------------------------------//
-  void ShaderPipeline::Create(const FixedArray<SharedPtr<Shader>, (uint)ShaderStage::NUM>& someShaders)
+  void ShaderPipeline::Create(const eastl::span<SharedPtr<Shader>, (uint)ShaderStage::NUM>& someShaders)
   {
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
       myShaders[i] = someShaders[i];

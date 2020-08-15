@@ -81,8 +81,7 @@ namespace Fancy {
   UniquePtr<GpuQueryHeap> RenderCore::ourQueryHeaps[NUM_QUEUED_FRAMES][(uint)GpuQueryType::NUM];
   uint RenderCore::ourCurrQueryHeapIdx = 0;
 
-  FixedArray<std::pair<uint, uint>, 512> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
-  uint RenderCore::ourNumUsedQueryRanges[(uint)GpuQueryType::NUM] = { 0u };
+  eastl::fixed_vector<std::pair<uint, uint>, 64> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
 
   UniquePtr<GpuBuffer> RenderCore::ourQueryBuffers[NUM_QUERY_BUFFERS][(uint)GpuQueryType::NUM];
   uint64 RenderCore::ourQueryBufferFrames[NUM_QUERY_BUFFERS] = { UINT64_MAX };
@@ -142,7 +141,7 @@ namespace Fancy {
       const uint64 lastUsedFrame = ourQueryHeaps[ourCurrQueryHeapIdx][i]->myLastUsedFrame;
       ASSERT(lastUsedFrame == UINT64_MAX || IsFrameDone(lastUsedFrame));
       ourQueryHeaps[ourCurrQueryHeapIdx][i]->Reset(Time::ourFrameIdx);
-      ourNumUsedQueryRanges[i] = 0u;
+      ourUsedQueryRanges[i].clear();
     }
 
     ourCurrQueryBufferIdx = (ourCurrQueryBufferIdx + 1) % NUM_QUERY_BUFFERS;
@@ -597,55 +596,47 @@ namespace Fancy {
   void RenderCore::ResolveUsedQueryData()
   {
     bool hasAnyQueryData = false;
-    for (uint numRanges : ourNumUsedQueryRanges)
-      hasAnyQueryData |= numRanges > 0u;
+    for (eastl::fixed_vector<std::pair<uint, uint>, 64>& queryRanges : ourUsedQueryRanges)
+      hasAnyQueryData |= !queryRanges.empty();
 
     if (!hasAnyQueryData)
       return;
 
-    for (uint queryType = 0u; !hasAnyQueryData && queryType < (uint)GpuQueryType::NUM; ++queryType)
+    CommandList* commandList = BeginCommandList(CommandListType::Graphics);
+    for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
     {
-      if (ourNumUsedQueryRanges[queryType] > 0u)
-        hasAnyQueryData = true;
-    }
+      if (ourUsedQueryRanges[queryType].empty())
+        continue;
 
-    if (hasAnyQueryData)
-    {
-      CommandList* commandList = BeginCommandList(CommandListType::Graphics);
-      for (uint queryType = 0u; queryType < (uint)GpuQueryType::NUM; ++queryType)
+      const uint numUsedQueryRanges = (uint) ourUsedQueryRanges[queryType].size();
+      std::pair<uint, uint>* mergedRanges = (std::pair<uint, uint>*) alloca(sizeof(std::pair<uint, uint>) * numUsedQueryRanges);
+      uint numUsedMergedRanges = 0u;
+
+      std::pair<uint, uint> currMergedRange = ourUsedQueryRanges[queryType][0];
+      for (uint i = 1u; i < numUsedQueryRanges; ++i)
       {
-        if (ourNumUsedQueryRanges[queryType] == 0u)
-          continue;
-
-        std::pair<uint, uint>* mergedRanges = (std::pair<uint, uint>*) alloca(sizeof(std::pair<uint, uint>) * ourNumUsedQueryRanges[queryType]);
-        uint numUsedMergedRanges = 0u;
-
-        std::pair<uint, uint> currMergedRange = ourUsedQueryRanges[queryType][0];
-        for (uint i = 1u; i < ourNumUsedQueryRanges[queryType]; ++i)
+        const std::pair<uint, uint>& range = ourUsedQueryRanges[queryType][i];
+        if (range.first == currMergedRange.second)
         {
-          const std::pair<uint, uint>& range = ourUsedQueryRanges[queryType][i];
-          if (range.first == currMergedRange.second)
-          {
-            currMergedRange.second = range.second;
-          }
-          else
-          {
-            mergedRanges[numUsedMergedRanges++] = currMergedRange;
-            currMergedRange = range;
-          }
+          currMergedRange.second = range.second;
         }
-        mergedRanges[numUsedMergedRanges++] = currMergedRange;
-
-        const GpuQueryHeap* heap = ourQueryHeaps[ourCurrQueryHeapIdx][queryType].get();
-        const GpuBuffer* readbackBuffer = ourQueryBuffers[ourCurrQueryBufferIdx][queryType].get();
-        const uint queryDataSize = GetQueryTypeDataSize((GpuQueryType)queryType);
-        for (uint i = 0u; i < numUsedMergedRanges; ++i)
+        else
         {
-          const std::pair<uint, uint>& mergedRange = mergedRanges[i];
-          const uint numQueries = mergedRange.second - mergedRange.first;
-          const uint64 offsetInBuffer = mergedRange.first * queryDataSize;
-          commandList->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.first, numQueries, offsetInBuffer);
+          mergedRanges[numUsedMergedRanges++] = currMergedRange;
+          currMergedRange = range;
         }
+      }
+      mergedRanges[numUsedMergedRanges++] = currMergedRange;
+
+      const GpuQueryHeap* heap = ourQueryHeaps[ourCurrQueryHeapIdx][queryType].get();
+      const GpuBuffer* readbackBuffer = ourQueryBuffers[ourCurrQueryBufferIdx][queryType].get();
+      const uint queryDataSize = GetQueryTypeDataSize((GpuQueryType)queryType);
+      for (uint i = 0u; i < numUsedMergedRanges; ++i)
+      {
+        const std::pair<uint, uint>& mergedRange = mergedRanges[i];
+        const uint numQueries = mergedRange.second - mergedRange.first;
+        const uint64 offsetInBuffer = mergedRange.first * queryDataSize;
+        commandList->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.first, numQueries, offsetInBuffer);
       }
 
       ExecuteAndFreeCommandList(commandList);
@@ -654,7 +645,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::UpdateChangedShaders()
   {
-    StaticArray<Shader*, 32> shadersToRecompile;
+    eastl::fixed_vector<Shader*, 8> shadersToRecompile;
     for (const String& shaderFile : ourChangedShaderFiles)
     {
       // Find GpuPrograms for this file
@@ -667,12 +658,12 @@ namespace Fancy {
           Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(desc.myPath.c_str()));
 
         if (actualShaderPath == shaderFile)
-          shadersToRecompile.Add(program);
+          shadersToRecompile.push_back(program);
       }
     }
     ourChangedShaderFiles.clear();
 
-    for (uint i = 0u; i < shadersToRecompile.Size(); ++i)
+    for (uint i = 0u; i < (uint) shadersToRecompile.size(); ++i)
     {
       Shader* shader = shadersToRecompile[i];
 
@@ -684,24 +675,24 @@ namespace Fancy {
     }
 
     // Check which pipelines need to be updated...
-    StaticArray<ShaderPipeline*, 32> changedPipelines;
+    eastl::fixed_vector<ShaderPipeline*, 8> changedPipelines;
     for (auto it = ourShaderPipelineCache.begin(); it != ourShaderPipelineCache.end(); ++it)
     {
       ShaderPipeline* pipeline = it->second.get();
 
-      for (uint i = 0u; i < shadersToRecompile.Size(); ++i)
+      for (uint i = 0u; i < (uint) shadersToRecompile.size(); ++i)
       {
         Shader* changedShader = shadersToRecompile[i];
         const uint stage = static_cast<uint>(changedShader->myProperties.myShaderStage);
         if (changedShader == pipeline->GetShader(stage))
         {
-          changedPipelines.Add(pipeline);
+          changedPipelines.push_back(pipeline);
           break;
         }
       }
     }
 
-    for (uint i = 0u; i < changedPipelines.Size(); ++i)
+    for (uint i = 0u; i < (uint) changedPipelines.size(); ++i)
     {
       ShaderPipeline* pipeline = changedPipelines[i];
       pipeline->Recreate();
@@ -748,7 +739,7 @@ namespace Fancy {
     if (it != ourShaderPipelineCache.end())
       return it->second;
 
-    std::array<SharedPtr<Shader>, (uint)ShaderStage::NUM> pipelinePrograms{ nullptr };
+    SharedPtr<Shader> pipelinePrograms[(uint)ShaderStage::NUM];
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
       if (!aDesc.myShader[i].myPath.empty())
@@ -995,11 +986,7 @@ namespace Fancy {
       heap->myNextFreeQuery = aFirstQuery + aNumUsedQueries;
 
     if (aNumUsedQueries > 0u)
-    {
-      uint& numUsedQueryRanges = ourNumUsedQueryRanges[(uint)aType];
-      ASSERT(numUsedQueryRanges < ourUsedQueryRanges[(uint)aType].size(), "Increase array-size of usedQueryRanges-array");
-      ourUsedQueryRanges[(uint)aType][numUsedQueryRanges++] = std::make_pair(aFirstQuery, aFirstQuery + aNumUsedQueries);
-    }
+      ourUsedQueryRanges[(uint)aType].push_back({ aFirstQuery, aFirstQuery + aNumUsedQueries });
   }
 //---------------------------------------------------------------------------//
   bool RenderCore::BeginQueryDataReadback(GpuQueryType aType, uint64 aFrameIdx, const uint8** aDataPtrOut /*= nullptr*/)

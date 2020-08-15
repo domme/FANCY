@@ -874,7 +874,7 @@ namespace Fancy
   void RenderCore_PlatformVk::Shutdown()
   {
     DestroyTempBufferViews();
-    ASSERT(myTempBufferViews.IsEmpty());
+    ASSERT(myTempBufferViews.empty());
 
     for (UniquePtr<CommandBufferAllocatorVk>& cmdBufferAllocator : myCommandBufferAllocators)
       cmdBufferAllocator.reset();
@@ -1014,21 +1014,22 @@ namespace Fancy
   void RenderCore_PlatformVk::ReleaseTempBufferView(VkBufferView aBufferView, uint64 aFence)
   {
 #if FANCY_RENDERER_DEBUG
-    for (uint i = 0u; i < myTempBufferViews.Size(); ++i)
+    for (uint i = 0u; i < myTempBufferViews.size(); ++i)
       ASSERT(myTempBufferViews[i].first != aBufferView);
 #endif
 
-    myTempBufferViews.Add({ aBufferView, aFence });
+    myTempBufferViews.push_back({ aBufferView, aFence });
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformVk::DestroyTempBufferViews()
   {
-    for (uint i = 0u; i < myTempBufferViews.Size(); ++i)
+    for (uint i = 0u; i < (uint) myTempBufferViews.size(); ++i)
     {
       if (RenderCore::IsFenceDone(myTempBufferViews[i].second))
       {
         vkDestroyBufferView(myDevice, myTempBufferViews[i].first, nullptr);
-        myTempBufferViews.RemoveCyclicAt(i--);
+        myTempBufferViews.erase_unsorted(myTempBufferViews.begin() + i);
+        --i;
       }
     } 
   }

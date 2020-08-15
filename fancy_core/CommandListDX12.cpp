@@ -236,7 +236,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool CommandListDX12::CreateDescriptorTable(const RootSignatureBindingsDX12::DescriptorTable& aTable, DescriptorDX12& aStartDescriptorOut)
   {
-    if (aTable.myRanges.IsEmpty())
+    if (aTable.myRanges.empty())
       return false;
 
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
@@ -247,10 +247,10 @@ namespace Fancy {
       srcRegionSizes[i] = 1u;
 
     uint numSrcRegions = 0u;
-    for (uint iRange = 0u; iRange < aTable.myRanges.Size(); ++iRange)
+    for (uint iRange = 0u; iRange < (uint) aTable.myRanges.size(); ++iRange)
     {
       const RootSignatureBindingsDX12::DescriptorRange& srcRange = aTable.myRanges[iRange];
-      for (uint iDesc = 0u; iDesc < srcRange.myDescriptors.Size(); ++iDesc)
+      for (uint iDesc = 0u; iDesc < (uint) srcRange.myDescriptors.size(); ++iDesc)
       {
         if (srcRange.myDescriptors[iDesc].ptr != 0ull)
         {
@@ -593,17 +593,17 @@ namespace Fancy {
     myTopologyDirty = true;
     myRootSignature = nullptr;
     myRootSignatureBindings = nullptr;
-    myPendingBarriers.ClearDiscard();
+    myPendingBarriers.clear();
     ClearResourceBindings();
     myLocalHazardData.clear();
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::FlushBarriers()
   {
-    if (!myPendingBarriers.IsEmpty())
+    if (!myPendingBarriers.empty())
     {
-      myCommandList->ResourceBarrier(myPendingBarriers.Size(), myPendingBarriers.GetBuffer());
-      myPendingBarriers.ClearDiscard();
+      myCommandList->ResourceBarrier((uint)myPendingBarriers.size(), myPendingBarriers.data());
+      myPendingBarriers.clear();
     }
   }
 //---------------------------------------------------------------------------//
@@ -675,7 +675,7 @@ namespace Fancy {
     {
       // We need to create a temporary descriptor that can be bound to the table.
       tempDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, "buffer temp descriptor");
-      myTempAllocatedDescriptors.Add(tempDescriptor);
+      myTempAllocatedDescriptors.push_back(tempDescriptor);
       switch (viewType)
       {
       case GpuResourceViewType::CBV:
@@ -744,7 +744,7 @@ namespace Fancy {
   void CommandListDX12::BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex)
   {
     ASSERT(myRootSignatureBindings != nullptr);
-    ASSERT(aResourceInfo.myRootParamIndex < myRootSignatureBindings->myRootParameters.Size());
+    ASSERT(aResourceInfo.myRootParamIndex < (uint) myRootSignatureBindings->myRootParameters.size());
     ASSERT(aResourceInfo.myNumDescriptors > anArrayIndex);
 
     RootSignatureBindingsDX12::RootParameter& rootParam = myRootSignatureBindings->myRootParameters[aResourceInfo.myRootParamIndex];
@@ -753,10 +753,10 @@ namespace Fancy {
     if (aResourceInfo.myIsDescriptorTableEntry)
     {
       RootSignatureBindingsDX12::DescriptorTable& descTable = rootParam.myDescriptorTable;
-      ASSERT(aResourceInfo.myDescriptorTableRangeIdx < descTable.myRanges.Size());
+      ASSERT(aResourceInfo.myDescriptorTableRangeIdx < (uint) descTable.myRanges.size());
       
       RootSignatureBindingsDX12::DescriptorRange& range = descTable.myRanges[aResourceInfo.myDescriptorTableRangeIdx];
-      ASSERT(anArrayIndex < range.myDescriptors.Size());
+      ASSERT(anArrayIndex < (uint) range.myDescriptors.size());
 
       range.myDescriptors[anArrayIndex] = aDescriptor.myCpuHandle;
     }
@@ -776,10 +776,10 @@ namespace Fancy {
     if (myRootSignatureBindings)
       myRootSignatureBindings->Clear();
 
-    for (uint i = 0u; i < myTempAllocatedDescriptors.Size(); ++i)
+    for (uint i = 0u; i < (uint) myTempAllocatedDescriptors.size(); ++i)
       RenderCore::GetPlatformDX12()->ReleaseDescriptor(myTempAllocatedDescriptors[i]);
 
-    myTempAllocatedDescriptors.ClearDiscard();
+    myTempAllocatedDescriptors.clear();
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandListDX12::BeginQuery(GpuQueryType aType)
@@ -928,7 +928,7 @@ namespace Fancy {
 
     ASSERT(inputLayout && inputLayout->myProperties.myBufferBindings.size() == aNumBuffers);
 
-    StaticArray<D3D12_VERTEX_BUFFER_VIEW, 16> vertexBufferViews;
+    eastl::fixed_vector<D3D12_VERTEX_BUFFER_VIEW, 4> vertexBufferViews;
     for (uint i = 0u; i < aNumBuffers; ++i)
     {
       const GpuBuffer* buffer = someBuffers[i];
@@ -937,7 +937,7 @@ namespace Fancy {
       GpuResourceDataDX12* resourceDataDx12 = buffer->GetDX12Data();
       const uint64 resourceStartAddress = resourceDataDx12->myResource->GetGPUVirtualAddress();
 
-      D3D12_VERTEX_BUFFER_VIEW& vertexBufferView = vertexBufferViews.Add();
+      D3D12_VERTEX_BUFFER_VIEW& vertexBufferView = vertexBufferViews.push_back();
       vertexBufferView.BufferLocation = resourceStartAddress + someOffsets[i];
       ASSERT(someSizes[i] <= UINT_MAX);
       vertexBufferView.SizeInBytes = static_cast<uint>(someSizes[i]);
@@ -945,7 +945,7 @@ namespace Fancy {
       vertexBufferView.StrideInBytes = inputLayout->myProperties.myBufferBindings[i].myStride;
     }
 
-    myCommandList->IASetVertexBuffers(0, vertexBufferViews.Size(), vertexBufferViews.GetBuffer());
+    myCommandList->IASetVertexBuffers(0, (uint) vertexBufferViews.size(), vertexBufferViews.data());
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anIndexOffset /* = 0u */, uint64 aNumIndices /* =~0ULL*/)
@@ -1066,12 +1066,12 @@ namespace Fancy {
     ASSERT(myRootSignature != nullptr);
     ASSERT(myRootSignatureBindings != nullptr);
 
-    if (myRootSignatureBindings->myRootParameters.IsEmpty())
+    if (myRootSignatureBindings->myRootParameters.empty())
       return;
 
     FlushBarriers();  // D3D12 needs a barrier flush here so the debug layer doesn't complain about expecting static descriptors and data at this point
 
-    for (uint i = 0u; i < myRootSignatureBindings->myRootParameters.Size(); ++i)
+    for (uint i = 0u; i < (uint) myRootSignatureBindings->myRootParameters.size(); ++i)
     {
       const RootSignatureBindingsDX12::RootParameter& rootParam = myRootSignatureBindings->myRootParameters[i];
 
@@ -1148,9 +1148,7 @@ namespace Fancy {
     D3D12_RESOURCE_STATES dstStates = ResolveValidateDstStates(aResource, aNewState);
     
     uint numPossibleSubresourceTransitions = 0u;
-    StaticArray<bool, 64> subresourceTransitionPossible;
-    subresourceTransitionPossible.GrowToSize(aSubresourceRange.GetNumSubresources());
-    memset(subresourceTransitionPossible.GetBuffer(), 0, subresourceTransitionPossible.ByteSize());
+    eastl::fixed_vector<bool, 64> subresourceTransitionPossible(aSubresourceRange.GetNumSubresources(), false);
 
     uint i = 0u;
     for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it)
@@ -1171,7 +1169,7 @@ namespace Fancy {
     if (it == myLocalHazardData.end())  // We don't have a local record of this resource yet
     {
       localData = &myLocalHazardData[aResource];
-      localData->mySubresources.GrowToSize(aResource->mySubresources.GetNumSubresources());
+      localData->mySubresources.resize(aResource->mySubresources.GetNumSubresources());
     }
     else
     {
@@ -1183,7 +1181,7 @@ namespace Fancy {
     {
       const D3D12_RESOURCE_STATES firstSrcStates = localData->mySubresources[0].myStates;
 
-      for (uint sub = 0u; canTransitionAllSubresources && sub < localData->mySubresources.Size(); ++sub)
+      for (uint sub = 0u; canTransitionAllSubresources && sub < (uint) localData->mySubresources.size(); ++sub)
       {
         canTransitionAllSubresources &= localData->mySubresources[sub].myWasUsed &&
           localData->mySubresources[sub].myStates == firstSrcStates;
@@ -1272,9 +1270,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::AddBarrier(const D3D12_RESOURCE_BARRIER& aBarrier)
   {
-    if (myPendingBarriers.IsFull())
+    if (myPendingBarriers.full())
       FlushBarriers();
-    myPendingBarriers.Add(aBarrier);
+    myPendingBarriers.push_back(aBarrier);
   }
 //---------------------------------------------------------------------------//
   D3D12_RESOURCE_STATES CommandListDX12::ResolveValidateDstStates(const GpuResource* aResource, D3D12_RESOURCE_STATES aDstStates)

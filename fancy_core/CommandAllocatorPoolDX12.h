@@ -3,9 +3,9 @@
 #include "FancyCoreDefines.h"
 #include "DX12Prerequisites.h"
 #include "RenderEnums.h"
-#include "DynamicArray.h"
 
-#include <list>
+#include "EASTL/fixed_vector.h"
+#include "EASTL/fixed_list.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -25,9 +25,9 @@ namespace Fancy {
 
     CommandListType myCommandListType;
 
-    DynamicArray<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> myAllocatorPool;
-    std::list<ID3D12CommandAllocator*> myAvailableAllocators;
-    std::list<std::pair<uint64, ID3D12CommandAllocator*>> myReleasedWaitingAllocators;
+    eastl::fixed_vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>, 16> myAllocatorPool;
+    eastl::fixed_list<ID3D12CommandAllocator*, 16> myAvailableAllocators;
+    eastl::fixed_list<eastl::pair<uint64, ID3D12CommandAllocator*>, 16> myReleasedWaitingAllocators;
   };  
 //---------------------------------------------------------------------------//  
 }

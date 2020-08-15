@@ -1,7 +1,6 @@
 #pragma once
 
 #include "VkPrerequisites.h"
-#include "StaticArray.h"
 
 #if FANCY_ENABLE_VK
 
@@ -23,9 +22,9 @@ namespace Fancy
     uint myMaxNumDescriptors;
     uint myMaxNumSets;
 
-    StaticArray<VkDescriptorPool, 128> myCreatedPools;
-    StaticArray<VkDescriptorPool, 128> myAvaiablePools;
-    StaticArray<std::pair<uint64, VkDescriptorPool>, 128> myWaitingPools;
+    eastl::fixed_vector<VkDescriptorPool, 64> myCreatedPools;
+    eastl::fixed_list<VkDescriptorPool, 64> myAvaiablePools;
+    eastl::fixed_list<eastl::pair<uint64, VkDescriptorPool>, 64> myWaitingPools;
   };
 }
 

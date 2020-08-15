@@ -28,7 +28,7 @@ bool ourDrawInstanced = false;
 
 static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main", const char* someDefines = nullptr)
 {
-  DynamicArray<String> defines;
+  eastl::vector<String> defines;
   if (someDefines)
     StringUtil::Tokenize(someDefines, ",", defines);
 

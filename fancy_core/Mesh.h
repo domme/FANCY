@@ -1,7 +1,6 @@
 #pragma once
 
 #include "FancyCoreDefines.h"
-#include "DynamicArray.h"
 #include "VertexInputLayoutProperties.h"
 
 namespace Fancy 
@@ -12,8 +11,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct MeshPartData
   {
-    DynamicArray<uint8> myVertexData;
-    DynamicArray<uint8> myIndexData;
+    eastl::vector<uint8> myVertexData;
+    eastl::vector<uint8> myIndexData;
     VertexInputLayoutProperties myVertexLayoutProperties;
   };
 //---------------------------------------------------------------------------//
@@ -33,13 +32,13 @@ namespace Fancy
   struct MeshData
   {
     MeshDesc myDesc;
-    DynamicArray<MeshPartData> myParts;
+    eastl::vector<MeshPartData> myParts;
   };
 //---------------------------------------------------------------------------//
   struct Mesh
   {
     MeshDesc myDesc;
-    DynamicArray<SharedPtr<MeshPart>> myParts;
+    eastl::vector<SharedPtr<MeshPart>> myParts;
   };
   //---------------------------------------------------------------------------//
 }

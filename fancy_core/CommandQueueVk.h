@@ -1,6 +1,5 @@
 #pragma once
 #include "CommandQueue.h"
-#include "StaticArray.h"
 
 #include "VkPrerequisites.h"
 
@@ -27,7 +26,7 @@ namespace Fancy
     uint64 ExecuteAndResetCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode) override;
     void ResolveResourceHazardData(CommandList* aCommandList);
     
-    StaticArray<std::pair<VkSemaphore, uint64>, (uint)CommandListType::NUM> myPendingStallSemaphores;  // Semaphores from other queues that the next submit needs to wait on
+    eastl::fixed_vector<eastl::pair<VkSemaphore, uint64>, (uint)CommandListType::NUM, false> myPendingStallSemaphores;  // Semaphores from other queues that the next submit needs to wait on
     VkSemaphore myTimelineSemaphore;
     VkQueue myQueue;
   };

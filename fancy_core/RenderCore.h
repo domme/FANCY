@@ -9,11 +9,12 @@
 #include "TempResources.h"
 #include "GpuQuery.h"
 #include "CircularArray.h"
-#include "FixedArray.h"
 #include "TextureSampler.h"
 
 #include <map>
 #include <list>
+
+#include "EASTL/fixed_vector.h"
 
 namespace Fancy {
   struct MaterialDesc;
@@ -192,8 +193,7 @@ namespace Fancy {
     static UniquePtr<GpuQueryHeap> ourQueryHeaps[NUM_QUEUED_FRAMES][(uint)GpuQueryType::NUM];
     static uint ourCurrQueryHeapIdx;
 
-    static FixedArray<std::pair<uint, uint>, 512> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
-    static uint ourNumUsedQueryRanges[(uint)GpuQueryType::NUM];
+    static eastl::fixed_vector<std::pair<uint, uint>, 64> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
 
     static UniquePtr<GpuBuffer> ourQueryBuffers[NUM_QUERY_BUFFERS][(uint)GpuQueryType::NUM];
     static uint64 ourQueryBufferFrames[NUM_QUERY_BUFFERS];
