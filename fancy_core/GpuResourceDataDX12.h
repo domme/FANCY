@@ -19,7 +19,7 @@ namespace Fancy {
     D3D12_RESOURCE_STATES myReadStates;
     D3D12_RESOURCE_STATES myWriteStates;
     bool myAllSubresourcesSameStates;
-    DynamicArray<GpuSubresourceHazardDataDX12> mySubresources;
+    eastl::fixed_vector<GpuSubresourceHazardDataDX12, 16> mySubresources;
   };
 //---------------------------------------------------------------------------//
   struct GpuResourceDataDX12

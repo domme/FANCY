@@ -112,7 +112,7 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   int numInstances = numInstancesOneSide * numInstancesOneSide * numInstancesOneSide;
   myNumInstances = numInstances;
   float offsetBetweenInstances = 7.0f;
-  DynamicArray<glm::float3> instancePositions;
+  eastl::vector<glm::float3> instancePositions;
   instancePositions.reserve(numInstances);
   for (int x = -numInstancesOneSide / 2; x < numInstancesOneSide / 2; ++x)
     for (int y = -numInstancesOneSide / 2; y < numInstancesOneSide / 2; ++y)

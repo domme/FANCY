@@ -25,7 +25,7 @@ namespace Fancy
       String myProfile;
     };
 
-    bool CompileToBytecode(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, const Config& aConfig, DynamicArray<uint8>& aCompiledBytecodeOut) const;
+    bool CompileToBytecode(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, const Config& aConfig, eastl::vector<uint8>& aCompiledBytecodeOut) const;
     bool CompileToBytecode(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, const Config& aConfig, Microsoft::WRL::ComPtr<IDxcBlob>& aCompiledBytecodeOut) const;
 
     IDxcContainerReflection* GetDxcReflector() const { return myDxcReflector.Get(); }

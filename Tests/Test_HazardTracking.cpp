@@ -35,7 +35,7 @@ Test_HazardTracking::Test_HazardTracking(Fancy::FancyRuntime* aRuntime, Fancy::W
   bufProps.myNumElements = (32 * 32) + (16 * 16) + (8 * 8);
   bufProps.myElementSizeBytes = 4u;
 
-  DynamicArray<unsigned int>initialBufferData(bufProps.myNumElements, 0u);
+  eastl::vector<unsigned int>initialBufferData(bufProps.myNumElements, 0u);
   myBuffer = RenderCore::CreateBuffer(bufProps, "Hazard tracking test buffer", initialBufferData.data());
   
   uint viewOffsets[3] = {

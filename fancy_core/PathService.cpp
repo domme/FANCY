@@ -5,13 +5,15 @@
 #include <ShlObj.h>
 #include <codecvt>
 
+#include "eastl/vector.h"
+
 #pragma comment(lib, "comsuppw")
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Path
   {
-    static std::vector<String> ourResourceFolders;
+    static eastl::vector<String> ourResourceFolders;
     static String ourRootFolder;
 //---------------------------------------------------------------------------//
     void InitRootFolders()

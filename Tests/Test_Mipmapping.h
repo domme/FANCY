@@ -1,7 +1,7 @@
 #pragma once
 #include "Test.h"
 #include "fancy_core/Ptr.h"
-#include "fancy_core/DynamicArray.h"
+#include "EASTL/vector.h"
 
 namespace Fancy
 {
@@ -20,8 +20,8 @@ struct ImageData
 
   Fancy::SharedPtr<Fancy::Texture> myTexture;
   Fancy::SharedPtr<Fancy::TextureView> myTextureView;
-  Fancy::DynamicArray<Fancy::SharedPtr<Fancy::TextureView>> myMipLevelReadViews;
-  Fancy::DynamicArray<Fancy::SharedPtr<Fancy::TextureView>> myMipLevelWriteViews;
+  eastl::vector<Fancy::SharedPtr<Fancy::TextureView>> myMipLevelReadViews;
+  eastl::vector<Fancy::SharedPtr<Fancy::TextureView>> myMipLevelWriteViews;
 
   Fancy::String myName;
   bool myIsWindowOpen;
@@ -40,7 +40,7 @@ public:
 private:
   void OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aShader);
   
-  Fancy::DynamicArray<ImageData> myImageDatas;
+  eastl::vector<ImageData> myImageDatas;
   int mySelectedMipLevel = 0;
   bool myUpdateAlways = false;
 };

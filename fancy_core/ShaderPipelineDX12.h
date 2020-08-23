@@ -3,6 +3,7 @@
 #include "DX12Prerequisites.h"
 #include "ShaderResourceInfoDX12.h"
 #include "RootSignatureDX12.h"
+#include "eastl/vector.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -15,11 +16,11 @@ namespace Fancy
 
     ID3D12RootSignature* GetRootSignature() const { return myRootSignature.Get(); }
     const RootSignatureLayoutDX12& GetRootSignatureLayout() const { return myRootSignatureLayout; }
-    const DynamicArray<ShaderResourceInfoDX12>& GetResourceInfos() const { return myResourceInfos; }
+    const eastl::vector<ShaderResourceInfoDX12>& GetResourceInfos() const { return myResourceInfos; }
 
   protected:
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
-    DynamicArray<ShaderResourceInfoDX12> myResourceInfos;
+    eastl::vector<ShaderResourceInfoDX12> myResourceInfos;
     RootSignatureLayoutDX12 myRootSignatureLayout;
   };
 }

@@ -2,6 +2,8 @@
 
 #include "MeshImporter.h"
 
+#include "EASTL/hash_map.h"
+
 namespace Fancy
 {
   class ShaderPipeline;
@@ -48,11 +50,9 @@ namespace Fancy
     static const ShaderPipeline* GetMipDownsampleShader() { return ourMipDownsampleShader.get(); }
 
   private:
-    static std::map<uint64, SharedPtr<TextureView>> ourTextureCache;
-    static std::map<uint64, SharedPtr<Mesh>> ourMeshCache;
-    static std::map<uint64, SharedPtr<Material>> ourMaterialCache;
+    static eastl::hash_map<uint64, SharedPtr<TextureView>> ourTextureCache;
+    static eastl::hash_map<uint64, SharedPtr<Mesh>> ourMeshCache;
+    static eastl::hash_map<uint64, SharedPtr<Material>> ourMaterialCache;
     static SharedPtr<ShaderPipeline> ourMipDownsampleShader;
   };
 }
-
-

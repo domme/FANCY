@@ -2,9 +2,12 @@
 #include "Window.h"
 #include "Log.h"
 
+#include "EASTL/vector.h"
+#include "EASTL/algorithm.h"
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  std::vector<Window*> ourCreatedWindows;
+  eastl::vector<Window*> ourCreatedWindows;
 //---------------------------------------------------------------------------//
   LRESULT CALLBACK locOnWindowEvent(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   {
@@ -34,7 +37,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   Window::~Window()
   {
-    auto it = std::find_if(ourCreatedWindows.begin(), ourCreatedWindows.end(),
+    auto it = eastl::find_if(ourCreatedWindows.begin(), ourCreatedWindows.end(),
       [=](auto wndIt) { return wndIt->GetWindowHandle() == myWindowHandle; });
 
     if (it != ourCreatedWindows.end())

@@ -177,7 +177,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuRingBuffer* CommandList::GetUploadBuffer_Internal(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
   {
-    DynamicArray<GpuRingBuffer*>* ringBufferList = nullptr;
+    eastl::vector<GpuRingBuffer*>* ringBufferList = nullptr;
     uint64 sizeStep = 2 * SIZE_MB;
     String name = "RingBuffer_";
 

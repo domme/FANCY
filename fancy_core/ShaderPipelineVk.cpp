@@ -51,7 +51,7 @@ namespace Fancy
         continue;
 
       ShaderVk* shaderVk = static_cast<ShaderVk*>(shader);
-      const DynamicArray<ShaderResourceInfoVk>& shaderResourceInfos = shaderVk->GetResourceInfos();
+      const eastl::vector<ShaderResourceInfoVk>& shaderResourceInfos = shaderVk->GetResourceInfos();
       for (const ShaderResourceInfoVk& resourceInfo : shaderResourceInfos)
       {
         if (std::find(myResourceInfos.begin(), myResourceInfos.end(), resourceInfo) == myResourceInfos.end())
@@ -60,7 +60,7 @@ namespace Fancy
     }
 
     // Create descriptor set layouts from the resource infos
-    DynamicArray<PipelineLayoutCacheVk::DescriptorSetInfo> descriptorSets;
+    eastl::fixed_vector<PipelineLayoutCacheVk::DescriptorSetInfo, 16> descriptorSets;
     uint maxSetIdx = 0u;
     for (const ShaderResourceInfoVk& resourceInfo : myResourceInfos)
     {
@@ -75,7 +75,7 @@ namespace Fancy
         iSet = (int)descriptorSets.size() - 1;
       }
 
-      DynamicArray<VkDescriptorSetLayoutBinding>& targetBindingsInSet = descriptorSets[iSet].myBindings;
+      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 16>& targetBindingsInSet = descriptorSets[iSet].myBindings;
       maxSetIdx = glm::max(maxSetIdx, descriptorSets[iSet].mySet);
 
 #if FANCY_RENDERER_DEBUG

@@ -145,7 +145,6 @@
     <ClInclude Include="DescriptorDX12.h" />
     <ClInclude Include="DescriptorPoolAllocatorVk.h" />
     <ClInclude Include="DxcShaderCompiler.h" />
-    <ClInclude Include="DynamicArray.h" />
     <ClInclude Include="DynamicDescriptorHeapDX12.h" />
     <ClInclude Include="EASTLAllocator.h" />
     <ClInclude Include="FrameBufferCacheVk.h" />
@@ -211,7 +210,6 @@
     <ClInclude Include="ShaderPipeline.h" />
     <ClInclude Include="ShaderPipelineDesc.h" />
     <ClInclude Include="GpuResource.h" />
-    <ClInclude Include="GpuResourceSignature.h" />
     <ClInclude Include="GpuResourceDataDX12.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="MathUtil.h" />

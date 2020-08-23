@@ -12,7 +12,6 @@
 #include "GpuBufferVk.h"
 #include "ShaderResourceInfoVk.h"
 #include "TextureSamplerVk.h"
-#include "DynamicArray.h"
 #include "DebugUtilsVk.h"
 #include "GpuQueryHeapVk.h"
 #include "TimeManager.h"
@@ -1328,7 +1327,7 @@ namespace Fancy
     ASSERT(myComputePipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Compute);
 
     const ShaderPipelineVk* pipeline = GetShaderPipeline();
-    const DynamicArray<ShaderResourceInfoVk>& shaderResources = pipeline->GetResourceInfos();
+    const eastl::vector<ShaderResourceInfoVk>& shaderResources = pipeline->GetResourceInfos();
 
     auto it = std::find_if(shaderResources.begin(), shaderResources.end(), [aNameHash](const ShaderResourceInfoVk& aResourceInfo) {
       return aResourceInfo.myNameHash == aNameHash;

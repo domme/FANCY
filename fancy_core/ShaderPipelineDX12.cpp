@@ -31,7 +31,7 @@ void Fancy::ShaderPipelineDX12::CreateFromShaders()
     ASSERT(!hasComputeShader || i == (uint)ShaderStage::COMPUTE, "Can't mix a compute shader with other stages in the same pipeline");
 
     const ShaderDX12* shaderDx12 = static_cast<const ShaderDX12*>(shader);
-    const DynamicArray<ShaderResourceInfoDX12>& resInfos = shaderDx12->GetResourceInfos();
+    const eastl::vector<ShaderResourceInfoDX12>& resInfos = shaderDx12->GetResourceInfos();
 
     if (myResourceInfos.empty())
     {

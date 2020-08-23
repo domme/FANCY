@@ -3,7 +3,8 @@
 #include "FancyCoreDefines.h"
 #include "MathUtil.h"
 #include "RenderEnums.h"
-#include "DynamicArray.h"
+
+#include "EASTL/fixed_vector.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -14,7 +15,7 @@ namespace Fancy {
     String myPath;
     String myMainFunction = "main";
     uint myShaderStage = (uint) ShaderStage::NONE;
-    DynamicArray<String> myDefines;
+    eastl::fixed_vector<String, 32> myDefines;
   };
 //---------------------------------------------------------------------------//
   inline uint64 ShaderDesc::GetHash() const

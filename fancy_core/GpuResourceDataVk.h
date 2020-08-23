@@ -23,7 +23,7 @@ namespace Fancy
     VkAccessFlags myWriteAccessMask;
     bool myHasExclusiveQueueAccess;
     uint mySupportedImageLayoutMask;
-    DynamicArray<GpuSubresourceHazardDataVk> mySubresources;
+    eastl::fixed_vector<GpuSubresourceHazardDataVk, 16> mySubresources;
   };
 //---------------------------------------------------------------------------//
   struct GpuResourceDataVk

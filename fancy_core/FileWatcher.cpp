@@ -19,7 +19,7 @@ namespace Fancy {
     if(runtime != nullptr)
         runtime->GetRealTimeClock().GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).DetachObserver(this);
 
-    std::vector<String> watchedPaths;
+    eastl::vector<String> watchedPaths;
     watchedPaths.reserve(myWatchEntries.size());
     for (const FileWatchEntry& entry : myWatchEntries)
       watchedPaths.push_back(entry.myPath);

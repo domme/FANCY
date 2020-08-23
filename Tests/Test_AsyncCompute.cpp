@@ -1,16 +1,15 @@
 #include "Test_AsyncCompute.h"
 
-#include "fancy_core/MathUtil.h"
 #include "fancy_core/GpuBuffer.h"
 #include "fancy_imgui/imgui.h"
 #include "fancy_core/RenderCore.h"
 #include "fancy_core/CommandList.h"
 #include "fancy_core/CommandQueue.h"
-#include "fancy_imgui/imgui_internal.h"
 #include "fancy_core/GrowingList.h"
 #include "fancy_core/TimeManager.h"
-#include "fancy_core/StaticString.h"
 #include "fancy_core/ShaderPipelineDesc.h"
+
+#include "EASTL/vector.h"
 
 using namespace Fancy;
 
@@ -26,7 +25,7 @@ Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Windo
   props.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
   props.myBindFlags = (uint)GpuBufferBindFlags::SHADER_BUFFER;
   
-  std::vector<uint> initialData;
+  eastl::vector<uint> initialData;
   initialData.resize(props.myNumElements);
   for (uint& data : initialData)
     data = 0;

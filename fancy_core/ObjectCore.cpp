@@ -17,9 +17,9 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  std::map<uint64, SharedPtr<TextureView>> ObjectCore::ourTextureCache;
-  std::map<uint64, SharedPtr<Mesh>> ObjectCore::ourMeshCache;
-  std::map<uint64, SharedPtr<Material>> ObjectCore::ourMaterialCache;
+  eastl::hash_map<uint64, SharedPtr<TextureView>> ObjectCore::ourTextureCache;
+  eastl::hash_map<uint64, SharedPtr<Mesh>> ObjectCore::ourMeshCache;
+  eastl::hash_map<uint64, SharedPtr<Material>> ObjectCore::ourMaterialCache;
   SharedPtr<ShaderPipeline> ObjectCore::ourMipDownsampleShader;
 //---------------------------------------------------------------------------//
   void ObjectCore::Init()

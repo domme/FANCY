@@ -2,9 +2,6 @@
 
 #include "FancyCoreDefines.h"
 #include "Ptr.h"
-#include "RenderEnums.h"
-#include "DynamicArray.h"
-#include "TextureData.h"
 
 namespace Fancy
 {
@@ -14,7 +11,6 @@ namespace Fancy
   class GpuBufferView;
   class Texture;
   class TextureView;
-
 //---------------------------------------------------------------------------//
   struct TempResourceKeepAlive
   {

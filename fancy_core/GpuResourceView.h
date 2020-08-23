@@ -2,7 +2,6 @@
 
 #include "GpuResource.h"
 #include "Any.h"
-#include "DynamicArray.h"
 #include "Ptr.h"
 
 namespace Fancy {

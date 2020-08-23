@@ -36,6 +36,8 @@
 #include "EASTL/fixed_list.h"
 #include "EASTL/fixed_string.h"
 #include "EASTL/fixed_substring.h"
+#include "EASTL/hash_map.h"
+#include "EASTL/hash_set.h"
 #include "EASTL/functional.h"
 #include "EASTL/optional.h"
 #include "EASTL/unique_ptr.h"
@@ -52,7 +54,6 @@
 #include "WindowsIncludes.h"
 
 #include "Log.h"
-#include "DynamicArray.h"
 #include "Ptr.h"
 #include "Slot.h"
 #include "Callback.h"

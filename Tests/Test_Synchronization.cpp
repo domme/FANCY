@@ -7,6 +7,8 @@
 #include "fancy_core/CommandList.h"
 #include "fancy_core/TimeManager.h"
 
+#include "EASTL/vector.h"
+
 using namespace Fancy;
 
 static uint kNumBufferElements = 1000;
@@ -19,7 +21,7 @@ Test_Synchronization::Test_Synchronization(Fancy::FancyRuntime* aRuntime, Fancy:
   props.myNumElements = kNumBufferElements;
   props.myIsShaderWritable = false;
 
-  std::vector<uint> initialData;
+  eastl::vector<uint> initialData;
   initialData.resize(props.myNumElements);
   for (uint& data : initialData)
     data = 0;

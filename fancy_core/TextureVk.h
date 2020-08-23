@@ -1,8 +1,6 @@
 #pragma once
 
-#include "VkPrerequisites.h"
 #include "Texture.h"
-#include "DynamicArray.h"
 
 #if FANCY_ENABLE_VK
 

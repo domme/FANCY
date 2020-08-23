@@ -112,7 +112,7 @@ namespace Fancy
   {
   }
 //---------------------------------------------------------------------------//
-  bool DxcShaderCompiler::CompileToBytecode(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, const Config& aConfig, DynamicArray<uint8>& aCompiledBytecodeOut) const
+  bool DxcShaderCompiler::CompileToBytecode(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, const Config& aConfig, eastl::vector<uint8>& aCompiledBytecodeOut) const
   {
     Microsoft::WRL::ComPtr<IDxcBlob> bytecodeBlob;
     if (!CompileToBytecode(anHlslSrcPathAbs, aDesc, aConfig, bytecodeBlob))

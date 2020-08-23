@@ -27,7 +27,7 @@ namespace Fancy
       uint numAvailableExtensions = 0u;
       vkEnumerateInstanceExtensionProperties(nullptr, &numAvailableExtensions, nullptr);
 
-      DynamicArray<VkExtensionProperties> availableExtensionProperties;
+      eastl::vector<VkExtensionProperties> availableExtensionProperties;
       availableExtensionProperties.resize(numAvailableExtensions);
       vkEnumerateInstanceExtensionProperties(nullptr, &numAvailableExtensions, availableExtensionProperties.data());
 
@@ -41,7 +41,7 @@ namespace Fancy
       uint numAvailableExtensions = 0u;
       vkEnumerateDeviceExtensionProperties(aPhysicalDevice, nullptr, &numAvailableExtensions, nullptr);
 
-      DynamicArray<VkExtensionProperties> availableExtensionProperties (numAvailableExtensions);
+      eastl::vector<VkExtensionProperties> availableExtensionProperties (numAvailableExtensions);
       vkEnumerateDeviceExtensionProperties(aPhysicalDevice, nullptr, &numAvailableExtensions, availableExtensionProperties.data());
 
       LOG("Available Vulkan device extensions:");
@@ -54,7 +54,7 @@ namespace Fancy
       uint numAvailableLayers = 0u;
       vkEnumerateInstanceLayerProperties(&numAvailableLayers, nullptr);
 
-      DynamicArray<VkLayerProperties> availableLayerProperties;
+      eastl::vector<VkLayerProperties> availableLayerProperties;
       availableLayerProperties.resize(numAvailableLayers);
       vkEnumerateInstanceLayerProperties(&numAvailableLayers, availableLayerProperties.data());
 
@@ -640,7 +640,7 @@ namespace Fancy
       vkEnumeratePhysicalDevices(myInstance, &numDevices, nullptr);
       ASSERT(numDevices > 0u, "No Vulkan-capable physical devices found!");
 
-      DynamicArray<VkPhysicalDevice> devices(numDevices);
+      eastl::vector<VkPhysicalDevice> devices(numDevices);
       vkEnumeratePhysicalDevices(myInstance, &numDevices, devices.data());
 
       LOG("Picking a suitable Vulkan device...");
@@ -679,7 +679,7 @@ namespace Fancy
       vkGetPhysicalDeviceQueueFamilyProperties(myPhysicalDevice, &numQueueFamilies, nullptr);
       ASSERT(numQueueFamilies > 0u, "Invalid queue family count");
 
-      DynamicArray<VkQueueFamilyProperties> queueFamilyProps(numQueueFamilies);
+      eastl::vector<VkQueueFamilyProperties> queueFamilyProps(numQueueFamilies);
       vkGetPhysicalDeviceQueueFamilyProperties(myPhysicalDevice, &numQueueFamilies, queueFamilyProps.data());
 
       // Try to get the most suitable queues for graphics, compute and dma.

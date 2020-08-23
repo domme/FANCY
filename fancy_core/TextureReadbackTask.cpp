@@ -15,7 +15,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  void ReadbackTask::GetRawData(DynamicArray<uint8>& aDataOut)
+  void ReadbackTask::GetRawData(eastl::vector<uint8>& aDataOut)
   {
     ASSERT(IsCompleted());
     ASSERT(myBufferAllocation != nullptr);

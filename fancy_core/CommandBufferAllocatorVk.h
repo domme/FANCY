@@ -2,6 +2,9 @@
 
 #include "VkPrerequisites.h"
 
+#include "EASTL/vector.h"
+#include "EASTL/fixed_list.h"
+
 #if FANCY_ENABLE_VK
 
 namespace Fancy
@@ -21,9 +24,9 @@ namespace Fancy
     VkCommandPool myCommandPool;
     CommandListType myCommandListType;
 
-    std::vector<VkCommandBuffer> myCommandBufferPool;
-    std::list<VkCommandBuffer> myAvailableCommandBuffers;
-    std::list<std::pair<uint64, VkCommandBuffer>> myReleasedWaitingCommandBuffers;
+    eastl::vector<VkCommandBuffer> myCommandBufferPool;
+    eastl::fixed_list<VkCommandBuffer, 128> myAvailableCommandBuffers;
+    eastl::fixed_list<std::pair<uint64, VkCommandBuffer>, 128> myReleasedWaitingCommandBuffers;
   };
 }
 

@@ -1,14 +1,13 @@
 #include "Test_SharedQueueResourceUsage.h"
 
-#include "fancy_imgui/imgui.h"
 #include "fancy_core/RenderCore.h"
 #include "fancy_core/CommandList.h"
 #include "fancy_core/CommandQueue.h"
 #include "fancy_core/GrowingList.h"
-#include "fancy_core/TimeManager.h"
-#include "fancy_core/StaticString.h"
 #include "fancy_core/ShaderPipelineDesc.h"
 #include "fancy_core/TempResourcePool.h"
+
+#include "EASTL/vector.h"
 
 using namespace Fancy;
 
@@ -24,7 +23,7 @@ Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage(Fancy::FancyRuntime
   props.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
   props.myBindFlags = (uint)GpuBufferBindFlags::SHADER_BUFFER;
 
-  std::vector<uint> initialData;
+  eastl::vector<uint> initialData;
   initialData.resize(props.myNumElements, 0u);
 
   myBuffer = RenderCore::CreateBuffer(props, "Shared Queue Test Buffer", initialData.data());

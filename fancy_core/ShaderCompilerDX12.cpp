@@ -283,7 +283,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  bool locAddShaderResourceInfo(const D3D12_SHADER_INPUT_BIND_DESC& aResourceDesc, const D3D12_ROOT_SIGNATURE_DESC1& aRsDesc, DynamicArray<ShaderResourceInfoDX12>& someResourceInfos)
+  bool locAddShaderResourceInfo(const D3D12_SHADER_INPUT_BIND_DESC& aResourceDesc, const D3D12_ROOT_SIGNATURE_DESC1& aRsDesc, eastl::vector<ShaderResourceInfoDX12>& someResourceInfos)
   {
     if (aResourceDesc.Type == D3D_SIT_SAMPLER) // This could be a static sampler that doesn't need an entry in the resourceInfos since its just defined in the root signature
     {
@@ -356,7 +356,7 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* aRootSignatureDesc, 
-    DynamicArray<ShaderResourceInfoDX12>& someResourceInfosOut, bool& aHasUnorderedWritesOut)
+    eastl::vector<ShaderResourceInfoDX12>& someResourceInfosOut, bool& aHasUnorderedWritesOut)
   {
     ASSERT(aRootSignatureDesc->Version == D3D_ROOT_SIGNATURE_VERSION_1_1);
     const D3D12_ROOT_SIGNATURE_DESC1& rsDesc = aRootSignatureDesc->Desc_1_1;

@@ -198,8 +198,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandQueueVk::ResolveResourceHazardData(CommandList* aCommandList)
   {
-    DynamicArray<CommandListVk::BufferMemoryBarrierData> patchingBufferBarriers;
-    DynamicArray<CommandListVk::ImageMemoryBarrierData> patchingImageBarriers;
+    eastl::fixed_vector<CommandListVk::BufferMemoryBarrierData, 64> patchingBufferBarriers;
+    eastl::fixed_vector<CommandListVk::ImageMemoryBarrierData, 64> patchingImageBarriers;
 
     CommandListVk* cmdListVk = static_cast<CommandListVk*>(aCommandList);
 
@@ -210,8 +210,8 @@ namespace Fancy
       GpuResourceHazardDataVk& globalHazardData = resource->GetVkData()->myHazardData;
       const CommandListVk::LocalHazardData& localHazardData = it.second;
 
-      DynamicArray<CommandListVk::BufferMemoryBarrierData> subresourceBufferBarriers;
-      DynamicArray<CommandListVk::ImageMemoryBarrierData> subresourceImageBarriers;
+      eastl::fixed_vector<CommandListVk::BufferMemoryBarrierData, 16> subresourceBufferBarriers;
+      eastl::fixed_vector<CommandListVk::ImageMemoryBarrierData, 16> subresourceImageBarriers;
       for (uint subIdx = 0u; subIdx < (uint) localHazardData.mySubresources.size(); ++subIdx)
       {
         GpuSubresourceHazardDataVk& globalSubData = globalHazardData.mySubresources[subIdx];

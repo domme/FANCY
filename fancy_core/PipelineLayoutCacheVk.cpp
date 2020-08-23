@@ -13,7 +13,7 @@ namespace Fancy
     PipelineLayoutCacheVk::Clear();
   }
 
-  VkPipelineLayout PipelineLayoutCacheVk::GetPipelineLayout(const DynamicArray<DescriptorSetInfo>& someDescriptorSetInfos, PipelineDescriptorSetLayoutsVk& aDescriptorSetLayoutsOut)
+  VkPipelineLayout PipelineLayoutCacheVk::GetPipelineLayout(const eastl::fixed_vector<DescriptorSetInfo, 16>& someDescriptorSetInfos, PipelineDescriptorSetLayoutsVk& aDescriptorSetLayoutsOut)
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
 

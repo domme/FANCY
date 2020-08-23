@@ -3,6 +3,8 @@
 #include "FancyCoreDefines.h"
 #include "Slot.h"
 
+#include "EASTL/vector.h"
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct FileWatchEntry
@@ -26,7 +28,7 @@ namespace Fancy {
   private:
     void UpdateFileInfos();
     
-    mutable std::vector<FileWatchEntry> myWatchEntries;
+    mutable eastl::vector<FileWatchEntry> myWatchEntries;
   };
 //---------------------------------------------------------------------------//
 }

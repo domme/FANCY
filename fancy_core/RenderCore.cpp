@@ -60,28 +60,28 @@ namespace Fancy {
   SharedPtr<Texture> RenderCore::ourDefaultNormalTexture;
   SharedPtr<Texture> RenderCore::ourDefaultSpecularTexture;
 
-  std::map<uint64, SharedPtr<Shader>> RenderCore::ourShaderCache;
-  std::map<uint64, SharedPtr<ShaderPipeline>> RenderCore::ourShaderPipelineCache;
-  std::map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
-  std::map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
-  std::map<uint64, SharedPtr<TextureSampler>> RenderCore::ourSamplerCache;
-  std::map<uint64, SharedPtr<VertexInputLayout>> RenderCore::ourVertexInputLayoutCache;
+  eastl::hash_map<uint64, SharedPtr<Shader>> RenderCore::ourShaderCache;
+  eastl::hash_map<uint64, SharedPtr<ShaderPipeline>> RenderCore::ourShaderPipelineCache;
+  eastl::hash_map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
+  eastl::hash_map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
+  eastl::hash_map<uint64, SharedPtr<TextureSampler>> RenderCore::ourSamplerCache;
+  eastl::hash_map<uint64, SharedPtr<VertexInputLayout>> RenderCore::ourVertexInputLayoutCache;
   
-  DynamicArray<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
-  std::list<GpuRingBuffer*> RenderCore::ourAvailableRingBuffers;
-  std::list<std::pair<uint64, GpuRingBuffer*>> RenderCore::ourUsedRingBuffers;
+  eastl::vector<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
+  eastl::fixed_list<GpuRingBuffer*, 128> RenderCore::ourAvailableRingBuffers;
+  eastl::fixed_list<eastl::pair<uint64, GpuRingBuffer*>, 128> RenderCore::ourUsedRingBuffers;
 
-  DynamicArray<UniquePtr<GpuReadbackBuffer>> RenderCore::ourReadbackBuffers;
+  eastl::fixed_vector<UniquePtr<GpuReadbackBuffer>, 64> RenderCore::ourReadbackBuffers;
 
   UniquePtr<CommandQueue> RenderCore::ourCommandQueues[(uint)CommandListType::NUM];
 
   StaticCircularArray<uint64, RenderCore::NUM_QUEUED_FRAMES> RenderCore::ourQueuedFrameDoneFences;
-  StaticCircularArray<std::pair<uint64, uint64>, 256> RenderCore::ourLastFrameDoneFences;
+  StaticCircularArray<eastl::pair<uint64, uint64>, 256> RenderCore::ourLastFrameDoneFences;
 
   UniquePtr<GpuQueryHeap> RenderCore::ourQueryHeaps[NUM_QUEUED_FRAMES][(uint)GpuQueryType::NUM];
   uint RenderCore::ourCurrQueryHeapIdx = 0;
-
-  eastl::fixed_vector<std::pair<uint, uint>, 64> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
+  
+  eastl::fixed_vector<eastl::pair<uint, uint>, 64> RenderCore::ourUsedQueryRanges[(uint)GpuQueryType::NUM];
 
   UniquePtr<GpuBuffer> RenderCore::ourQueryBuffers[NUM_QUERY_BUFFERS][(uint)GpuQueryType::NUM];
   uint64 RenderCore::ourQueryBufferFrames[NUM_QUERY_BUFFERS] = { UINT64_MAX };
@@ -90,7 +90,7 @@ namespace Fancy {
   const uint8* RenderCore::ourMappedQueryBufferData[(uint)GpuQueryType::NUM] = { nullptr };
   uint RenderCore::ourMappedQueryBufferIdx[(uint)GpuQueryType::NUM] = { 0u };
 
-  DynamicArray<String> RenderCore::ourChangedShaderFiles;
+  eastl::vector<String> RenderCore::ourChangedShaderFiles;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -257,7 +257,7 @@ namespace Fancy {
     params.myCpuAccess = aCpuAccess;
 
     buf->Create(params, aName);
-    ourRingBufferPool.push_back(std::move(buf));
+    ourRingBufferPool.push_back(eastl::move(buf));
 
     return ourRingBufferPool.back().get();
   }
@@ -265,15 +265,15 @@ namespace Fancy {
   void RenderCore::ReleaseRingBuffer(GpuRingBuffer* aBuffer, uint64 aFenceVal)
   {
 #if FANCY_RENDERER_USE_VALIDATION
-    auto predicate = [aBuffer](const std::pair<uint64, GpuRingBuffer*>& aPair) {
+    auto predicate = [aBuffer](const eastl::pair<uint64, GpuRingBuffer*>& aPair) {
       return aPair.second == aBuffer;
     };
-    ASSERT(std::find_if(ourUsedRingBuffers.begin(), ourUsedRingBuffers.end(), predicate) == ourUsedRingBuffers.end());
-    ASSERT(std::find(ourAvailableRingBuffers.begin(), ourAvailableRingBuffers.end(), aBuffer) == ourAvailableRingBuffers.end());
+    ASSERT(eastl::find_if(ourUsedRingBuffers.begin(), ourUsedRingBuffers.end(), predicate) == ourUsedRingBuffers.end());
+    ASSERT(eastl::find(ourAvailableRingBuffers.begin(), ourAvailableRingBuffers.end(), aBuffer) == ourAvailableRingBuffers.end());
 #endif
 
     aBuffer->Reset();
-    ourUsedRingBuffers.push_back(std::make_pair(aFenceVal, aBuffer));
+    ourUsedRingBuffers.push_back(eastl::make_pair(aFenceVal, aBuffer));
   }
 //---------------------------------------------------------------------------//
   GpuBuffer* RenderCore::AllocateReadbackBuffer(uint64 aBlockSize, uint anOffsetAlignment, uint64& anOffsetToBlockOut)
@@ -596,7 +596,7 @@ namespace Fancy {
   void RenderCore::ResolveUsedQueryData()
   {
     bool hasAnyQueryData = false;
-    for (eastl::fixed_vector<std::pair<uint, uint>, 64>& queryRanges : ourUsedQueryRanges)
+    for (eastl::fixed_vector<eastl::pair<uint, uint>, 64>& queryRanges : ourUsedQueryRanges)
       hasAnyQueryData |= !queryRanges.empty();
 
     if (!hasAnyQueryData)
@@ -609,13 +609,13 @@ namespace Fancy {
         continue;
 
       const uint numUsedQueryRanges = (uint) ourUsedQueryRanges[queryType].size();
-      std::pair<uint, uint>* mergedRanges = (std::pair<uint, uint>*) alloca(sizeof(std::pair<uint, uint>) * numUsedQueryRanges);
+      eastl::pair<uint, uint>* mergedRanges = (eastl::pair<uint, uint>*) alloca(sizeof(eastl::pair<uint, uint>) * numUsedQueryRanges);
       uint numUsedMergedRanges = 0u;
 
-      std::pair<uint, uint> currMergedRange = ourUsedQueryRanges[queryType][0];
+      eastl::pair<uint, uint> currMergedRange = ourUsedQueryRanges[queryType][0];
       for (uint i = 1u; i < numUsedQueryRanges; ++i)
       {
-        const std::pair<uint, uint>& range = ourUsedQueryRanges[queryType][i];
+        const eastl::pair<uint, uint>& range = ourUsedQueryRanges[queryType][i];
         if (range.first == currMergedRange.second)
         {
           currMergedRange.second = range.second;
@@ -633,7 +633,7 @@ namespace Fancy {
       const uint queryDataSize = GetQueryTypeDataSize((GpuQueryType)queryType);
       for (uint i = 0u; i < numUsedMergedRanges; ++i)
       {
-        const std::pair<uint, uint>& mergedRange = mergedRanges[i];
+        const eastl::pair<uint, uint>& mergedRange = mergedRanges[i];
         const uint numQueries = mergedRange.second - mergedRange.first;
         const uint64 offsetInBuffer = mergedRange.first * queryDataSize;
         commandList->CopyQueryDataToBuffer(heap, readbackBuffer, mergedRange.first, numQueries, offsetInBuffer);
@@ -721,7 +721,7 @@ namespace Fancy {
     SharedPtr<Shader> program(ourPlatformImpl->CreateShader());
     program->SetFromCompilerOutput(compilerOutput);
     
-    ourShaderCache.insert(std::make_pair(hash, program));
+    ourShaderCache.insert(eastl::make_pair(hash, program));
 
     const String actualShaderPath =
       Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(aDesc.myPath.c_str()));
@@ -749,7 +749,7 @@ namespace Fancy {
     SharedPtr<ShaderPipeline> pipeline(ourPlatformImpl->CreateShaderPipeline());
     pipeline->Create(pipelinePrograms);
 
-    ourShaderPipelineCache.insert(std::make_pair(hash, pipeline));
+    ourShaderPipelineCache.insert(eastl::make_pair(hash, pipeline));
 
     return pipeline;
   }
@@ -782,7 +782,7 @@ namespace Fancy {
 
     SharedPtr<BlendState> blendState(new BlendState(aProperties));
 
-    ourBlendStateCache.insert(std::make_pair(hash, blendState));
+    ourBlendStateCache.insert(eastl::make_pair(hash, blendState));
     return blendState;
   }
 //---------------------------------------------------------------------------//
@@ -795,7 +795,7 @@ namespace Fancy {
       return it->second;
 
     SharedPtr<DepthStencilState> depthStencilState(new DepthStencilState(aDesc));
-    ourDepthStencilStateCache.insert(std::make_pair(hash, depthStencilState));
+    ourDepthStencilStateCache.insert(eastl::make_pair(hash, depthStencilState));
     return depthStencilState;
   }
 //---------------------------------------------------------------------------//
@@ -808,7 +808,7 @@ namespace Fancy {
       return it->second;
 
     SharedPtr<TextureSampler> sampler(ourPlatformImpl->CreateTextureSampler(someProperties));
-    ourSamplerCache.insert(std::make_pair(hash, sampler));
+    ourSamplerCache.insert(eastl::make_pair(hash, sampler));
     return sampler;
   }
 //---------------------------------------------------------------------------//
@@ -821,7 +821,7 @@ namespace Fancy {
       return it->second;
 
     SharedPtr<VertexInputLayout> layout(new VertexInputLayout(aDesc));
-    ourVertexInputLayoutCache.insert(std::make_pair(hash, layout));
+    ourVertexInputLayoutCache.insert(eastl::make_pair(hash, layout));
     return layout;
   }
 //---------------------------------------------------------------------------//

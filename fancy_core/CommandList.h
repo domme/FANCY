@@ -2,12 +2,12 @@
 
 #include "RendererPrerequisites.h"
 #include "RenderCore.h"
-#include "DynamicArray.h"
 #include "MathIncludes.h"
 #include "RenderEnums.h"
 #include "DataFormat.h"
 #include "GpuResource.h"
 #include "VertexInputLayoutProperties.h"
+#include "eastl/vector.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -168,10 +168,10 @@ namespace Fancy {
     GraphicsPipelineState myGraphicsPipelineState;
     ComputePipelineState myComputePipelineState;
     
-    DynamicArray<GpuRingBuffer*> myUploadRingBuffers;
-    DynamicArray<GpuRingBuffer*> myConstantRingBuffers;
-    DynamicArray<GpuRingBuffer*> myVertexRingBuffers;
-    DynamicArray<GpuRingBuffer*> myIndexRingBuffers;
+    eastl::vector<GpuRingBuffer*> myUploadRingBuffers;
+    eastl::vector<GpuRingBuffer*> myConstantRingBuffers;
+    eastl::vector<GpuRingBuffer*> myVertexRingBuffers;
+    eastl::vector<GpuRingBuffer*> myIndexRingBuffers;
 
     struct GpuQueryRange
     {

@@ -13,6 +13,9 @@
 #include "GpuQueryHeap.h"
 #include "PipelineStateCacheDX12.h"
 
+#include "EASTL/vector.h"
+#include "EASTL/fixed_list.h"
+
 #if FANCY_ENABLE_DX12
 
 namespace Fancy {
@@ -95,9 +98,9 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
 
     // TODO: Move the dynamic heaps to a dedicated pool-class? (Similar to ComandAllocatorPoolDX12)
-    std::vector<UniquePtr<DynamicDescriptorHeapDX12>> myDynamicHeapPool;
-    std::list<DynamicDescriptorHeapDX12*> myAvailableDynamicHeaps;
-    std::list<std::pair<uint64, DynamicDescriptorHeapDX12*>> myUsedDynamicHeaps;
+    eastl::vector<UniquePtr<DynamicDescriptorHeapDX12>> myDynamicHeapPool;
+    eastl::fixed_list<DynamicDescriptorHeapDX12*, 128> myAvailableDynamicHeaps;
+    eastl::fixed_list<eastl::pair<uint64, DynamicDescriptorHeapDX12*>, 128> myUsedDynamicHeaps;
 
     UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)CpuMemoryAccessType::NUM];

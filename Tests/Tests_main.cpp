@@ -40,7 +40,7 @@ bool test_modelviewer = false;
 bool test_sharedQueueResources = false;
 bool test_hazardTracking = false;
 
-DynamicArray<UniquePtr<Test>> myTests;
+eastl::vector<UniquePtr<Test>> myTests;
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
@@ -192,8 +192,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
   int numArgs = 0;
   LPWSTR* commandLineArgs = CommandLineToArgvW(GetCommandLineW(), &numArgs);
 
-  DynamicArray<String> commandLineArgStrings(numArgs);
-  DynamicArray<const char*> cStrings(numArgs);
+  eastl::vector<String> commandLineArgStrings(numArgs);
+  eastl::vector<const char*> cStrings(numArgs);
   for (uint i = 0u; i < numArgs; ++i)
   {
     commandLineArgStrings[i] = StringUtil::ToNarrowString(commandLineArgs[i]);

@@ -2,6 +2,7 @@
 #include "ShaderPipeline.h"
 #include "VkPrerequisites.h"
 #include "PipelineDescriptorSetLayoutsVk.h"
+#include "eastl/vector.h"
 
 #if FANCY_ENABLE_VK
 
@@ -17,7 +18,7 @@ namespace Fancy
 
     void CreateFromShaders() override;
 
-    const DynamicArray<ShaderResourceInfoVk>& GetResourceInfos() const { return myResourceInfos; }
+    const eastl::vector<ShaderResourceInfoVk>& GetResourceInfos() const { return myResourceInfos; }
     const PipelineDescriptorSetLayoutsVk& GetDescriptorSetLayouts() const { return myDescriptorSetLayouts; }
     VkDescriptorSetLayout GetDescriptorSetLayout(uint aSetIdx) const { return myDescriptorSetLayouts[aSetIdx]; }
     VkPipelineLayout GetPipelineLayout() const { return myPipelineLayout; }
@@ -26,7 +27,7 @@ namespace Fancy
   private:
     VkPipelineLayout myPipelineLayout;
     PipelineDescriptorSetLayoutsVk myDescriptorSetLayouts;
-    DynamicArray<ShaderResourceInfoVk> myResourceInfos;
+    eastl::vector<ShaderResourceInfoVk> myResourceInfos;
   };
 }
 

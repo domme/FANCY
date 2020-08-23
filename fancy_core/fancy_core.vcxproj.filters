@@ -102,9 +102,6 @@
     <ClInclude Include="GpuResource.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="GpuResourceSignature.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Log.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -219,9 +216,6 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="FancyCoreDefines.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="DynamicArray.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Ptr.h">

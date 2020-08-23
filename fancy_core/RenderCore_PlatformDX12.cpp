@@ -691,7 +691,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::ReleaseDynamicDescriptorHeap(DynamicDescriptorHeapDX12* aHeap, uint64 aFenceVal)
   {
-    myUsedDynamicHeaps.push_back(std::make_pair(aFenceVal, aHeap));
+    myUsedDynamicHeaps.push_back(eastl::make_pair(aFenceVal, aHeap));
   }
 //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName /*= nullptr*/)

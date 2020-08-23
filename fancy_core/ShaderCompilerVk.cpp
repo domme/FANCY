@@ -113,7 +113,7 @@ namespace Fancy
       GetHLSLprofileString((ShaderStage) aDesc.myShaderStage)
     };
 
-    DynamicArray<uint8> spvBinaryData;
+    eastl::vector<uint8> spvBinaryData;
     if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, spvBinaryData))
       return false;
 

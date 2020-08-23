@@ -4,8 +4,9 @@
 #include "GrowingList.h"
 #include "Any.h"
 
-#include <functional>
-#include <list>
+#include "EASTL/vector.h"
+#include "EASTL/list.h"
+#include "EASTL/functional.h"
 
 namespace Fancy
 {
@@ -33,7 +34,7 @@ namespace Fancy
     PagedLinearAllocator(uint64 aPageSize);
     virtual ~PagedLinearAllocator();
 
-    const Page* FindPage(std::function<bool(const Page&)> aPredicateFn);
+    const Page* FindPage(eastl::function<bool(const Page&)> aPredicateFn);
     const Page* Allocate(uint64 aSize, uint anAlignment, uint64& anOffsetInPageOut, const char* aDebugName = nullptr);
     void Free(const Block& aBlock);
     bool IsEmpty() const { return myPages.empty(); }
@@ -59,10 +60,10 @@ namespace Fancy
       uint64 myStart;
       uint64 myEnd;
     };
-    std::list<AllocDebugInfo> myAllocDebugInfos;
+    eastl::list<AllocDebugInfo> myAllocDebugInfos;
 #endif  // CORE_DEBUG_MEMORY_ALLOCATIONS
 
-    std::vector<Page> myPages;
+    eastl::vector<Page> myPages;
   };
 //---------------------------------------------------------------------------//
 }

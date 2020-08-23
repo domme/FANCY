@@ -26,7 +26,7 @@ namespace Fancy
       , myFence(std::move(aFence))
     { }
 
-    void GetRawData(DynamicArray<uint8>& aDataOut);
+    void GetRawData(eastl::vector<uint8>& aDataOut);
     bool IsCompleted() const;
     void Wait() const;
     GpuBuffer* GetBuffer() const { return myBufferAllocation ? myBufferAllocation->myBuffer : nullptr; }

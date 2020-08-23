@@ -18,10 +18,10 @@ namespace Fancy
     {
       DescriptorSetInfo(uint aSetIndex) : mySet(aSetIndex) { }
       uint mySet;
-      DynamicArray<VkDescriptorSetLayoutBinding> myBindings;
+      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 16> myBindings;
     };
 
-    VkPipelineLayout GetPipelineLayout(const DynamicArray<DescriptorSetInfo>& someDescriptorSetInfos, PipelineDescriptorSetLayoutsVk& aDescriptorSetLayoutsOut);
+    VkPipelineLayout GetPipelineLayout(const eastl::fixed_vector<DescriptorSetInfo, 16>& someDescriptorSetInfos, PipelineDescriptorSetLayoutsVk& aDescriptorSetLayoutsOut);
     void Clear() override;
    
   private:

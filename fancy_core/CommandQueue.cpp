@@ -37,7 +37,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandQueue::FreeCommandList(CommandList* aCommandList)
   {
-    ASSERT(std::find(myAvailableCommandLists.begin(), myAvailableCommandLists.end(), aCommandList) == myAvailableCommandLists.end());
+    ASSERT(eastl::find(myAvailableCommandLists.begin(), myAvailableCommandLists.end(), aCommandList) == myAvailableCommandLists.end());
     myAvailableCommandLists.push_back(aCommandList);
   }
 //---------------------------------------------------------------------------//

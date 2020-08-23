@@ -3,7 +3,7 @@
 #include "PagedLinearAllocator.h"
 #include "MathUtil.h"
 
-#include <algorithm>
+#include "EASTL/algorithm.h"
 
 namespace Fancy
 {
@@ -16,7 +16,7 @@ namespace Fancy
   {
   }
 //---------------------------------------------------------------------------//
-  const PagedLinearAllocator::Page* PagedLinearAllocator::FindPage(std::function<bool(const Page&)> aPredicateFn)
+  const PagedLinearAllocator::Page* PagedLinearAllocator::FindPage(eastl::function<bool(const Page&)> aPredicateFn)
   {
     for (const Page& page : myPages)
       if (aPredicateFn(page))
@@ -70,7 +70,7 @@ namespace Fancy
   void PagedLinearAllocator::Free(const Block& aBlockToFree)
   {
 #if CORE_DEBUG_MEMORY_ALLOCATIONS
-    auto it = std::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&aBlockToFree](const AllocDebugInfo& anInfo)
+    auto it = eastl::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&aBlockToFree](const AllocDebugInfo& anInfo)
     {
       return anInfo.myStart == aBlockToFree.myStart;
     });
@@ -79,7 +79,7 @@ namespace Fancy
     myAllocDebugInfos.erase(it);
 #endif
 
-    auto pageIt = std::find_if(myPages.begin(), myPages.end(), [aBlockToFree](const Page& aPage)
+    auto pageIt = eastl::find_if(myPages.begin(), myPages.end(), [aBlockToFree](const Page& aPage)
     {
       return aBlockToFree.myStart >= aPage.myStart && aBlockToFree.myEnd <= aPage.myEnd;
     });

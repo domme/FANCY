@@ -4,17 +4,16 @@
 #include "RenderEnums.h"
 #include "Slot.h"
 #include "RenderCore_Platform.h"
-#include "DynamicArray.h"
 #include "Ptr.h"
 #include "TempResources.h"
 #include "GpuQuery.h"
 #include "CircularArray.h"
 #include "TextureSampler.h"
-
-#include <map>
-#include <list>
+#include "TextureReadbackTask.h"
 
 #include "EASTL/fixed_vector.h"
+#include "EASTL/fixed_list.h"
+#include "EASTL/hash_map.h"
 
 namespace Fancy {
   struct MaterialDesc;
@@ -51,6 +50,8 @@ namespace Fancy {
   class ReadbackTask;
   class TextureReadbackTask;
   struct VertexInputLayout;
+  class Texture;
+  struct SubResourceRange;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -172,28 +173,28 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
 
-    static std::map<uint64, SharedPtr<Shader>> ourShaderCache;  
-    static std::map<uint64, SharedPtr<ShaderPipeline>> ourShaderPipelineCache;
-    static std::map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
-    static std::map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
-    static std::map<uint64, SharedPtr<TextureSampler>> ourSamplerCache;
-    static std::map<uint64, SharedPtr<VertexInputLayout>> ourVertexInputLayoutCache;
+    static eastl::hash_map<uint64, SharedPtr<Shader>> ourShaderCache;  
+    static eastl::hash_map<uint64, SharedPtr<ShaderPipeline>> ourShaderPipelineCache;
+    static eastl::hash_map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
+    static eastl::hash_map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
+    static eastl::hash_map<uint64, SharedPtr<TextureSampler>> ourSamplerCache;
+    static eastl::hash_map<uint64, SharedPtr<VertexInputLayout>> ourVertexInputLayoutCache;
 
-    static DynamicArray<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
-    static std::list<GpuRingBuffer*> ourAvailableRingBuffers;
-    static std::list<std::pair<uint64, GpuRingBuffer*>> ourUsedRingBuffers;
+    static eastl::vector<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
+    static eastl::fixed_list<GpuRingBuffer*, 128> ourAvailableRingBuffers;
+    static eastl::fixed_list<eastl::pair<uint64, GpuRingBuffer*>, 128> ourUsedRingBuffers;
 
-    static DynamicArray<UniquePtr<GpuReadbackBuffer>> ourReadbackBuffers;
+    static eastl::fixed_vector<UniquePtr<GpuReadbackBuffer>, 64> ourReadbackBuffers;
 
     static UniquePtr<CommandQueue> ourCommandQueues[(uint)CommandListType::NUM];  // TODO: Move into RenderCore_Platform
     
     static StaticCircularArray<uint64, NUM_QUEUED_FRAMES> ourQueuedFrameDoneFences;
-    static StaticCircularArray<std::pair<uint64, uint64>, 256> ourLastFrameDoneFences;
+    static StaticCircularArray<eastl::pair<uint64, uint64>, 256> ourLastFrameDoneFences;
     
     static UniquePtr<GpuQueryHeap> ourQueryHeaps[NUM_QUEUED_FRAMES][(uint)GpuQueryType::NUM];
     static uint ourCurrQueryHeapIdx;
 
-    static eastl::fixed_vector<std::pair<uint, uint>, 64> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
+    static eastl::fixed_vector<eastl::pair<uint, uint>, 64> ourUsedQueryRanges[(uint)GpuQueryType::NUM];
 
     static UniquePtr<GpuBuffer> ourQueryBuffers[NUM_QUERY_BUFFERS][(uint)GpuQueryType::NUM];
     static uint64 ourQueryBufferFrames[NUM_QUERY_BUFFERS];
@@ -202,7 +203,7 @@ namespace Fancy {
     static const uint8* ourMappedQueryBufferData[(uint)GpuQueryType::NUM];
     static uint ourMappedQueryBufferIdx[(uint)GpuQueryType::NUM];
 
-    static DynamicArray<String> ourChangedShaderFiles;
+    static eastl::vector<String> ourChangedShaderFiles;
   };
 //---------------------------------------------------------------------------//
 }

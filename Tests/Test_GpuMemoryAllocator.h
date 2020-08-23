@@ -3,6 +3,8 @@
 #include "fancy_core/GpuBuffer.h"
 #include "fancy_core/Texture.h"
 
+#include "EASTL/vector.h"
+
 class Test_GpuMemoryAllocator : public Test
 {
 public:
@@ -17,7 +19,7 @@ private:
 
   int myBufferToAllocSizeMb;
   float myScale;
-  std::vector<Fancy::SharedPtr<Fancy::GpuBuffer>> myBuffers;
-  std::vector<Fancy::SharedPtr<Fancy::Texture>> myTextures;
+  eastl::vector<Fancy::SharedPtr<Fancy::GpuBuffer>> myBuffers;
+  eastl::vector<Fancy::SharedPtr<Fancy::Texture>> myTextures;
 };
 

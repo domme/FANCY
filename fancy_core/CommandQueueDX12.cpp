@@ -107,7 +107,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandQueueDX12::ResolveResourceHazardData(CommandList* aCommandList)
   {
-    DynamicArray<D3D12_RESOURCE_BARRIER> patchingBarriers;
+    eastl::fixed_vector<D3D12_RESOURCE_BARRIER, 64> patchingBarriers;
 
     CommandListDX12* cmdListDx12 = static_cast<CommandListDX12*>(aCommandList);
 

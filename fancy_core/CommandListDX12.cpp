@@ -612,7 +612,7 @@ namespace Fancy {
     ASSERT(myGraphicsPipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Graphics);
     ASSERT(myComputePipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Compute);
 
-    const DynamicArray<ShaderResourceInfoDX12>& shaderResources = myCurrentContext == CommandListType::Graphics ?
+    const eastl::vector<ShaderResourceInfoDX12>& shaderResources = myCurrentContext == CommandListType::Graphics ?
       static_cast<const ShaderPipelineDX12*>(myGraphicsPipelineState.myShaderPipeline)->GetResourceInfos() :
       static_cast<const ShaderPipelineDX12*>(myComputePipelineState.myShaderPipeline)->GetResourceInfos();
 

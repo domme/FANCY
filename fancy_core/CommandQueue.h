@@ -37,8 +37,8 @@ namespace Fancy
 
     void FreeCommandList(CommandList* aCommandList);
 
-    DynamicArray<UniquePtr<CommandList>> myCommandListPool;
-    std::list<CommandList*> myAvailableCommandLists;
+    eastl::vector<UniquePtr<CommandList>> myCommandListPool;
+    eastl::fixed_list<CommandList*, 128> myAvailableCommandLists;
 
     CommandListType myType;
     uint64 myLastCompletedFenceVal;
