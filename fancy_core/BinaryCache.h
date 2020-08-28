@@ -18,7 +18,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct BinaryCache
   {
-    static String GetCacheFilePathAbs(const char* aPathInResources);
+    static eastl::string GetCacheFilePathAbs(const char* aPathInResources);
 
     static void WriteScene(const char* aSourceFilePath, SceneData& aSceneData);
     static bool ReadScene(const char* aSourceFilePath, SceneData& aSceneData);

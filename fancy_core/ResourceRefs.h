@@ -13,7 +13,7 @@ namespace Fancy {
       NUM_GLOBAL_TEXTURES = 13 - LAST_LOCAL_TEXTURE,
     };
 
-    static String ToString(Ref aRef, uint anIndex = 0)
+    static eastl::string ToString(Ref aRef, uint anIndex = 0)
     {
 #define TEXTURE_REF(name, ...) case name: return (const char*) StaticString<64>("%s_%d", #name, anIndex);
       switch(aRef)

@@ -4,19 +4,17 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  std::wstring StringUtil::ToWideString(const String& aStr)
+  eastl::wstring StringUtil::ToWideString(const eastl::string& aStr)
   {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(aStr);
+    return eastl::wstring(eastl::wstring::CtorConvert(), aStr.c_str());
   }
 //---------------------------------------------------------------------------//
-  String StringUtil::ToNarrowString(const std::wstring& aStr)
+  eastl::string StringUtil::ToNarrowString(const std::wstring& aStr)
   {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.to_bytes(aStr);
+    return eastl::string(eastl::string::CtorConvert(), aStr.c_str());
   }
 //---------------------------------------------------------------------------//
-  void StringUtil::Tokenize(const String& _str, const char* _szDelimiters, eastl::vector<String>& _outTokenList)
+  void StringUtil::Tokenize(const eastl::string& _str, const char* _szDelimiters, eastl::vector<eastl::string>& _outTokenList)
   {
     char* cstr = const_cast<char*>(_str.c_str());
     cstr = strtok(cstr, _szDelimiters);

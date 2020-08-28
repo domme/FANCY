@@ -136,8 +136,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   SharedPtr<TextureView> ObjectCore::GetTexture(const char* aPath, uint someFlags)
   {
-    String texPathAbs = aPath;
-    String texPathRel = aPath;
+    eastl::string texPathAbs = aPath;
+    eastl::string texPathRel = aPath;
     if (!Path::IsPathAbsolute(texPathAbs))
       texPathAbs = Path::GetAbsoluteResourcePath(texPathAbs);
     else
@@ -158,8 +158,8 @@ namespace Fancy
     if (strlen(aPath) == 0)
       return nullptr;
 
-    String texPathAbs = aPath;
-    String texPathRel = aPath;
+    eastl::string texPathAbs = aPath;
+    eastl::string texPathRel = aPath;
     if (!Path::IsPathAbsolute(texPathAbs))
       texPathAbs = Path::GetAbsoluteResourcePath(texPathAbs);
     else
@@ -179,7 +179,7 @@ namespace Fancy
       if (BinaryCache::ReadTextureData(texPathRel.c_str(), texProps, textureData))
       {
         texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
-        SharedPtr<Texture> texFromDiskCache = RenderCore::CreateTexture(texProps, texProps.path.c_str(), textureData.mySubDatas.data(), (uint)textureData.mySubDatas.size());
+        SharedPtr<Texture> texFromDiskCache = RenderCore::CreateTexture(texProps, texProps.myPath.c_str(), textureData.mySubDatas.data(), (uint)textureData.mySubDatas.size());
         ASSERT(texFromDiskCache != nullptr);
 
         TextureViewProperties viewProps;
@@ -202,7 +202,7 @@ namespace Fancy
 
     TextureProperties texProps;
     texProps.myDimension = GpuResourceDimension::TEXTURE_2D;
-    texProps.path = texPathRel;
+    texProps.myPath = texPathRel;
     texProps.bIsDepthStencil = false;
     texProps.myWidth = (uint)image.mySize.x;
     texProps.myHeight = (uint)image.mySize.y;

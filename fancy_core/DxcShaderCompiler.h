@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wrl.h>
+#include "EASTL/string.h"
 
 struct IDxcLibrary;
 struct IDxcCompiler;
@@ -22,7 +23,7 @@ namespace Fancy
     {
       bool myDebug = true;
       bool mySpirv = false;
-      String myProfile;
+      eastl::string myProfile;
     };
 
     bool CompileToBytecode(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, const Config& aConfig, eastl::vector<uint8>& aCompiledBytecodeOut) const;

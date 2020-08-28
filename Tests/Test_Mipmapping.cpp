@@ -45,7 +45,7 @@ void ImageData::Create(SharedPtr<TextureView> aTexture)
     ASSERT(myMipLevelReadViews[mip] != nullptr && myMipLevelWriteViews[mip] != nullptr);
   }
 
-  String texturePath = destTexProps.path;
+  eastl::string texturePath = destTexProps.myPath;
   myName = texturePath.substr(texturePath.find_last_of('/') + 1);
   myIsWindowOpen = false;
   myIsDirty = false;

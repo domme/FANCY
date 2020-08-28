@@ -9,7 +9,7 @@ namespace Fancy
 {
   namespace DebugUtilsDX12
   {
-    String ResourceStatesToString(D3D12_RESOURCE_STATES aStates);
+    eastl::string ResourceStatesToString(D3D12_RESOURCE_STATES aStates);
   }
 }
 

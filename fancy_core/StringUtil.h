@@ -1,22 +1,18 @@
 #pragma once
 
+#include "EASTL/string.h"
+#include "EASTL/vector.h"
+
 namespace Fancy 
 {
 //---------------------------------------------------------------------------//
   namespace StringUtil
   {
-    template<class T>
-    static String toString(const T& _val)
-    {
-      std::stringstream ss;
-      ss << _val;
-      return ss.str();
-    }
 //---------------------------------------------------------------------------//
-    std::wstring ToWideString(const String& aStr);
-    String ToNarrowString(const std::wstring& aStr);
+    eastl::wstring ToWideString(const eastl::string& aStr);
+    eastl::string ToNarrowString(const std::wstring& aStr);
 //---------------------------------------------------------------------------//
-    void Tokenize(const String& _str, const char* _szDelimiters, eastl::vector<String>& _outTokenList);
+    void Tokenize(const eastl::string& _str, const char* _szDelimiters, eastl::vector<eastl::string>& _outTokenList);
 //---------------------------------------------------------------------------//
     int FindFirstOf(const char* aStr, char aChar);
 //---------------------------------------------------------------------------//

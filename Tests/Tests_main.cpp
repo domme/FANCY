@@ -192,7 +192,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
   int numArgs = 0;
   LPWSTR* commandLineArgs = CommandLineToArgvW(GetCommandLineW(), &numArgs);
 
-  eastl::vector<String> commandLineArgStrings(numArgs);
+  eastl::vector<eastl::string> commandLineArgStrings(numArgs);
   eastl::vector<const char*> cStrings(numArgs);
   for (uint i = 0u; i < numArgs; ++i)
   {

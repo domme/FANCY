@@ -33,7 +33,7 @@ namespace Fancy {
   {
     uint64 GetHash() const;
 
-    String myTextures[(uint)MaterialTextureType::NUM];
+    eastl::string myTextures[(uint)MaterialTextureType::NUM];
     glm::float4 myParameters[(uint)MaterialParameterType::NUM] = {};
   };
 //---------------------------------------------------------------------------//

@@ -2,10 +2,11 @@
 
 #include "Shader.h"
 #include "Mesh.h"
-#include "Ptr.h"
 #include "Scene.h"
 
-#include <unordered_map>
+#include "EASTL/hash_map.h"
+#include "EASTL/string.h"
+#include "EASTL/fixed_vector.h"
 
 struct aiMesh;
 struct aiNode;
@@ -41,13 +42,13 @@ namespace Fancy {
 
     uint CreateMaterial(const aiMaterial* anAiMaterial, SceneData& aResultOut);
     
-    String mySourcePath;
+    eastl::string mySourcePath;
     const aiScene* myScene = nullptr;
     uint64 mySceneFileTimeStamp = 0u;
     VertexInputLayoutProperties myVertexInputLayout;
     eastl::fixed_vector<VertexShaderAttributeDesc, 16> myVertexAttributes;
-    std::unordered_map<const aiMaterial*, uint> myMaterialCache;
-    std::unordered_map<uint64, uint> myMeshCache; 
+    eastl::hash_map<const aiMaterial*, uint> myMaterialCache;
+    eastl::hash_map<uint64, uint> myMeshCache; 
   };
 //---------------------------------------------------------------------------//
 }

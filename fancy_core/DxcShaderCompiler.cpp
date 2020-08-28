@@ -13,15 +13,15 @@ namespace Fancy
   {
     struct IncludeHandler : IDxcIncludeHandler
     {
-      eastl::fixed_vector<std::wstring, 16> myIncludeSearchPaths;
+      eastl::fixed_vector<eastl::wstring, 16> myIncludeSearchPaths;
       IDxcLibrary* myDxcLibrary;
 
-      IncludeHandler(IDxcLibrary* aDxcLibrary, String* someIncludeSearchPaths, uint aNumPaths)
+      IncludeHandler(IDxcLibrary* aDxcLibrary, eastl::string* someIncludeSearchPaths, uint aNumPaths)
         : myDxcLibrary(aDxcLibrary)
       {
         for (uint i = 0u; i < aNumPaths; ++i)
         {
-          const String& dir = someIncludeSearchPaths[i];
+          const eastl::string& dir = someIncludeSearchPaths[i];
           ASSERT(!dir.empty());
 
           if (dir[dir.size() - 1] != '/' && dir[dir.size() - 1] != '\\')
@@ -48,7 +48,7 @@ namespace Fancy
 
         for (uint i = 0u; i < (uint) myIncludeSearchPaths.size(); ++i)
         {
-          std::wstring path = myIncludeSearchPaths[i] + pFilename;
+          eastl::wstring path = myIncludeSearchPaths[i] + pFilename;
           if (Path::FileExists(path.c_str()))
           {
             IDxcBlobEncoding* pBlobWithEncoding;
@@ -125,7 +125,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool DxcShaderCompiler::CompileToBytecode(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, const Config& aConfig, Microsoft::WRL::ComPtr<IDxcBlob>& aCompiledBytecodeOut) const
   {
-    std::string shaderFile = FileReader::ReadTextFile(anHlslSrcPathAbs);
+    eastl::string shaderFile = FileReader::ReadTextFile(anHlslSrcPathAbs);
     if (shaderFile.empty())
       return false;
 
@@ -162,9 +162,9 @@ namespace Fancy
         AddArgument(L"-fvk-invert-y");
     }
 
-    eastl::fixed_vector<std::wstring, 32> defineNames;
+    eastl::fixed_vector<eastl::wstring, 32> defineNames;
     eastl::fixed_vector<DxcDefine, 32> defines;
-    for (const String& define : aDesc.myDefines)
+    for (const eastl::string& define : aDesc.myDefines)
     {
       defineNames.push_back(StringUtil::ToWideString(define));
       defines.push_back({ defineNames[defineNames.size() - 1].c_str(), nullptr });
@@ -183,7 +183,7 @@ namespace Fancy
     defineNames.push_back(StringUtil::ToWideString(stageDefine));
     defines.push_back({ defineNames[defineNames.size() - 1].c_str(), nullptr });
 
-    String includePaths[] =
+    eastl::string includePaths[] =
     {
       Path::GetContainingFolder(anHlslSrcPathAbs),
       Path::GetAbsolutePath(ShaderCompiler::GetShaderRootFolderRelative()),

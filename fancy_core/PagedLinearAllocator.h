@@ -56,7 +56,7 @@ namespace Fancy
 #if CORE_DEBUG_MEMORY_ALLOCATIONS
     struct AllocDebugInfo
     {
-      String myName;
+      eastl::string myName;
       uint64 myStart;
       uint64 myEnd;
     };

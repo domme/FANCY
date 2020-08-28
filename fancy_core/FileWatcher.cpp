@@ -19,16 +19,16 @@ namespace Fancy {
     if(runtime != nullptr)
         runtime->GetRealTimeClock().GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).DetachObserver(this);
 
-    eastl::vector<String> watchedPaths;
+    eastl::vector<eastl::string> watchedPaths;
     watchedPaths.reserve(myWatchEntries.size());
     for (const FileWatchEntry& entry : myWatchEntries)
       watchedPaths.push_back(entry.myPath);
 
-    for (const String& path : watchedPaths)
+    for (const eastl::string& path : watchedPaths)
       RemoveFileWatch(path);
   }
 //---------------------------------------------------------------------------//
-  void FileWatcher::AddFileWatch(const String& aPath) const
+  void FileWatcher::AddFileWatch(const eastl::string& aPath) const
   {
     if (std::find_if(myWatchEntries.begin(), myWatchEntries.end(), [=](const auto& entry){ return entry.myPath == aPath; }) != myWatchEntries.end())
       return;
@@ -47,7 +47,7 @@ namespace Fancy {
     myWatchEntries.push_back(entry);
   }
 //---------------------------------------------------------------------------//
-  void FileWatcher::RemoveFileWatch(const String& aPath)
+  void FileWatcher::RemoveFileWatch(const eastl::string& aPath)
   {
     auto it = std::find_if(myWatchEntries.begin(), myWatchEntries.end(), [=](const auto& entry) { return entry.myPath == aPath; });
 

@@ -6,12 +6,12 @@ namespace Fancy
   namespace DebugUtilsVk
   {
 //---------------------------------------------------------------------------//
-    String AccessMaskToString(VkAccessFlags anAccessMask)
+    eastl::string AccessMaskToString(VkAccessFlags anAccessMask)
     {
       if (anAccessMask == 0u)
         return "none";
 
-      String str;
+      eastl::string str;
 
       if (anAccessMask & VK_ACCESS_INDIRECT_COMMAND_READ_BIT)
         str += "indirect command read|";
@@ -76,12 +76,12 @@ namespace Fancy
       return str;
     }
 //---------------------------------------------------------------------------//
-    String PipelineStageMaskToString(VkPipelineStageFlags aPipelineStageMask)
+    eastl::string PipelineStageMaskToString(VkPipelineStageFlags aPipelineStageMask)
     {
       if (aPipelineStageMask == 0u)
         return "none";
 
-      String str;
+      eastl::string str;
 
       if (aPipelineStageMask & VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT)
         str += "top of pipe|";
@@ -142,7 +142,7 @@ namespace Fancy
       return str;
     }
 //---------------------------------------------------------------------------//
-    String ImageLayoutToString(VkImageLayout anImageLayout)
+    eastl::string ImageLayoutToString(VkImageLayout anImageLayout)
     {
       switch (anImageLayout)
       {

@@ -90,7 +90,7 @@ namespace Fancy {
   const uint8* RenderCore::ourMappedQueryBufferData[(uint)GpuQueryType::NUM] = { nullptr };
   uint RenderCore::ourMappedQueryBufferIdx[(uint)GpuQueryType::NUM] = { 0u };
 
-  eastl::vector<String> RenderCore::ourChangedShaderFiles;
+  eastl::vector<eastl::string> RenderCore::ourChangedShaderFiles;
 //---------------------------------------------------------------------------//  
   bool RenderCore::IsInitialized()
   {
@@ -439,10 +439,10 @@ namespace Fancy {
     ASSERT(ourPlatformImpl != nullptr);
 
     ourShaderFileWatcher = std::make_unique<FileWatcher>();
-    std::function<void(const String&)> onUpdatedFn(&RenderCore::OnShaderFileUpdated);
+    std::function<void(const eastl::string&)> onUpdatedFn(&RenderCore::OnShaderFileUpdated);
     ourShaderFileWatcher->myOnFileUpdated.Connect(onUpdatedFn);
 
-    std::function<void(const String&)> onDeletedFn(&RenderCore::OnShaderFileDeletedMoved);
+    std::function<void(const eastl::string&)> onDeletedFn(&RenderCore::OnShaderFileDeletedMoved);
     ourShaderFileWatcher->myOnFileDeletedMoved.Connect(onDeletedFn);
 
     ourShaderCompiler.reset(ourPlatformImpl->CreateShaderCompiler());
@@ -464,7 +464,7 @@ namespace Fancy {
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
-      props.path = TextureRef::ToString(TextureRef::DEFAULT_DIFFUSE);
+      props.myPath = TextureRef::ToString(TextureRef::DEFAULT_DIFFUSE);
 
       TextureSubData data(props);
       uint8 color[4] = { 0, 0, 0, 255 };
@@ -472,7 +472,7 @@ namespace Fancy {
 
       ourDefaultDiffuseTexture = CreateTexture(props, "Default_Diffuse", &data, 1);
 
-      props.path = TextureRef::ToString(TextureRef::DEFAULT_SPECULAR);
+      props.myPath = TextureRef::ToString(TextureRef::DEFAULT_SPECULAR);
       ourDefaultSpecularTexture = CreateTexture(props, "Default_Specular", &data, 1);
     }
 
@@ -482,7 +482,7 @@ namespace Fancy {
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
-      props.path = TextureRef::ToString(TextureRef::DEFAULT_NORMAL);
+      props.myPath = TextureRef::ToString(TextureRef::DEFAULT_NORMAL);
 
       TextureSubData data(props);
       uint8 color[4] = { 128, 128, 128, 255 };
@@ -517,7 +517,7 @@ namespace Fancy {
       {
         bufferProps.myElementSizeBytes = GetQueryTypeDataSize((GpuQueryType)queryType);
         bufferProps.myNumElements = numQueriesPerType[queryType];
-        String name(StaticString<64>("QueryHeap %s", locGetQueryTypeName((GpuQueryType)queryType)));
+        eastl::string name(StaticString<64>("QueryHeap %s", locGetQueryTypeName((GpuQueryType)queryType)));
 
         GpuBuffer* buffer = ourPlatformImpl->CreateBuffer();
         if (buffer)
@@ -646,7 +646,7 @@ namespace Fancy {
   void RenderCore::UpdateChangedShaders()
   {
     eastl::fixed_vector<Shader*, 8> shadersToRecompile;
-    for (const String& shaderFile : ourChangedShaderFiles)
+    for (const eastl::string& shaderFile : ourChangedShaderFiles)
     {
       // Find GpuPrograms for this file
       for (auto it = ourShaderCache.begin(); it != ourShaderCache.end(); ++it)
@@ -654,7 +654,7 @@ namespace Fancy {
         Shader* program = it->second.get();
 
         const ShaderDesc& desc = program->GetDescription();
-        String actualShaderPath =
+        eastl::string actualShaderPath =
           Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(desc.myPath.c_str()));
 
         if (actualShaderPath == shaderFile)
@@ -723,7 +723,7 @@ namespace Fancy {
     
     ourShaderCache.insert(eastl::make_pair(hash, program));
 
-    const String actualShaderPath =
+    const eastl::string actualShaderPath =
       Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(aDesc.myPath.c_str()));
 
     ourShaderFileWatcher->AddFileWatch(actualShaderPath);
@@ -1132,12 +1132,12 @@ namespace Fancy {
     return GetCommandQueue(type);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::OnShaderFileUpdated(const String& aShaderFile)
+  void RenderCore::OnShaderFileUpdated(const eastl::string& aShaderFile)
   {
     ourChangedShaderFiles.push_back(aShaderFile);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::OnShaderFileDeletedMoved(const String& aShaderFile)
+  void RenderCore::OnShaderFileDeletedMoved(const eastl::string& aShaderFile)
   {
   }
 //---------------------------------------------------------------------------//

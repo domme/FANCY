@@ -97,7 +97,7 @@ namespace Fancy {
   {
     void operator()(TextureProperties& aVal, BinarySerializer& aSerializer)
     {
-      aSerializer.Serialize(aVal.path);
+      aSerializer.Serialize(aVal.myPath);
       aSerializer.Serialize(aVal.myDimension);
       aSerializer.Serialize(aVal.myWidth);
       aSerializer.Serialize(aVal.myHeight);
@@ -184,14 +184,14 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   const uint kCacheVersion = 5;
 //---------------------------------------------------------------------------//
-  String BinaryCache::GetCacheFilePathAbs(const char* aPathInResources)
+  eastl::string BinaryCache::GetCacheFilePathAbs(const char* aPathInResources)
   {
     return Path::GetUserDataPath() + "ResourceCache/" + aPathInResources + ".bin";
   }
 //---------------------------------------------------------------------------//
   void BinaryCache::WriteScene(const char* aSourceFilePath, SceneData& aSceneData)
   {
-    const String cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
+    const eastl::string cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
     Path::CreateDirectoryTreeForPath(cacheFilePath);
     BinarySerializer serializer(cacheFilePath.c_str(), BinarySerializer::WRITE);
     if (!serializer.IsGood())
@@ -208,7 +208,7 @@ namespace Fancy {
     if (!HasValidDiskCache(aSourceFilePath))
       return false;
 
-    const String cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
+    const eastl::string cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
 
     BinarySerializer serializer(cacheFilePath.c_str(), BinarySerializer::READ);
     if (!serializer.IsGood())
@@ -222,7 +222,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void BinaryCache::WriteTextureData(const char* aSourceFilePath, TextureProperties& someTexProps, TextureData& aTextureData)
   {
-    const String cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
+    const eastl::string cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
     Path::CreateDirectoryTreeForPath(cacheFilePath);
     BinarySerializer serializer(cacheFilePath.c_str(), BinarySerializer::WRITE);
     if (!serializer.IsGood())
@@ -239,7 +239,7 @@ namespace Fancy {
     if (!HasValidDiskCache(aSourceFilePath))
       return false;
 
-    const String cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
+    const eastl::string cacheFilePath = GetCacheFilePathAbs(aSourceFilePath);
 
     BinarySerializer serializer(cacheFilePath.c_str(), BinarySerializer::READ);
     if (!serializer.IsGood())
@@ -253,10 +253,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool BinaryCache::HasValidDiskCache(const char* aPath)
   {
-    const String cacheFilePath = GetCacheFilePathAbs(aPath);
+    const eastl::string cacheFilePath = GetCacheFilePathAbs(aPath);
 
     bool foundSourceFile = false;
-    String absSourcePath = Path::GetAbsoluteResourcePath(aPath, &foundSourceFile);
+    eastl::string absSourcePath = Path::GetAbsoluteResourcePath(aPath, &foundSourceFile);
 
     if (!foundSourceFile)
       return false;

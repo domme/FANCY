@@ -36,7 +36,7 @@ namespace Fancy {
 
     if (GpuResourceDataDX12* dataDx12 = GetData())
     {
-      std::wstring wName = StringUtil::ToWideString(myName);
+      eastl::wstring wName = StringUtil::ToWideString(myName);
       dataDx12->myResource->SetName(wName.c_str());
     }
   }
@@ -176,7 +176,7 @@ namespace Fancy {
     CheckD3Dcall(device->CreateCommittedResource(&heapDesc.Properties, heapDesc.Flags, &resourceDesc, initialState, useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS(&storageDx12->myResource)));
     */
 
-    std::wstring wName = StringUtil::ToWideString(myName);
+    eastl::wstring wName = StringUtil::ToWideString(myName);
     dataDx12.myResource->SetName(wName.c_str());
 
     myNativeData = dataDx12;
@@ -232,7 +232,7 @@ namespace Fancy {
   {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
     
-    String name = aTexture->myName;
+    eastl::string name = aTexture->myName;
 
     bool success = false;
     GpuResourceViewDataDX12 nativeData;

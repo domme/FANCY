@@ -2,6 +2,7 @@
 #include "Test.h"
 #include "fancy_core/Ptr.h"
 #include "EASTL/vector.h"
+#include "EASTL/string.h"
 
 namespace Fancy
 {
@@ -23,7 +24,7 @@ struct ImageData
   eastl::vector<Fancy::SharedPtr<Fancy::TextureView>> myMipLevelReadViews;
   eastl::vector<Fancy::SharedPtr<Fancy::TextureView>> myMipLevelWriteViews;
 
-  Fancy::String myName;
+  eastl::string myName;
   bool myIsWindowOpen;
   bool myIsDirty;
   int mySelectedMipLevel;

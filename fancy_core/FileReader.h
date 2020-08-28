@@ -1,15 +1,16 @@
 #pragma once
 
-#include <list>
-#include <string>
+#include "EASTL/string.h"
+#include "EASTL/vector.h"
+#include "EASTL/list.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace FileReader
   {
-	  std::string ReadTextFile(const char* aPathAbs);
-	  void ReadTextFileLines( const char* aPathAbs, eastl::vector<std::string>& someLinesOut);
-    void ReadTextFileLines( const char* aPathAbs, std::list<std::string>& someLinesOut);
+    eastl::string ReadTextFile(const char* aPathAbs);
+	  void ReadTextFileLines( const char* aPathAbs, eastl::vector<eastl::string>& someLinesOut);
+    void ReadTextFileLines( const char* aPathAbs, eastl::list<eastl::string>& someLinesOut);
     bool ReadBinaryFile(const char* aPathAbs, eastl::vector<uint8>& someDataOut);
   };
 //---------------------------------------------------------------------------//

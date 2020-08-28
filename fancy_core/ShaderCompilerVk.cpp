@@ -204,15 +204,15 @@ namespace Fancy
     else if (aDesc.myShaderStage == (uint)ShaderStage::COMPUTE)
     {
       // SPIR-V reflect doesn't provide a way to reflect group-thread count yet, so just parse the source-code as a workaround for now
-      String hlslSource = FileReader::ReadTextFile(anHlslSrcPathAbs);
+      eastl::string hlslSource = FileReader::ReadTextFile(anHlslSrcPathAbs);
       ASSERT(hlslSource.size() > 0);
 
       size_t mainFuncPos = hlslSource.find("void " + aDesc.myMainFunction);
-      ASSERT(mainFuncPos != String::npos);
+      ASSERT(mainFuncPos != eastl::string::npos);
 
       const char* numthreadsSearchKey = "[numthreads(";
       size_t numThreadsPos = hlslSource.rfind(numthreadsSearchKey, mainFuncPos);
-      ASSERT(numThreadsPos != String::npos);
+      ASSERT(numThreadsPos != eastl::string::npos);
 
       char delims[3] = { ',', ',', ')' };
       int numGroupThreads[3] = { -1, -1, -1 };

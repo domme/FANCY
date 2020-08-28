@@ -6,12 +6,12 @@
 
 namespace Fancy
 {
-  String DebugUtilsDX12::ResourceStatesToString(D3D12_RESOURCE_STATES aStates)
+  eastl::string DebugUtilsDX12::ResourceStatesToString(D3D12_RESOURCE_STATES aStates)
   {
     if (aStates == D3D12_RESOURCE_STATE_COMMON)
       return "common";
 
-    String str;
+    eastl::string str;
     if (aStates & D3D12_RESOURCE_STATE_GENERIC_READ)
     {
       str += "generic read|";

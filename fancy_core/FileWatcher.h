@@ -9,7 +9,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct FileWatchEntry
   {
-    String myPath;
+    eastl::string myPath;
     uint64 myLastWriteTime;
   };
   //---------------------------------------------------------------------------//
@@ -19,11 +19,11 @@ namespace Fancy {
     FileWatcher();
     virtual ~FileWatcher();
 
-    void AddFileWatch(const String& aPath) const;
-    void RemoveFileWatch(const String& aPath);
+    void AddFileWatch(const eastl::string& aPath) const;
+    void RemoveFileWatch(const eastl::string& aPath);
 
-    Slot<void(const String&)> myOnFileUpdated;
-    Slot<void(const String&)> myOnFileDeletedMoved;
+    Slot<void(const eastl::string&)> myOnFileUpdated;
+    Slot<void(const eastl::string&)> myOnFileDeletedMoved;
 
   private:
     void UpdateFileInfos();

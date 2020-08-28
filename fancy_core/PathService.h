@@ -8,34 +8,34 @@ namespace Fancy {
   {
     void InitRootFolders();
 
-    String GetAppName();
-    String GetAppPath();
-    String GetContainingFolder(const String& aFileName);
+    eastl::string GetAppName();
+    eastl::string GetAppPath();
+    eastl::string GetContainingFolder(const eastl::string& aFileName);
     
-    const String& GetRootDirectory();
-    String GetWorkingDirectory();
-    String GetAbsolutePath(const String& aRelativePath);
-    String GetRelativePath(const String& anAbsolutePath);
-    String GetAbsoluteResourcePath(const String& aRelativeResourcePath, bool* aWasFound = nullptr);
-    String GetRelativeResourcePath(const String& anAbsoluteResourcePath, bool* aWasFound = nullptr);
+    const eastl::string& GetRootDirectory();
+    eastl::string GetWorkingDirectory();
+    eastl::string GetAbsolutePath(const eastl::string& aRelativePath);
+    eastl::string GetRelativePath(const eastl::string& anAbsolutePath);
+    eastl::string GetAbsoluteResourcePath(const eastl::string& aRelativeResourcePath, bool* aWasFound = nullptr);
+    eastl::string GetRelativeResourcePath(const eastl::string& anAbsoluteResourcePath, bool* aWasFound = nullptr);
     bool FileExists(const char* aFilePath);
     bool FileExists(const wchar_t* aFilePath);
     bool IsPathAbsolute(const char* aPath);
-    bool IsPathAbsolute(const String& aPath);
-    String GetFileExtension(const String& aFileName);
-    String GetFilename(const String& aPath);
-    String GetPathWithoutExtension(const String& aPath);
-    uint64 GetFileWriteTime(const String& aFile);
-    String GetUserDataPath();
+    bool IsPathAbsolute(const eastl::string& aPath);
+    eastl::string GetFileExtension(const eastl::string& aFileName);
+    eastl::string GetFilename(const eastl::string& aPath);
+    eastl::string GetPathWithoutExtension(const eastl::string& aPath);
+    uint64 GetFileWriteTime(const eastl::string& aFile);
+    eastl::string GetUserDataPath();
 
     /// The following two functions add quotes around path-segments that contain spaces so the path is accepted as input to command-lines
-    String GetAsCmdParameter(const char* aPath);
-    void PrepareForCmdParameter(String& aPath);
+    eastl::string GetAsCmdParameter(const char* aPath);
+    void PrepareForCmdParameter(eastl::string& aPath);
 
-    void RemoveFolderUpMarkers(String& aPath);
-    void ConvertToSlash(String& aPath);
-    void ConvertToBackslash(String& aPath);
-    void CreateDirectoryTreeForPath(const String& aPath);
+    void RemoveFolderUpMarkers(eastl::string& aPath);
+    void ConvertToSlash(eastl::string& aPath);
+    void ConvertToBackslash(eastl::string& aPath);
+    void CreateDirectoryTreeForPath(const eastl::string& aPath);
   }
 //---------------------------------------------------------------------------//
 }

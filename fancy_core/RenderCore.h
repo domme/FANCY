@@ -14,6 +14,7 @@
 #include "EASTL/fixed_vector.h"
 #include "EASTL/fixed_list.h"
 #include "EASTL/hash_map.h"
+#include "EASTL/string.h"
 
 namespace Fancy {
   struct MaterialDesc;
@@ -159,8 +160,8 @@ namespace Fancy {
     static void ResolveUsedQueryData();
     static void UpdateChangedShaders();
 
-    static void OnShaderFileUpdated(const String& aShaderFile);
-    static void OnShaderFileDeletedMoved(const String& aShaderFile);
+    static void OnShaderFileUpdated(const eastl::string& aShaderFile);
+    static void OnShaderFileDeletedMoved(const eastl::string& aShaderFile);
 
     static UniquePtr<RenderCore_Platform> ourPlatformImpl;
     static UniquePtr<TempResourcePool> ourTempResourcePool;
@@ -203,7 +204,7 @@ namespace Fancy {
     static const uint8* ourMappedQueryBufferData[(uint)GpuQueryType::NUM];
     static uint ourMappedQueryBufferIdx[(uint)GpuQueryType::NUM];
 
-    static eastl::vector<String> ourChangedShaderFiles;
+    static eastl::vector<eastl::string> ourChangedShaderFiles;
   };
 //---------------------------------------------------------------------------//
 }

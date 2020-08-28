@@ -119,10 +119,10 @@ namespace Fancy
     return VertexAttributeSemantic::NONE;
   }
 //---------------------------------------------------------------------------//
-  String ShaderCompiler::GetShaderPathRelative(const char* aPath) const
+  eastl::string ShaderCompiler::GetShaderPathRelative(const char* aPath) const
   {
     const StaticFilePath path("%s/%s", GetShaderRootFolderRelative(), aPath);
-    return String(path);
+    return eastl::string(path);
   }
 //---------------------------------------------------------------------------//
   bool ShaderCompiler::Compile(const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const
@@ -130,7 +130,7 @@ namespace Fancy
     LOG_INFO("Compiling shader %s...", aDesc.myPath.c_str());
 
     StaticFilePath hlslSrcPathRel("%s/%s", GetShaderRootFolderRelative(), aDesc.myPath.c_str());
-    String hlslSrcPathAbs = Path::GetAbsoluteResourcePath(hlslSrcPathRel.GetBuffer());
+    eastl::string hlslSrcPathAbs = Path::GetAbsoluteResourcePath(hlslSrcPathRel.GetBuffer());
 
     ASSERT(!hlslSrcPathAbs.empty());
     if (hlslSrcPathAbs.empty())

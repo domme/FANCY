@@ -88,7 +88,7 @@ namespace Fancy
     if (needsCreate)
     {
       TextureProperties createProps = texProps;
-      createProps.path.clear();
+      createProps.myPath.clear();
       createProps.myIsShaderWritable = someProps.myIsShaderWritable;
       createProps.myIsRenderTarget = someProps.myIsRenderTarget;
 

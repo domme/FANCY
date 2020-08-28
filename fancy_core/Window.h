@@ -11,7 +11,7 @@ namespace Fancy {
   struct WindowParameters
   {
     WindowParameters() : myWidth(0), myHeight(0), myCaptureMouse(false) {}
-    String myTitle;
+    eastl::string myTitle;
     uint myWidth;
     uint myHeight;
     bool myCaptureMouse;

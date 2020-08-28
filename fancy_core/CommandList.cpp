@@ -179,7 +179,7 @@ namespace Fancy {
   {
     eastl::vector<GpuRingBuffer*>* ringBufferList = nullptr;
     uint64 sizeStep = 2 * SIZE_MB;
-    String name = "RingBuffer_";
+    eastl::string name = "RingBuffer_";
 
     uint bindFlags = 0u;
     switch (aType)

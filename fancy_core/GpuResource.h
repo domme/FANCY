@@ -49,7 +49,7 @@ namespace Fancy {
     virtual void SetName(const char* aName) { myName = aName; }
 
     SubresourceRange mySubresources;
-    String myName;
+    eastl::string myName;
     GpuResourceType myType;
     eastl::any myNativeData;
   };

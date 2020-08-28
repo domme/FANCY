@@ -5,13 +5,15 @@
 #include "RenderEnums.h"
 #include "TextureData.h"
 
+#include "EASTL/string.h"
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct TextureProperties
   {
     TextureProperties()
       : myDimension(GpuResourceDimension::TEXTURE_2D)
-      , path("")
+      , myPath("")
       , myWidth(0u)
       , myHeight(0u)
       , myDepthOrArraySize(1u)
@@ -30,7 +32,7 @@ namespace Fancy {
     void GetSize(uint aMipLevel, uint& aWidthOut, uint& aHeightOut, uint& aDepthOut) const;
 
     GpuResourceDimension myDimension;
-    String path;
+    eastl::string myPath;
     uint myWidth;
     uint myHeight;
     uint myDepthOrArraySize;

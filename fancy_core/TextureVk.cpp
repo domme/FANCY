@@ -304,7 +304,7 @@ namespace Fancy
   {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
 
-    String name = aTexture->myName;
+    eastl::string name = aTexture->myName;
 
     GpuResourceViewDataVk nativeData;
     nativeData.myType = GpuResourceViewDataVk::Image;

@@ -48,7 +48,7 @@ namespace Fancy {
 
       GpuResourceDataDX12 dataDx12;
       ASSERT_HRESULT(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12.myResource)));
-      std::wstring wName = StringUtil::ToWideString(resource.myName);
+      eastl::wstring wName = StringUtil::ToWideString(resource.myName);
       dataDx12.myResource->SetName(wName.c_str());
 
       GpuSubresourceHazardDataDX12 subHazardData;

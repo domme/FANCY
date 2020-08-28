@@ -77,7 +77,7 @@ namespace Fancy
       return layoutProps;
     }
   //---------------------------------------------------------------------------//
-    String BuildTexturePath(const aiMaterial* anAiMaterial, uint anAiTextureType, uint aTexIndex, const String& aSceneSourcePath)
+    eastl::string BuildTexturePath(const aiMaterial* anAiMaterial, uint anAiTextureType, uint aTexIndex, const eastl::string& aSceneSourcePath)
     {
       uint numTextures = anAiMaterial->GetTextureCount(static_cast<aiTextureType>(anAiTextureType));
       if (numTextures == 0u)
@@ -88,18 +88,18 @@ namespace Fancy
       aiString szATexPath;
       anAiMaterial->Get(AI_MATKEY_TEXTURE(anAiTextureType, aTexIndex), szATexPath);
 
-      String texPathAbs = String(szATexPath.C_Str());
+      eastl::string texPathAbs = eastl::string(szATexPath.C_Str());
       Path::ConvertToSlash(texPathAbs);
 
       if (!Path::IsPathAbsolute(texPathAbs))
       {
-        String relativePath = Path::GetContainingFolder(aSceneSourcePath) + "/" + texPathAbs;
+        eastl::string relativePath = Path::GetContainingFolder(aSceneSourcePath) + "/" + texPathAbs;
         Path::RemoveFolderUpMarkers(relativePath);
         texPathAbs = Path::GetAbsoluteResourcePath(relativePath);
       }
 
       Path::RemoveFolderUpMarkers(texPathAbs);
-      const String& texPathInResources = Path::GetRelativeResourcePath(texPathAbs);
+      const eastl::string& texPathInResources = Path::GetRelativeResourcePath(texPathAbs);
 
       return texPathInResources;
     }
@@ -112,7 +112,7 @@ namespace Fancy
 
     Priv_MeshImporter::ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 
-    String pathAbs = Path::GetAbsoluteResourcePath(aPath);
+    eastl::string pathAbs = Path::GetAbsoluteResourcePath(aPath);
 
     Assimp::Importer importer;
     const aiScene* importedScene = importer.ReadFile(pathAbs.c_str(), Priv_MeshImporter::GetAiImportOptions(someImportOptions));
@@ -420,11 +420,11 @@ namespace Fancy
     float specular;
     const bool hasSpecular = anAiMaterial->Get(AI_MATKEY_SHININESS_STRENGTH, specular) == AI_SUCCESS;
 
-    const String& diffuseTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_DIFFUSE, 0u, mySourcePath);
-    const String& normalTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_NORMALS, 0u, mySourcePath);
-    const String& specularTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_SPECULAR, 0u, mySourcePath);
-    const String& specPowerTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_SHININESS, 0u, mySourcePath);
-    const String& opacityTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_OPACITY, 0u, mySourcePath);
+    const eastl::string& diffuseTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_DIFFUSE, 0u, mySourcePath);
+    const eastl::string& normalTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_NORMALS, 0u, mySourcePath);
+    const eastl::string& specularTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_SPECULAR, 0u, mySourcePath);
+    const eastl::string& specPowerTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_SHININESS, 0u, mySourcePath);
+    const eastl::string& opacityTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_OPACITY, 0u, mySourcePath);
 
     MaterialDesc matDesc;
     matDesc.myTextures[(uint)MaterialTextureType::BASE_COLOR] = diffuseTexPath;

@@ -7,16 +7,16 @@ namespace Fancy
   namespace FileReader 
   {
 //---------------------------------------------------------------------------//
-    std::string ReadTextFile(const char* aPathAbs)
+    eastl::string ReadTextFile(const char* aPathAbs)
     {
       std::ifstream fileStream;
       fileStream.open(aPathAbs);
       std::stringstream stringStream;
       stringStream << fileStream.rdbuf();
-      return stringStream.str();
+      return eastl::string(stringStream.str().c_str());
     }
 //---------------------------------------------------------------------------//
-    void ReadTextFileLines(const char* aPathAbs, eastl::vector<std::string>& someLinesOut)
+    void ReadTextFileLines(const char* aPathAbs, eastl::vector<eastl::string>& someLinesOut)
     {
       std::ifstream fileStream;
       fileStream.open(aPathAbs);
@@ -27,12 +27,12 @@ namespace Fancy
         while (!fileStream.eof())
         {
           std::getline(fileStream, line);
-          someLinesOut.push_back(line);
+          someLinesOut.push_back(eastl::string(line.c_str()));
         }
       }
     }
     //---------------------------------------------------------------------------//
-    void ReadTextFileLines(const char* aPathAbs, std::list<std::string>& someLinesOut)
+    void ReadTextFileLines(const char* aPathAbs, eastl::list<eastl::string>& someLinesOut)
     {
       std::ifstream fileStream;
       fileStream.open(aPathAbs);
@@ -43,7 +43,7 @@ namespace Fancy
         while (!fileStream.eof())
         {
           std::getline(fileStream, line);
-          someLinesOut.push_back(line);
+          someLinesOut.push_back(eastl::string(line.c_str()));
         }
       }
     }

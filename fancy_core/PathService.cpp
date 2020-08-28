@@ -13,17 +13,17 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Path
   {
-    static eastl::vector<String> ourResourceFolders;
-    static String ourRootFolder;
+    static eastl::vector<eastl::string> ourResourceFolders;
+    static eastl::string ourRootFolder;
 //---------------------------------------------------------------------------//
     void InitRootFolders()
     {
-      const String& appPath = Path::GetAppPath();
+      const eastl::string& appPath = Path::GetAppPath();
       ourRootFolder = StaticString<260>("%s/../../../", appPath.c_str());
       Path::RemoveFolderUpMarkers(ourRootFolder);
       
-      const String appResourceFolder(StaticString<260>("%s%s/resources/", ourRootFolder.c_str(), Path::GetAppName().c_str()));
-      const String coreResourceFolder(StaticString<260>("%sresources/", ourRootFolder.c_str()));
+      const eastl::string appResourceFolder(StaticString<260>("%s%s/resources/", ourRootFolder.c_str(), Path::GetAppName().c_str()));
+      const eastl::string coreResourceFolder(StaticString<260>("%sresources/", ourRootFolder.c_str()));
 
       // Folders are ordered in descending priority. 
       // Resources in earlier folders can "override" resources in later folders
@@ -32,59 +32,59 @@ namespace Fancy {
       ourResourceFolders.push_back(coreResourceFolder);
     }
 //---------------------------------------------------------------------------//
-    String GetAppName()
+    eastl::string GetAppName()
     {
       TCHAR buf[FILENAME_MAX] = {0};
       GetModuleFileName(NULL, buf, FILENAME_MAX);
 
-      String str(buf);
+      eastl::string str(buf);
       ConvertToSlash(str);
 
       size_t exePos = str.rfind(".exe");
-      ASSERT(exePos != String::npos);
+      ASSERT(exePos != eastl::string::npos);
 
       size_t slashPos = str.rfind("/", exePos);
 
       return str.substr(slashPos + 1, exePos - slashPos - 1);
     }
   //---------------------------------------------------------------------------//
-    String GetAppPath()
+    eastl::string GetAppPath()
     {
       TCHAR outString[FILENAME_MAX];
       GetModuleFileName(NULL, outString, FILENAME_MAX);
 
-      String pathOut(outString);
+      eastl::string pathOut(outString);
       ConvertToSlash(pathOut);
       return GetContainingFolder(pathOut);
     }
 //---------------------------------------------------------------------------//
-    String GetContainingFolder(const String& aPath)
+    eastl::string GetContainingFolder(const eastl::string& aPath)
     {
       size_t slashPos = (size_t) glm::min(aPath.rfind('/'), aPath.rfind('\\'));
-      if (slashPos == String::npos)
+      if (slashPos == eastl::string::npos)
         return aPath;
 
       return aPath.substr(0, slashPos);
     }
 //---------------------------------------------------------------------------//
-    const String& GetRootDirectory()
+    const eastl::string& GetRootDirectory()
     {
       return ourRootFolder;
     }
 //---------------------------------------------------------------------------//
-    String GetWorkingDirectory()
+    eastl::string GetWorkingDirectory()
     {
       TCHAR buf[MAX_PATH];
       if (!GetCurrentDirectory(MAX_PATH, buf))
         return "";
 
-      String workingDir(buf);
+      eastl::string workingDir(buf);
       ConvertToSlash(workingDir);
 
       return workingDir;
     }
 //---------------------------------------------------------------------------//
-    String GetAbsolutePath(const String& aRelativePath)
+    eastl::string GetAbsolutePath(const eastl::string& aRelativePath)
     {
       if (IsPathAbsolute(aRelativePath))
         return aRelativePath;
@@ -92,16 +92,16 @@ namespace Fancy {
       return GetRootDirectory() + aRelativePath;
     }
 //---------------------------------------------------------------------------//
-    String GetRelativePath(const String& anAbsolutePath)
+    eastl::string GetRelativePath(const eastl::string& anAbsolutePath)
     {
       if (!IsPathAbsolute(anAbsolutePath))
         return anAbsolutePath;
 
-      const String& rootDir = GetRootDirectory();
+      const eastl::string& rootDir = GetRootDirectory();
 
       const size_t rootDirPath = anAbsolutePath.rfind(rootDir);
 
-      if (rootDirPath == String::npos)
+      if (rootDirPath == eastl::string::npos)
         return ""; // Path is absolute but not relative to our root directory
 
       return anAbsolutePath.substr(rootDirPath + 1);
@@ -124,93 +124,93 @@ namespace Fancy {
       return strlen(aPath) > 1 && aPath[1] == ':';
     }
 //---------------------------------------------------------------------------//
-    bool IsPathAbsolute(const String& aPath)
+    bool IsPathAbsolute(const eastl::string& aPath)
     {
       return aPath.size() > 1 && aPath[1] == ':';
     }
 //---------------------------------------------------------------------------//
-    String GetFileExtension(const String& szFileName)
+    eastl::string GetFileExtension(const eastl::string& szFileName)
     {
       size_t dotPos = szFileName.find_last_of(".");
-      if (dotPos == String::npos)
+      if (dotPos == eastl::string::npos)
         return "";
 
       return szFileName.substr(dotPos + 1, szFileName.size() - dotPos);
     }
 //---------------------------------------------------------------------------//
-    String GetFilename(const String& aPath)
+    eastl::string GetFilename(const eastl::string& aPath)
     {
       const size_t slashPos = glm::min(aPath.rfind('/'), aPath.rfind('\\'));
       const size_t dotPos = aPath.rfind(".");
-      if (dotPos == String::npos)
+      if (dotPos == eastl::string::npos)
       {
-        if (slashPos == String::npos)
+        if (slashPos == eastl::string::npos)
           return aPath;
       
         return aPath.substr(slashPos + 1);
       }
 
-      if (slashPos == String::npos)
+      if (slashPos == eastl::string::npos)
         return aPath.substr(0, aPath.size() - dotPos);
       
       return aPath.substr(slashPos + 1, aPath.size() - dotPos);
     }
 //---------------------------------------------------------------------------//
-    String GetPathWithoutExtension(const String& aPath)
+    eastl::string GetPathWithoutExtension(const eastl::string& aPath)
     {
       const size_t dotPos = aPath.rfind(".");
-      if (dotPos == String::npos)
+      if (dotPos == eastl::string::npos)
         return aPath;
 
       return aPath.substr(0, aPath.size() - dotPos);
     }
 //---------------------------------------------------------------------------//
-    void ConvertToSlash(String& aPath)
+    void ConvertToSlash(eastl::string& aPath)
     {
       std::replace(aPath.begin(), aPath.end(), '\\', '/');
     }
   //---------------------------------------------------------------------------//
-    void ConvertToBackslash(String& aPath)
+    void ConvertToBackslash(eastl::string& aPath)
     {
       std::replace(aPath.begin(), aPath.end(), '/', '\\');
     }
  //---------------------------------------------------------------------------//
-    void CreateDirectoryTreeForPath(const String& aPath)
+    void CreateDirectoryTreeForPath(const eastl::string& aPath)
     {
-      String aDirectoryTree = GetContainingFolder(aPath) + "/";
+      eastl::string aDirectoryTree = GetContainingFolder(aPath) + "/";
 
       size_t posSlash = aDirectoryTree.find('/');
-      if (posSlash != String::npos && IsPathAbsolute(aDirectoryTree))
+      if (posSlash != eastl::string::npos && IsPathAbsolute(aDirectoryTree))
       {
         // Skip the first slash
         posSlash = aDirectoryTree.find('/', posSlash + 1u);
       }
 
-      while (posSlash != String::npos)
+      while (posSlash != eastl::string::npos)
       {
-        String currDirPath = aDirectoryTree.substr(0u, posSlash);
+        eastl::string currDirPath = aDirectoryTree.substr(0u, posSlash);
         CreateDirectory(currDirPath.c_str(), nullptr);
 
         posSlash = aDirectoryTree.find('/', posSlash + 1u);
       }
     }
     //---------------------------------------------------------------------------//
-    void RemoveFolderUpMarkers(String& aPath)
+    void RemoveFolderUpMarkers(eastl::string& aPath)
     {
       ConvertToSlash(aPath);
 
-      const String kSearchKey = "/../";
+      const eastl::string kSearchKey = "/../";
       const size_t kSearchKeyLen = kSearchKey.length();
 
       size_t posDots = aPath.find(kSearchKey);
-      while (posDots != String::npos)
+      while (posDots != eastl::string::npos)
       {
         size_t posSlashBefore = aPath.rfind('/', posDots - 1u);
-        if ((size_t)posSlashBefore == String::npos)
+        if ((size_t)posSlashBefore == eastl::string::npos)
           posSlashBefore = -1;
 
-        String firstPart = aPath.substr(0u, (size_t)(posSlashBefore + 1u));
-        String secondPart = aPath.substr(posDots + kSearchKeyLen);
+        eastl::string firstPart = aPath.substr(0u, (size_t)(posSlashBefore + 1u));
+        eastl::string secondPart = aPath.substr(posDots + kSearchKeyLen);
         aPath = firstPart + secondPart;
 
         posDots = aPath.find(kSearchKey);
@@ -220,7 +220,7 @@ namespace Fancy {
       }
     }
 //---------------------------------------------------------------------------//
-    uint64 GetFileWriteTime(const String& aFile)
+    uint64 GetFileWriteTime(const eastl::string& aFile)
     {
       uint64 lastWriteTimeStamp = 0u;
 
@@ -240,7 +240,7 @@ namespace Fancy {
       return lastWriteTimeStamp;
     }
   //---------------------------------------------------------------------------//
-    String GetUserDataPath()
+    eastl::string GetUserDataPath()
     {
       LPWSTR documentsFolder = NULL;
       if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &documentsFolder)))
@@ -248,8 +248,7 @@ namespace Fancy {
         std::wstring str(documentsFolder);
         CoTaskMemFree(documentsFolder);
           
-        std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-        String path = converter.to_bytes(str);
+        eastl::string path(eastl::string::CtorConvert(), str.c_str());
         ConvertToSlash(path);
 
         return path + "/Fancy/" + GetAppName() + "/";
@@ -258,14 +257,14 @@ namespace Fancy {
       return "";
     }
   //---------------------------------------------------------------------------//
-    String GetAsCmdParameter(const char* aPath)
+    eastl::string GetAsCmdParameter(const char* aPath)
     {
-      String path(aPath);
+      eastl::string path(aPath);
       PrepareForCmdParameter(path);
       return path;
     }
   //---------------------------------------------------------------------------//
-    void PrepareForCmdParameter(String& aPath)
+    void PrepareForCmdParameter(eastl::string& aPath)
     {
       int i = 0;
 
@@ -298,11 +297,11 @@ namespace Fancy {
     }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-    String GetAbsoluteResourcePath(const String& aRelativeResourcePath, bool* aWasFound /*=nullptr*/)
+    eastl::string GetAbsoluteResourcePath(const eastl::string& aRelativeResourcePath, bool* aWasFound /*=nullptr*/)
     {
-      for (const String& resourceFolder : ourResourceFolders)
+      for (const eastl::string& resourceFolder : ourResourceFolders)
       {
-        String resourcePath = resourceFolder + aRelativeResourcePath;
+        eastl::string resourcePath = resourceFolder + aRelativeResourcePath;
         if (Path::FileExists(resourcePath.c_str()))
         {
           if (aWasFound)
@@ -313,7 +312,7 @@ namespace Fancy {
       }
 
       // Fall back to the root dir if the resource hasn't been found in any of the registered resource folders
-      const String& absPathInRootDir = Path::GetAbsolutePath(aRelativeResourcePath);
+      const eastl::string& absPathInRootDir = Path::GetAbsolutePath(aRelativeResourcePath);
       const bool existsInRootDir = Path::FileExists(absPathInRootDir.c_str());
 
       if (aWasFound)
@@ -322,12 +321,12 @@ namespace Fancy {
       return existsInRootDir ? absPathInRootDir : "";
     }
 //---------------------------------------------------------------------------//
-    String GetRelativeResourcePath(const String& anAbsoluteResourcePath, bool* aWasFound /*=nullptr*/)
+    eastl::string GetRelativeResourcePath(const eastl::string& anAbsoluteResourcePath, bool* aWasFound /*=nullptr*/)
     {
-      for (const String& resourceFolder : ourResourceFolders)
+      for (const eastl::string& resourceFolder : ourResourceFolders)
       {
         const size_t resourceFolderPos = anAbsoluteResourcePath.rfind(resourceFolder.c_str());
-        if (resourceFolderPos != String::npos)
+        if (resourceFolderPos != eastl::string::npos)
         {
           if (aWasFound)
             *aWasFound = true;
@@ -336,7 +335,7 @@ namespace Fancy {
         }
       }
 
-      const String& relPathToRootDir = Path::GetRelativePath(anAbsoluteResourcePath);
+      const eastl::string& relPathToRootDir = Path::GetRelativePath(anAbsoluteResourcePath);
       const bool isAbsoluteRootDirPath = !relPathToRootDir.empty();
 
       if (aWasFound)

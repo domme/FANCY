@@ -12,10 +12,10 @@ namespace Fancy {
   {
     uint64 GetHash() const;
     
-    String myPath;
-    String myMainFunction = "main";
+    eastl::string myPath;
+    eastl::string myMainFunction = "main";
     uint myShaderStage = (uint) ShaderStage::NONE;
-    eastl::fixed_vector<String, 32> myDefines;
+    eastl::fixed_vector<eastl::string, 32> myDefines;
   };
 //---------------------------------------------------------------------------//
   inline uint64 ShaderDesc::GetHash() const
@@ -24,7 +24,7 @@ namespace Fancy {
     MathUtil::hash_combine(hash, MathUtil::Hash(myPath));
     MathUtil::hash_combine(hash, myShaderStage);
     MathUtil::hash_combine(hash, MathUtil::Hash(myMainFunction));
-    for (const String& define : myDefines)
+    for (const eastl::string& define : myDefines)
       MathUtil::hash_combine(hash, define);
     return hash;
   }

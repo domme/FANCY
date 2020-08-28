@@ -28,7 +28,7 @@ bool ourDrawInstanced = false;
 
 static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main", const char* someDefines = nullptr)
 {
-  eastl::vector<String> defines;
+  eastl::vector<eastl::string> defines;
   if (someDefines)
     StringUtil::Tokenize(someDefines, ",", defines);
 
@@ -37,13 +37,13 @@ static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const ch
   ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainVtxFunction;
-  for (const String& str : defines)
+  for (const eastl::string& str : defines)
     shaderDesc->myDefines.push_back(str);
 
   shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainFragmentFunction;
-  for (const String& str : defines)
+  for (const eastl::string& str : defines)
     shaderDesc->myDefines.push_back(str);
 
   return RenderCore::CreateShaderPipeline(pipelineDesc);

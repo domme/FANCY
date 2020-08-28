@@ -21,7 +21,7 @@ namespace Fancy
     }
 
     uint64 myNameHash = 0ull;  // The name of the resource in the shader source
-    String myName;
+    eastl::string myName;
     ShaderResourceTypeDX12 myType = ShaderResourceTypeDX12::None;
     bool myIsDescriptorTableEntry = false;
     uint myDescriptorOffsetInTable = UINT_MAX;

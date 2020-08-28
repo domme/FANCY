@@ -3,7 +3,8 @@
 #include "FancyCoreDefines.h"
 #include "MathIncludes.h"
 
-#include <type_traits>  // std::hash
+#include "EASTL/type_traits.h"
+#include "EASTL/string.h"
 
 namespace Fancy { namespace MathUtil {
 //---------------------------------------------------------------------------//
@@ -24,7 +25,7 @@ namespace Fancy { namespace MathUtil {
   template<class T>
   inline size_t Hash(const T& aValue)
   {
-    return std::hash<T>{}(aValue);
+    return eastl::hash<T>{}(aValue);
   }
 //---------------------------------------------------------------------------//
   template<>

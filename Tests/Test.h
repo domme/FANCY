@@ -1,7 +1,7 @@
 #pragma once
 
 #include <fancy_core/FancyCoreDefines.h>
-#include <string>
+#include "EASTL/string.h"
 
 namespace Fancy {
   class Window;
@@ -33,5 +33,5 @@ protected:
   Fancy::Window* myWindow;
   Fancy::RenderOutput* myOutput;
   Fancy::InputState* myInput;
-  std::string myName;
+  eastl::string myName;
 };

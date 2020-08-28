@@ -17,7 +17,7 @@ namespace Fancy
     }
 
     uint64 myNameHash = 0ull;
-    String myName;
+    eastl::string myName;
     VkDescriptorType myType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
     uint myDescriptorSet = 0u;
     uint myBindingInSet = 0u;

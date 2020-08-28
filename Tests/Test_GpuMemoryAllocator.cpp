@@ -41,7 +41,7 @@ void Test_GpuMemoryAllocator::OnUpdate(bool aDrawProperties)
     props.myIsShaderWritable = false;
     props.myElementSizeBytes = myBufferToAllocSizeMb * SIZE_MB;
 
-    String name(StaticString<64>("Gpu-buffer %d MiB", myBufferToAllocSizeMb));
+    eastl::string name(StaticString<64>("Gpu-buffer %d MiB", myBufferToAllocSizeMb));
     myBuffers.push_back(RenderCore::CreateBuffer(props, name.c_str()));
   }
 

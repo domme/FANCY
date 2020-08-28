@@ -29,7 +29,7 @@ namespace Fancy {
 
       virtual ~ShaderCompiler() = default;
       
-      String GetShaderPathRelative(const char* aRelativeShaderPath) const;
+      eastl::string GetShaderPathRelative(const char* aRelativeShaderPath) const;
 
       bool Compile(const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const;
 

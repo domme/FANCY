@@ -29,7 +29,7 @@ namespace Fancy {
 
     if (GpuResourceDataDX12* dataDx12 = GetData())
     {
-      std::wstring wName = StringUtil::ToWideString(myName);
+      eastl::wstring wName = StringUtil::ToWideString(myName);
       dataDx12->myResource->SetName(wName.c_str());
     }
   }
@@ -117,7 +117,7 @@ namespace Fancy {
     const uint64 alignedHeapOffset = MathUtil::Align(gpuMemory.myOffsetInHeap, myAlignment);
     ASSERT_HRESULT(device->CreatePlacedResource(gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates, nullptr, IID_PPV_ARGS(&dataDx12.myResource)));
 
-    std::wstring wName = StringUtil::ToWideString(myName);
+    eastl::wstring wName = StringUtil::ToWideString(myName);
     dataDx12.myResource->SetName(wName.c_str());
     dataDx12.myGpuMemory = gpuMemory;
 
