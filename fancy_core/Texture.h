@@ -35,13 +35,13 @@ namespace Fancy {
   {
   public:
     TextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
-      : GpuResourceView(std::static_pointer_cast<GpuResource>(aTexture))
+      : GpuResourceView(eastl::static_pointer_cast<GpuResource>(aTexture))
       , myProperties(someProperties)
     { }
 
     const TextureViewProperties& GetProperties() const { return myProperties; }
     Texture* GetTexture() const { return static_cast<Texture*>(myResource.get()); }
-    SharedPtr<Texture> GetTexturePtr() const { return std::static_pointer_cast<Texture>(myResource); }
+    SharedPtr<Texture> GetTexturePtr() const { return eastl::static_pointer_cast<Texture>(myResource); }
 
   protected:
     TextureViewProperties myProperties;

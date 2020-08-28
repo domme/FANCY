@@ -101,7 +101,7 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   const bool importSuccess = importer.Import("models/cube.obj", vertexAttributes, sceneData);
   ASSERT(importSuccess);
 
-  myScene = std::make_shared<Scene>(sceneData);
+  myScene = eastl::make_shared<Scene>(sceneData);
 
   VertexInputLayoutProperties instancedVertexLayoutProps = sceneData.myVertexInputLayoutProperties;
   instancedVertexLayoutProps.myAttributes.push_back({ DataFormat::RGB_32F, VertexAttributeSemantic::POSITION, 1u, 1u });

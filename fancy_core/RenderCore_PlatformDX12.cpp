@@ -685,7 +685,7 @@ namespace Fancy {
       }
     }
     
-    myDynamicHeapPool.push_back(std::make_unique<DynamicDescriptorHeapDX12>(aHeapType, aDescriptorCount));
+    myDynamicHeapPool.push_back(eastl::make_unique<DynamicDescriptorHeapDX12>(aHeapType, aDescriptorCount));
     return myDynamicHeapPool.back().get();
   }
 //---------------------------------------------------------------------------//

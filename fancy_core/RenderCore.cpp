@@ -247,7 +247,7 @@ namespace Fancy {
     }
 
     // Create a new buffer
-    std::unique_ptr<GpuRingBuffer> buf = std::make_unique<GpuRingBuffer>();
+    UniquePtr<GpuRingBuffer> buf = eastl::make_unique<GpuRingBuffer>();
 
     GpuBufferProperties params;
     ASSERT(aNeededByteSize <= UINT_MAX, "Buffer size overflow. Consider making numElements 64 bit wide");
@@ -293,7 +293,7 @@ namespace Fancy {
 #if FANCY_RENDERER_DEBUG
     LOG_INFO("Allocating new readback buffer of size %d", newBufferSize);
 #endif // FANCY_RENDERER_DEBUG
-    ourReadbackBuffers.push_back(std::make_unique<GpuReadbackBuffer>(newBufferSize));
+    ourReadbackBuffers.push_back(eastl::make_unique<GpuReadbackBuffer>(newBufferSize));
 
     uint64 offset;
     GpuBuffer* buffer = ourReadbackBuffers.back()->AllocateBlock(aBlockSize, anOffsetAlignment, offset);
@@ -409,14 +409,14 @@ namespace Fancy {
     {
       case RenderPlatformType::DX12:
 #if FANCY_ENABLE_DX12
-        ourPlatformImpl = std::make_unique<RenderCore_PlatformDX12>();
+        ourPlatformImpl = eastl::make_unique<RenderCore_PlatformDX12>();
 #else
         ASSERT(false, "DX12 not supported. Recompile with FANCY_ENABLE_DX12 1");
 #endif
         break;
       case RenderPlatformType::VULKAN:
 #if FANCY_ENABLE_VK
-        ourPlatformImpl = std::make_unique<RenderCore_PlatformVk>();
+        ourPlatformImpl = eastl::make_unique<RenderCore_PlatformVk>();
 #else
         ASSERT(false, "Vulkan not supported. Recompile with FANCY_ENABLE_VK 1");
 #endif
@@ -438,7 +438,7 @@ namespace Fancy {
   {
     ASSERT(ourPlatformImpl != nullptr);
 
-    ourShaderFileWatcher = std::make_unique<FileWatcher>();
+    ourShaderFileWatcher = eastl::make_unique<FileWatcher>();
     std::function<void(const eastl::string&)> onUpdatedFn(&RenderCore::OnShaderFileUpdated);
     ourShaderFileWatcher->myOnFileUpdated.Connect(onUpdatedFn);
 
@@ -526,7 +526,7 @@ namespace Fancy {
       }
     }
 
-    ourReadbackBuffers.push_back(std::make_unique<GpuReadbackBuffer>(64 * SIZE_MB));
+    ourReadbackBuffers.push_back(eastl::make_unique<GpuReadbackBuffer>(64 * SIZE_MB));
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Shutdown_0_Resources()

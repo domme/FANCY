@@ -80,65 +80,65 @@ void Update()
   if (ImGui::Checkbox("Test Profiler", &test_profiler))
   {
     if (!test_profiler)
-      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Profiler*>(aTestItem.get()) != nullptr; }));
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Profiler*>(aTestItem.get()) != nullptr; }));
     else
-      myTests.push_back(std::make_unique<Test_Profiler>(myRuntime, myWindow, myRenderOutput, &myInputState));
+      myTests.push_back(eastl::make_unique<Test_Profiler>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test ImGui", &test_imgui))
   {
     if (!test_imgui)
-      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ImGui*>(aTestItem.get()) != nullptr; }));
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ImGui*>(aTestItem.get()) != nullptr; }));
     else
-      myTests.push_back(std::make_unique<Test_ImGui>(myRuntime, myWindow, myRenderOutput, &myInputState));
+      myTests.push_back(eastl::make_unique<Test_ImGui>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Gpu Memory Allocations", &test_gpuMemoryAllocs))
   {
     if (!test_gpuMemoryAllocs)
-      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_GpuMemoryAllocator*>(aTestItem.get()) != nullptr; }));
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_GpuMemoryAllocator*>(aTestItem.get()) != nullptr; }));
     else
-      myTests.push_back(std::make_unique<Test_GpuMemoryAllocator>(myRuntime, myWindow, myRenderOutput, &myInputState));
+      myTests.push_back(eastl::make_unique<Test_GpuMemoryAllocator>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Synchronization", &test_sychronization))
   {
     if (!test_sychronization)
-      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Synchronization*>(aTestItem.get()) != nullptr; }));
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Synchronization*>(aTestItem.get()) != nullptr; }));
     else
-      myTests.push_back(std::make_unique<Test_Synchronization>(myRuntime, myWindow, myRenderOutput, &myInputState));
+      myTests.push_back(eastl::make_unique<Test_Synchronization>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Async Compute", &test_asyncCompute))
   {
     if (!test_asyncCompute)
-      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_AsyncCompute*>(aTestItem.get()) != nullptr; }));
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_AsyncCompute*>(aTestItem.get()) != nullptr; }));
     else
-      myTests.push_back(std::make_unique<Test_AsyncCompute>(myRuntime, myWindow, myRenderOutput, &myInputState));
+      myTests.push_back(eastl::make_unique<Test_AsyncCompute>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Mipmapping", &test_mipmapping))
   {
     if (!test_mipmapping)
-      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Mipmapping*>(aTestItem.get()) != nullptr; }));
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Mipmapping*>(aTestItem.get()) != nullptr; }));
     else
-      myTests.push_back(std::make_unique<Test_Mipmapping>(myRuntime, myWindow, myRenderOutput, &myInputState));
+      myTests.push_back(eastl::make_unique<Test_Mipmapping>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Model Viewer", &test_modelviewer))
   {
     if (!test_modelviewer)
-      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ModelViewer*>(aTestItem.get()) != nullptr; }));
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ModelViewer*>(aTestItem.get()) != nullptr; }));
     else
-      myTests.push_back(std::make_unique<Test_ModelViewer>(myRuntime, myWindow, myRenderOutput, &myInputState));
+      myTests.push_back(eastl::make_unique<Test_ModelViewer>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Shared Queue Resources", &test_sharedQueueResources))
   {
     if (!test_sharedQueueResources)
-      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_SharedQueueResourceUsage*>(aTestItem.get()) != nullptr; }));
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_SharedQueueResourceUsage*>(aTestItem.get()) != nullptr; }));
     else
-      myTests.push_back(std::make_unique<Test_SharedQueueResourceUsage>(myRuntime, myWindow, myRenderOutput, &myInputState));
+      myTests.push_back(eastl::make_unique<Test_SharedQueueResourceUsage>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Hazard Tracking", &test_hazardTracking))
   {
     if (!test_hazardTracking)
-      myTests.erase(std::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_HazardTracking*>(aTestItem.get()) != nullptr; }));
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_HazardTracking*>(aTestItem.get()) != nullptr; }));
     else
-      myTests.push_back(std::make_unique<Test_HazardTracking>(myRuntime, myWindow, myRenderOutput, &myInputState));
+      myTests.push_back(eastl::make_unique<Test_HazardTracking>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
 
   ImGui::Separator();
