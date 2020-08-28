@@ -166,12 +166,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuResourceDataVk* GpuBufferVk::GetData()
   {
-    return myNativeData.IsEmpty() ? nullptr : &myNativeData.To<GpuResourceDataVk>();
+    return !myNativeData.has_value() ? nullptr : eastl::any_cast<GpuResourceDataVk>(&myNativeData);
   }
 //---------------------------------------------------------------------------//
   const GpuResourceDataVk* GpuBufferVk::GetData() const
   {
-    return myNativeData.IsEmpty() ? nullptr : &myNativeData.To<GpuResourceDataVk>();
+    return !myNativeData.has_value() ? nullptr : eastl::any_cast<GpuResourceDataVk>(&myNativeData);
   }
 //---------------------------------------------------------------------------//
   void* GpuBufferVk::Map_Internal(uint64 anOffset, uint64 aSize) const
@@ -201,7 +201,7 @@ namespace Fancy
       vkFreeMemory(device, dataVk->myMemory, nullptr);
     }
 
-    myNativeData.Clear();
+    myNativeData.reset();
     myProperties = GpuBufferProperties();
   }
 //---------------------------------------------------------------------------//
@@ -248,9 +248,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuBufferViewVk::~GpuBufferViewVk()
   {
-    if (myNativeData.HasType<GpuResourceViewDataVk>())
+    if (myNativeData.type() == typeid(GpuResourceViewDataVk))
     {
-      const GpuResourceViewDataVk& nativeData = myNativeData.To<GpuResourceViewDataVk>();
+      const GpuResourceViewDataVk& nativeData = eastl::any_cast<const GpuResourceViewDataVk&>(myNativeData);
       if (nativeData.myView.myBuffer != nullptr)
         vkDestroyBufferView(RenderCore::GetPlatformVk()->myDevice, nativeData.myView.myBuffer, nullptr);
     }
@@ -258,8 +258,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   VkBufferView GpuBufferViewVk::GetBufferView() const
   {
-    if (myNativeData.HasType<GpuResourceViewDataVk>())
-      return myNativeData.To<GpuResourceViewDataVk>().myView.myBuffer;
+    if (myNativeData.type() == typeid(GpuResourceViewDataVk))
+      return eastl::any_cast<const GpuResourceViewDataVk&>(myNativeData).myView.myBuffer;
 
     return nullptr;
   }

@@ -39,7 +39,7 @@ namespace Fancy
   {
     Shader::SetFromCompilerOutput(aCompilerOutput);
 
-    const ShaderCompiledDataVk& data = aCompilerOutput.myNativeData.To<ShaderCompiledDataVk>();
+    const ShaderCompiledDataVk& data = eastl::any_cast<const ShaderCompiledDataVk&>(aCompilerOutput.myNativeData);
 
     if (myModule != nullptr)
     {

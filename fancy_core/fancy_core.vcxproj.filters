@@ -168,9 +168,6 @@
     <ClInclude Include="GpuResourceView.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Any.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceRefs.h">
       <Filter>Rendering</Filter>
     </ClInclude>

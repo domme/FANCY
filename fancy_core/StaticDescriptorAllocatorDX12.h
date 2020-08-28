@@ -5,6 +5,8 @@
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 
+#include "EASTL/any.h"
+
 #if FANCY_ENABLE_DX12
 
 namespace Fancy 
@@ -27,8 +29,8 @@ namespace Fancy
     void FreeDescriptor(const DescriptorDX12& aDescriptor);
 
   private:
-    bool CreatePageData(uint64 aSize, Any& aPageData) override;
-    void DestroyPageData(Any& aPageData) override;
+    bool CreatePageData(uint64 aSize, eastl::any& aPageData) override;
+    void DestroyPageData(eastl::any& aPageData) override;
 
     uint myHandleIncrementSize;
     D3D12_DESCRIPTOR_HEAP_TYPE myType;

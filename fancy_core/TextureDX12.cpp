@@ -43,7 +43,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuResourceDataDX12* TextureDX12::GetData() const
   {
-    return myNativeData.IsEmpty() ? nullptr : const_cast<GpuResourceDataDX12*>(&myNativeData.To<GpuResourceDataDX12>());
+    return !myNativeData.has_value() ? nullptr : const_cast<GpuResourceDataDX12*>(eastl::any_cast<GpuResourceDataDX12>(&myNativeData));
   }
 //---------------------------------------------------------------------------//
   void TextureDX12::Create(const TextureProperties& someProperties, const char* aName /* = nullptr */, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
@@ -221,7 +221,7 @@ namespace Fancy {
         RenderCore::GetPlatformDX12()->ReleaseGpuMemory(dataDx12->myGpuMemory);
     }
 
-    myNativeData.Clear();
+    myNativeData.reset();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//
@@ -289,7 +289,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   TextureViewDX12::~TextureViewDX12()
   {
-    const GpuResourceViewDataDX12& viewData = myNativeData.To<GpuResourceViewDataDX12>();
+    const GpuResourceViewDataDX12& viewData = eastl::any_cast<const GpuResourceViewDataDX12&>(myNativeData);
     RenderCore::GetPlatformDX12()->ReleaseDescriptor(viewData.myDescriptor);
   }
 //---------------------------------------------------------------------------//

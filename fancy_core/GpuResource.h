@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Any.h"
 #include "RenderEnums.h"
 #include "FancyCoreDefines.h"
 #include "TextureData.h"
+
+#include "EASTL/any.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -50,7 +51,7 @@ namespace Fancy {
     SubresourceRange mySubresources;
     String myName;
     GpuResourceType myType;
-    Any myNativeData;
+    eastl::any myNativeData;
   };
 //---------------------------------------------------------------------------//
 }

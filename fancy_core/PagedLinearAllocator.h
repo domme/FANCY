@@ -2,11 +2,11 @@
 
 #include "FancyCoreDefines.h"
 #include "GrowingList.h"
-#include "Any.h"
 
 #include "EASTL/vector.h"
 #include "EASTL/list.h"
 #include "EASTL/functional.h"
+#include "EASTL/any.h"
 
 namespace Fancy
 {
@@ -22,7 +22,7 @@ namespace Fancy
       uint64 myStart;
       uint64 myEnd;
       uint myOpenAllocs;
-      Any myData;
+      eastl::any myData;
     };
 
     struct Block
@@ -42,8 +42,8 @@ namespace Fancy
 
   //private:
 
-    virtual bool CreatePageData(uint64 aSize, Any& aPageData) = 0;
-    virtual void DestroyPageData(Any& aPageData) = 0;
+    virtual bool CreatePageData(uint64 aSize, eastl::any& aPageData) = 0;
+    virtual void DestroyPageData(eastl::any& aPageData) = 0;
 
     bool CreateAndAddPage(uint64 aSize);
     static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd <= aPage.myEnd; }

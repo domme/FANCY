@@ -1,8 +1,9 @@
 #pragma once
 
 #include "GpuResource.h"
-#include "Any.h"
 #include "Ptr.h"
+
+#include "EASTL/any.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -25,7 +26,7 @@ namespace Fancy {
     GpuResource* GetResource() const { return myResource.get(); }
     const SubresourceRange& GetSubresourceRange() const { return mySubresourceRange; }
 
-    Any myNativeData;
+    eastl::any myNativeData;
     SubresourceRange mySubresourceRange;
     SharedPtr<GpuResource> myResource;
     bool myCoversAllSubresources;

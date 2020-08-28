@@ -36,7 +36,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuResourceDataDX12* GpuBufferDX12::GetData() const
   {
-    return myNativeData.IsEmpty() ? nullptr : const_cast<GpuResourceDataDX12*>(&myNativeData.To<GpuResourceDataDX12>());
+    return !myNativeData.has_value() ? nullptr : const_cast<GpuResourceDataDX12*>(eastl::any_cast<GpuResourceDataDX12>(&myNativeData));
   }
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::Create(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* pInitialData /*= nullptr*/)
@@ -152,7 +152,7 @@ namespace Fancy {
         RenderCore::GetPlatformDX12()->ReleaseGpuMemory(dataDx12->myGpuMemory);
     }
 
-    myNativeData.Clear();
+    myNativeData.reset();
     myProperties = GpuBufferProperties();
   }
 //---------------------------------------------------------------------------//
@@ -191,7 +191,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   GpuBufferViewDX12::~GpuBufferViewDX12()
   {
-    const GpuResourceViewDataDX12& viewData = myNativeData.To<GpuResourceViewDataDX12>();
+    const GpuResourceViewDataDX12& viewData = eastl::any_cast<const GpuResourceViewDataDX12&>(myNativeData);
     RenderCore::GetPlatformDX12()->ReleaseDescriptor(viewData.myDescriptor);
   }
 //---------------------------------------------------------------------------//

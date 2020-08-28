@@ -20,14 +20,14 @@ namespace Fancy
     VkImageView attachments[RenderConstants::kMaxNumRenderTargets + 1u];
     for (uint i = 0u; i < aNumRenderTargets; ++i)
     {
-      const GpuResourceViewDataVk& viewDataVk = someRendertargets[i]->myNativeData.To<GpuResourceViewDataVk>();
+      const GpuResourceViewDataVk& viewDataVk = eastl::any_cast<const GpuResourceViewDataVk&>(someRendertargets[i]->myNativeData);
       attachments[i] = viewDataVk.myView.myImage;
     }
 
     const bool hasDepthStencilTarget = aDepthStencilTarget != nullptr;
     if (hasDepthStencilTarget)
     {
-      const GpuResourceViewDataVk& viewDataVk = aDepthStencilTarget->myNativeData.To<GpuResourceViewDataVk>();
+      const GpuResourceViewDataVk& viewDataVk = eastl::any_cast<const GpuResourceViewDataVk&>(aDepthStencilTarget->myNativeData);
       attachments[aNumRenderTargets] = viewDataVk.myView.myImage;
     }
 

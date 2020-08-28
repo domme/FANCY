@@ -12,7 +12,7 @@ namespace Fancy {
   {
     Shader::SetFromCompilerOutput(aCompilerOutput);
 
-    const ShaderCompiledDataDX12& data = aCompilerOutput.myNativeData.To<ShaderCompiledDataDX12>();
+    const ShaderCompiledDataDX12& data = eastl::any_cast<const ShaderCompiledDataDX12&>(aCompilerOutput.myNativeData);
 
     myBytecode = data.myBytecode;
     myRootSignature = data.myRootSignature;

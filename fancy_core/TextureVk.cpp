@@ -185,12 +185,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   GpuResourceDataVk* TextureVk::GetData()
   {
-    return myNativeData.IsEmpty() ? nullptr : &myNativeData.To<GpuResourceDataVk>();
+    return !myNativeData.has_value() ? nullptr : eastl::any_cast<GpuResourceDataVk>(&myNativeData);
   }
 //---------------------------------------------------------------------------//
   const GpuResourceDataVk* TextureVk::GetData() const
   {
-    return myNativeData.IsEmpty() ? nullptr : &myNativeData.To<GpuResourceDataVk>();
+    return !myNativeData.has_value() ? nullptr : eastl::any_cast<GpuResourceDataVk>(&myNativeData);
   }
 //---------------------------------------------------------------------------//
   void TextureVk::Destroy()
@@ -204,7 +204,7 @@ namespace Fancy
         vkDestroyImage(platformVk->myDevice, dataVk->myImage, nullptr);
     }
 
-    myNativeData.Clear();
+    myNativeData.reset();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//
@@ -354,7 +354,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   TextureViewVk::~TextureViewVk()
   {
-    const GpuResourceViewDataVk& viewDataVk = myNativeData.To<GpuResourceViewDataVk>();
+    const GpuResourceViewDataVk& viewDataVk = eastl::any_cast<const GpuResourceViewDataVk&>(myNativeData);
     vkDestroyImageView(RenderCore::GetPlatformVk()->myDevice, viewDataVk.myView.myImage, nullptr);
   }
 //---------------------------------------------------------------------------//

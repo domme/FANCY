@@ -4,6 +4,8 @@
 #include "Shader.h"
 #include "DxcShaderCompiler.h"
 
+#include "EASTL/any.h"
+
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderDesc;
@@ -14,7 +16,7 @@ namespace Fancy {
     ShaderProperties myProperties;
     eastl::fixed_vector<VertexShaderAttributeDesc, 16> myVertexAttributes;
     SharedPtr<VertexInputLayout> myDefaultVertexInputLayout;
-    Any myNativeData;
+    eastl::any myNativeData;
   };
 //---------------------------------------------------------------------------//
   class ShaderCompiler

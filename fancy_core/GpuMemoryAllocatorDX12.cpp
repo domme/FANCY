@@ -32,7 +32,7 @@ namespace Fancy
     GpuMemoryAllocationDX12 allocResult;
     allocResult.myOffsetInHeap = offsetInPage;
     allocResult.mySize = aSize;
-    allocResult.myHeap = page->myData.To<Microsoft::WRL::ComPtr<ID3D12Heap>>().Get();
+    allocResult.myHeap = eastl::any_cast<const Microsoft::WRL::ComPtr<ID3D12Heap>&>(page->myData).Get();
 
     return allocResult;
   }
@@ -40,7 +40,7 @@ namespace Fancy
   void GpuMemoryAllocatorDX12::Free(GpuMemoryAllocationDX12& anAllocation)
   {
     const Page* page = FindPage([&](const Page& aPage) {
-      return anAllocation.myHeap == aPage.myData.To<Microsoft::WRL::ComPtr<ID3D12Heap>>().Get();
+      return anAllocation.myHeap == eastl::any_cast<const Microsoft::WRL::ComPtr<ID3D12Heap>&>(aPage.myData).Get();
     });
 
     ASSERT(page != nullptr);
@@ -51,7 +51,7 @@ namespace Fancy
     PagedLinearAllocator::Free(block);
   }
 //---------------------------------------------------------------------------//
-  bool GpuMemoryAllocatorDX12::CreatePageData(uint64 aSize, Any& aPageData)
+  bool GpuMemoryAllocatorDX12::CreatePageData(uint64 aSize, eastl::any& aPageData)
   {
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
     const uint64 alignedSize = MathUtil::Align(aSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
@@ -71,7 +71,7 @@ namespace Fancy
     return true;
   }
 //---------------------------------------------------------------------------//
-  void GpuMemoryAllocatorDX12::DestroyPageData(Any& /*aPageData*/)
+  void GpuMemoryAllocatorDX12::DestroyPageData(eastl::any& /*aPageData*/)
   {
   }
 //---------------------------------------------------------------------------//

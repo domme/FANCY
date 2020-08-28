@@ -120,7 +120,6 @@
     <ClInclude Include="AdapterDX12.h" />
     <ClInclude Include="AlignedStorage.h" />
     <ClInclude Include="Annotations.h" />
-    <ClInclude Include="Any.h" />
     <ClInclude Include="BinaryCache.h" />
     <ClInclude Include="BinarySerializer.h" />
     <ClInclude Include="BlendState.h" />

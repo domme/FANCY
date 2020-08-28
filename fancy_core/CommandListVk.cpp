@@ -777,7 +777,7 @@ namespace Fancy
 
     const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 
-    const GpuResourceViewDataVk& viewDataVk = aView->myNativeData.To<GpuResourceViewDataVk>();
+    const GpuResourceViewDataVk& viewDataVk = eastl::any_cast<const GpuResourceViewDataVk&>(aView->myNativeData);
     const GpuResourceDataVk* resourceDataVk = aView->myResource->GetVkData();
 
     VkImageView imageView = nullptr;
@@ -1110,7 +1110,7 @@ namespace Fancy
       if (aResource->IsBuffer())
       {
         BufferMemoryBarrierData barrier;
-        barrier.myBuffer = aResource->myNativeData.To<GpuResourceDataVk>().myBuffer;
+        barrier.myBuffer = eastl::any_cast<const GpuResourceDataVk&>(aResource->myNativeData).myBuffer;
         barrier.myBufferSize = static_cast<const GpuBuffer*>(aResource)->GetByteSize();
         barrier.myDstAccessMask = dstAccessFlags;
         barrier.mySrcAccessMask = localData->mySubresources[0].myAccessFlags;
@@ -1128,7 +1128,7 @@ namespace Fancy
         const DataFormat format = static_cast<const Texture*>(aResource)->GetProperties().myFormat;
 
         ImageMemoryBarrierData barrier;
-        barrier.myImage = aResource->myNativeData.To<GpuResourceDataVk>().myImage;
+        barrier.myImage = eastl::any_cast<const GpuResourceDataVk&>(aResource->myNativeData).myImage;
         barrier.myFormat = static_cast<const Texture*>(aResource)->GetProperties().myFormat;
         barrier.myDstAccessMask = dstAccessFlags;
         barrier.myDstLayout = aNewImageLayout;
@@ -1154,7 +1154,7 @@ namespace Fancy
       eastl::fixed_vector<ImageMemoryBarrierData, 16> potentialSubresourceBarriers;
 
       ImageMemoryBarrierData imageBarrier;
-      imageBarrier.myImage = aResource->myNativeData.To<GpuResourceDataVk>().myImage;
+      imageBarrier.myImage = eastl::any_cast<const GpuResourceDataVk&>(aResource->myNativeData).myImage;
       imageBarrier.myFormat = static_cast<const Texture*>(aResource)->GetProperties().myFormat;
       imageBarrier.myDstAccessMask = dstAccessFlags;
       imageBarrier.myDstLayout = aNewImageLayout;

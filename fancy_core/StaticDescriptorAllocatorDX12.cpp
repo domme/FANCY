@@ -29,8 +29,8 @@ namespace Fancy
 
     if (page == nullptr)
       return DescriptorDX12{};
-
-    const Heap& heapData = page->myData.To<Heap>();
+    
+    const Heap& heapData = eastl::any_cast<const Heap&>(page->myData);
 
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
     cpuHandle.ptr = heapData.myCpuHeapStart.ptr + myHandleIncrementSize * descriptorIndexInHeap;
@@ -52,13 +52,13 @@ namespace Fancy
     ASSERT(aDescriptor.myIsManagedByAllocator && aDescriptor.myHeapType == myType);
     const Page* page = PagedLinearAllocator::FindPage([this, aDescriptor](const Page& aPage) 
     {
-      const Heap& heapData = aPage.myData.To<Heap>();
+      const Heap& heapData = eastl::any_cast<const Heap&>(aPage.myData);
       const uint64 firstHeapAddess = heapData.myCpuHeapStart.ptr;
       const uint64 lastHeapAddress = heapData.myCpuHeapStart.ptr + (aPage.myEnd-aPage.myStart) * myHandleIncrementSize;
       return aDescriptor.myCpuHandle.ptr >= firstHeapAddess && aDescriptor.myCpuHandle.ptr <= lastHeapAddress;
     });
     ASSERT(page != nullptr);
-    const Heap& heapData = page->myData.To<Heap>();
+    const Heap& heapData = eastl::any_cast<const Heap&>(page->myData);
 
     const uint64 addressOffset = aDescriptor.myCpuHandle.ptr - heapData.myCpuHeapStart.ptr;
     ASSERT(addressOffset % myHandleIncrementSize == 0);
@@ -69,7 +69,7 @@ namespace Fancy
     Free(block);
   }
 
-  bool StaticDescriptorAllocatorDX12::CreatePageData(uint64 aSize, Any& aPageData)
+  bool StaticDescriptorAllocatorDX12::CreatePageData(uint64 aSize, eastl::any& aPageData)
   {
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
@@ -91,7 +91,7 @@ namespace Fancy
     return true;
   }
 //---------------------------------------------------------------------------//
-  void StaticDescriptorAllocatorDX12::DestroyPageData(Any& aPageData)
+  void StaticDescriptorAllocatorDX12::DestroyPageData(eastl::any& aPageData)
   {
   }
 //---------------------------------------------------------------------------//

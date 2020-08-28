@@ -4,6 +4,8 @@
 #include "PagedLinearAllocator.h"
 #include "GpuMemoryAllocationDX12.h"
 
+#include "EASTL/any.h"
+
 #if FANCY_ENABLE_DX12
 
 namespace Fancy
@@ -18,8 +20,8 @@ namespace Fancy
     GpuMemoryAllocationDX12 Allocate(const uint64 aSize, const uint anAlignment, const char* aDebugName = nullptr);
     void Free(GpuMemoryAllocationDX12& anAllocation);
 
-    bool CreatePageData(uint64 aSize, Any& aPageData) override;
-    void DestroyPageData(Any& aPageData) override;
+    bool CreatePageData(uint64 aSize, eastl::any& aPageData) override;
+    void DestroyPageData(eastl::any& aPageData) override;
 
     GpuMemoryType myType;
     CpuMemoryAccessType myAccess;
