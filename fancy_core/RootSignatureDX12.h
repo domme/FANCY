@@ -13,6 +13,8 @@ namespace Fancy
     RootSignatureLayoutDX12() = default;
     RootSignatureLayoutDX12(const D3D12_ROOT_SIGNATURE_DESC1& aRootSigDesc);
 
+    uint64 GetHash() const;
+
     struct DescriptorTable
     {
       eastl::fixed_vector<D3D12_DESCRIPTOR_RANGE1, 8> myRanges;
@@ -44,6 +46,7 @@ namespace Fancy
     {
       D3D12_DESCRIPTOR_HEAP_TYPE myHeapType;
       uint myNumDescriptors;
+      mutable bool myIsDirty = true;
       eastl::fixed_vector<DescriptorRange, 8> myRanges;
     };
 
@@ -51,6 +54,7 @@ namespace Fancy
     {
       ShaderResourceTypeDX12 myType = ShaderResourceTypeDX12::None;
       uint64 myGpuVirtualAddress = 0ull;
+      mutable bool myIsDirty = true;
     };
 
     struct RootParameter
@@ -61,6 +65,7 @@ namespace Fancy
     };
 
     eastl::fixed_vector<RootParameter, 8> myRootParameters;
+    mutable bool myIsDirty = true;
 
     void Clear();
   };

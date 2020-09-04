@@ -309,8 +309,10 @@ namespace Fancy
           const ImportVertexStream& stream = importStreams[k];
           if (stream.mySourceSemantic == expectedAttribute.mySemantic && stream.mySourceSemanticIndex == expectedAttribute.mySemanticIndex)
           {
-            ASSERT(stream.myDataSize == expectedSize, "Mismatching vertex attribute size for semantic %d: Expected %d bytes - has %d bytes",
-              (uint) expectedAttribute.mySemantic, expectedSize, stream.myDataSize);
+            if (stream.myDataSize > expectedSize)
+              LOG_WARNING("Vertex attribute size for semantic %d in model is larger than the expected size. Only the expected size will be copied per vertex: Expected %d bytes - has %d bytes",
+              (uint)expectedAttribute.mySemantic, expectedSize, stream.myDataSize);
+
             importStreamForAttribute[i] = (int) k;
             break;
           }

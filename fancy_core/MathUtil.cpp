@@ -11,6 +11,28 @@ namespace Fancy { namespace MathUtil {
     thread_local bool ourMultiHashStarted = false;
   }
 //---------------------------------------------------------------------------//
+  Hasher::Hasher(uint64 aSeed /* = 0u */)
+    : myState(nullptr)
+  {
+    myState = XXH64_createState();
+    XXH64_reset((XXH64_state_t*) myState, aSeed);
+  }
+//---------------------------------------------------------------------------//
+  Hasher::~Hasher()
+  {
+    XXH64_freeState((XXH64_state_t*) myState);
+  }
+//---------------------------------------------------------------------------//
+  void Hasher::Add(const void* aValue, uint64 aSize)
+  {
+    XXH64_update((XXH64_state_t*)myState, aValue, aSize);
+  }
+//---------------------------------------------------------------------------//
+  uint64 Hasher::GetHashValue() const
+  {
+    return XXH64_digest((XXH64_state_t*)myState);
+  }
+//---------------------------------------------------------------------------//
   void BeginMultiHash()
   {
     ASSERT(!Priv_MathUtil::ourMultiHashStarted, "Multi hash already started. Did you forget to call EndMultiHash()?");

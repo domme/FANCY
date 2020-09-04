@@ -75,6 +75,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   const CommandLine::Argument* CommandLine::FindArgument(const char* aArgument) const
   {
+    if (myArguments.empty())
+      return nullptr;
+
     for (uint i = 0u; i < myArguments.size(); ++i)
     {
       if (myArguments[i].myName == aArgument)

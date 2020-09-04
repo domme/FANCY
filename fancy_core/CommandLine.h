@@ -1,5 +1,7 @@
 #pragma once
 
+#include "StaticString.h"
+
 namespace Fancy
 {
   class CommandLine

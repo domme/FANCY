@@ -234,11 +234,8 @@ namespace Fancy {
       myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
   }
 //---------------------------------------------------------------------------//
-  bool CommandListDX12::CreateDescriptorTable(const RootSignatureBindingsDX12::DescriptorTable& aTable, DescriptorDX12& aStartDescriptorOut)
+  DescriptorDX12 CommandListDX12::UploadTableToGpuVisibleHeap(const RootSignatureBindingsDX12::DescriptorTable& aTable)
   {
-    if (aTable.myRanges.empty())
-      return false;
-
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
 
     D3D12_CPU_DESCRIPTOR_HANDLE* srcDescriptors = (D3D12_CPU_DESCRIPTOR_HANDLE*)alloca(sizeof(D3D12_CPU_DESCRIPTOR_HANDLE) * aTable.myNumDescriptors);
@@ -280,8 +277,7 @@ namespace Fancy {
     platformDx12->GetDevice()->CopyDescriptors(1u, &dstRegionStart, &dstRegionSize,
       numSrcRegions, srcDescriptors, srcRegionSizes, heapType);
 
-    aStartDescriptorOut = dstRangeStartDescriptor;
-    return true;
+    return dstRangeStartDescriptor;
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
@@ -758,7 +754,12 @@ namespace Fancy {
       RootSignatureBindingsDX12::DescriptorRange& range = descTable.myRanges[aResourceInfo.myDescriptorTableRangeIdx];
       ASSERT(anArrayIndex < (uint) range.myDescriptors.size());
 
-      range.myDescriptors[anArrayIndex] = aDescriptor.myCpuHandle;
+      if (range.myDescriptors[anArrayIndex].ptr != aDescriptor.myCpuHandle.ptr)
+      {
+        range.myDescriptors[anArrayIndex] = aDescriptor.myCpuHandle;
+        descTable.myIsDirty = true;
+        myRootSignatureBindings->myIsDirty = true;
+      }
     }
     else
     {
@@ -766,8 +767,14 @@ namespace Fancy {
       ASSERT(aResourceInfo.myType != ShaderResourceTypeDX12::Sampler, "Samplers are not supported as root descriptors");
 
       RootSignatureBindingsDX12::RootDescriptor& rootDesc = rootParam.myRootDescriptor;
-      rootDesc.myType = aResourceInfo.myType;
-      rootDesc.myGpuVirtualAddress = aGpuVirtualAddress;
+
+      if (rootDesc.myType != aResourceInfo.myType || rootDesc.myGpuVirtualAddress != aGpuVirtualAddress)
+      {
+        rootDesc.myType = aResourceInfo.myType;
+        rootDesc.myGpuVirtualAddress = aGpuVirtualAddress;
+        rootDesc.myIsDirty = true;
+        myRootSignatureBindings->myIsDirty = true;
+      }
     }
   }
 //---------------------------------------------------------------------------//
@@ -894,7 +901,6 @@ namespace Fancy {
   void CommandListDX12::SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut)
   {
     CommandList::SetShaderPipelineInternal(aPipeline, aHasPipelineChangedOut);
-    ClearResourceBindings();
 
     const ShaderPipelineDX12* pipelineDx12 = static_cast<const ShaderPipelineDX12*>(aPipeline);
     ID3D12RootSignature* rootSignature = pipelineDx12->GetRootSignature();
@@ -905,6 +911,7 @@ namespace Fancy {
       {
         myRootSignature = rootSignature;
         myCommandList->SetComputeRootSignature(myRootSignature);
+        myRootSignatureBindings.reset(new RootSignatureBindingsDX12(*pipelineDx12->GetRootSignatureLayout()));
       }
     }
     else
@@ -913,11 +920,9 @@ namespace Fancy {
       {
         myRootSignature = rootSignature;
         myCommandList->SetGraphicsRootSignature(rootSignature);
+        myRootSignatureBindings.reset(new RootSignatureBindingsDX12(*pipelineDx12->GetRootSignatureLayout()));
       }
     }
-    
-    // TODO: Only mark the bindings dirty partially if some parts of the new rootsig layout matches with the old one
-    myRootSignatureBindings.reset(new RootSignatureBindingsDX12(pipelineDx12->GetRootSignatureLayout()));
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers)
@@ -1066,8 +1071,10 @@ namespace Fancy {
     ASSERT(myRootSignature != nullptr);
     ASSERT(myRootSignatureBindings != nullptr);
 
-    if (myRootSignatureBindings->myRootParameters.empty())
+    if (!myRootSignatureBindings->myIsDirty || myRootSignatureBindings->myRootParameters.empty())
       return;
+
+    myRootSignatureBindings->myIsDirty = false;
 
     FlushBarriers();  // D3D12 needs a barrier flush here so the debug layer doesn't complain about expecting static descriptors and data at this point
 
@@ -1079,13 +1086,16 @@ namespace Fancy {
       {
         const RootSignatureBindingsDX12::DescriptorTable& descTable = rootParam.myDescriptorTable;
 
-        DescriptorDX12 descriptorTableStart;
-        if (CreateDescriptorTable(descTable, descriptorTableStart))
+        if (descTable.myIsDirty && !descTable.myRanges.empty())
         {
+          descTable.myIsDirty = false;
+          DescriptorDX12 tableStartDescriptor = UploadTableToGpuVisibleHeap(descTable);
+
+          ASSERT(tableStartDescriptor.myCpuHandle.ptr != UINT_MAX);
           if (myCurrentContext == CommandListType::Graphics)
-            myCommandList->SetGraphicsRootDescriptorTable(i, descriptorTableStart.myGpuHandle);
+            myCommandList->SetGraphicsRootDescriptorTable(i, tableStartDescriptor.myGpuHandle);
           else
-            myCommandList->SetComputeRootDescriptorTable(i, descriptorTableStart.myGpuHandle);
+            myCommandList->SetComputeRootDescriptorTable(i, tableStartDescriptor.myGpuHandle);
         }
       }
       else
@@ -1093,6 +1103,11 @@ namespace Fancy {
         const RootSignatureBindingsDX12::RootDescriptor& rootDescriptor = rootParam.myRootDescriptor;
         if (rootDescriptor.myType == ShaderResourceTypeDX12::None)
           continue; // This is valid since a shader might not actually use all root parameters
+
+        if (!rootDescriptor.myIsDirty)
+          continue;
+
+        rootDescriptor.myIsDirty = false;
 
         switch (rootDescriptor.myType)
         {

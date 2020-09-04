@@ -428,7 +428,11 @@ namespace Fancy {
 
     const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetUnconvertedRootSignatureDesc();
     ASSERT(rsDesc->Version == D3D_ROOT_SIGNATURE_VERSION_1_1);
-    compiledNativeData.myRootSignatureLayout = RootSignatureLayoutDX12(rsDesc->Desc_1_1);
+    compiledNativeData.myRootSignatureLayout.reset(new RootSignatureLayoutDX12(rsDesc->Desc_1_1));
+
+    // Make sure that two different shaders with matching rootsingatures actually use the same data so that rootsignatures and rootsignature-layouts can be compared easily by pointer (needed for detecting resource-rebinds in the commandlist)
+    RenderCore::GetPlatformDX12()->GetRootSingatureCache().ReplaceWithCached(compiledNativeData.myRootSignatureLayout, compiledNativeData.myRootSignature);
+    // TODO: Strip the root signature and reflection data from the shader blob
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//

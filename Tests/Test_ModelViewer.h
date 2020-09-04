@@ -43,5 +43,6 @@ private:
   Fancy::SharedPtr<Fancy::TextureSampler> mySampler;
   Fancy::SharedPtr<Fancy::VertexInputLayout> myInstancedVertexLayout;
   Fancy::SharedPtr<Fancy::GpuBuffer> myInstancePositions;
+  Fancy::SharedPtr<Fancy::TextureView> myReplacementTexture;
   int myNumInstances;
 };

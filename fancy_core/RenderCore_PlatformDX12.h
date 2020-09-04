@@ -12,6 +12,7 @@
 #include "CommandQueueDX12.h"
 #include "GpuQueryHeap.h"
 #include "PipelineStateCacheDX12.h"
+#include "RootSignatureCacheDX12.h"
 
 #include "EASTL/vector.h"
 #include "EASTL/fixed_list.h"
@@ -90,6 +91,7 @@ namespace Fancy {
     const DescriptorDX12& GetNullDescriptor(D3D12_DESCRIPTOR_RANGE_TYPE aType) const { return myNullDescriptors[aType]; }
 
     PipelineStateCacheDX12& GetPipelineStateCache() { return myPipelineStateCache; }
+    RootSignatureCacheDX12& GetRootSingatureCache() { return myRootSignatureCache; }
 
   // protected:
     void UpdateAvailableDynamicDescriptorHeaps();
@@ -110,6 +112,7 @@ namespace Fancy {
     DescriptorDX12 myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER + 1];
 
     PipelineStateCacheDX12 myPipelineStateCache;
+    RootSignatureCacheDX12 myRootSignatureCache;
   };
 //---------------------------------------------------------------------------//
 }

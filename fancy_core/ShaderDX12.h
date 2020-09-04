@@ -16,7 +16,7 @@ namespace Fancy {
     eastl::vector<uint8> myBytecode;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
     eastl::vector<ShaderResourceInfoDX12> myResourceInfos;
-    RootSignatureLayoutDX12 myRootSignatureLayout;
+    SharedPtr<RootSignatureLayoutDX12> myRootSignatureLayout;
   };
 //---------------------------------------------------------------------------//
   class ShaderDX12 : public Shader
@@ -34,14 +34,15 @@ namespace Fancy {
     uint64 GetNativeBytecodeHash() const override { return myNativeByteCodeHash; }
 
     ID3D12RootSignature* GetRootSignature() const { return myRootSignature.Get(); }
-    const RootSignatureLayoutDX12& GetRootSignatureLayout() const { return myRootSignatureLayout; }
+    const RootSignatureLayoutDX12* GetRootSignatureLayout() const { return myRootSignatureLayout.get(); }
+    const SharedPtr<RootSignatureLayoutDX12>& GetRootSignatureLayoutPtr() const { return myRootSignatureLayout; }
     const eastl::vector<ShaderResourceInfoDX12>& GetResourceInfos() const { return myResourceInfos; }
 
   private:
     eastl::vector<uint8> myBytecode;
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
     eastl::vector<ShaderResourceInfoDX12> myResourceInfos;
-    RootSignatureLayoutDX12 myRootSignatureLayout;
+    SharedPtr<RootSignatureLayoutDX12> myRootSignatureLayout;
     
     D3D12_SHADER_BYTECODE myNativeByteCode = {};
     uint64 myNativeByteCodeHash = 0ull;

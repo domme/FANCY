@@ -410,7 +410,6 @@
     <ClInclude Include="stb\stb_image.h">
       <Filter>IO\stb</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineStateCacheDX12.h" />
     <ClInclude Include="Scene.h">
       <Filter>Geometry</Filter>
     </ClInclude>
@@ -422,6 +421,12 @@
     </ClInclude>
     <ClInclude Include="EASTLAllocator.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="RootSignatureCacheDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineStateCacheDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -660,7 +665,6 @@
     <ClCompile Include="ImageLoader.cpp">
       <Filter>IO</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineStateCacheDX12.cpp" />
     <ClCompile Include="Scene.cpp">
       <Filter>Geometry</Filter>
     </ClCompile>
@@ -669,6 +673,12 @@
     </ClCompile>
     <ClCompile Include="EASTLAllocator.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="RootSignatureCacheDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineStateCacheDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

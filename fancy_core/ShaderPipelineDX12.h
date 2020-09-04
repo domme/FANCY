@@ -15,13 +15,13 @@ namespace Fancy
     void CreateFromShaders() override;
 
     ID3D12RootSignature* GetRootSignature() const { return myRootSignature.Get(); }
-    const RootSignatureLayoutDX12& GetRootSignatureLayout() const { return myRootSignatureLayout; }
+    const RootSignatureLayoutDX12* GetRootSignatureLayout() const { return myRootSignatureLayout.get(); }
     const eastl::vector<ShaderResourceInfoDX12>& GetResourceInfos() const { return myResourceInfos; }
 
   protected:
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
     eastl::vector<ShaderResourceInfoDX12> myResourceInfos;
-    RootSignatureLayoutDX12 myRootSignatureLayout;
+    SharedPtr<RootSignatureLayoutDX12> myRootSignatureLayout;
   };
 }
 

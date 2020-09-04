@@ -79,7 +79,7 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   myCamera.myPosition = glm::float3(0.0f, 0.0f, -10.0f);
   myCamera.myOrientation = glm::quat_cast(glm::lookAt(glm::float3(0.0f, 0.0f, 10.0f), glm::float3(0.0f, 0.0f, 0.0f), glm::float3(0.0f, 1.0f, 0.0f)));
 
-  myCameraController.myMoveSpeed = 500.0f;
+  myCameraController.myMoveSpeed = 50.0f;
 
   myCamera.myFovDeg = 60.0f;
   myCamera.myNear = 1.0f;
@@ -124,6 +124,8 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   bufferProps.myElementSizeBytes = sizeof(glm::float3);
   bufferProps.myNumElements = numInstances;
   myInstancePositions = RenderCore::CreateBuffer(bufferProps, "Test_ModelViewer/InstancePositions", instancePositions.data());
+
+  myReplacementTexture = ObjectCore::LoadTexture("Textures/Sibenik/kamen.png");
 }
 
 Test_ModelViewer::~Test_ModelViewer()
@@ -225,10 +227,27 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
 
   const uint numInstances = ourDrawInstanced ? (uint) myNumInstances : 1u;
 
+  auto RenderMesh = [ctx, numInstances, this](Mesh* mesh)
+  {
+    for (SharedPtr<MeshPart>& meshPart : mesh->myParts)
+    {
+      const VertexInputLayout* layout = meshPart->myVertexInputLayout.get();
+      ctx->SetVertexInputLayout(ourDrawInstanced ? myInstancedVertexLayout.get() : layout);
+
+      uint64 offsets[] = { 0u, 0u };
+      uint64 sizes[] = { meshPart->myVertexBuffer->GetByteSize(), myInstancePositions->GetByteSize() };
+      const GpuBuffer* buffers[] = { meshPart->myVertexBuffer.get(), myInstancePositions.get() };
+      ctx->BindVertexBuffers(buffers, offsets, sizes, ourDrawInstanced ? 2u : 1u);
+      ctx->BindIndexBuffer(meshPart->myIndexBuffer.get(), meshPart->myIndexBuffer->GetProperties().myElementSizeBytes);
+
+      ctx->Render(meshPart->myIndexBuffer->GetProperties().myNumElements, numInstances, 0, 0, 0);
+    }
+  };
+
   for (SceneMeshInstance& meshInstance : myScene->myInstances)
   {
     Mesh* mesh = myScene->myMeshes[meshInstance.myMeshIndex].get();
-    const glm::float4x4& transform = meshInstance.myTransform;
+    glm::float4x4 transform = meshInstance.myTransform;
     Material* material = myScene->myMaterials[meshInstance.myMaterialIndex].get();
 
     struct Cbuffer_PerObject
@@ -245,18 +264,26 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     if (diffuseTex)
       ctx->BindResourceView(diffuseTex, "tex_diffuse");
 
-    for (SharedPtr<MeshPart>& meshPart : mesh->myParts)
-    {
-      const VertexInputLayout* layout = meshPart->myVertexInputLayout.get();
-      ctx->SetVertexInputLayout(ourDrawInstanced ? myInstancedVertexLayout.get() : layout);
+    RenderMesh(mesh);
+    
+    /*
+    // Below the resource-binding is tested by updating only some resources. The render-backend should only bind those that are needed
 
-      uint64 offsets[] = { 0u, 0u };
-      uint64 sizes[] = { meshPart->myVertexBuffer->GetByteSize(), myInstancePositions->GetByteSize() };
-      const GpuBuffer* buffers[] = { meshPart->myVertexBuffer.get(), myInstancePositions.get() };
-      ctx->BindVertexBuffers(buffers, offsets, sizes, ourDrawInstanced ? 2u : 1u);
-      ctx->BindIndexBuffer(meshPart->myIndexBuffer.get(), meshPart->myIndexBuffer->GetProperties().myElementSizeBytes);
+    // Render mesh-copy to the right (only CBV should update)
+    transform = glm::translate(transform, glm::float3(5.0f, 0.0f, 0.0f));
+    cbuffer_perObject.myWorldViewProj = myCamera.myViewProj * transform;
+    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
 
-      ctx->Render(meshPart->myIndexBuffer->GetProperties().myNumElements, numInstances, 0, 0, 0);
-    }
+    RenderMesh(mesh);
+
+    // Render mesh-copy to the left with a different texture (both the texture and the CBV should update)
+    transform = glm::translate(transform, glm::float3(-10.0f, 0.0f, 0.0f));
+    cbuffer_perObject.myWorldViewProj = myCamera.myViewProj * transform;
+    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
+
+    ctx->BindResourceView(myReplacementTexture.get(), "tex_diffuse");
+
+    RenderMesh(mesh);
+    */
   }
 }

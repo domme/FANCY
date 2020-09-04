@@ -402,7 +402,7 @@ namespace Fancy {
     const CommandLine* commandLine = CommandLine::GetInstance();
 
     RenderPlatformType platformType = RenderPlatformType::DX12;
-    if (commandLine->HasArgument("vulkan"))
+    if (commandLine->HasArgument("vulkan") || commandLine->HasArgument("vk"))
       platformType = RenderPlatformType::VULKAN;
 
     switch (platformType)

@@ -90,7 +90,7 @@ namespace Fancy {
     D3D12_RESOURCE_STATES ResolveValidateDstStates(const GpuResource* aResource, D3D12_RESOURCE_STATES aDstStates);
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, D3D12_RESOURCE_STATES aDstStates);
 
-    bool CreateDescriptorTable(const RootSignatureBindingsDX12::DescriptorTable& aTable, DescriptorDX12& aStartDescriptorOut);
+    DescriptorDX12 UploadTableToGpuVisibleHeap(const RootSignatureBindingsDX12::DescriptorTable& aTable);
 
     UniquePtr<RootSignatureBindingsDX12> myRootSignatureBindings;
     eastl::fixed_vector<DescriptorDX12, 32> myTempAllocatedDescriptors;

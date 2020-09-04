@@ -8,11 +8,35 @@
 
 namespace Fancy { namespace MathUtil {
 //---------------------------------------------------------------------------//
+  struct Hasher
+  {
+    Hasher(uint64 aSeed = 0u);
+    ~Hasher();
+
+    // Disallow copy and assignment
+    // Hasher should only be used locally to produce a hash
+    Hasher(const Hasher&) = delete;
+    Hasher(const Hasher&&) = delete;
+    Hasher& operator=(const Hasher&) = delete;
+
+    template<class T>
+    void Add(const T& aValue) { Add(&aValue, sizeof(aValue)); }
+
+    void Add(const void* aValue, uint64 aSize);
+
+    uint64 GetHashValue() const;
+
+  private:
+    void* myState;
+  };
+//---------------------------------------------------------------------------//
+  // Deprecated: Use Hasher instead:
   void BeginMultiHash();
   void AddToMultiHash(const void* aValue, uint64 aSize);
   template<class T>
   void AddToMultiHash(const T& aValue) { AddToMultiHash(&aValue, sizeof(T)); }
   uint64 EndMultiHash();
+  ///////////////////////////////////////////////////////
 //---------------------------------------------------------------------------//
   uint64 ByteHash(const void* aValue, uint64 aSize);
 //---------------------------------------------------------------------------//

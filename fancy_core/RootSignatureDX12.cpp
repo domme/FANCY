@@ -15,6 +15,7 @@ namespace Fancy
       if (myRootParameters[iParam].myIsDescriptorTable)
       {
         DescriptorTable& table = myRootParameters[iParam].myDescriptorTable;
+        table.myIsDirty = true;
         for (uint iRange = 0u; iRange < (uint) table.myRanges.size(); ++iRange)
         {
           for (uint iDesc = 0u; iDesc < (uint) table.myRanges[iRange].myDescriptors.size(); ++iDesc)
@@ -25,8 +26,11 @@ namespace Fancy
       {
         myRootParameters[iParam].myRootDescriptor.myType = ShaderResourceTypeDX12::None;
         myRootParameters[iParam].myRootDescriptor.myGpuVirtualAddress = 0ull;
+        myRootParameters[iParam].myRootDescriptor.myIsDirty = true;
       }
     }
+
+    myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
   RootSignatureLayoutDX12::RootSignatureLayoutDX12(const D3D12_ROOT_SIGNATURE_DESC1& aRootSigDesc)
@@ -62,6 +66,28 @@ namespace Fancy
         default: ASSERT(false);
       }
     }
+  }
+//---------------------------------------------------------------------------//
+  uint64 RootSignatureLayoutDX12::GetHash() const
+  {
+    if (myRootParameters.empty())
+      return 0ull;
+
+    MathUtil::Hasher hasher;
+
+    for (const RootParameter& rootParam : myRootParameters)
+    {
+      hasher.Add(rootParam.myType);
+      hasher.Add(rootParam.myVisiblity);
+      if (rootParam.myType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
+        hasher.Add(rootParam.myDescriptorTable.myRanges.data(), DYN_ARRAY_BYTESIZE(rootParam.myDescriptorTable.myRanges));
+      else if (rootParam.myType == D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
+        hasher.Add(rootParam.myRootConstants);
+      else
+        hasher.Add(rootParam.myRootDescriptor);
+    }
+
+    return hasher.GetHashValue();
   }
 //---------------------------------------------------------------------------//
   RootSignatureBindingsDX12::RootSignatureBindingsDX12(const RootSignatureLayoutDX12& aLayout)
