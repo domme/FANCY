@@ -4,15 +4,15 @@ A small rendering framework that abstracts DX12 and Vulkan.
 Mostly created for personal learning-purposes and graphics-demos. Most areas are still under constructions, but feel free to browse the code for reference in your own projects.
 
 ## Features
-* Rendering abstraction API for both DX12 and Vulkan (see the Vulkan-branch). No DX12/Vulkan-specific code in high-level rendering API
+* Rendering abstraction API for both DX12 and Vulkan. No DX12/Vulkan-specific code in high-level rendering API
 * Optional code-modules for Scene-management and GUI rendering
 * Built-in profiler for both CPU and GPU
-* Custom memory allocator for DX12 (Vulkan still under construction)
+* Custom memory allocator for DX12 (planned for Vulkan as well)
 * Supports async compute
 * Shader hot-reloading
 * HLSL->SPIR-V compilation using the [DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler)
 * Import of most common 3D files using [Assimp](https://github.com/assimp/assimp)
-* Simplified, high-level resource-barrier design similar to the [Simple Vulkan Synchronization](https://github.com/Tobski/simple_vulkan_synchronization) project that maps to both DX12 and Vulkan
+* Implicit and automatic hazard-tracking for resources
 
 ## Used Libraries
 * [DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler)
