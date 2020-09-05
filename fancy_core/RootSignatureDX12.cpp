@@ -120,8 +120,8 @@ namespace Fancy
             break;
           default: ASSERT(false);
           }
-
-          dstParam.myDescriptorTable.myNumDescriptors = 0u;
+          
+          bool hasUnboundedRanges = false;
           for (uint iRange = 0u; iRange < (uint) dstParam.myDescriptorTable.myRanges.size(); ++iRange)
           {
             const D3D12_DESCRIPTOR_RANGE1& srcRange = srcParam.myDescriptorTable.myRanges[iRange];
@@ -129,12 +129,29 @@ namespace Fancy
 
             dstRange.myType = srcRange.RangeType;
 
-            dstRange.myDescriptors.resize(srcRange.NumDescriptors);
+            if (srcRange.NumDescriptors == UINT_MAX)  
+            {
+              dstRange.myIsUnbounded = true;
+              hasUnboundedRanges = true;
+            }
+            else
+            {
+              ASSERT(!hasUnboundedRanges, "Fixed-size descriptor arrays can't follow on unbounded arrays");
 
-            for (uint iDesc = 0u; iDesc < (uint) dstRange.myDescriptors.size(); ++iDesc)
-              dstRange.myDescriptors[iDesc] = { 0ull };
+              dstRange.myIsUnbounded = false;
+              dstRange.myDescriptors.resize(srcRange.NumDescriptors);
 
-            dstParam.myDescriptorTable.myNumDescriptors += (uint) dstRange.myDescriptors.size();
+              for (D3D12_CPU_DESCRIPTOR_HANDLE descriptor : dstRange.myDescriptors)
+                descriptor = { 0ull };
+            }
+          }
+
+          dstParam.myDescriptorTable.myBoundedNumDescriptors = 0u;
+          dstParam.myDescriptorTable.myHasUnboundedRanges = hasUnboundedRanges;
+          if (!hasUnboundedRanges)
+          {
+            for (const DescriptorRange& range : dstParam.myDescriptorTable.myRanges)
+              dstParam.myDescriptorTable.myBoundedNumDescriptors += (uint) range.myDescriptors.size();
           }
         }
       }

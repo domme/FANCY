@@ -253,16 +253,27 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     struct Cbuffer_PerObject
     {
       glm::float4x4 myWorldViewProj;
+      uint myTextureIndex;
     };
     Cbuffer_PerObject cbuffer_perObject
     {
-      myCamera.myViewProj * transform
+      myCamera.myViewProj * transform,
+      0u
     };
     ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
 
     const GpuResourceView* diffuseTex = material->myTextures[(uint)MaterialTextureType::BASE_COLOR].get();
     if (diffuseTex)
-      ctx->BindResourceView(diffuseTex, "tex_diffuse");
+      ctx->BindResourceView(diffuseTex, "textures", 0);
+
+    ctx->BindResourceView(myReplacementTexture.get(), "textures", 1);
+
+    RenderMesh(mesh);
+
+    transform = glm::translate(transform, glm::float3(5.0f, 0.0f, 0.0f));
+    cbuffer_perObject.myWorldViewProj = myCamera.myViewProj * transform;
+    cbuffer_perObject.myTextureIndex = 1u;
+    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
 
     RenderMesh(mesh);
     

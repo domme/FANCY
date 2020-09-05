@@ -238,10 +238,18 @@ namespace Fancy {
   {
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
 
-    D3D12_CPU_DESCRIPTOR_HANDLE* srcDescriptors = (D3D12_CPU_DESCRIPTOR_HANDLE*)alloca(sizeof(D3D12_CPU_DESCRIPTOR_HANDLE) * aTable.myNumDescriptors);
-    uint* srcRegionSizes = (uint*)alloca(sizeof(uint) * aTable.myNumDescriptors);
-    for (uint i = 0u; i < aTable.myNumDescriptors; ++i)
-      srcRegionSizes[i] = 1u;
+    uint numDescriptorsInTable = aTable.myBoundedNumDescriptors;
+    if (numDescriptorsInTable == 0)  // This table might have unbounded arrays
+    {
+      for (const RootSignatureBindingsDX12::DescriptorRange& range : aTable.myRanges)
+        numDescriptorsInTable += (uint) range.myDescriptors.size();
+    }
+
+    eastl::fixed_vector<D3D12_CPU_DESCRIPTOR_HANDLE, 256> srcDescriptors;
+    srcDescriptors.resize(numDescriptorsInTable);
+
+    eastl::fixed_vector<uint, 256> srcRegionSizes;
+    srcRegionSizes.resize(numDescriptorsInTable, 1u);
 
     uint numSrcRegions = 0u;
     for (uint iRange = 0u; iRange < (uint) aTable.myRanges.size(); ++iRange)
@@ -264,18 +272,18 @@ namespace Fancy {
 
     const D3D12_DESCRIPTOR_HEAP_TYPE heapType = aTable.myHeapType;
     DynamicDescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
-    if (dynamicHeap == nullptr || dynamicHeap->GetNumFreeDescriptors() < aTable.myNumDescriptors)
+    if (dynamicHeap == nullptr || dynamicHeap->GetNumFreeDescriptors() < numDescriptorsInTable)
     {
-      dynamicHeap = platformDx12->AllocateDynamicDescriptorHeap(aTable.myNumDescriptors, heapType);
+      dynamicHeap = platformDx12->AllocateDynamicDescriptorHeap(numDescriptorsInTable, heapType);
       SetDescriptorHeap(heapType, dynamicHeap);
     }
-    const DescriptorDX12 dstRangeStartDescriptor = dynamicHeap->AllocateDescriptorRangeGetFirst(aTable.myNumDescriptors);
+    const DescriptorDX12 dstRangeStartDescriptor = dynamicHeap->AllocateDescriptorRangeGetFirst(numDescriptorsInTable);
 
     D3D12_CPU_DESCRIPTOR_HANDLE dstRegionStart = dstRangeStartDescriptor.myCpuHandle;
     uint dstRegionSize = numSrcRegions;
 
     platformDx12->GetDevice()->CopyDescriptors(1u, &dstRegionStart, &dstRegionSize,
-      numSrcRegions, srcDescriptors, srcRegionSizes, heapType);
+      numSrcRegions, srcDescriptors.data(), srcRegionSizes.data(), heapType);
 
     return dstRangeStartDescriptor;
   }
@@ -570,6 +578,8 @@ namespace Fancy {
       RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
     myRetiredDescriptorHeaps.clear();
 
+    ClearResourceBindings();  // We need to clear the resource-bindings here since we also release the dynamic heaps
+
     if (myCommandAllocator != nullptr)
       RenderCore::GetPlatformDX12()->ReleaseCommandAllocator(myCommandAllocator, aFenceVal);
     myCommandAllocator = nullptr;
@@ -752,7 +762,15 @@ namespace Fancy {
       ASSERT(aResourceInfo.myDescriptorTableRangeIdx < (uint) descTable.myRanges.size());
       
       RootSignatureBindingsDX12::DescriptorRange& range = descTable.myRanges[aResourceInfo.myDescriptorTableRangeIdx];
-      ASSERT(anArrayIndex < (uint) range.myDescriptors.size());
+      if (range.myIsUnbounded)
+      {
+        constexpr D3D12_CPU_DESCRIPTOR_HANDLE emptyDescriptor{ 0ull };
+        range.myDescriptors.resize(glm::max((uint)range.myDescriptors.size(), anArrayIndex + 1), emptyDescriptor);
+      }
+      else
+      {
+        ASSERT(anArrayIndex < (uint)range.myDescriptors.size());
+      }
 
       if (range.myDescriptors[anArrayIndex].ptr != aDescriptor.myCpuHandle.ptr)
       {

@@ -2,12 +2,13 @@
 
 #define ROOT_SIGNATURE  "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT )," \
                         "CBV(b0), " \
-                        "DescriptorTable(SRV(t0, numDescriptors = 1), visibility = SHADER_VISIBILITY_PIXEL)," \
+                        "DescriptorTable(SRV(t0, numDescriptors = unbounded, flags = DESCRIPTORS_VOLATILE), visibility = SHADER_VISIBILITY_PIXEL)," \
                         "DescriptorTable(Sampler(s0))"
 
 struct CBUFFER
 {
-  float4x4 c_WorldViewProjectionMatrix;
+  float4x4 myWorldViewProjectionMatrix;
+  uint myTextureIndex;
 };
 
 VK_BINDING_SET(0, 0) ConstantBuffer<CBUFFER> cbPerObject : register(b0);
@@ -36,20 +37,20 @@ VS_OUT main(VS_IN v)
 #if defined(INSTANCED)
   pos += v.instance_position;
 #endif
-  vs_out.pos = mul(cbPerObject.c_WorldViewProjectionMatrix, float4(pos, 1.0f));
+  vs_out.pos = mul(cbPerObject.myWorldViewProjectionMatrix, float4(pos, 1.0f));
   vs_out.uv = v.texcoord0;
   return vs_out;
 }
 #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_FRAGMENT)  
-VK_BINDING_SET(1, 0) Texture2D tex_diffuse : register(t0);
+VK_BINDING_SET(1, 0) Texture2D textures[] : register(t0);
 VK_BINDING_SET(2, 0) SamplerState sampler_default : register(s0);
 
 [RootSignature(ROOT_SIGNATURE)]
 float4 main(VS_OUT fs_in) : SV_TARGET
 {
-  return tex_diffuse.Sample(sampler_default, fs_in.uv);
+  return textures[cbPerObject.myTextureIndex].Sample(sampler_default, fs_in.uv);
 }
 #endif // PROGRAM_TYPE_FRAGMENT
 //---------------------------------------------------------------------------//  

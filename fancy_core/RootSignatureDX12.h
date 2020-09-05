@@ -38,6 +38,7 @@ namespace Fancy
 
     struct DescriptorRange
     {
+      bool myIsUnbounded = false;
       D3D12_DESCRIPTOR_RANGE_TYPE myType;
       eastl::fixed_vector<D3D12_CPU_DESCRIPTOR_HANDLE, 8> myDescriptors;
     };
@@ -45,8 +46,9 @@ namespace Fancy
     struct DescriptorTable
     {
       D3D12_DESCRIPTOR_HEAP_TYPE myHeapType;
-      uint myNumDescriptors;
       mutable bool myIsDirty = true;
+      bool myHasUnboundedRanges = false;
+      uint myBoundedNumDescriptors = 0u;  // Only valid if none of the descriptor ranges is unbounded. 
       eastl::fixed_vector<DescriptorRange, 8> myRanges;
     };
 
