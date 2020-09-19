@@ -5,6 +5,9 @@
 #include "RenderCore_PlatformVk.h"
 #include "ShaderResourceInfoVk.h"
 #include "PipelineLayoutCacheVk.h"
+#include "PipelineLayoutVk.h"
+
+#include "EASTL/sort.h"
 
 #if FANCY_ENABLE_VK
 
@@ -17,9 +20,6 @@ namespace Fancy
 
   ShaderPipelineVk::~ShaderPipelineVk()
   {
-    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    if (myPipelineLayout != nullptr)
-      vkDestroyPipelineLayout(platformVk->myDevice, myPipelineLayout, nullptr);
   }
 
   void ShaderPipelineVk::CreateFromShaders()
@@ -59,29 +59,21 @@ namespace Fancy
       }
     }
 
-    // Create descriptor set layouts from the resource infos
-    eastl::fixed_vector<PipelineLayoutCacheVk::DescriptorSetInfo, 16> descriptorSets;
-    uint maxSetIdx = 0u;
+    // Create or get an existing pipeline layout from the resource infos
+    uint numSetsRequired = 0u;
+    for (const ShaderResourceInfoVk& resourceInfo : myResourceInfos)
+      numSetsRequired = glm::max(numSetsRequired, resourceInfo.myDescriptorSet + 1u);
+
+    PipelineLayoutCreateInfoVk pipelineLayoutInfo;
+    pipelineLayoutInfo.myDescriptorSetInfos.resize(numSetsRequired);
+
     for (const ShaderResourceInfoVk& resourceInfo : myResourceInfos)
     {
-      int iSet = -1;
-      for (int i = 0; i < (int)descriptorSets.size() && iSet == -1; ++i)
-        if (descriptorSets[i].mySet == resourceInfo.myDescriptorSet)
-          iSet = i;
-
-      if (iSet == -1)
-      {
-        descriptorSets.push_back(PipelineLayoutCacheVk::DescriptorSetInfo(resourceInfo.myDescriptorSet));
-        iSet = (int)descriptorSets.size() - 1;
-      }
-
-      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 16>& targetBindingsInSet = descriptorSets[iSet].myBindings;
-      maxSetIdx = glm::max(maxSetIdx, descriptorSets[iSet].mySet);
+      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 32>& targetBindingsInSet = pipelineLayoutInfo.myDescriptorSetInfos[resourceInfo.myDescriptorSet].myRanges;
 
 #if FANCY_RENDERER_DEBUG
       for (int i = 0; i < (int)targetBindingsInSet.size(); ++i)
-      ASSERT(targetBindingsInSet[i].binding != resourceInfo.myBindingInSet, "Binding %d is already used", resourceInfo.
-myBindingInSet);
+        ASSERT(targetBindingsInSet[i].binding != resourceInfo.myBindingInSet, "Binding %d is already used", resourceInfo.myBindingInSet);
 #endif
 
       VkDescriptorSetLayoutBinding vkBinding;
@@ -89,30 +81,19 @@ myBindingInSet);
       vkBinding.descriptorCount = resourceInfo.myNumDescriptors;
       vkBinding.descriptorType = resourceInfo.myType;
       vkBinding.stageFlags = VK_SHADER_STAGE_ALL;
-      vkBinding.pImmutableSamplers = nullptr;
-      // TODO: Needs to be used for static samplers in Vulkan shaders. Do that in the future! Otherwise we need to actually bind dynamic samplers
+      vkBinding.pImmutableSamplers = nullptr; // TODO: Needs to be used for static samplers in Vulkan shaders. Do that in the future! Otherwise we need to actually bind dynamic samplers
       targetBindingsInSet.push_back(vkBinding);
     }
-
-    if (!descriptorSets.empty())
-    {
-      std::stable_sort(descriptorSets.begin(), descriptorSets.begin() + descriptorSets.size() - 1, [](const PipelineLayoutCacheVk::DescriptorSetInfo& aLeft, const PipelineLayoutCacheVk::DescriptorSetInfo& aRight) {
-        return aLeft.mySet < aRight.mySet;
-      });
-    }
  
-    for (uint i = 0u; i < (uint)descriptorSets.size(); ++i)
+    for (PipelineLayoutCreateInfoVk::DescriptorSetInfo& set : pipelineLayoutInfo.myDescriptorSetInfos)
     {
-     PipelineLayoutCacheVk::DescriptorSetInfo& descriptorSet = descriptorSets[i];
-     std::stable_sort(descriptorSet.myBindings.begin(), descriptorSet.myBindings.begin() + descriptorSet.myBindings.size() - 1, [](const VkDescriptorSetLayoutBinding& aLeft, const VkDescriptorSetLayoutBinding& aRight) {
+     eastl::stable_sort(set.myRanges.begin(), set.myRanges.begin() + set.myRanges.size() - 1, [](const VkDescriptorSetLayoutBinding& aLeft, const VkDescriptorSetLayoutBinding& aRight) {
         return aLeft.binding < aRight.binding;
      });
     }
 
-    myDescriptorSetLayouts = PipelineDescriptorSetLayoutsVk();
-
     PipelineLayoutCacheVk& layoutCache = RenderCore::GetPlatformVk()->GetPipelineLayoutCache();
-    myPipelineLayout = layoutCache.GetPipelineLayout(descriptorSets, myDescriptorSetLayouts);
+    myPipelineLayout = layoutCache.GetPipelineLayout(pipelineLayoutInfo);
   }
 }
 

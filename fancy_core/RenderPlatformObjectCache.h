@@ -1,7 +1,6 @@
 #pragma once
 
-#include <mutex>
-#include <unordered_map>
+#include "EASTL/hash_map.h"
 
 namespace Fancy
 {
@@ -14,6 +13,6 @@ namespace Fancy
 
   protected:
     std::mutex myCacheMutex;
-    std::unordered_map<uint64, T> myCache;
+    eastl::hash_map<uint64, T> myCache;
   };
 }

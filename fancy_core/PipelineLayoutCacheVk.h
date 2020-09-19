@@ -2,30 +2,27 @@
 
 #include "VkPrerequisites.h"
 #include "RenderPlatformObjectCache.h"
+#include "PipelineLayoutVk.h"
+#include "EASTL/hash_map.h"
 
 #if FANCY_ENABLE_VK
 
 namespace Fancy
 {
-  struct PipelineDescriptorSetLayoutsVk;
-
-  class PipelineLayoutCacheVk : public RenderPlatformObjectCache<VkPipelineLayout>
+  class PipelineLayoutCacheVk : public RenderPlatformObjectCache<SharedPtr<PipelineLayoutVk>>
   {
   public:
     ~PipelineLayoutCacheVk() override;
 
-    struct DescriptorSetInfo
-    {
-      DescriptorSetInfo(uint aSetIndex) : mySet(aSetIndex) { }
-      uint mySet;
-      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 16> myBindings;
-    };
+    SharedPtr<PipelineLayoutVk> GetPipelineLayout(const PipelineLayoutCreateInfoVk& aCreateInfo);
 
-    VkPipelineLayout GetPipelineLayout(const eastl::fixed_vector<DescriptorSetInfo, 16>& someDescriptorSetInfos, PipelineDescriptorSetLayoutsVk& aDescriptorSetLayoutsOut);
     void Clear() override;
-   
+
   private:
-    std::unordered_map<uint64, VkDescriptorSetLayout> myDescriptorSetLayouts;
+
+    // Additional layer of caching for the descriptorsetLayouts. 
+    // Required for checking equality on two descriptorSetLayouts from different PipelineLayouts and will also save some memory
+    eastl::hash_map<uint64, VkDescriptorSetLayout> myDescriptorSetLayouts; 
   };
 }
 

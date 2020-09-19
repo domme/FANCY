@@ -15,6 +15,7 @@
 #include "DebugUtilsVk.h"
 #include "GpuQueryHeapVk.h"
 #include "TimeManager.h"
+#include "PipelineLayoutVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -126,47 +127,7 @@ namespace Fancy
   }
 
 //---------------------------------------------------------------------------//
-  uint CommandListVk::ResourceState::DescriptorRange::GetElementSize() const
-  {
-    switch(myType)
-    {
-    case VK_DESCRIPTOR_TYPE_SAMPLER:
-    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
-    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-      return sizeof(VkDescriptorImageInfo);
-    case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-    case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-      return sizeof(VkBufferView);
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-      return sizeof(VkDescriptorBufferInfo);
-    default: ASSERT(false); return 1u;
-    }
-  }
-//---------------------------------------------------------------------------//
-  uint CommandListVk::ResourceState::DescriptorRange::Size() const
-  {
-    return (uint) myData.size() / GetElementSize();
-  }
-//---------------------------------------------------------------------------//
-  void CommandListVk::ResourceState::DescriptorRange::ResizeUp(uint aNewSize)
-  {
-    myData.resize(glm::max((uint) myData.size(), aNewSize * GetElementSize()));
-  }
-//---------------------------------------------------------------------------//
-  
-//---------------------------------------------------------------------------//
-  void CommandListVk::ResourceState::Clear()
-  {
-    for (uint i = 0u; i < (uint) myTempBufferViews.size(); ++i)
-      RenderCore::GetPlatformVk()->ReleaseTempBufferView(myTempBufferViews[i].first, myTempBufferViews[i].second);
-    myTempBufferViews.clear();
 
-    myPipelineLayout = nullptr;
-
-    myDescriptorSets.clear();
-  }
 //---------------------------------------------------------------------------//
   CommandListVk::CommandListVk(CommandListType aType) 
     : CommandList(aType)
@@ -501,8 +462,10 @@ namespace Fancy
       platformVk->FreeDescriptorPool(myUsedDescriptorPools[i], aFenceVal);
     myUsedDescriptorPools.clear();
 
-    for (uint i = 0u; i < (uint) myResourceState.myTempBufferViews.size(); ++i)
-      myResourceState.myTempBufferViews[i].second = glm::max(myResourceState.myTempBufferViews[i].second, aFenceVal);
+    for (uint i = 0u; i < (uint) myTempBufferViews.size(); ++i)
+      myTempBufferViews[i].second = glm::max(myTempBufferViews[i].second, aFenceVal);
+  
+    ClearResourceBindings();  // Clear needed here since the descriptor pools are also being freed above
 
     myLocalHazardData.clear();
   }
@@ -517,7 +480,7 @@ namespace Fancy
     myPendingBufferBarriers.clear();
     myPendingImageBarriers.clear();
     myLocalHazardData.clear();
-    myResourceState.Clear();
+    ClearResourceBindings();
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     myCommandBuffer = platformVk->GetNewCommandBuffer(myCommandListType);
@@ -1272,6 +1235,16 @@ namespace Fancy
       FlushBarriers();
 
     myPendingImageBarriers.push_back(aBarrier);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::ClearResourceBindings()
+  {
+    if (myPipelineLayoutBindings)
+      myPipelineLayoutBindings->Clear();
+
+    for (uint i = 0u; i < (uint)myTempBufferViews.size(); ++i)
+      RenderCore::GetPlatformVk()->ReleaseTempBufferView(myTempBufferViews[i].first, myTempBufferViews[i].second);
+    myTempBufferViews.clear();
   }
 //---------------------------------------------------------------------------//
   bool CommandListVk::ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout)

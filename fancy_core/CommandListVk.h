@@ -9,6 +9,7 @@ namespace Fancy
 {
   struct ShaderResourceInfoVk;
   class ShaderPipelineVk;
+  struct PipelineLayoutBindingsVk;
 
   class CommandListVk : public CommandList
   {
@@ -82,6 +83,7 @@ namespace Fancy
     void AddBarrier(const ImageMemoryBarrierData& aBarrier);
     
   protected:
+    void ClearResourceBindings();
     void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut) override;
 
     const ShaderPipelineVk* GetShaderPipeline() const;
@@ -113,60 +115,10 @@ namespace Fancy
     VkRenderPass myRenderPass;
     VkFramebuffer myFramebuffer;
     glm::uvec2 myFramebufferRes;
-
-    struct ResourceState
-    {
-      union DescriptorData
-      {
-        VkDescriptorBufferInfo myBufferInfo;
-        VkDescriptorImageInfo myImageInfo;
-        VkBufferView myTexelBufferView;
-      };
-
-      struct DescriptorRange
-      {
-        VkDescriptorType myType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
-        eastl::fixed_vector<uint8, sizeof(DescriptorData) * 8> myData;
         
-        uint GetElementSize() const;
-        uint Size() const;
-        
-        void ResizeUp(uint aNewSize);
-
-        template<class T>
-        T& Get(uint anIndex)
-        {
-          ASSERT(sizeof(T) == GetElementSize());
-          ASSERT(anIndex < Size());
-
-          return *((T*)myData.data() + anIndex);
-        }
-
-        template<class T>
-        void Set(const T& aDescriptor, uint anIndex)
-        {
-          ASSERT(sizeof(T) == GetElementSize());
-          ASSERT(anIndex < Size());
-
-          *((T*)myData.data() + anIndex) = aDescriptor;
-        }
-      };
-
-      struct DescriptorSet
-      {
-        mutable bool myIsDirty = true;
-        VkDescriptorSetLayout myLayout = nullptr;
-        eastl::fixed_vector<DescriptorRange, 8> myRanges;
-      };
-
-      void Clear();
-
-      VkPipelineLayout myPipelineLayout = nullptr;
-      eastl::fixed_vector<eastl::pair<VkBufferView, uint64>, 32> myTempBufferViews;
-      eastl::fixed_vector<DescriptorSet, 8> myDescriptorSets;
-    };
-
-    ResourceState myResourceState;
+    VkPipelineLayout myPipelineLayout = nullptr;
+    UniquePtr<PipelineLayoutBindingsVk> myPipelineLayoutBindings;
+    eastl::fixed_vector<eastl::pair<VkBufferView, uint64>, 32> myTempBufferViews;
 
     struct SubresourceHazardData
     {

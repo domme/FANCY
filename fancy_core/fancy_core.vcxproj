@@ -157,8 +157,8 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshImporter.h" />
     <ClInclude Include="ObjectCore.h" />
-    <ClInclude Include="PipelineDescriptorSetLayoutsVk.h" />
     <ClInclude Include="PipelineLayoutCacheVk.h" />
+    <ClInclude Include="PipelineLayoutVk.h" />
     <ClInclude Include="PipelineStateCacheDX12.h" />
     <ClInclude Include="PipelineStateCacheVk.h" />
     <ClInclude Include="RenderPassCacheVk.h" />
@@ -287,6 +287,7 @@
     <ClCompile Include="MeshImporter.cpp" />
     <ClCompile Include="ObjectCore.cpp" />
     <ClCompile Include="PipelineLayoutCacheVk.cpp" />
+    <ClCompile Include="PipelineLayoutVk.cpp" />
     <ClCompile Include="PipelineStateCacheDX12.cpp" />
     <ClCompile Include="PipelineStateCacheVk.cpp" />
     <ClCompile Include="RenderPassCacheVk.cpp" />
