@@ -35,6 +35,7 @@ namespace Fancy
 
 //---------------------------------------------------------------------------//
   PipelineLayoutBindingsVk::PipelineLayoutBindingsVk(const PipelineLayoutVk& aLayout)
+    : myIsDirty(true)
   {
     myDescriptorSets.resize(aLayout.myDescriptorSets.size());
 
@@ -117,6 +118,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void PipelineLayoutBindingsVk::Clear()
   {
+    myIsDirty = true;
     for (DescriptorSet& set : myDescriptorSets)
     {
       set.myIsDirty = true;

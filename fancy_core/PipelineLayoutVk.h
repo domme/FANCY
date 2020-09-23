@@ -64,13 +64,19 @@ namespace Fancy
         return *((T*)myData.data() + anIndex);
       }
 
+      // Returns true if the data has changed
       template<class T>
-      void Set(const T& aDescriptor, uint anIndex)
+      bool Set(const T& aDescriptor, uint anIndex)
       {
         ASSERT(sizeof(T) == GetElementSize());
         ASSERT(anIndex < Size());
 
-        *((T*)myData.data() + anIndex) = aDescriptor;
+        T& data = *((T*)myData.data() + anIndex);
+        if (data == aDescriptor)
+          return false;
+
+        data = aDescriptor;
+        return true;
       }
     };
 
@@ -84,6 +90,7 @@ namespace Fancy
     };
 
     eastl::fixed_vector<DescriptorSet, 8> myDescriptorSets;
+    bool myIsDirty = true;
 
     void Clear();
   };

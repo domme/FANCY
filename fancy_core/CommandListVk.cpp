@@ -551,31 +551,16 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut)
   {
-    bool pipelineChanged = false;
-    CommandList::SetShaderPipelineInternal(aPipeline, pipelineChanged);
-    aHasPipelineChangedOut = pipelineChanged;
+    CommandList::SetShaderPipelineInternal(aPipeline, aHasPipelineChangedOut);
 
     const ShaderPipelineVk* pipelineVk = static_cast<const ShaderPipelineVk*>(aPipeline);
+    const PipelineLayoutVk* pipelineLayout = pipelineVk->GetPipelineLayout();
 
-    if (pipelineChanged && myResourceState.myPipelineLayout != pipelineVk->GetPipelineLayout())
+    if (myPipelineLayout != pipelineLayout->myPipelineLayout)
     {
-      // Check the descriptor sets for compatibility and mark incompatible ones as dirty that will be re-created and re-bound on the next ApplyResourceState()
-
-      const PipelineDescriptorSetLayoutsVk& shaderSetLayouts = pipelineVk->GetDescriptorSetLayouts();
-      for (uint iSet = 0; iSet < ARRAY_LENGTH(shaderSetLayouts.myLayouts); ++iSet)
-      {
-        if (shaderSetLayouts.myLayouts[iSet] != nullptr)
-        {
-          if (shaderSetLayouts.myLayouts[iSet] != myResourceState.myDescriptorSets[iSet].myLayout)
-          {
-            myResourceState.myDescriptorSets[iSet].myIsDirty = true;
-            myResourceState.myDescriptorSets[iSet].myRanges.clear();
-          }
-        }
-      }
+      myPipelineLayout = pipelineLayout->myPipelineLayout;
+      myPipelineLayoutBindings.reset(new PipelineLayoutBindingsVk(*pipelineLayout));
     }
-
-    myResourceState.myPipelineLayout = pipelineVk->GetPipelineLayout();
   }
 //---------------------------------------------------------------------------//
   const ShaderPipelineVk* CommandListVk::GetShaderPipeline() const
@@ -871,7 +856,7 @@ namespace Fancy
     if (needsTempBufferView)
     {
       bufferView = GpuBufferViewVk::CreateVkBufferView(aBuffer, someViewProperties);
-      myResourceState.myTempBufferViews.push_back({ bufferView, 0u });
+      myTempBufferViews.push_back({ bufferView, 0u });
     }
 
     BindInternal(*resourceInfo, anArrayIndex, bufferView, static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBuffer, 
@@ -1461,8 +1446,10 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyResourceState()
   {
-    if (myResourceState.myPipelineLayout == nullptr || myResourceState.myDescriptorSets.empty())
+    if (myPipelineLayout == nullptr || !myPipelineLayoutBindings->myIsDirty || myPipelineLayoutBindings->myDescriptorSets.empty())
       return;
+
+    myPipelineLayoutBindings->myIsDirty = false;
 
     ASSERT(myCurrentContext != CommandListType::Graphics || myGraphicsPipelineState.myShaderPipeline != nullptr);
     ASSERT(myCurrentContext != CommandListType::Compute || myComputePipelineState.myShaderPipeline != nullptr);
@@ -1472,9 +1459,9 @@ namespace Fancy
     eastl::fixed_vector<VkWriteDescriptorSet, 64> writeInfos;
     eastl::fixed_vector<VkDescriptorSet, kVkMaxNumBoundDescriptorSets> descriptorSets;
     uint firstSet = UINT_MAX;
-    for (uint iSet = 0u; iSet < (uint) myResourceState.myDescriptorSets.size(); ++iSet)
+    for (uint iSet = 0u; iSet < (uint) myPipelineLayoutBindings->myDescriptorSets.size(); ++iSet)
     {
-      const ResourceState::DescriptorSet& set = myResourceState.myDescriptorSets[iSet];
+      const PipelineLayoutBindingsVk::DescriptorSet& set = myPipelineLayoutBindings->myDescriptorSets[iSet];
       if (!set.myIsDirty || !pipeline->HasDescriptorSet(iSet)) 
         continue;
 
@@ -1493,7 +1480,7 @@ namespace Fancy
       
       for (uint iRange = 0u; iRange < (uint) set.myRanges.size(); ++iRange)
       {
-        const ResourceState::DescriptorRange& range = set.myRanges[iRange];
+        const PipelineLayoutBindingsVk::DescriptorRange& range = set.myRanges[iRange];
 
         if (range.myType == VK_DESCRIPTOR_TYPE_MAX_ENUM || range.myData.empty())
           continue;
@@ -1516,7 +1503,7 @@ namespace Fancy
     {
       vkUpdateDescriptorSets(RenderCore::GetPlatformVk()->myDevice, (uint) writeInfos.size(), writeInfos.data(), 0u, nullptr);
 
-      VkPipelineBindPoint bindPoint;
+      VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
       switch (myCurrentContext)
       {
       case CommandListType::Graphics:
@@ -1531,75 +1518,82 @@ namespace Fancy
       // TODO: Dynamic offsets might be needed for ring-allocated cbuffers
       const uint numDynamicOffsets = 0u;
       const uint* dynamicOffsets = nullptr;
-      vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipeline->GetPipelineLayout(), firstSet, (uint) descriptorSets.size(), descriptorSets.data(), numDynamicOffsets, dynamicOffsets);
+      vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipeline->GetPipelineLayout()->myPipelineLayout, firstSet, (uint) descriptorSets.size(), descriptorSets.data(), numDynamicOffsets, dynamicOffsets);
     }
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::BindInternal(const ShaderResourceInfoVk& aResourceInfo, uint anArrayIndex,  VkBufferView aBufferView,
     VkBuffer aBuffer, uint64 aBufferOffset, uint64 aBufferSize, VkImageView anImageView, VkImageLayout anImageLayout, VkSampler aSampler)
   {
+    ASSERT(myPipelineLayoutBindings != nullptr);
     ASSERT(aResourceInfo.myNumDescriptors > anArrayIndex);
-    ASSERT(aResourceInfo.myDescriptorSet < kVkMaxNumBoundDescriptorSets);
+    ASSERT(aResourceInfo.myDescriptorSet < (uint) myPipelineLayoutBindings->myDescriptorSets.size());
 
     const ShaderPipelineVk* shaderPipeline = GetShaderPipeline();
     ASSERT(shaderPipeline != nullptr);
 
-    myResourceState.myDescriptorSets.resize(glm::max((uint)myResourceState.myDescriptorSets.size(), aResourceInfo.myDescriptorSet + 1u));
+    PipelineLayoutBindingsVk::DescriptorSet& set = myPipelineLayoutBindings->myDescriptorSets[aResourceInfo.myDescriptorSet];
 
-    ResourceState::DescriptorSet& set = myResourceState.myDescriptorSets[aResourceInfo.myDescriptorSet];
+    ASSERT(aResourceInfo.myBindingInSet < (uint)set.myRanges.size());
+    PipelineLayoutBindingsVk::DescriptorRange& range = set.myRanges[aResourceInfo.myBindingInSet];
 
-    set.myLayout = shaderPipeline->GetDescriptorSetLayout(aResourceInfo.myDescriptorSet);;
-    set.myIsDirty = true;
-    set.myRanges.resize(glm::max((uint)set.myRanges.size(), aResourceInfo.myBindingInSet + 1u));
-
-    ResourceState::DescriptorRange& range = set.myRanges[aResourceInfo.myBindingInSet];
-    range.myType = aResourceInfo.myType;
-    range.ResizeUp(anArrayIndex + 1u);
+    if (range.myIsUnbounded)
+    {
+      const uint oldNumDescriptors = range.Size();
+      range.ResizeUp(anArrayIndex + 1);
+      memset(&range.myData[oldNumDescriptors * range.GetElementSize()], 0u, (range.Size() - oldNumDescriptors) * range.GetElementSize());
+    }
+    else
+    {
+      ASSERT(anArrayIndex < range.Size());
+    }
 
     switch (aResourceInfo.myType)
     {
-    case VK_DESCRIPTOR_TYPE_SAMPLER:
-      {
-      ASSERT(aSampler != nullptr);
-      VkDescriptorImageInfo info;
-      info.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-      info.imageView = nullptr;
-      info.sampler = aSampler;
-      range.Set(info, anArrayIndex);
-    } break;
-    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
-    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-    {
-      ASSERT(anImageView != nullptr);
-      VkDescriptorImageInfo info;
-      info.imageLayout = anImageLayout;
-      info.imageView = anImageView;
-      info.sampler = nullptr;
-      range.Set(info, anArrayIndex);
-    } break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-    case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-    {
-      ASSERT(aBufferView != nullptr);
-      range.Set(aBufferView, anArrayIndex);
-    } break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-    {
-      ASSERT(aBuffer != nullptr && aBufferSize > 0ull);
-      VkDescriptorBufferInfo info;
-      info.buffer = aBuffer;
-      info.offset = aBufferOffset;
-      info.range = aBufferSize;
-      range.Set(info, anArrayIndex);
-    } break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
-      break;
-    default: ASSERT(false);
+        case VK_DESCRIPTOR_TYPE_SAMPLER:
+        {
+          ASSERT(aSampler != nullptr);
+          VkDescriptorImageInfo info;
+          info.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+          info.imageView = nullptr;
+          info.sampler = aSampler;
+          set.myIsDirty |= range.Set(info, anArrayIndex);
+        } break;
+        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
+        case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+        {
+          ASSERT(anImageView != nullptr);
+          VkDescriptorImageInfo info;
+          info.imageLayout = anImageLayout;
+          info.imageView = anImageView;
+          info.sampler = nullptr;
+          set.myIsDirty |= range.Set(info, anArrayIndex);
+        } break;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+        case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+        {
+          ASSERT(aBufferView != nullptr);
+          set.myIsDirty |= range.Set(aBufferView, anArrayIndex);
+        } break;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+        {
+          ASSERT(aBuffer != nullptr && aBufferSize > 0ull);
+          VkDescriptorBufferInfo info;
+          info.buffer = aBuffer;
+          info.offset = aBufferOffset;
+          info.range = aBufferSize;
+          set.myIsDirty |= range.Set(info, anArrayIndex);
+        } break;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+          ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+          break;
+        default: ASSERT(false);
     }
+
+    myPipelineLayoutBindings->myIsDirty |= set.myIsDirty;
   }
 //---------------------------------------------------------------------------//
   VkDescriptorSet CommandListVk::CreateDescriptorSet(VkDescriptorSetLayout aLayout)
