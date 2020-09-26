@@ -162,7 +162,8 @@ namespace Fancy
         resourceInfo.myDescriptorSet = reflSet.set;
         resourceInfo.myName = reflBinding->name;
         resourceInfo.myNameHash = MathUtil::Hash(reflBinding->name);
-        resourceInfo.myNumDescriptors = reflBinding->count;
+        resourceInfo.myIsUnbounded = reflBinding->type_description->op == SpvOpTypeRuntimeArray;
+        resourceInfo.myNumDescriptors = resourceInfo.myIsUnbounded ? RenderCore_PlatformVk::MAX_DESCRIPTOR_ARRAY_SIZE : reflBinding->count;
         compiledDataVk.myResourceInfos.push_back(std::move(resourceInfo));
       }
     }

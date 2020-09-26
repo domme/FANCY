@@ -25,6 +25,11 @@ namespace Fancy
   class RenderCore_PlatformVk final : public Fancy::RenderCore_Platform
   {
   public:
+    enum Consts
+    {
+      MAX_DESCRIPTOR_ARRAY_SIZE = 1000u 
+    };
+
     static VkFormat ResolveFormat(DataFormat aFormat);
     static VkBlendFactor ResolveBlendFactor(BlendFactor aFactor);
     static VkBlendOp ResolveBlendOp(BlendOp aBlendOp);

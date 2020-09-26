@@ -21,7 +21,7 @@ namespace Fancy
     for (uint i = 0u; i < (uint)myDescriptorSets.size(); ++i)
     {
       DescriptorSet& set = myDescriptorSets[i];
-      set.myRanges = aCreateInfo.myDescriptorSetInfos[i].myRanges;
+      set.myBindings = aCreateInfo.myDescriptorSetInfos[i].myBindings;
       set.myLayout = someDescriptorSetLayouts[i];
     }
   }
@@ -41,51 +41,51 @@ namespace Fancy
 
     for (uint iSet = 0u; iSet < (uint) myDescriptorSets.size(); ++iSet)
     {
-      DescriptorSet& bindingSet = myDescriptorSets[iSet];
-      const PipelineLayoutVk::DescriptorSet& layoutSet = aLayout.myDescriptorSets[iSet];
+      DescriptorSet& dstSet = myDescriptorSets[iSet];
+      const PipelineLayoutVk::DescriptorSet& srcSet = aLayout.myDescriptorSets[iSet];
 
-      bindingSet.myIsDirty = true;
-      bindingSet.myLayout = layoutSet.myLayout;
+      dstSet.myIsDirty = true;
+      dstSet.myLayout = srcSet.myLayout;
 
       uint numRangesRequired = 0u;
-      for (const VkDescriptorSetLayoutBinding& layoutRange : layoutSet.myRanges)
-        numRangesRequired = glm::max(numRangesRequired, layoutRange.binding);
+      for (const VkDescriptorSetLayoutBinding& layoutRange : srcSet.myBindings)
+        numRangesRequired = glm::max(numRangesRequired, layoutRange.binding + 1);
 
-      bindingSet.myRanges.resize(numRangesRequired);
+      dstSet.myBindings.resize(numRangesRequired);
 
-      bool hasUnboundedRanges = false;
-      for (uint iRange = 0u; iRange < (uint)layoutSet.myRanges.size(); ++iRange)
+      bool hasUnboundedBindings = false;
+      for (uint iBinding = 0u; iBinding < (uint)srcSet.myBindings.size(); ++iBinding)
       {
-        const VkDescriptorSetLayoutBinding& layoutRange = layoutSet.myRanges[iRange];
-        DescriptorRange& bindingRange = bindingSet.myRanges[layoutRange.binding];
+        const VkDescriptorSetLayoutBinding& srcBinding = srcSet.myBindings[iBinding];
+        DescriptorBinding& dstBinding = dstSet.myBindings[srcBinding.binding];
 
-        bindingRange.myType = layoutRange.descriptorType;
-        bindingRange.myElementSize = bindingRange.GetElementSize();
+        dstBinding.myType = srcBinding.descriptorType;
+        dstBinding.myElementSize = dstBinding.GetElementSize();
 
-        if (layoutRange.descriptorCount == UINT_MAX) // TODO: Check if this is really the case for unbounded arrays
+        if (srcSet.myBindings[iBinding].descriptorCount == RenderCore_PlatformVk::MAX_DESCRIPTOR_ARRAY_SIZE)
         {
-          bindingRange.myIsUnbounded = true;
-          hasUnboundedRanges = true;
+          dstBinding.myIsUnbounded = true;
+          hasUnboundedBindings = true;
         }
         else
         {
-          bindingRange.ResizeUp(layoutRange.descriptorCount);
-          memset(bindingRange.myData.data(), 0u, DYN_ARRAY_BYTESIZE(bindingRange.myData));
+          dstBinding.ResizeUp(srcBinding.descriptorCount);
+          memset(dstBinding.myData.data(), 0u, DYN_ARRAY_BYTESIZE(dstBinding.myData));
         }
       }
 
-      bindingSet.myNumBoundedDescriptors = 0u;
-      bindingSet.myHasUnboundedRanges = hasUnboundedRanges;
+      dstSet.myNumBoundedDescriptors = 0u;
+      dstSet.myHasUnboundedBindings = hasUnboundedBindings;
 
-      if (!hasUnboundedRanges)
+      if (!hasUnboundedBindings)
       {
-        for (const DescriptorRange& range : bindingSet.myRanges)
-          bindingSet.myNumBoundedDescriptors += (uint)range.Size();
+        for (const DescriptorBinding& range : dstSet.myBindings)
+          dstSet.myNumBoundedDescriptors += (uint)range.Size();
       }
     }
   }
 
-  uint PipelineLayoutBindingsVk::DescriptorRange::GetElementSize() const
+  uint PipelineLayoutBindingsVk::DescriptorBinding::GetElementSize() const
   {
     switch (myType)
     {
@@ -104,12 +104,12 @@ namespace Fancy
     }
   }
   //---------------------------------------------------------------------------//
-  uint PipelineLayoutBindingsVk::DescriptorRange::Size() const
+  uint PipelineLayoutBindingsVk::DescriptorBinding::Size() const
   {
     return (uint)myData.size() / GetElementSize();
   }
   //---------------------------------------------------------------------------//
-  void PipelineLayoutBindingsVk::DescriptorRange::ResizeUp(uint aNewSize)
+  void PipelineLayoutBindingsVk::DescriptorBinding::ResizeUp(uint aNewSize)
   {
     myData.resize(glm::max((uint)myData.size(), aNewSize * GetElementSize()));
   }
@@ -122,8 +122,13 @@ namespace Fancy
     for (DescriptorSet& set : myDescriptorSets)
     {
       set.myIsDirty = true;
-      for (DescriptorRange& range : set.myRanges)
-        range.myData.clear();
+      for (DescriptorBinding& range : set.myBindings)
+      {
+        if (range.myIsUnbounded)
+          range.myData.clear();
+        else
+          memset(range.myData.data(), 0, DYN_ARRAY_BYTESIZE(range.myData));
+      }
     }
   }
 //---------------------------------------------------------------------------//

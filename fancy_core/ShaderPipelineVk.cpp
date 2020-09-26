@@ -69,7 +69,7 @@ namespace Fancy
 
     for (const ShaderResourceInfoVk& resourceInfo : myResourceInfos)
     {
-      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 32>& targetBindingsInSet = pipelineLayoutInfo.myDescriptorSetInfos[resourceInfo.myDescriptorSet].myRanges;
+      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 32>& targetBindingsInSet = pipelineLayoutInfo.myDescriptorSetInfos[resourceInfo.myDescriptorSet].myBindings;
 
 #if FANCY_RENDERER_DEBUG
       for (int i = 0; i < (int)targetBindingsInSet.size(); ++i)
@@ -87,7 +87,7 @@ namespace Fancy
  
     for (PipelineLayoutCreateInfoVk::DescriptorSetInfo& set : pipelineLayoutInfo.myDescriptorSetInfos)
     {
-     eastl::stable_sort(set.myRanges.begin(), set.myRanges.begin() + set.myRanges.size() - 1, [](const VkDescriptorSetLayoutBinding& aLeft, const VkDescriptorSetLayoutBinding& aRight) {
+     eastl::stable_sort(set.myBindings.begin(), set.myBindings.begin() + set.myBindings.size() - 1, [](const VkDescriptorSetLayoutBinding& aLeft, const VkDescriptorSetLayoutBinding& aRight) {
         return aLeft.binding < aRight.binding;
      });
     }

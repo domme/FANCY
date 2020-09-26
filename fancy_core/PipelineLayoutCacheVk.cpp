@@ -2,6 +2,7 @@
 #include "PipelineLayoutCacheVk.h"
 #include "RenderCore_PlatformVk.h"
 #include "RenderCore.h"
+#include "EASTL/fixed_vector.h"
 
 #if FANCY_ENABLE_VK
 
@@ -20,7 +21,7 @@ namespace Fancy
     for (const PipelineLayoutCreateInfoVk::DescriptorSetInfo& setInfo : aCreateInfo.myDescriptorSetInfos)
     {
       uint64 setLayoutHash = 0ull;
-      for (const VkDescriptorSetLayoutBinding& bindingInSet : setInfo.myRanges)
+      for (const VkDescriptorSetLayoutBinding& bindingInSet : setInfo.myBindings)
       {
         MathUtil::hash_combine(setLayoutHash, bindingInSet.binding);
         MathUtil::hash_combine(setLayoutHash, (uint)bindingInSet.descriptorType);
@@ -62,16 +63,33 @@ namespace Fancy
         }
         else
         {
+          const PipelineLayoutCreateInfoVk::DescriptorSetInfo& setInfo = aCreateInfo.myDescriptorSetInfos[i];
+
+          eastl::fixed_vector<VkDescriptorBindingFlags, 16> bindingFlags;
+          bindingFlags.resize(setInfo.myBindings.size());
+
+          // Always allow for arrays to be partially bound
+          for (uint iBinding = 0u; iBinding < (uint)setInfo.myBindings.size(); ++iBinding)
+            bindingFlags[iBinding] = setInfo.myBindings[iBinding].descriptorCount > 1 ? VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT : 0u;
+
+          VkDescriptorSetLayoutBindingFlagsCreateInfo extendedInfo{};
+          extendedInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+          extendedInfo.pNext = nullptr;
+          extendedInfo.bindingCount = (uint) setInfo.myBindings.size();
+          extendedInfo.pBindingFlags = bindingFlags.data();
+
           VkDescriptorSetLayoutCreateInfo createInfo;
           createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-          createInfo.pNext = nullptr;
+          createInfo.pNext =  &extendedInfo;
           createInfo.flags = 0u;
-          createInfo.bindingCount = (uint) aCreateInfo.myDescriptorSetInfos[i].myRanges.size();
-          createInfo.pBindings = aCreateInfo.myDescriptorSetInfos[i].myRanges.data();
-
+          createInfo.bindingCount = (uint)setInfo.myBindings.size();
+          createInfo.pBindings = setInfo.myBindings.data();
+          
           VkDescriptorSetLayout setLayout = nullptr;
+
           if (createInfo.bindingCount > 0) // Could be 0 if not all descriptor set-indices are used (e.g. if 1 is the first used set in a shader, then set 0 will have no ranges at all)
             ASSERT_VK_RESULT(vkCreateDescriptorSetLayout(platformVk->myDevice, &createInfo, nullptr, &setLayout));
+
           myDescriptorSetLayouts[setLayoutHashes[i]] = setLayout;
           descSetLayouts.push_back(setLayout);
         }

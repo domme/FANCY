@@ -10,7 +10,7 @@ namespace Fancy
   {
     struct DescriptorSetInfo
     {
-      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 32> myRanges;
+      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 32> myBindings;
     };
 
     eastl::fixed_vector<DescriptorSetInfo, 16> myDescriptorSetInfos;
@@ -23,7 +23,7 @@ namespace Fancy
 
     struct DescriptorSet
     {
-      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 32> myRanges;
+      eastl::fixed_vector<VkDescriptorSetLayoutBinding, 32> myBindings;
       VkDescriptorSetLayout myLayout;
     };
 
@@ -43,7 +43,7 @@ namespace Fancy
       VkBufferView myTexelBufferView;
     };
 
-    struct DescriptorRange
+    struct DescriptorBinding
     {
       bool myIsUnbounded = false;
       VkDescriptorType myType = VK_DESCRIPTOR_TYPE_MAX_ENUM;
@@ -72,7 +72,7 @@ namespace Fancy
         ASSERT(anIndex < Size());
 
         T& data = *((T*)myData.data() + anIndex);
-        if (data == aDescriptor)
+        if (memcmp(&data, &aDescriptor, sizeof(T)) == 0)
           return false;
 
         data = aDescriptor;
@@ -83,10 +83,10 @@ namespace Fancy
     struct DescriptorSet
     {
       mutable bool myIsDirty = true;
-      bool myHasUnboundedRanges = false;
+      bool myHasUnboundedBindings = false;
       uint myNumBoundedDescriptors = 0u;
       VkDescriptorSetLayout myLayout = nullptr;
-      eastl::fixed_vector<DescriptorRange, 8> myRanges;
+      eastl::fixed_vector<DescriptorBinding, 8> myBindings;
     };
 
     eastl::fixed_vector<DescriptorSet, 8> myDescriptorSets;

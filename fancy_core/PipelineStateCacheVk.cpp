@@ -73,7 +73,7 @@ namespace Fancy
 
     // Pipeline layout
     const ShaderPipelineVk* shaderPipelineVk = static_cast<const ShaderPipelineVk*>(aState.myShaderPipeline);
-    pipelineCreateInfo.layout = shaderPipelineVk->GetPipelineLayout();
+    pipelineCreateInfo.layout = shaderPipelineVk->GetPipelineLayout()->myPipelineLayout;
 
     // Vertex input state
     const ShaderVk* vertexShader = static_cast<const ShaderVk*>(aState.myShaderPipeline->GetShader(ShaderStage::VERTEX));
@@ -315,7 +315,7 @@ namespace Fancy
     createInfo.pNext = nullptr;
     createInfo.flags = VK_PIPELINE_CREATE_DISPATCH_BASE;
     createInfo.stage = computeShader->GetStageCreateInfo();
-    createInfo.layout = shaderPipeline->GetPipelineLayout();
+    createInfo.layout = shaderPipeline->GetPipelineLayout()->myPipelineLayout;
 
     const uint64 hash = aState.GetHash();
 

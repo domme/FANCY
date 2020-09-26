@@ -1467,7 +1467,7 @@ namespace Fancy
 
       set.myIsDirty = false;
 
-      ASSERT(!set.myRanges.empty(), "Shader pipeline is using descriptor set %d but nothing is bound", iSet);
+      ASSERT(!set.myBindings.empty(), "Shader pipeline is using descriptor set %d but nothing is bound", iSet);
 
       firstSet = glm::min(firstSet, iSet);
 
@@ -1478,9 +1478,9 @@ namespace Fancy
       baseWriteInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
       baseWriteInfo.dstSet = vkSet;
       
-      for (uint iRange = 0u; iRange < (uint) set.myRanges.size(); ++iRange)
+      for (uint iRange = 0u; iRange < (uint) set.myBindings.size(); ++iRange)
       {
-        const PipelineLayoutBindingsVk::DescriptorRange& range = set.myRanges[iRange];
+        const PipelineLayoutBindingsVk::DescriptorBinding& range = set.myBindings[iRange];
 
         if (range.myType == VK_DESCRIPTOR_TYPE_MAX_ENUM || range.myData.empty())
           continue;
@@ -1534,11 +1534,12 @@ namespace Fancy
 
     PipelineLayoutBindingsVk::DescriptorSet& set = myPipelineLayoutBindings->myDescriptorSets[aResourceInfo.myDescriptorSet];
 
-    ASSERT(aResourceInfo.myBindingInSet < (uint)set.myRanges.size());
-    PipelineLayoutBindingsVk::DescriptorRange& range = set.myRanges[aResourceInfo.myBindingInSet];
+    ASSERT(aResourceInfo.myBindingInSet < (uint)set.myBindings.size());
+    PipelineLayoutBindingsVk::DescriptorBinding& range = set.myBindings[aResourceInfo.myBindingInSet];
 
     if (range.myIsUnbounded)
     {
+      ASSERT(anArrayIndex < RenderCore_PlatformVk::MAX_DESCRIPTOR_ARRAY_SIZE);  // Currently we don't have a way to handle true unbounded arrays in Vulkan.
       const uint oldNumDescriptors = range.Size();
       range.ResizeUp(anArrayIndex + 1);
       memset(&range.myData[oldNumDescriptors * range.GetElementSize()], 0u, (range.Size() - oldNumDescriptors) * range.GetElementSize());

@@ -22,6 +22,7 @@ namespace Fancy
     uint myDescriptorSet = 0u;
     uint myBindingInSet = 0u;
     uint myNumDescriptors = 0u;
+    bool myIsUnbounded = false;
   };
 //---------------------------------------------------------------------------// 
 }
