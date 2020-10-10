@@ -104,7 +104,6 @@ namespace Fancy {
     , myCommandAllocator(nullptr)
     , myResourceStateMask(locGetResourceStatesForContext(aCommandListType))
   {
-    memset(myDynamicShaderVisibleHeaps, 0u, sizeof(myDynamicShaderVisibleHeaps));
     myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
 
     D3D12_COMMAND_LIST_TYPE nativeCmdListType = locResolveCommandListType(aCommandListType);
@@ -137,19 +136,6 @@ namespace Fancy {
 
     ASSERT(false, "unsupported descriptor type mask");
     return (D3D12_DESCRIPTOR_HEAP_TYPE)-1;
-  }
-//---------------------------------------------------------------------------//
-  void CommandListDX12::SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DynamicDescriptorHeapDX12* aDescriptorHeap)
-  {
-    if (myDynamicShaderVisibleHeaps[aHeapType] == aDescriptorHeap)
-      return;
-
-    // Has this heap already been used on this commandList? Then we need to "remember" it until ExecuteAndReset()
-    if (myDynamicShaderVisibleHeaps[aHeapType] != nullptr)
-      myRetiredDescriptorHeaps.push_back(myDynamicShaderVisibleHeaps[aHeapType]);
-
-    myDynamicShaderVisibleHeaps[aHeapType] = aDescriptorHeap;
-    ApplyDescriptorHeaps();
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::UpdateSubresources(ID3D12Resource* aDstResource, ID3D12Resource* aStagingResource,
@@ -220,18 +206,22 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::ApplyDescriptorHeaps()
+  DescriptorDX12 CommandListDX12::AllocateDynamicDesciptors(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors)
   {
-    ID3D12DescriptorHeap* heapsToBind[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    memset(heapsToBind, 0, sizeof(heapsToBind));
-    uint numHeapsToBind = 0u;
+    if (!myDynamicDescriptorRange[aType].empty())
+    {
+      DynamicDescriptorHeapDX12::RangeAllocation& range = myDynamicDescriptorRange[aType].back();
+      if (range.myNumDescriptors - range.myNumAllocatedDescriptors >= aNumDescriptors)
+      {
+        DescriptorDX12 firstDescriptor = range.myHeap->GetDescriptor(range.myFirstDescriptorIndexInHeap + range.myNumAllocatedDescriptors);
+        range.myNumAllocatedDescriptors += aNumDescriptors;
+        return firstDescriptor;
+      }
+    }
 
-    for (DynamicDescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
-      if (heap != nullptr)
-        heapsToBind[numHeapsToBind++] = heap->GetHeap();
-
-    if (numHeapsToBind > 0u)
-      myCommandList->SetDescriptorHeaps(numHeapsToBind, heapsToBind);
+    DynamicDescriptorHeapDX12* dynamicDescriptorAllocator = RenderCore::GetPlatformDX12()->GetDynamicDescriptorAllocator(aType);
+    myDynamicDescriptorRange[aType].push_back(dynamicDescriptorAllocator->AllocateTransientRange());
+    return AllocateDynamicDesciptors(aType, aNumDescriptors);
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 CommandListDX12::UploadTableToGpuVisibleHeap(const RootSignatureBindingsDX12::DescriptorTable& aTable)
@@ -271,13 +261,7 @@ namespace Fancy {
     }
 
     const D3D12_DESCRIPTOR_HEAP_TYPE heapType = aTable.myHeapType;
-    DynamicDescriptorHeapDX12* dynamicHeap = myDynamicShaderVisibleHeaps[heapType];
-    if (dynamicHeap == nullptr || dynamicHeap->GetNumFreeDescriptors() < numDescriptorsInTable)
-    {
-      dynamicHeap = platformDx12->AllocateDynamicDescriptorHeap(numDescriptorsInTable, heapType);
-      SetDescriptorHeap(heapType, dynamicHeap);
-    }
-    const DescriptorDX12 dstRangeStartDescriptor = dynamicHeap->AllocateDescriptorRangeGetFirst(numDescriptorsInTable);
+    const DescriptorDX12 dstRangeStartDescriptor = AllocateDynamicDesciptors(heapType, numDescriptorsInTable);
 
     D3D12_CPU_DESCRIPTOR_HANDLE dstRegionStart = dstRangeStartDescriptor.myCpuHandle;
     uint dstRegionSize = numSrcRegions;
@@ -569,14 +553,15 @@ namespace Fancy {
   {
     CommandList::PostExecute(aFenceVal);
 
-    for (DynamicDescriptorHeapDX12* heap : myDynamicShaderVisibleHeaps)
-      if (heap != nullptr)
-        RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
-    memset(myDynamicShaderVisibleHeaps, 0, sizeof(myDynamicShaderVisibleHeaps));
+    for (uint i = 0u; i < ARRAY_LENGTH(myDynamicDescriptorRange); ++i)
+    {
+      DynamicDescriptorHeapDX12* dynamicDescriptorAllocator = RenderCore::GetPlatformDX12()->GetDynamicDescriptorAllocator(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i));
 
-    for (DynamicDescriptorHeapDX12* heap : myRetiredDescriptorHeaps)
-      RenderCore::GetPlatformDX12()->ReleaseDynamicDescriptorHeap(heap, aFenceVal);
-    myRetiredDescriptorHeaps.clear();
+      for (const DynamicDescriptorHeapDX12::RangeAllocation& rangeAlloc : myDynamicDescriptorRange[i])
+        dynamicDescriptorAllocator->FreeTransientRange(rangeAlloc, aFenceVal);
+
+      myDynamicDescriptorRange[i].clear();
+    }
 
     ClearResourceBindings();  // We need to clear the resource-bindings here since we also release the dynamic heaps
 
@@ -591,7 +576,9 @@ namespace Fancy {
   {
     CommandList::PreBegin();
 
-    myCommandAllocator = RenderCore::GetPlatformDX12()->GetCommandAllocator(myCommandListType);
+    RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
+
+    myCommandAllocator = platformDx12->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
     
     ASSERT_HRESULT(myCommandList->Reset(myCommandAllocator, nullptr));
@@ -602,6 +589,16 @@ namespace Fancy {
     myPendingBarriers.clear();
     ClearResourceBindings();
     myLocalHazardData.clear();
+
+    // We only use one dynamic (shader-visible) descriptor heap per type, so just bind them up-front
+    ID3D12DescriptorHeap* dynamicHeaps[] = {
+      platformDx12->GetDynamicDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)->GetHeap(),
+      platformDx12->GetDynamicDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)->GetHeap()
+    };
+    myCommandList->SetDescriptorHeaps(ARRAY_LENGTH(dynamicHeaps), dynamicHeaps);
+    
+    for (uint i = 0u; i < ARRAY_LENGTH(myDynamicDescriptorRange); ++i)
+      myDynamicDescriptorRange[i].clear();
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::FlushBarriers()

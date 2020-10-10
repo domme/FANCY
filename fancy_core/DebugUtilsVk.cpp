@@ -1,6 +1,8 @@
 #include "fancy_core_precompile.h"
 #include "DebugUtilsVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   namespace DebugUtilsVk
@@ -171,3 +173,5 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   }
 }
+
+#endif  // FANCY_ENABLE_VK

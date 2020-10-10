@@ -542,6 +542,9 @@ namespace Fancy {
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 64u));
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 64u));
 
+    myDynamicDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2048u, 4096u, 256u));
+    myDynamicDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1024u, 1024u, 64u));
+
     InitNullDescriptors();
 
     return true;
@@ -597,12 +600,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::Shutdown()
   {
-    UpdateAvailableDynamicDescriptorHeaps();
-    ASSERT(myAvailableDynamicHeaps.size() == myDynamicHeapPool.size(),
-      "There are still some dynamic descriptor heaps in flight when destroying them");
-    myAvailableDynamicHeaps.clear();
-    myUsedDynamicHeaps.clear();
-    myDynamicHeapPool.clear();
     myPipelineStateCache.Clear();
 
     for (uint i = 0u; i < ARRAY_LENGTH(myStaticDescriptorAllocators); ++i)
@@ -614,6 +611,9 @@ namespace Fancy {
 
     for (uint i = 0u; i < (uint) CommandListType::NUM; ++i)
       ourCommandAllocatorPools[i].reset();
+
+    for (UniquePtr<DynamicDescriptorHeapDX12>& dynamicDescriptorHeap : myDynamicDescriptorAllocators)
+      dynamicDescriptorHeap.reset();
 
     ourDevice.Reset();
   }
@@ -644,54 +644,9 @@ namespace Fancy {
     myStaticDescriptorAllocators[(uint)aDescriptor.myHeapType]->FreeDescriptor(aDescriptor);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::UpdateAvailableDynamicDescriptorHeaps()
-  {
-    for(auto it = myUsedDynamicHeaps.begin(); it != myUsedDynamicHeaps.end(); )
-    {
-      uint64 fence = it->first;
-      DynamicDescriptorHeapDX12* heap = it->second;
-
-      CommandQueueDX12* queue = GetCommandQueueDX12(CommandQueue::GetCommandListType(fence));
-      if (queue->IsFenceDone(fence))
-      {
-        heap->Reset();
-        it = myUsedDynamicHeaps.erase(it);
-        myAvailableDynamicHeaps.push_back(heap);
-      }
-      else
-        it++;
-    }
-  }
-//---------------------------------------------------------------------------//
   CommandQueueDX12* RenderCore_PlatformDX12::GetCommandQueueDX12(CommandListType aCommandListType)
   {
     return static_cast<CommandQueueDX12*>(RenderCore::GetCommandQueue(aCommandListType));
-  }
-//---------------------------------------------------------------------------//
-  DynamicDescriptorHeapDX12* RenderCore_PlatformDX12::AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType)
-  {
-    UpdateAvailableDynamicDescriptorHeaps();
-    
-    const uint kGpuDescriptorNumIncrement = 16u;
-    aDescriptorCount = static_cast<uint>(MathUtil::Align(aDescriptorCount, kGpuDescriptorNumIncrement));
-
-    for (auto it = myAvailableDynamicHeaps.begin(); it != myAvailableDynamicHeaps.end(); ++it)
-    {
-      DynamicDescriptorHeapDX12* heap = (*it);
-      if (heap->myDesc.NumDescriptors == aDescriptorCount && heap->myDesc.Type == aHeapType)
-      {
-        myAvailableDynamicHeaps.erase(it);
-        return heap;
-      }
-    }
-    
-    myDynamicHeapPool.push_back(eastl::make_unique<DynamicDescriptorHeapDX12>(aHeapType, aDescriptorCount));
-    return myDynamicHeapPool.back().get();
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::ReleaseDynamicDescriptorHeap(DynamicDescriptorHeapDX12* aHeap, uint64 aFenceVal)
-  {
-    myUsedDynamicHeaps.push_back(eastl::make_pair(aFenceVal, aHeap));
   }
 //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName /*= nullptr*/)

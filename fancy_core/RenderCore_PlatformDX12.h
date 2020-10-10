@@ -92,19 +92,15 @@ namespace Fancy {
 
     PipelineStateCacheDX12& GetPipelineStateCache() { return myPipelineStateCache; }
     RootSignatureCacheDX12& GetRootSingatureCache() { return myRootSignatureCache; }
+    DynamicDescriptorHeapDX12* GetDynamicDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return myDynamicDescriptorAllocators[aType].get(); }
 
   // protected:
-    void UpdateAvailableDynamicDescriptorHeaps();
     CommandQueueDX12* GetCommandQueueDX12(CommandListType aCommandListType);
 
     Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
 
-    // TODO: Move the dynamic heaps to a dedicated pool-class? (Similar to ComandAllocatorPoolDX12)
-    eastl::vector<UniquePtr<DynamicDescriptorHeapDX12>> myDynamicHeapPool;
-    eastl::fixed_list<DynamicDescriptorHeapDX12*, 128> myAvailableDynamicHeaps;
-    eastl::fixed_list<eastl::pair<uint64, DynamicDescriptorHeapDX12*>, 128> myUsedDynamicHeaps;
-
     UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    UniquePtr<DynamicDescriptorHeapDX12> myDynamicDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)CpuMemoryAccessType::NUM];
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
     float64 myGpuTicksToMsFactor[(uint)CommandListType::NUM];

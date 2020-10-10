@@ -2,6 +2,8 @@
 
 #include "VkPrerequisites.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   namespace DebugUtilsVk
@@ -12,3 +14,4 @@ namespace Fancy
   }
 }
 
+#endif

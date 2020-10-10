@@ -15,30 +15,47 @@ namespace Fancy {
     friend class RenderCore_PlatformDX12;
 
   public:
-    DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors);
+    struct RangeAllocation
+    {
+      DynamicDescriptorHeapDX12* myHeap;
+      uint myFirstDescriptorIndexInHeap;
+      uint myNumDescriptors;
+      uint myNumAllocatedDescriptors;
+    };
+
+    // Heap layout:
+    // [Constant descriptors...|Transient Descriptors]
+    // Creates a new descriptor heap of the specified type. A descriptor heap is divided into a constant part (for resource-tables that never change) and a transient part (for dynamic uploads from CPU-only descriptor heaps)
+    DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumConstantDescriptors, uint aNumTransientDescriptors, uint aNumTransientDescriptorsPerRange);
 
     const D3D12_DESCRIPTOR_HEAP_DESC& GetDesc() const { return myDesc; }
     uint GetHandleIncrementSize() const { return myHandleIncrementSize; }
-    const D3D12_CPU_DESCRIPTOR_HANDLE& GetCpuHeapStart() const { return myCpuHeapStart; }
-    const D3D12_GPU_DESCRIPTOR_HANDLE& GetGpuHeapStart() const { return myGpuHeapStart; }
     ID3D12DescriptorHeap* GetHeap() const { return myDescriptorHeap.Get(); }
-    void Reset() { myNextFreeHandleIndex = 0u; }
-    uint GetNumFreeDescriptors() const { return (uint) glm::max(0, (int)(myDesc.NumDescriptors - myNextFreeHandleIndex)); }
 
-    DescriptorDX12 AllocateDescriptorRangeGetFirst(uint aNumDescriptors);
-    DescriptorDX12 AllocateDescriptor();
+    void ResetTransientDescriptors() { myNextFreeTransientDescriptorIdx = myNumConstantDescriptors; }
+    uint GetNumFreeTransientDescriptors() const { return (uint) glm::max(0, (int)(myDesc.NumDescriptors - myNextFreeTransientDescriptorIdx)); }
+
+    RangeAllocation AllocateTransientRange();
+    void FreeTransientRange(const RangeAllocation& aRange, uint64 aFence);
     DescriptorDX12 GetDescriptor(uint anIndex) const;
-    uint GetNumAllocatedDescriptors() const { return myNextFreeHandleIndex; }
-    
+
   private:
     DynamicDescriptorHeapDX12();
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myDescriptorHeap;
     D3D12_DESCRIPTOR_HEAP_DESC myDesc;
 
+    uint myNumConstantDescriptors;
+    uint myNumTransientDescriptors;
+    uint myNumTransientDescriptorsPerRange;
+
     uint myHandleIncrementSize;
-    uint myNextFreeHandleIndex;
+    uint myNextFreeTransientDescriptorIdx;
     D3D12_CPU_DESCRIPTOR_HANDLE myCpuHeapStart;
     D3D12_GPU_DESCRIPTOR_HANDLE myGpuHeapStart;
+
+    uint myNumTransientRanges;
+    eastl::vector<uint64> myTransientRangeLastUseFences;
+    std::mutex myRangeAllocMutex;
   };
 //---------------------------------------------------------------------------// 
 }

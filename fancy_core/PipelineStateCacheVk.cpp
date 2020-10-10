@@ -8,6 +8,8 @@
 #include "BlendState.h"
 #include "DepthStencilState.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -345,3 +347,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif

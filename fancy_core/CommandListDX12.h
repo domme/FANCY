@@ -77,8 +77,6 @@ namespace Fancy {
     void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex);
     void ClearResourceBindings();
 
-    void SetDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, DynamicDescriptorHeapDX12* aDescriptorHeap);
-    void ApplyDescriptorHeaps();
     void ApplyViewportAndClipRect();
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
@@ -90,6 +88,7 @@ namespace Fancy {
     D3D12_RESOURCE_STATES ResolveValidateDstStates(const GpuResource* aResource, D3D12_RESOURCE_STATES aDstStates);
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, D3D12_RESOURCE_STATES aDstStates);
 
+    DescriptorDX12 AllocateDynamicDesciptors(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors);
     DescriptorDX12 UploadTableToGpuVisibleHeap(const RootSignatureBindingsDX12::DescriptorTable& aTable);
 
     UniquePtr<RootSignatureBindingsDX12> myRootSignatureBindings;
@@ -101,8 +100,7 @@ namespace Fancy {
     eastl::fixed_vector<D3D12_RESOURCE_BARRIER, kNumCachedBarriers, false> myPendingBarriers;
     D3D12_RESOURCE_STATES myResourceStateMask;
 
-    DynamicDescriptorHeapDX12* myDynamicShaderVisibleHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    eastl::fixed_vector<DynamicDescriptorHeapDX12*, 64> myRetiredDescriptorHeaps;
+    eastl::fixed_vector<DynamicDescriptorHeapDX12::RangeAllocation, 4> myDynamicDescriptorRange[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 
     struct SubresourceHazardData
     {
