@@ -20,7 +20,8 @@
 #if FANCY_ENABLE_DX12
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  enum class GpuResourceViewType;
+  //---------------------------------------------------------------------------//
   struct WindowParameters;
   class Shader;
   class Texture;
@@ -45,6 +46,8 @@ namespace Fancy {
     static DXGI_FORMAT GetCopyableFormat(DXGI_FORMAT aFormat, uint aPlaneIndex);
     static D3D12_COMMAND_LIST_TYPE GetCommandListType(CommandListType aType);
     static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
+    static D3D12_DESCRIPTOR_HEAP_TYPE GetDescriptorHeapType(const GpuResourceViewType& aViewType);
+    static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(const GpuResourceViewType& aViewType);
 
     RenderCore_PlatformDX12();
     ~RenderCore_PlatformDX12() override;
@@ -83,6 +86,7 @@ namespace Fancy {
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
+    GpuResourceViewSet* CreateResourceViewSet(const eastl::span<GpuResourceViewSetElement>& someResources) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;

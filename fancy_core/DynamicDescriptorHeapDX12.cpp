@@ -14,6 +14,7 @@ namespace Fancy {
     , myNumTransientDescriptors(aNumTransientDescriptors)
     , myNumTransientDescriptorsPerRange(aNumTransientDescriptorsPerRange)
     , myNextFreeTransientDescriptorIdx(aNumConstantDescriptors)
+    , myNextFreeConstantDescriptorIdx(0u)
     , myNumTransientRanges(aNumTransientDescriptors / aNumTransientDescriptorsPerRange)
   {
     ASSERT(aNumTransientDescriptorsPerRange <= aNumTransientDescriptors);
@@ -69,6 +70,16 @@ namespace Fancy {
 
     const uint rangeIdx = (aRange.myFirstDescriptorIndexInHeap - myNumConstantDescriptors) / myNumTransientDescriptorsPerRange;
     myTransientRangeLastUseFences[rangeIdx] = glm::max(myTransientRangeLastUseFences[rangeIdx], aFence);
+  }
+//---------------------------------------------------------------------------//
+  DescriptorDX12 DynamicDescriptorHeapDX12::AllocateConstantDescriptorRange(uint aNumDescriptors)
+  {
+    ASSERT(aNumDescriptors <= (myNumConstantDescriptors - myNextFreeConstantDescriptorIdx));
+
+    const DescriptorDX12 rangeStartDescriptor = GetDescriptor(myNextFreeConstantDescriptorIdx);
+    myNextFreeConstantDescriptorIdx += aNumDescriptors;
+
+    return rangeStartDescriptor;
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 DynamicDescriptorHeapDX12::GetDescriptor(uint anIndex) const

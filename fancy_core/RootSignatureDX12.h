@@ -50,6 +50,8 @@ namespace Fancy
       bool myHasUnboundedRanges = false;
       uint myBoundedNumDescriptors = 0u;  // Only valid if none of the descriptor ranges is unbounded. 
       eastl::fixed_vector<DescriptorRange, 8> myRanges;
+      // Used for binding a pre-uploaded GpuResourveViewSet. In this case, the CPU-visible descriptors set in myRanges are ignored.
+      D3D12_GPU_DESCRIPTOR_HANDLE myConstantTableStartDescriptor = { UINT64_MAX };
     };
 
     struct RootDescriptor
@@ -67,6 +69,7 @@ namespace Fancy
     };
 
     eastl::fixed_vector<RootParameter, 8> myRootParameters;
+    eastl::fixed_vector<DescriptorTable*, 8> myDescriptorTables;  // Helper for quickly accessing a DescriptorTable from its index
     mutable bool myIsDirty = true;
 
     void Clear();

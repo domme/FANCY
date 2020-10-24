@@ -15,6 +15,7 @@
 #include "EASTL/fixed_list.h"
 #include "EASTL/hash_map.h"
 #include "EASTL/string.h"
+#include "EASTL/span.h"
 
 namespace Fancy {
   struct MaterialDesc;
@@ -53,6 +54,9 @@ namespace Fancy {
   struct VertexInputLayout;
   class Texture;
   struct SubResourceRange;
+  class GpuResourceViewSet;
+  class GpuResourceView;
+  struct GpuResourceViewSetElement;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -93,6 +97,7 @@ namespace Fancy {
     static SharedPtr<TextureView> CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, GpuBufferViewProperties someProperties, const char* aName = nullptr);
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, GpuBufferViewProperties someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
+    static SharedPtr<GpuResourceViewSet> CreateResourceViewSet(const eastl::span<GpuResourceViewSetElement>& someResources);
     static uint GetQueryTypeDataSize(GpuQueryType aType); 
     
     static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);

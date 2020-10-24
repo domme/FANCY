@@ -16,6 +16,7 @@ namespace Fancy
   class GpuBuffer;
   struct Material;
   struct Scene;
+  class GpuResourceViewSet;
 
 }
 
@@ -43,6 +44,8 @@ private:
   Fancy::SharedPtr<Fancy::TextureSampler> mySampler;
   Fancy::SharedPtr<Fancy::VertexInputLayout> myInstancedVertexLayout;
   Fancy::SharedPtr<Fancy::GpuBuffer> myInstancePositions;
-  Fancy::SharedPtr<Fancy::TextureView> myReplacementTexture;
+  Fancy::SharedPtr<Fancy::TextureView> myDefaultFloorTexture;
+  Fancy::SharedPtr<Fancy::TextureView> myMarmorTexture;
+  Fancy::SharedPtr<Fancy::GpuResourceViewSet> myResourceViewSet;
   int myNumInstances;
 };

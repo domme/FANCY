@@ -19,6 +19,7 @@
 #include "GpuQueryHeapDX12.h"
 #include "TextureSamplerDX12.h"
 #include "CommandLine.h"
+#include "GpuResourceViewSetDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -458,6 +459,29 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  D3D12_DESCRIPTOR_HEAP_TYPE RenderCore_PlatformDX12::GetDescriptorHeapType(const GpuResourceViewType& aViewType)
+  {
+    switch (aViewType)
+    {
+      case GpuResourceViewType::CBV: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+      case GpuResourceViewType::SRV: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+      case GpuResourceViewType::UAV: return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+      case GpuResourceViewType::DSV: return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+      case GpuResourceViewType::RTV: return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+      default: ASSERT(false, "Missing implementation"); return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    }
+  }
+//---------------------------------------------------------------------------//
+  D3D12_DESCRIPTOR_RANGE_TYPE RenderCore_PlatformDX12::GetDescriptorRangeType(const GpuResourceViewType& aViewType)
+  {
+    switch (aViewType)
+    {
+    case GpuResourceViewType::CBV: return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+    case GpuResourceViewType::SRV: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+    case GpuResourceViewType::UAV: return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+    default: ASSERT(false, "Missing implementation or invalid view type for descriptor range type"); return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+    }
+  }
 //---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::RenderCore_PlatformDX12()
     : RenderCore_Platform(RenderPlatformType::DX12)
@@ -714,6 +738,11 @@ namespace Fancy {
   GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName /* = nullptr */)
   {
     return new GpuBufferViewDX12(aBuffer, someProperties);
+  }
+//---------------------------------------------------------------------------//
+  GpuResourceViewSet* RenderCore_PlatformDX12::CreateResourceViewSet(const eastl::span<GpuResourceViewSetElement>& someResources)
+  {
+    return new GpuResourceViewSetDX12(someResources);
   }
 //---------------------------------------------------------------------------//
   GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

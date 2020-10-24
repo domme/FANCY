@@ -428,11 +428,11 @@
     <ClInclude Include="PipelineLayoutVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceTableDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceTable.h">
+    <ClInclude Include="GpuResourceViewSet.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceViewSetDX12.h">
+      <Filter>Rendering\DX12</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -689,11 +689,11 @@
     <ClCompile Include="PipelineLayoutVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceTableDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceTable.cpp">
+    <ClCompile Include="GpuResourceViewSet.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuResourceViewSetDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

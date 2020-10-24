@@ -1,6 +1,7 @@
 #include "Test_ModelViewer.h"
 
 #include <EASTL/fixed_vector.h>
+#include <EASTL/span.h>
 
 #include "fancy_core/Window.h"
 #include "fancy_core/ShaderPipelineDesc.h"
@@ -21,6 +22,7 @@
 #include "fancy_core/GpuBuffer.h"
 #include "fancy_core/Material.h"
 #include "fancy_core/Scene.h"
+#include "fancy_core/GpuResourceViewSet.h"
 
 using namespace Fancy;
 
@@ -125,7 +127,15 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   bufferProps.myNumElements = numInstances;
   myInstancePositions = RenderCore::CreateBuffer(bufferProps, "Test_ModelViewer/InstancePositions", instancePositions.data());
 
-  myReplacementTexture = ObjectCore::LoadTexture("Textures/Sibenik/kamen.png");
+  myDefaultFloorTexture = ObjectCore::LoadTexture("Textures/Sibenik/kamen.png");
+  myMarmorTexture = ObjectCore::LoadTexture("Textures/Sibenik/mramor6x6.png");
+
+  GpuResourceViewSetElement setElements[] = { 
+    { myDefaultFloorTexture.get(), myDefaultFloorTexture->GetType() },
+    { myMarmorTexture.get(), myMarmorTexture->GetType()} 
+  };
+
+  myResourceViewSet = RenderCore::CreateResourceViewSet(setElements);
 }
 
 Test_ModelViewer::~Test_ModelViewer()
@@ -262,11 +272,14 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     };
     ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
 
+    /*
     const GpuResourceView* diffuseTex = material->myTextures[(uint)MaterialTextureType::BASE_COLOR].get();
     if (diffuseTex)
       ctx->BindResourceView(diffuseTex, "textures", 0);
 
-    ctx->BindResourceView(myReplacementTexture.get(), "textures", 1);
+    ctx->BindResourceView(myDefaultFloorTexture.get(), "textures", 1);
+    */
+    ctx->BindResourceViewSet(myResourceViewSet.get(), 0u);
 
     RenderMesh(mesh);
 

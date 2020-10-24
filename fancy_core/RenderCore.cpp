@@ -27,6 +27,7 @@
 #include "CommandLine.h"
 #include "TextureSampler.h"
 #include "Material.h"
+#include "GpuResourceViewSet.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -290,7 +291,7 @@ namespace Fancy {
     }
 
     const uint64 newBufferSize = MathUtil::Align(aBlockSize, MathUtil::Align(2 * SIZE_MB, anOffsetAlignment));
-#if FANCY_RENDERER_DEBUG
+#if FANCY_HEAVY_DEBUG
     LOG_INFO("Allocating new readback buffer of size %d", newBufferSize);
 #endif // FANCY_RENDERER_DEBUG
     ourReadbackBuffers.push_back(eastl::make_unique<GpuReadbackBuffer>(newBufferSize));
@@ -312,7 +313,7 @@ namespace Fancy {
       {
         if (readbackBuffer->IsEmpty() && it != ourReadbackBuffers.begin())  // Always keep one readback buffer around
         {
-#if FANCY_RENDERER_DEBUG
+#if FANCY_HEAVY_DEBUG
           LOG_INFO("Deleting readback buffer of size %d", readbackBuffer->GetFreeSize());
 #endif // FANCY_RENDERER_DEBUG
 
@@ -921,6 +922,11 @@ namespace Fancy {
       return nullptr;
 
     return CreateBufferView(buffer, someViewProperties, aName);
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<GpuResourceViewSet> RenderCore::CreateResourceViewSet(const eastl::span<GpuResourceViewSetElement>& someResources)
+  {
+    return SharedPtr<GpuResourceViewSet>(ourPlatformImpl->CreateResourceViewSet(someResources));
   }
 //---------------------------------------------------------------------------//
   uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)

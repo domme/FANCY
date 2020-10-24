@@ -163,8 +163,8 @@
     <ClInclude Include="PipelineStateCacheVk.h" />
     <ClInclude Include="RenderPassCacheVk.h" />
     <ClInclude Include="RenderPlatformObjectCache.h" />
-    <ClInclude Include="ResourceTable.h" />
-    <ClInclude Include="ResourceTableDX12.h" />
+    <ClInclude Include="GpuResourceViewSet.h" />
+    <ClInclude Include="GpuResourceViewSetDX12.h" />
     <ClInclude Include="RootSignatureCacheDX12.h" />
     <ClInclude Include="RootSignatureDX12.h" />
     <ClInclude Include="Scene.h" />
@@ -293,8 +293,8 @@
     <ClCompile Include="PipelineStateCacheDX12.cpp" />
     <ClCompile Include="PipelineStateCacheVk.cpp" />
     <ClCompile Include="RenderPassCacheVk.cpp" />
-    <ClCompile Include="ResourceTable.cpp" />
-    <ClCompile Include="ResourceTableDX12.cpp" />
+    <ClCompile Include="GpuResourceViewSet.cpp" />
+    <ClCompile Include="GpuResourceViewSetDX12.cpp" />
     <ClCompile Include="RootSignatureCacheDX12.cpp" />
     <ClCompile Include="RootSignatureDX12.cpp" />
     <ClCompile Include="Scene.cpp" />

@@ -18,6 +18,7 @@
 #include "GpuQueryHeapDX12.h"
 #include "TextureSamplerDX12.h"
 #include "DebugUtilsDX12.h"
+#include "GpuResourceViewSetDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -206,7 +207,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 CommandListDX12::AllocateDynamicDesciptors(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors)
+  DescriptorDX12 CommandListDX12::AllocateDynamicDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors)
   {
     if (!myDynamicDescriptorRange[aType].empty())
     {
@@ -221,7 +222,7 @@ namespace Fancy {
 
     DynamicDescriptorHeapDX12* dynamicDescriptorAllocator = RenderCore::GetPlatformDX12()->GetDynamicDescriptorAllocator(aType);
     myDynamicDescriptorRange[aType].push_back(dynamicDescriptorAllocator->AllocateTransientRange());
-    return AllocateDynamicDesciptors(aType, aNumDescriptors);
+    return AllocateDynamicDescriptors(aType, aNumDescriptors);
   }
 //---------------------------------------------------------------------------//
   DescriptorDX12 CommandListDX12::UploadTableToGpuVisibleHeap(const RootSignatureBindingsDX12::DescriptorTable& aTable)
@@ -261,7 +262,7 @@ namespace Fancy {
     }
 
     const D3D12_DESCRIPTOR_HEAP_TYPE heapType = aTable.myHeapType;
-    const DescriptorDX12 dstRangeStartDescriptor = AllocateDynamicDesciptors(heapType, numDescriptorsInTable);
+    const DescriptorDX12 dstRangeStartDescriptor = AllocateDynamicDescriptors(heapType, numDescriptorsInTable);
 
     D3D12_CPU_DESCRIPTOR_HANDLE dstRegionStart = dstRangeStartDescriptor.myCpuHandle;
     uint dstRegionSize = numSrcRegions;
@@ -731,6 +732,57 @@ namespace Fancy {
     BindInternal(*resourceInfo, viewDataDx12.myDescriptor, gpuVirtualAddress, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
+  void CommandListDX12::BindResourceViewSet(const GpuResourceViewSet* aSet, uint aSetOrTableIndex)
+  {
+    ASSERT(myRootSignatureBindings != nullptr);
+    ASSERT(aSetOrTableIndex < (uint)myRootSignatureBindings->myDescriptorTables.size());
+    ASSERT(!aSet->IsDirty(), "Update the resourceViewSet before using it on a commandList");
+
+    RootSignatureBindingsDX12::DescriptorTable& table = *myRootSignatureBindings->myDescriptorTables[aSetOrTableIndex];
+
+#if FANCY_HEAVY_DEBUG
+    // Verify that the number and types of the descriptors expected by the RootSignature match up with the ones held by the set.
+    // Can only be done tables that don't contain unbounded arrays.
+    if (!table.myHasUnboundedRanges)
+    {
+      const auto& setResources = aSet->GetResources();
+      ASSERT(setResources.size() == table.myBoundedNumDescriptors);
+
+      uint resourceIndexInTable = 0;
+      for (const RootSignatureBindingsDX12::DescriptorRange& range : table.myRanges)
+      {
+        for (uint i = 0u; i < (uint)range.myDescriptors.size(); ++i)
+        {
+          GpuResourceViewType viewType = setResources[resourceIndexInTable].myType;
+          if (viewType == GpuResourceViewType::SRV)
+          {
+            ASSERT(range.myType == D3D12_DESCRIPTOR_RANGE_TYPE_SRV);
+          }
+          else if (viewType == GpuResourceViewType::UAV)
+          {
+            ASSERT(range.myType == D3D12_DESCRIPTOR_RANGE_TYPE_UAV);
+          }
+          else
+          {
+            ASSERT(false);
+          }
+
+          ++resourceIndexInTable;
+        }
+      }
+    }
+#endif
+
+    const GpuResourceViewSetDX12* setDx12 = static_cast<const GpuResourceViewSetDX12*>(aSet);
+    const D3D12_GPU_DESCRIPTOR_HANDLE tableStartHandle = setDx12->GetFirstDescriptor().myGpuHandle;
+        
+    if (table.myConstantTableStartDescriptor.ptr == tableStartHandle.ptr)
+      return;
+
+    table.myConstantTableStartDescriptor = tableStartHandle;
+    table.myIsDirty = true;
+  }
+//---------------------------------------------------------------------------//
   void CommandListDX12::BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex /*= 0u*/)
   {
     const ShaderResourceInfoDX12* resourceInfo = FindShaderResourceInfo(aNameHash);
@@ -1101,16 +1153,20 @@ namespace Fancy {
       {
         const RootSignatureBindingsDX12::DescriptorTable& descTable = rootParam.myDescriptorTable;
 
-        if (descTable.myIsDirty && !descTable.myRanges.empty())
+        if (descTable.myIsDirty)
         {
           descTable.myIsDirty = false;
-          DescriptorDX12 tableStartDescriptor = UploadTableToGpuVisibleHeap(descTable);
 
-          ASSERT(tableStartDescriptor.myCpuHandle.ptr != UINT_MAX);
+          D3D12_GPU_DESCRIPTOR_HANDLE tableStartHandle = descTable.myConstantTableStartDescriptor;
+          if (tableStartHandle.ptr == UINT64_MAX && !descTable.myRanges.empty())
+            tableStartHandle = UploadTableToGpuVisibleHeap(descTable).myGpuHandle;
+
+          ASSERT(tableStartHandle.ptr != UINT64_MAX);
+
           if (myCurrentContext == CommandListType::Graphics)
-            myCommandList->SetGraphicsRootDescriptorTable(i, tableStartDescriptor.myGpuHandle);
+            myCommandList->SetGraphicsRootDescriptorTable(i, tableStartHandle);
           else
-            myCommandList->SetComputeRootDescriptorTable(i, tableStartDescriptor.myGpuHandle);
+            myCommandList->SetComputeRootDescriptorTable(i, tableStartHandle);
         }
       }
       else

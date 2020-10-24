@@ -37,10 +37,12 @@ namespace Fancy {
 
     RangeAllocation AllocateTransientRange();
     void FreeTransientRange(const RangeAllocation& aRange, uint64 aFence);
+
+    DescriptorDX12 AllocateConstantDescriptorRange(uint aNumDescriptors);
+
     DescriptorDX12 GetDescriptor(uint anIndex) const;
 
   private:
-    DynamicDescriptorHeapDX12();
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myDescriptorHeap;
     D3D12_DESCRIPTOR_HEAP_DESC myDesc;
 
@@ -50,6 +52,7 @@ namespace Fancy {
 
     uint myHandleIncrementSize;
     uint myNextFreeTransientDescriptorIdx;
+    uint myNextFreeConstantDescriptorIdx;
     D3D12_CPU_DESCRIPTOR_HANDLE myCpuHeapStart;
     D3D12_GPU_DESCRIPTOR_HANDLE myGpuHeapStart;
 

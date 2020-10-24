@@ -50,6 +50,7 @@ namespace Fancy {
     
     void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) override;
     void BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex = 0u) override;
+    void BindResourceViewSet(const GpuResourceViewSet* aSet, uint aSetOrTableIndex) override;
     void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) override;
 
     GpuQuery BeginQuery(GpuQueryType aType) override;
@@ -88,7 +89,7 @@ namespace Fancy {
     D3D12_RESOURCE_STATES ResolveValidateDstStates(const GpuResource* aResource, D3D12_RESOURCE_STATES aDstStates);
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, D3D12_RESOURCE_STATES aDstStates);
 
-    DescriptorDX12 AllocateDynamicDesciptors(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors);
+    DescriptorDX12 AllocateDynamicDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors);
     DescriptorDX12 UploadTableToGpuVisibleHeap(const RootSignatureBindingsDX12::DescriptorTable& aTable);
 
     UniquePtr<RootSignatureBindingsDX12> myRootSignatureBindings;

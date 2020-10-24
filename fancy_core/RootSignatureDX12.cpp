@@ -16,6 +16,7 @@ namespace Fancy
       {
         DescriptorTable& table = myRootParameters[iParam].myDescriptorTable;
         table.myIsDirty = true;
+        table.myConstantTableStartDescriptor.ptr = UINT64_MAX;
         for (uint iRange = 0u; iRange < (uint) table.myRanges.size(); ++iRange)
         {
           for (uint iDesc = 0u; iDesc < (uint) table.myRanges[iRange].myDescriptors.size(); ++iDesc)
@@ -103,6 +104,8 @@ namespace Fancy
       dstParam.myIsDescriptorTable = srcParam.myType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
       if (dstParam.myIsDescriptorTable)
       {
+        myDescriptorTables.push_back(&dstParam.myDescriptorTable);
+
         dstParam.myDescriptorTable.myRanges.resize((uint)srcParam.myDescriptorTable.myRanges.size());
         dstParam.myDescriptorTable.myHeapType = D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
         if (!srcParam.myDescriptorTable.myRanges.empty())
