@@ -2,6 +2,7 @@
 #include "CommandList.h"
 #include "MathIncludes.h"
 #include "VkPrerequisites.h"
+#include "FancyCoreDefines.h"
 
 #if FANCY_ENABLE_VK
 
@@ -60,6 +61,7 @@ namespace Fancy
     void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override;
 
     void BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex = 0u) override;
+    void BindResourceViewSet(const GpuResourceViewSet* aSet, uint aSetOrTableIndex) override;
     void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) override;
     void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) override;
     
@@ -91,13 +93,9 @@ namespace Fancy
     const ShaderResourceInfoVk* FindShaderResourceInfo(uint64 aNameHash) const;
     void BindInternal(const ShaderResourceInfoVk &aResourceInfo,
       uint anArrayIndex,
-      VkBufferView aBufferView,
-      VkBuffer aBuffer,
-      uint64 aBufferOffset,
-      uint64 aBufferSize,
-      VkImageView anImageView,
-      VkImageLayout anImageLayout,
-      VkSampler aSampler);
+      const eastl::optional<VkDescriptorBufferInfo>& aDescriptorBufferInfo,
+      const eastl::optional<VkDescriptorImageInfo>& aDescriptorImageInfo,
+      const eastl::optional<VkBufferView>& aBufferView);
 
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout);
 
@@ -105,7 +103,7 @@ namespace Fancy
     void ApplyRenderTargets();
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
-    void ApplyResourceState();
+    void ApplyResourceBindings();
 
     VkDescriptorSet CreateDescriptorSet(VkDescriptorSetLayout aLayout);
 

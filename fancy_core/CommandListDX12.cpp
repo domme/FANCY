@@ -736,51 +736,49 @@ namespace Fancy {
   {
     ASSERT(myRootSignatureBindings != nullptr);
     ASSERT(aSetOrTableIndex < (uint)myRootSignatureBindings->myDescriptorTables.size());
-    ASSERT(!aSet->IsDirty(), "Update the resourceViewSet before using it on a commandList");
 
-    RootSignatureBindingsDX12::DescriptorTable& table = *myRootSignatureBindings->myDescriptorTables[aSetOrTableIndex];
+    RootSignatureBindingsDX12::DescriptorTable& rootSigTable = *myRootSignatureBindings->myDescriptorTables[aSetOrTableIndex];
+
+    const GpuResourceViewSetDX12* setDx12 = static_cast<const GpuResourceViewSetDX12*>(aSet);
+    const D3D12_GPU_DESCRIPTOR_HANDLE tableStartHandle = setDx12->GetFirstDescriptor().myGpuHandle;
+    const GpuResourceViewSetDX12* viewSetDx12 = static_cast<const GpuResourceViewSetDX12*>(aSet);
+
+    if (rootSigTable.myConstantTableStartDescriptor.ptr == tableStartHandle.ptr)
+      return;
 
 #if FANCY_HEAVY_DEBUG
     // Verify that the number and types of the descriptors expected by the RootSignature match up with the ones held by the set.
     // Can only be done tables that don't contain unbounded arrays.
-    if (!table.myHasUnboundedRanges)
+    if (!rootSigTable.myHasUnboundedRanges)
     {
-      const auto& setResources = aSet->GetResources();
-      ASSERT(setResources.size() == table.myBoundedNumDescriptors);
+      ASSERT(rootSigTable.myRanges.size() == aSet->GetRanges().size());
 
-      uint resourceIndexInTable = 0;
-      for (const RootSignatureBindingsDX12::DescriptorRange& range : table.myRanges)
+      for (uint iRange = 0u; iRange < rootSigTable.myRanges.size(); ++iRange)
       {
-        for (uint i = 0u; i < (uint)range.myDescriptors.size(); ++i)
-        {
-          GpuResourceViewType viewType = setResources[resourceIndexInTable].myType;
-          if (viewType == GpuResourceViewType::SRV)
-          {
-            ASSERT(range.myType == D3D12_DESCRIPTOR_RANGE_TYPE_SRV);
-          }
-          else if (viewType == GpuResourceViewType::UAV)
-          {
-            ASSERT(range.myType == D3D12_DESCRIPTOR_RANGE_TYPE_UAV);
-          }
-          else
-          {
-            ASSERT(false);
-          }
+        const GpuResourceViewRange& setRange = aSet->GetRanges()[iRange];
+        RootSignatureBindingsDX12::DescriptorRange& rootSigRange = rootSigTable.myRanges[iRange];
+        ASSERT(setRange.myResources.size() == rootSigRange.myDescriptors.size());
 
-          ++resourceIndexInTable;
-        }
+        if (!setRange.myResources.empty())
+          ASSERT(viewSetDx12->GetDescriptorRangeType(iRange) == rootSigRange.myType);
       }
     }
 #endif
 
-    const GpuResourceViewSetDX12* setDx12 = static_cast<const GpuResourceViewSetDX12*>(aSet);
-    const D3D12_GPU_DESCRIPTOR_HANDLE tableStartHandle = setDx12->GetFirstDescriptor().myGpuHandle;
-        
-    if (table.myConstantTableStartDescriptor.ptr == tableStartHandle.ptr)
-      return;
+    // Transition all resources used by this set
+    uint rangeIdx = 0u;
+    for (const GpuResourceViewRange& range : aSet->GetRanges())
+    {
+      D3D12_RESOURCE_STATES dstStates = viewSetDx12->GetDstStateForRange(rangeIdx++);
+      for (const SharedPtr<GpuResourceView>& view : range.myResources)
+      {
+        if (view)
+          TrackSubresourceTransition(view->GetResource(), view->GetSubresourceRange(), dstStates);
+      }
+    }
 
-    table.myConstantTableStartDescriptor = tableStartHandle;
-    table.myIsDirty = true;
+    rootSigTable.myConstantTableStartDescriptor = tableStartHandle;
+    rootSigTable.myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex /*= 0u*/)

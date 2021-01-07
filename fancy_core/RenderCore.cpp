@@ -293,7 +293,7 @@ namespace Fancy {
     const uint64 newBufferSize = MathUtil::Align(aBlockSize, MathUtil::Align(2 * SIZE_MB, anOffsetAlignment));
 #if FANCY_HEAVY_DEBUG
     LOG_INFO("Allocating new readback buffer of size %d", newBufferSize);
-#endif // FANCY_RENDERER_DEBUG
+#endif // FANCY_HEAVY_DEBUG
     ourReadbackBuffers.push_back(eastl::make_unique<GpuReadbackBuffer>(newBufferSize));
 
     uint64 offset;
@@ -315,7 +315,7 @@ namespace Fancy {
         {
 #if FANCY_HEAVY_DEBUG
           LOG_INFO("Deleting readback buffer of size %d", readbackBuffer->GetFreeSize());
-#endif // FANCY_RENDERER_DEBUG
+#endif // FANCY_HEAVY_DEBUG
 
           ourReadbackBuffers.erase(it);
         }

@@ -20,17 +20,10 @@ namespace Fancy
 
     for (const PipelineLayoutCreateInfoVk::DescriptorSetInfo& setInfo : aCreateInfo.myDescriptorSetInfos)
     {
-      uint64 setLayoutHash = 0ull;
-      for (const VkDescriptorSetLayoutBinding& bindingInSet : setInfo.myBindings)
-      {
-        MathUtil::hash_combine(setLayoutHash, bindingInSet.binding);
-        MathUtil::hash_combine(setLayoutHash, (uint)bindingInSet.descriptorType);
-        MathUtil::hash_combine(setLayoutHash, bindingInSet.descriptorCount);
-        MathUtil::hash_combine(setLayoutHash, (uint)bindingInSet.stageFlags);
-      }
-
-      setLayoutHashes.push_back(setLayoutHash);
-      MathUtil::hash_combine(pipelineLayoutHash, setLayoutHash);
+      eastl::span<const VkDescriptorSetLayoutBinding> bindings(setInfo.myBindings.begin(), setInfo.myBindings.end());
+      const uint64 hash = DescriptorSetLayoutCacheVk::GetHash(bindings);
+      setLayoutHashes.push_back(hash);
+      MathUtil::hash_combine(pipelineLayoutHash, hash);
     }
 
     {
@@ -43,57 +36,23 @@ namespace Fancy
     }
 
     // We don't have this pipeline layout cached yet. It needs to be created.
-    
     // First, gather all descriptorSetLayouts, which could partially be already cached
     
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    DescriptorSetLayoutCacheVk& setLayoutCache = platformVk->GetDescriptorSetLayoutCache();
 
     eastl::fixed_vector<VkDescriptorSetLayout, 32> descSetLayouts;
-
+    for (uint i = 0u; i < (uint) setLayoutHashes.size(); ++i)
     {
-      std::lock_guard<std::mutex> lock(myCacheMutex);
-      ASSERT(setLayoutHashes.size() == aCreateInfo.myDescriptorSetInfos.size());
-
-      for (uint i = 0u; i < (uint) setLayoutHashes.size(); ++i)
+      VkDescriptorSetLayout layout = setLayoutCache.TryGetDescriptorSetLayout(setLayoutHashes[i]);
+      if (layout == nullptr)
       {
-        auto it = myDescriptorSetLayouts.find(setLayoutHashes[i]);
-        if (it != myDescriptorSetLayouts.end())
-        {
-          descSetLayouts.push_back(it->second);
-        }
-        else
-        {
-          const PipelineLayoutCreateInfoVk::DescriptorSetInfo& setInfo = aCreateInfo.myDescriptorSetInfos[i];
-
-          eastl::fixed_vector<VkDescriptorBindingFlags, 16> bindingFlags;
-          bindingFlags.resize(setInfo.myBindings.size());
-
-          // Always allow for arrays to be partially bound
-          for (uint iBinding = 0u; iBinding < (uint)setInfo.myBindings.size(); ++iBinding)
-            bindingFlags[iBinding] = setInfo.myBindings[iBinding].descriptorCount > 1 ? VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT : 0u;
-
-          VkDescriptorSetLayoutBindingFlagsCreateInfo extendedInfo{};
-          extendedInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
-          extendedInfo.pNext = nullptr;
-          extendedInfo.bindingCount = (uint) setInfo.myBindings.size();
-          extendedInfo.pBindingFlags = bindingFlags.data();
-
-          VkDescriptorSetLayoutCreateInfo createInfo;
-          createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-          createInfo.pNext =  &extendedInfo;
-          createInfo.flags = 0u;
-          createInfo.bindingCount = (uint)setInfo.myBindings.size();
-          createInfo.pBindings = setInfo.myBindings.data();
-          
-          VkDescriptorSetLayout setLayout = nullptr;
-
-          if (createInfo.bindingCount > 0) // Could be 0 if not all descriptor set-indices are used (e.g. if 1 is the first used set in a shader, then set 0 will have no ranges at all)
-            ASSERT_VK_RESULT(vkCreateDescriptorSetLayout(platformVk->myDevice, &createInfo, nullptr, &setLayout));
-
-          myDescriptorSetLayouts[setLayoutHashes[i]] = setLayout;
-          descSetLayouts.push_back(setLayout);
-        }
+        eastl::span<const VkDescriptorSetLayoutBinding> bindings(aCreateInfo.myDescriptorSetInfos[i].myBindings.begin(), aCreateInfo.myDescriptorSetInfos[i].myBindings.end());
+        layout = setLayoutCache.GetDescriptorSetLayout(bindings);
       }
+      
+      ASSERT(layout != nullptr);
+      descSetLayouts.push_back(layout);
     }
 
     // Create the actual pipeline layout
@@ -133,11 +92,6 @@ namespace Fancy
     std::lock_guard<std::mutex> lock(myCacheMutex);
 
     myCache.clear();
-
-    for (auto layout : myDescriptorSetLayouts)
-      vkDestroyDescriptorSetLayout(platformVk->myDevice, layout.second, nullptr);
-
-    myDescriptorSetLayouts.clear();
   }
 //---------------------------------------------------------------------------//
 }

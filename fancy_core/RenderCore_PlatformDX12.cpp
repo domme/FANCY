@@ -740,9 +740,9 @@ namespace Fancy {
     return new GpuBufferViewDX12(aBuffer, someProperties);
   }
 //---------------------------------------------------------------------------//
-  GpuResourceViewSet* RenderCore_PlatformDX12::CreateResourceViewSet(const eastl::span<GpuResourceViewSetElement>& someResources)
+  GpuResourceViewSet* RenderCore_PlatformDX12::CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges)
   {
-    return new GpuResourceViewSetDX12(someResources);
+    return new GpuResourceViewSetDX12(someRanges);
   }
 //---------------------------------------------------------------------------//
   GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

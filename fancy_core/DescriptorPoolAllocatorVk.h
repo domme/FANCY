@@ -12,12 +12,14 @@ namespace Fancy
     DescriptorPoolAllocatorVk(uint aMaxNumDescriptors, uint aMaxNumSets);
     ~DescriptorPoolAllocatorVk();
 
+    static VkDescriptorPool CreateDescriptorPool(uint aMaxNumDescriptors, uint aMaxNumSets);
+
     VkDescriptorPool AllocateDescriptorPool();
     void FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence);
 
   private:
     void UpdateWaitingPools();
-    void CreateDescriptorPool();
+    void CreateAndAddDescriptorPool();
 
     uint myMaxNumDescriptors;
     uint myMaxNumSets;

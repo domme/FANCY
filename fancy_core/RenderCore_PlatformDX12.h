@@ -86,7 +86,7 @@ namespace Fancy {
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
-    GpuResourceViewSet* CreateResourceViewSet(const eastl::span<GpuResourceViewSetElement>& someResources) override;
+    GpuResourceViewSet* CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;

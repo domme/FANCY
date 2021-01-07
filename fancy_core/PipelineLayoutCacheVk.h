@@ -17,12 +17,6 @@ namespace Fancy
     SharedPtr<PipelineLayoutVk> GetPipelineLayout(const PipelineLayoutCreateInfoVk& aCreateInfo);
 
     void Clear() override;
-
-  private:
-
-    // Additional layer of caching for the descriptorsetLayouts. 
-    // Required for checking equality on two descriptorSetLayouts from different PipelineLayouts and will also save some memory
-    eastl::hash_map<uint64, VkDescriptorSetLayout> myDescriptorSetLayouts; 
   };
 }
 

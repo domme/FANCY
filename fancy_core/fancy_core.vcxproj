@@ -143,6 +143,7 @@
     <ClInclude Include="DebugUtilsVk.h" />
     <ClInclude Include="DescriptorDX12.h" />
     <ClInclude Include="DescriptorPoolAllocatorVk.h" />
+    <ClInclude Include="DescriptorSetLayoutCacheVk.h" />
     <ClInclude Include="DxcShaderCompiler.h" />
     <ClInclude Include="DynamicDescriptorHeapDX12.h" />
     <ClInclude Include="EASTLAllocator.h" />
@@ -153,6 +154,7 @@
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
     <ClInclude Include="GpuQueryHeapVk.h" />
     <ClInclude Include="GpuReadbackBuffer.h" />
+    <ClInclude Include="GpuResourceViewSetVk.h" />
     <ClInclude Include="ImageLoader.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshImporter.h" />
@@ -268,6 +270,7 @@
     <ClCompile Include="DebugUtilsDX12.cpp" />
     <ClCompile Include="DebugUtilsVk.cpp" />
     <ClCompile Include="DescriptorPoolAllocatorVk.cpp" />
+    <ClCompile Include="DescriptorSetLayoutCacheVk.cpp" />
     <ClCompile Include="DxcShaderCompiler.cpp" />
     <ClCompile Include="DynamicDescriptorHeapDX12.cpp" />
     <ClCompile Include="EASTLAllocator.cpp" />
@@ -283,6 +286,7 @@
     <ClCompile Include="GpuQueryHeapVk.cpp" />
     <ClCompile Include="GpuReadbackBuffer.cpp" />
     <ClCompile Include="GpuResource.cpp" />
+    <ClCompile Include="GpuResourceViewSetVk.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MathUtil.cpp" />

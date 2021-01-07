@@ -29,7 +29,7 @@ namespace Fancy {
     GpuBufferViewProperties()
       : myFormat(DataFormat::UNKNOWN)
       , myStructureSize(0u)
-      , myIsConstantBuffer(false)
+      , myIsConstantBuffer(false)  // TODO: Use GpuBufferViewType instead of these bools where only one can be true at a time
       , myIsShaderWritable(false)
       , myIsStructured(false)
       , myIsRaw(false)

@@ -9,6 +9,7 @@
 #include "FrameBufferCacheVk.h"
 #include "RenderPassCacheVk.h"
 #include "PipelineStateCacheVk.h"
+#include "DescriptorSetLayoutCacheVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -47,6 +48,12 @@ namespace Fancy
     static VkQueryType ResolveQueryType(GpuQueryType aType);
     static VkVertexInputRate ResolveVertexInputRate(VertexInputRate aRate);
     static uint ImageLayoutToFlag(VkImageLayout aLayout);
+    static VkImageLayout ResolveImageLayout(VkImageLayout aLayout, const GpuResource* aResource, const SubresourceRange& aSubresourceRange);
+    static void GetResourceViewDescriptorData(const GpuResourceView* aView, VkDescriptorType aDescriptorType,
+      eastl::optional<VkDescriptorBufferInfo>& aDescriptorBufferInfo,
+      eastl::optional<VkDescriptorImageInfo>& aDescriptorImageInfo,
+      eastl::optional<VkBufferView>& aBufferView);
+    static VkDescriptorType GetDescriptorType(const GpuResourceView* aView);
 
     RenderCore_PlatformVk();
     ~RenderCore_PlatformVk() override;
@@ -70,13 +77,15 @@ namespace Fancy
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName) override;
+    GpuResourceViewSet* CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
 
     VkCommandBuffer GetNewCommandBuffer(CommandListType aCommandListType);
     void ReleaseCommandBuffer(VkCommandBuffer aCommandBuffer, CommandListType aCommandListType, uint64 aCommandBufferDoneFence);
-
+  
+    VkDescriptorPool GetStaticDescriptorPool() const { return myStaticDescriptorPool; }
     VkDescriptorPool AllocateDescriptorPool();
     void FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence);
 
@@ -96,6 +105,7 @@ namespace Fancy
 
     VkDevice GetDevice() const { return myDevice; }
 
+    DescriptorSetLayoutCacheVk& GetDescriptorSetLayoutCache() { return myDescriptorSetLayoutCache; }
     PipelineLayoutCacheVk& GetPipelineLayoutCache() { return myPipelineLayoutCache; }
     FrameBufferCacheVk& GetFrameBufferCache() { return myFrameBufferCache; }
     RenderPassCacheVk& GetRenderPassCache() { return myRenderPassCache; }
@@ -119,9 +129,11 @@ namespace Fancy
 
     UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::NUM];
     UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
+    VkDescriptorPool myStaticDescriptorPool = nullptr;  // Descriptor pool used for all static descriptor set allocations (e.g. from GpuResourceViewSets)
 
     eastl::fixed_vector<eastl::pair<VkBufferView, uint64>, 64> myTempBufferViews;
 
+    DescriptorSetLayoutCacheVk myDescriptorSetLayoutCache;
     PipelineLayoutCacheVk myPipelineLayoutCache;
     FrameBufferCacheVk myFrameBufferCache;
     RenderPassCacheVk myRenderPassCache;

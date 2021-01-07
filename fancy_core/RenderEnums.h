@@ -204,6 +204,14 @@ namespace Fancy
     SHADER_BUFFER,
   };
 //---------------------------------------------------------------------------//
+  enum class GpuBufferViewType
+  {
+    CONSTANT = 0,
+    STRUCTURED,
+    RAW,
+    TYPED
+  };
+//---------------------------------------------------------------------------//
   enum class VertexAttributeSemantic
   {
     NONE = 0,

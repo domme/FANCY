@@ -24,7 +24,7 @@ namespace Fancy
 
   void ShaderPipelineVk::CreateFromShaders()
   {
-#if FANCY_RENDERER_DEBUG
+#if FANCY_HEAVY_DEBUG
     const bool hasComputeShader = myShaders[(uint)ShaderStage::COMPUTE] != nullptr;
     for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
     {
@@ -71,7 +71,7 @@ namespace Fancy
     {
       eastl::fixed_vector<VkDescriptorSetLayoutBinding, 32>& targetBindingsInSet = pipelineLayoutInfo.myDescriptorSetInfos[resourceInfo.myDescriptorSet].myBindings;
 
-#if FANCY_RENDERER_DEBUG
+#if FANCY_HEAVY_DEBUG
       for (int i = 0; i < (int)targetBindingsInSet.size(); ++i)
         ASSERT(targetBindingsInSet[i].binding != resourceInfo.myBindingInSet, "Binding %d is already used", resourceInfo.myBindingInSet);
 #endif

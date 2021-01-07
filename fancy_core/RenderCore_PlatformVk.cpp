@@ -13,6 +13,8 @@
 #include "GpuQueryHeapVk.h"
 #include "TextureSamplerVk.h"
 #include "CommandLine.h"
+#include "GpuResourceViewDataVk.h"
+#include "GpuResourceViewSetVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -593,7 +595,123 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  VkImageLayout RenderCore_PlatformVk::ResolveImageLayout(VkImageLayout aLayout, const GpuResource* aResource, const SubresourceRange& aSubresourceRange)
+  {
+    if (aResource->IsBuffer())
+      return VK_IMAGE_LAYOUT_UNDEFINED;
 
+    const GpuResourceHazardDataVk& globalHazardData = aResource->GetVkData()->myHazardData;
+    for (SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it)
+    {
+      const uint subresourceIdx = aResource->GetSubresourceIndex(*it);
+      if (globalHazardData.mySubresources[subresourceIdx].myContext == CommandListType::SHARED_READ)
+        return VK_IMAGE_LAYOUT_GENERAL;
+    }
+
+    return aLayout;
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::GetResourceViewDescriptorData(const GpuResourceView* aView, VkDescriptorType aDescriptorType, 
+    eastl::optional<VkDescriptorBufferInfo>& aDescriptorBufferInfo,
+    eastl::optional<VkDescriptorImageInfo>& aDescriptorImageInfo,
+    eastl::optional<VkBufferView>& aBufferView)
+  {
+    const GpuResourceViewDataVk& viewDataVk = eastl::any_cast<const GpuResourceViewDataVk&>(aView->myNativeData);
+    const GpuResourceDataVk* resourceDataVk = aView->myResource->GetVkData();
+
+    aDescriptorBufferInfo.reset();
+    aDescriptorImageInfo.reset();
+    aBufferView.reset();
+
+    switch (aDescriptorType)
+    {
+    case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
+    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
+    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+    {
+      ASSERT(aView->myType == GpuResourceViewType::SRV);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::TEXTURE);
+      aDescriptorImageInfo = VkDescriptorImageInfo();
+      aDescriptorImageInfo->imageLayout = ResolveImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, aView->GetResource(), aView->GetSubresourceRange());
+      aDescriptorImageInfo->imageView = viewDataVk.myView.myImage;
+      aDescriptorImageInfo->sampler = nullptr;
+    } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+    {
+      ASSERT(aView->myType == GpuResourceViewType::UAV);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::TEXTURE);
+      aDescriptorImageInfo = VkDescriptorImageInfo();
+      aDescriptorImageInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+      aDescriptorImageInfo->imageView = viewDataVk.myView.myImage;
+      aDescriptorImageInfo->sampler = nullptr;
+    } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+    {
+      ASSERT(aView->myType == GpuResourceViewType::UAV);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
+      const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
+      ASSERT(bufferViewVk->GetBufferView() != nullptr);
+      aBufferView = bufferViewVk->GetBufferView();
+    } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+    {
+      ASSERT(aView->myType == GpuResourceViewType::UAV);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
+      aDescriptorBufferInfo = VkDescriptorBufferInfo();
+      aDescriptorBufferInfo->buffer = resourceDataVk->myBuffer;
+      aDescriptorBufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
+      aDescriptorBufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+    } break;
+    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+      break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+    {
+      ASSERT(aView->myType == GpuResourceViewType::SRV);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
+      const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
+      ASSERT(bufferViewVk->GetBufferView() != nullptr);
+      aBufferView = bufferViewVk->GetBufferView();
+    } break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+    {
+      ASSERT(aView->myType == GpuResourceViewType::CBV);
+      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
+      aDescriptorBufferInfo = VkDescriptorBufferInfo();
+      aDescriptorBufferInfo->buffer = resourceDataVk->myBuffer;
+      aDescriptorBufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
+      aDescriptorBufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
+    } break;
+    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
+      break;
+    default: ASSERT(false);
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkDescriptorType RenderCore_PlatformVk::GetDescriptorType(const GpuResourceView* aView)
+  {
+    const GpuResourceViewDataVk& viewDataVk = eastl::any_cast<const GpuResourceViewDataVk&>(aView->myNativeData);
+    const GpuResourceDataVk* resourceDataVk = aView->myResource->GetVkData();
+
+    if (aView->GetResource()->GetType() == GpuResourceType::TEXTURE)
+    {
+      return aView->GetType() == GpuResourceViewType::UAV ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    }
+
+    // BUFFER
+
+    switch (aView->GetType())
+    {
+    case GpuResourceViewType::CBV:
+      return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    case GpuResourceViewType::SRV:
+      return viewDataVk.myView.myBuffer != nullptr ? VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    case GpuResourceViewType::UAV:
+      return viewDataVk.myView.myBuffer != nullptr ? VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    default: ASSERT(false); return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    }
+  }
 //---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)
   {
@@ -867,7 +985,9 @@ namespace Fancy
       myCommandBufferAllocators[(uint)CommandListType::Compute].reset(new CommandBufferAllocatorVk(CommandListType::Compute));
 
     myDescriptorPoolAllocator.reset(new DescriptorPoolAllocatorVk(256, 64));
-
+    myStaticDescriptorPool = DescriptorPoolAllocatorVk::CreateDescriptorPool(2048, 512);
+    ASSERT(myStaticDescriptorPool != nullptr);
+    
     return true;
   }
 //---------------------------------------------------------------------------//
@@ -954,6 +1074,11 @@ namespace Fancy
     return new GpuBufferViewVk(aBuffer, someProperties);
   }
 //---------------------------------------------------------------------------//
+  GpuResourceViewSet* RenderCore_PlatformVk::CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges)
+  {
+    return new GpuResourceViewSetVk(someRanges);
+  }
+//---------------------------------------------------------------------------//
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)
   {
     return new GpuQueryHeapVk(aType, aNumQueries);
@@ -1013,7 +1138,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformVk::ReleaseTempBufferView(VkBufferView aBufferView, uint64 aFence)
   {
-#if FANCY_RENDERER_DEBUG
+#if FANCY_HEAVY_DEBUG
     for (uint i = 0u; i < myTempBufferViews.size(); ++i)
       ASSERT(myTempBufferViews[i].first != aBufferView);
 #endif

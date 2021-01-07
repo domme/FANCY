@@ -23,10 +23,7 @@ namespace Fancy {
       , myType(GpuResourceViewType::NONE)
     { }
 
-    virtual ~GpuResourceView()
-    {
-      myOnDestroyed(this);
-    }
+    virtual ~GpuResourceView() = default;
 
     GpuResource* GetResource() const { return myResource.get(); }
     const SubresourceRange& GetSubresourceRange() const { return mySubresourceRange; }
@@ -37,7 +34,6 @@ namespace Fancy {
     SharedPtr<GpuResource> myResource;
     bool myCoversAllSubresources;
     GpuResourceViewType myType;
-    mutable Slot<void(GpuResourceView*)> myOnDestroyed;
   };
 //---------------------------------------------------------------------------//
 }

@@ -51,13 +51,13 @@ namespace Fancy
       for (const VkDescriptorSetLayoutBinding& layoutRange : srcSet.myBindings)
         numRangesRequired = glm::max(numRangesRequired, layoutRange.binding + 1);
 
-      dstSet.myBindings.resize(numRangesRequired);
+      dstSet.myRanges.resize(numRangesRequired);
 
       bool hasUnboundedBindings = false;
       for (uint iBinding = 0u; iBinding < (uint)srcSet.myBindings.size(); ++iBinding)
       {
         const VkDescriptorSetLayoutBinding& srcBinding = srcSet.myBindings[iBinding];
-        DescriptorBinding& dstBinding = dstSet.myBindings[srcBinding.binding];
+        DescriptorRange& dstBinding = dstSet.myRanges[srcBinding.binding];
 
         dstBinding.myType = srcBinding.descriptorType;
         dstBinding.myElementSize = dstBinding.GetElementSize();
@@ -79,13 +79,13 @@ namespace Fancy
 
       if (!hasUnboundedBindings)
       {
-        for (const DescriptorBinding& range : dstSet.myBindings)
+        for (const DescriptorRange& range : dstSet.myRanges)
           dstSet.myNumBoundedDescriptors += (uint)range.Size();
       }
     }
   }
 
-  uint PipelineLayoutBindingsVk::DescriptorBinding::GetElementSize() const
+  uint PipelineLayoutBindingsVk::DescriptorRange::GetElementSize() const
   {
     switch (myType)
     {
@@ -104,14 +104,14 @@ namespace Fancy
     }
   }
   //---------------------------------------------------------------------------//
-  uint PipelineLayoutBindingsVk::DescriptorBinding::Size() const
+  uint PipelineLayoutBindingsVk::DescriptorRange::Size() const
   {
     return (uint)myData.size() / GetElementSize();
   }
   //---------------------------------------------------------------------------//
-  void PipelineLayoutBindingsVk::DescriptorBinding::ResizeUp(uint aNewSize)
+  void PipelineLayoutBindingsVk::DescriptorRange::ResizeUp(uint aNewSize)
   {
-    myData.resize(glm::max((uint)myData.size(), aNewSize * GetElementSize()));
+    myData.resize(glm::max((uint)myData.size(), aNewSize * GetElementSize()), 0u);
   }
 //---------------------------------------------------------------------------//
 
@@ -122,8 +122,11 @@ namespace Fancy
     for (DescriptorSet& set : myDescriptorSets)
     {
       set.myIsDirty = true;
-      for (DescriptorBinding& range : set.myBindings)
+      set.myConstantDescriptorSet = nullptr;
+      for (DescriptorRange& range : set.myRanges)
       {
+        range.myHasAllDescriptorsBound = false;
+
         if (range.myIsUnbounded)
           range.myData.clear();
         else

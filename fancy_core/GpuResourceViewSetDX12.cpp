@@ -10,32 +10,18 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
-  GpuResourceViewSetDX12::GpuResourceViewSetDX12(const eastl::span<GpuResourceViewSetElement>& someResources)
-    : GpuResourceViewSet(someResources)
+  GpuResourceViewSetDX12::GpuResourceViewSetDX12(const eastl::span<GpuResourceViewRange>& someRanges)
+    : GpuResourceViewSet(someRanges)
   {
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
     DynamicDescriptorHeapDX12* dynamicHeap = platformDx12->GetDynamicDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    myFirstConstantDynamicDescriptor = dynamicHeap->AllocateConstantDescriptorRange((uint) someResources.size());
+    uint numDescriptorsInTable = 0u;
+    for (const GpuResourceViewRange& range : myRanges)
+      for (const SharedPtr<GpuResourceView>& view : range.myResources)
+        ++numDescriptorsInTable;
 
-    GpuResourceViewSetDX12::UpdateDescriptors();
-  }
-//---------------------------------------------------------------------------//
-  void GpuResourceViewSetDX12::UpdateDescriptors() const
-  {
-    if (!myIsDirty)
-      return;
-
-    myIsDirty = false;
-
-    // The descriptors might still be in use by the GPU. Since UpdateDescriptors() is assumed to be very infrequent,
-    // we wait for the GPU to be idle instead of double-buffering with a new allocation.
-    RenderCore::WaitForIdle(CommandListType::Graphics);
-    RenderCore::WaitForIdle(CommandListType::Compute);
-
-    RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
-
-    uint numDescriptorsInTable = (uint) myResources.size();
+    myFirstConstantDynamicDescriptor = dynamicHeap->AllocateConstantDescriptorRange(numDescriptorsInTable);
 
     eastl::fixed_vector<D3D12_CPU_DESCRIPTOR_HANDLE, 256> srcDescriptors;
     srcDescriptors.reserve(numDescriptorsInTable);
@@ -43,20 +29,54 @@ namespace Fancy
     eastl::fixed_vector<uint, 256> srcRegionSizes;
     srcRegionSizes.resize(numDescriptorsInTable, 1u);
 
-    for (const GpuResourceViewSetElement& resource : myResources)
+    myDstStatesPerRange.reserve(myRanges.size());
+    myDescriptorTypePerRange.reserve(myRanges.size());
+
+    for (const GpuResourceViewRange& range : myRanges)
     {
-      if (resource.myView != nullptr)
+      D3D12_DESCRIPTOR_RANGE_TYPE rangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+      for (const SharedPtr<GpuResourceView>& resource : range.myResources)
       {
-        const GpuResourceViewDataDX12& viewDataDx12 = eastl::any_cast<const GpuResourceViewDataDX12&>(resource.myView->myNativeData);
-        srcDescriptors.push_back(viewDataDx12.myDescriptor.myCpuHandle);
+        // The first valid resource determines the range type
+        if (resource)
+        {
+          rangeType = RenderCore_PlatformDX12::GetDescriptorRangeType(resource->GetType());
+          break;
+        }
       }
-      else // Not bound, pick an appropriate null descriptor
+
+      myDescriptorTypePerRange.push_back(rangeType);
+
+      D3D12_RESOURCE_STATES dstStates = D3D12_RESOURCE_STATE_COMMON;
+      switch (rangeType)
       {
-        D3D12_DESCRIPTOR_RANGE_TYPE rangeType = RenderCore_PlatformDX12::GetDescriptorRangeType(resource.myType);
-        srcDescriptors.push_back(platformDx12->GetNullDescriptor(rangeType).myCpuHandle);
+      case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
+        dstStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+        break;
+      case D3D12_DESCRIPTOR_RANGE_TYPE_UAV:
+        dstStates = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+        break;
+      case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
+        dstStates = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+        break;
+      default: ASSERT(false);
+      }
+      myDstStatesPerRange.push_back(dstStates);
+
+      for (const SharedPtr<GpuResourceView>& resource : range.myResources)
+      {
+        if (resource != nullptr)
+        {
+          const GpuResourceViewDataDX12& viewDataDx12 = eastl::any_cast<const GpuResourceViewDataDX12&>(resource->myNativeData);
+          srcDescriptors.push_back(viewDataDx12.myDescriptor.myCpuHandle);
+        }
+        else // Not bound, pick an appropriate null descriptor
+        {
+          srcDescriptors.push_back(platformDx12->GetNullDescriptor(rangeType).myCpuHandle);
+        }
       }
     }
-
+    
     D3D12_CPU_DESCRIPTOR_HANDLE dstStart = myFirstConstantDynamicDescriptor.myCpuHandle;
 
     platformDx12->GetDevice()->CopyDescriptors(1u, &dstStart, &numDescriptorsInTable,

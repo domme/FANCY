@@ -12,7 +12,7 @@ namespace Fancy
     : myMaxNumDescriptors(aMaxNumDescriptors)
     , myMaxNumSets(aMaxNumSets)
   {
-    CreateDescriptorPool();
+    CreateAndAddDescriptorPool();
   }
 //---------------------------------------------------------------------------//
   DescriptorPoolAllocatorVk::~DescriptorPoolAllocatorVk()
@@ -24,13 +24,45 @@ namespace Fancy
     for (VkDescriptorPool pool : myCreatedPools)
       vkDestroyDescriptorPool(RenderCore::GetPlatformVk()->myDevice, pool, nullptr);
   }
+ //---------------------------------------------------------------------------//
+  VkDescriptorPool DescriptorPoolAllocatorVk::CreateDescriptorPool(uint aMaxNumDescriptors, uint aMaxNumSets)
+  {
+    VkDescriptorPoolSize poolSizes[] =
+    {
+      { VK_DESCRIPTOR_TYPE_SAMPLER, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, aMaxNumDescriptors },
+    };
+
+    VkDescriptorPoolCreateInfo poolCreateInfo = {};
+    poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolCreateInfo.pNext = nullptr;
+    poolCreateInfo.flags = 0u;
+    poolCreateInfo.maxSets = aMaxNumSets;
+    poolCreateInfo.pPoolSizes = poolSizes;
+    poolCreateInfo.poolSizeCount = ARRAY_LENGTH(poolSizes);
+
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+
+    VkDescriptorPool descriptorPool;
+    ASSERT_VK_RESULT(vkCreateDescriptorPool(platformVk->myDevice, &poolCreateInfo, nullptr, &descriptorPool));
+
+    return descriptorPool;
+  }
 //---------------------------------------------------------------------------//
   VkDescriptorPool DescriptorPoolAllocatorVk::AllocateDescriptorPool()
   {
     UpdateWaitingPools();
 
     if (myAvaiablePools.empty())
-      CreateDescriptorPool();
+      CreateAndAddDescriptorPool();
 
     ASSERT(!myAvaiablePools.empty());
     VkDescriptorPool pool = myAvaiablePools.front();
@@ -41,11 +73,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void DescriptorPoolAllocatorVk::FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence)
   {
-#if FANCY_RENDERER_DEBUG
+#if FANCY_HEAVY_DEBUG
     for(auto& waiting : myWaitingPools)
       ASSERT(waiting.second != aDescriptorPool);
     for (VkDescriptorPool availablePool : myAvaiablePools)
       ASSERT(availablePool != aDescriptorPool);
+    ASSERT(eastl::find(myCreatedPools.begin(), myCreatedPools.end(), aDescriptorPool) != myCreatedPools.end(), "Freed descriptorPool has never been created by this allocator");
 #endif
 
     myWaitingPools.push_back({ aFence, aDescriptorPool });
@@ -70,34 +103,10 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  void DescriptorPoolAllocatorVk::CreateDescriptorPool()
+  void DescriptorPoolAllocatorVk::CreateAndAddDescriptorPool()
   {
-    VkDescriptorPoolSize poolSizes[] =
-    {
-      { VK_DESCRIPTOR_TYPE_SAMPLER, myMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, myMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, myMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, myMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, myMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, myMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, myMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, myMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, myMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, myMaxNumDescriptors },
-    };
-
-    VkDescriptorPoolCreateInfo poolCreateInfo = {};
-    poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolCreateInfo.pNext = nullptr;
-    poolCreateInfo.flags = 0u;
-    poolCreateInfo.maxSets = myMaxNumSets;
-    poolCreateInfo.pPoolSizes = poolSizes;
-    poolCreateInfo.poolSizeCount = ARRAY_LENGTH(poolSizes);
-    
-    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-
-    VkDescriptorPool descriptorPool;
-    ASSERT_VK_RESULT(vkCreateDescriptorPool(platformVk->myDevice, &poolCreateInfo, nullptr, &descriptorPool));
+    VkDescriptorPool descriptorPool = CreateDescriptorPool(myMaxNumDescriptors, myMaxNumSets);
+    ASSERT(descriptorPool != nullptr);
 
     myCreatedPools.push_back(descriptorPool);
     myAvaiablePools.push_back(descriptorPool);
