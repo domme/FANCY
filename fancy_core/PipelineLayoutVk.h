@@ -111,7 +111,7 @@ namespace Fancy
     struct DescriptorSet
     {
       mutable bool myIsDirty = true;
-      bool myHasUnboundedBindings = false;
+      bool myHasUnboundedRanges = false;
       uint myNumBoundedDescriptors = 0u;
       VkDescriptorSetLayout myLayout = nullptr;
       eastl::fixed_vector<DescriptorRange, 8> myRanges;

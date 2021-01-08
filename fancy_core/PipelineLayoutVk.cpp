@@ -75,7 +75,7 @@ namespace Fancy
       }
 
       dstSet.myNumBoundedDescriptors = 0u;
-      dstSet.myHasUnboundedBindings = hasUnboundedBindings;
+      dstSet.myHasUnboundedRanges = hasUnboundedBindings;
 
       if (!hasUnboundedBindings)
       {
