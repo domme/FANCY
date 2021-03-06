@@ -169,6 +169,8 @@
     <ClInclude Include="GpuResourceViewSetDX12.h" />
     <ClInclude Include="RootSignatureCacheDX12.h" />
     <ClInclude Include="RootSignatureDX12.h" />
+    <ClInclude Include="RaytracingBVH.h" />
+    <ClInclude Include="RaytracingBVHVk.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ShaderCompilerVk.h" />
     <ClInclude Include="ShaderPipelineDX12.h" />
@@ -301,6 +303,8 @@
     <ClCompile Include="GpuResourceViewSetDX12.cpp" />
     <ClCompile Include="RootSignatureCacheDX12.cpp" />
     <ClCompile Include="RootSignatureDX12.cpp" />
+    <ClCompile Include="RaytracingBVH.cpp" />
+    <ClCompile Include="RaytracingBVHVk.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />

@@ -73,7 +73,7 @@ namespace Fancy
       VkPresentModeKHR* presentModes = (VkPresentModeKHR*)alloca(sizeof(VkPresentModeKHR) * numPresentModes);
       ASSERT_VK_RESULT(vkGetPhysicalDeviceSurfacePresentModesKHR(platformVk->myPhysicalDevice, mySurface, &numPresentModes, presentModes));
 
-      uint presentModePriorities[VK_PRESENT_MODE_RANGE_SIZE_KHR] = { 0u };
+      uint presentModePriorities[4] = { 0u };
       presentModePriorities[VK_PRESENT_MODE_MAILBOX_KHR] = 4u;
       presentModePriorities[VK_PRESENT_MODE_FIFO_RELAXED_KHR] = 3u;
       presentModePriorities[VK_PRESENT_MODE_FIFO_KHR] = 2u;

@@ -247,7 +247,6 @@ namespace Fancy
       const uint baseWidth = srcTexProps.myWidth;
       const uint baseHeight = srcTexProps.myHeight;
       const uint baseDepth = srcTexProps.IsArray() ? 1u : srcTexProps.myDepthOrArraySize;
-      const uint numArrayLayers = srcTexProps.IsArray() ? srcTexProps.myDepthOrArraySize : 1u;
 
       const VkImageLayout srcImageLayout = RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, srcTexture, subresourceRange);
       const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -263,9 +262,9 @@ namespace Fancy
 
         TextureRegion texelRegion;
         texelRegion.myPos = glm::uvec3(0);
-        texelRegion.mySize.x = baseWidth >> subresource.myMipLevel;
-        texelRegion.mySize.y = baseHeight >> subresource.myMipLevel;
-        texelRegion.mySize.z = srcTexProps.IsArray() ? 1u : baseDepth >> subresource.myMipLevel;
+        texelRegion.mySize.x = glm::max(1u, baseWidth >> subresource.myMipLevel);
+        texelRegion.mySize.y = glm::max(1u, baseHeight >> subresource.myMipLevel);
+        texelRegion.mySize.z = srcTexProps.IsArray() ? 1u : glm::max(1u, baseDepth >> subresource.myMipLevel);
 
 #if FANCY_RENDERER_USE_VALIDATION
         ValidateTextureCopy(dstTexProps, subresource, texelRegion, srcTexProps, subresource, texelRegion);
@@ -312,8 +311,8 @@ namespace Fancy
 
     FlushBarriers();
 
-    const VkBuffer srcBuffer = aSrcBuffer->GetVkData()->myBuffer;
-    const VkBuffer dstBuffer = aDstBuffer->GetVkData()->myBuffer;
+    const VkBuffer srcBuffer = aSrcBuffer->GetVkData()->myBufferData.myBuffer;
+    const VkBuffer dstBuffer = aDstBuffer->GetVkData()->myBufferData.myBuffer;
 
     VkBufferCopy copyInfo;
     copyInfo.size = aSize;
@@ -347,7 +346,7 @@ namespace Fancy
     copyRegion.imageExtent.height = aSrcRegion.mySize.y;
     copyRegion.imageExtent.depth = aSrcRegion.mySize.z;
 
-    VkBuffer dstBuffer = static_cast<const GpuBufferVk*>(aDstBuffer)->GetData()->myBuffer;
+    VkBuffer dstBuffer = static_cast<const GpuBufferVk*>(aDstBuffer)->GetData()->myBufferData.myBuffer;
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
 
     const VkImageLayout srcImageLayout = RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aSrcTexture, SubresourceRange(aSrcSubresource));
@@ -424,7 +423,7 @@ namespace Fancy
     copyRegion.imageExtent.depth = aDstRegion.mySize.z;
 
     VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
-    VkBuffer srcBuffer = static_cast<const GpuBufferVk*>(aSrcBuffer)->GetData()->myBuffer;
+    VkBuffer srcBuffer = static_cast<const GpuBufferVk*>(aSrcBuffer)->GetData()->myBufferData.myBuffer;
 
     const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;  // Texture is expected in the WRITE_COPY_DST state here
     TrackResourceTransition(aSrcBuffer, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
@@ -569,7 +568,7 @@ namespace Fancy
     {
       TrackResourceTransition(someBuffers[i], VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
       const GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(someBuffers[i])->GetData();
-      vkBuffers.push_back(resourceDataVk->myBuffer);
+      vkBuffers.push_back(resourceDataVk->myBufferData.myBuffer);
     }
 
     vkCmdBindVertexBuffers(myCommandBuffer, 0u, aNumBuffers, vkBuffers.data(), someOffsets);
@@ -583,7 +582,7 @@ namespace Fancy
     TrackResourceTransition(aBuffer, VK_ACCESS_INDEX_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
 
     const GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
-    vkCmdBindIndexBuffer(myCommandBuffer, resourceDataVk->myBuffer, anOffset, indexType);
+    vkCmdBindIndexBuffer(myCommandBuffer, resourceDataVk->myBufferData.myBuffer, anOffset, indexType);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
@@ -867,7 +866,7 @@ namespace Fancy
     }
 
     VkDescriptorBufferInfo descriptorBufferInfo;
-    descriptorBufferInfo.buffer = static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBuffer;
+    descriptorBufferInfo.buffer = static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBufferData.myBuffer;
     descriptorBufferInfo.offset = someViewProperties.myOffset;
     descriptorBufferInfo.range = someViewProperties.mySize;
 
@@ -948,7 +947,7 @@ namespace Fancy
 
     const uint64 stride = RenderCore::GetPlatformVk()->GetQueryTypeDataSize(aQueryHeap->myType);
     const VkQueryResultFlags resultFlags = stride == sizeof(uint64) ? VK_QUERY_RESULT_64_BIT : 0u;
-    vkCmdCopyQueryPoolResults(myCommandBuffer, queryHeapVk->GetQueryPool(), aFirstQueryIndex, aNumQueries, bufferDataVk->myBuffer, aBufferOffset, stride, resultFlags);
+    vkCmdCopyQueryPoolResults(myCommandBuffer, queryHeapVk->GetQueryPool(), aFirstQueryIndex, aNumQueries, bufferDataVk->myBufferData.myBuffer, aBufferOffset, stride, resultFlags);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint /* someUsageFlags = 0u*/)
@@ -1075,7 +1074,7 @@ namespace Fancy
       if (aResource->IsBuffer())
       {
         BufferMemoryBarrierData barrier;
-        barrier.myBuffer = eastl::any_cast<const GpuResourceDataVk&>(aResource->myNativeData).myBuffer;
+        barrier.myBuffer = eastl::any_cast<const GpuResourceDataVk&>(aResource->myNativeData).myBufferData.myBuffer;
         barrier.myBufferSize = static_cast<const GpuBuffer*>(aResource)->GetByteSize();
         barrier.myDstAccessMask = dstAccessFlags;
         barrier.mySrcAccessMask = localData->mySubresources[0].myAccessFlags;

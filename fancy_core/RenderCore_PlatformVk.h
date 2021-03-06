@@ -13,6 +13,13 @@
 
 #if FANCY_ENABLE_VK
 
+struct VkExt
+{
+  static PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR;
+  static PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR;
+  static PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR;
+};
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -30,7 +37,7 @@ namespace Fancy
     {
       MAX_DESCRIPTOR_ARRAY_SIZE = 1000u 
     };
-
+    
     static VkFormat ResolveFormat(DataFormat aFormat);
     static VkBlendFactor ResolveBlendFactor(BlendFactor aFactor);
     static VkBlendOp ResolveBlendOp(BlendOp aBlendOp);
@@ -54,6 +61,8 @@ namespace Fancy
       eastl::optional<VkDescriptorImageInfo>& aDescriptorImageInfo,
       eastl::optional<VkBufferView>& aBufferView);
     static VkDescriptorType GetDescriptorType(const GpuResourceView* aView);
+    static VkAccelerationStructureTypeKHR GetRaytracingBVHType(RaytracingBVHType aType);
+    static VkGeometryTypeKHR GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aType);
 
     RenderCore_PlatformVk();
     ~RenderCore_PlatformVk() override;
@@ -78,6 +87,7 @@ namespace Fancy
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName) override;
     GpuResourceViewSet* CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges) override;
+    RaytracingBVH* CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;

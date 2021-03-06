@@ -1,6 +1,8 @@
 #include "fancy_core_precompile.h"
 #include "RootSignatureCacheDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy
 {
   bool RootSignatureCacheDX12::ReplaceWithCached(SharedPtr<RootSignatureLayoutDX12>& aLayout, Microsoft::WRL::ComPtr<ID3D12RootSignature>& aRootSignature)
@@ -20,3 +22,4 @@ namespace Fancy
   }
 }
 
+#endif

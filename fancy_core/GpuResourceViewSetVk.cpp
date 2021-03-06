@@ -113,7 +113,7 @@ namespace Fancy
       myDstAccessFlagsPerRange.push_back(rangeAccessFlags);
 
       const GpuResourceViewRange& range = someRanges[i];
-      uint startRangeDataIdx = rangeDatas.size();
+      uint startRangeDataIdx = (uint) rangeDatas.size();
 
       bool writeAllRangeViewsCombined = true;
       for (const SharedPtr<GpuResourceView>& view : range.myResources)
@@ -130,7 +130,7 @@ namespace Fancy
           if (view == nullptr)
             continue;
 
-          ASSERT(Private::GetDescriptorType(view.get()) == descriptorType);
+          ASSERT(RenderCore_PlatformVk::GetDescriptorType(view.get()) == descriptorType);
 
           eastl::optional<VkDescriptorBufferInfo> descriptorBufferInfo;
           eastl::optional<VkDescriptorImageInfo> descriptorImageInfo;
@@ -156,7 +156,7 @@ namespace Fancy
             dataPtr = &bufferView.value();
           }
 
-          uint dstOffset = rangeDatas.size();
+          uint dstOffset = (uint) rangeDatas.size();
           rangeDatas.resize(rangeDatas.size() + dataSize);
           memcpy(rangeDatas.data() + dstOffset, dataPtr, dataSize);
 
@@ -180,7 +180,7 @@ namespace Fancy
         VkWriteDescriptorSet writeInfo = baseWriteInfo;
         writeInfo.descriptorType = descriptorType;
         writeInfo.dstArrayElement = 0u;
-        writeInfo.descriptorCount = range.myResources.size();
+        writeInfo.descriptorCount = (uint) range.myResources.size();
         writeInfo.dstBinding = i;
         writeInfo.pImageInfo = reinterpret_cast<VkDescriptorImageInfo*>(rangeDatas.data()) + startRangeDataIdx;
         writeInfo.pBufferInfo = reinterpret_cast<VkDescriptorBufferInfo*>(rangeDatas.data()) + startRangeDataIdx;
@@ -190,6 +190,10 @@ namespace Fancy
     }
 
     vkUpdateDescriptorSets(RenderCore::GetPlatformVk()->myDevice, (uint)writeInfos.size(), writeInfos.data(), 0u, nullptr);
+  }
+//---------------------------------------------------------------------------//
+  GpuResourceViewSetVk::~GpuResourceViewSetVk()
+  {
   }
 //---------------------------------------------------------------------------//
 }

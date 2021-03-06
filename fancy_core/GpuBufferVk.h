@@ -22,6 +22,7 @@ namespace Fancy
 
     GpuResourceDataVk* GetData();
     const GpuResourceDataVk* GetData() const;
+
   protected:
     void* Map_Internal(uint64 anOffset, uint64 aSize) const override;
     void Unmap_Internal(GpuResourceMapMode aMapMode, uint64 anOffset, uint64 aSize) const override;

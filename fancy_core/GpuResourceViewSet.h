@@ -15,7 +15,7 @@ namespace Fancy
   {
   public:
     GpuResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges);
-    virtual ~GpuResourceViewSet() = 0;
+    virtual ~GpuResourceViewSet() = default;
 
     bool HasResourceView(const GpuResourceView* aView) const;
     const eastl::fixed_vector<GpuResourceViewRange, 32>& GetRanges() const { return myRanges; }

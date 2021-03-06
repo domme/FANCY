@@ -299,7 +299,7 @@ namespace Fancy
         {
           ASSERT(subIdx == 0);
           CommandListVk::BufferMemoryBarrierData barrier;
-          barrier.myBuffer = eastl::any_cast<const GpuResourceDataVk&>(resource->myNativeData).myBuffer;
+          barrier.myBuffer = eastl::any_cast<const GpuResourceDataVk&>(resource->myNativeData).myBufferData.myBuffer;
           barrier.myBufferSize = static_cast<const GpuBuffer*>(resource)->GetByteSize();
           barrier.mySrcAccessMask = oldGlobalAccessMask;
           barrier.myDstAccessMask = localSubData.myFirstDstAccessFlags;

@@ -20,7 +20,7 @@ namespace Fancy
     const GpuResourceDataVk* dataVk = GetData();
     return dataVk != nullptr 
       && dataVk->myType == GpuResourceType::BUFFER 
-      && dataVk->myBuffer != nullptr;
+      && dataVk->myBufferData.myBuffer != nullptr;
   }
 //---------------------------------------------------------------------------//
   void GpuBufferVk::SetName(const char* aName)
@@ -29,7 +29,7 @@ namespace Fancy
     const GpuResourceDataVk* const nativeData = GetData();
     VkDebugUtilsObjectNameInfoEXT nameInfo = {};
     nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-    nameInfo.objectHandle = (uint64)nativeData->myBuffer;
+    nameInfo.objectHandle = (uint64)nativeData->myBufferData.myBuffer;
     nameInfo.objectType = VK_OBJECT_TYPE_BUFFER;
     nameInfo.pObjectName = aName;
     ASSERT_VK_RESULT(platformVk->VkSetDebugUtilsObjectNameEXT(platformVk->myDevice, &nameInfo));
@@ -41,6 +41,7 @@ namespace Fancy
 
     Destroy();
     GpuResourceDataVk dataVk;
+    memset(&dataVk, 0u, sizeof(dataVk));
     dataVk.myType = GpuResourceType::BUFFER;
     
     myProperties = someProperties;
@@ -59,7 +60,7 @@ namespace Fancy
 
     bufferInfo.sharingMode = hasAsyncQueues ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
     
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
     VkAccessFlags readMask = VK_ACCESS_TRANSFER_READ_BIT;
     VkAccessFlags writeMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     if (someProperties.myIsShaderWritable)
@@ -86,6 +87,10 @@ namespace Fancy
           | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT  // RWBuffer<Format>
           | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;  // Buffer<Format>
         readMask |= VK_ACCESS_SHADER_READ_BIT;
+    }
+    if (someProperties.myBindFlags & (uint) GpuBufferBindFlags::RAYTRACING_BVH_BUILD_INPUT)
+    {
+      bufferInfo.usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
     }
 
     VkMemoryPropertyFlags memPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -126,23 +131,33 @@ namespace Fancy
     bufferInfo.queueFamilyIndexCount = caps.myHasAsyncCompute ? ARRAY_LENGTH(queueFamilyIndices) : 1;
 
     VkDevice device = platformVk->myDevice;
-    ASSERT_VK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &dataVk.myBuffer));
+    ASSERT_VK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &dataVk.myBufferData.myBuffer));
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, dataVk.myBuffer, &memRequirements);
+    vkGetBufferMemoryRequirements(device, dataVk.myBufferData.myBuffer, &memRequirements);
     ASSERT(memRequirements.alignment <= UINT_MAX);
     myAlignment = (uint) memRequirements.alignment;
 
     const uint memoryTypeIndex = platformVk->FindMemoryTypeIndex(memRequirements, memPropertyFlags);
 
+    VkMemoryAllocateFlagsInfo memAllocFlagsInfo {};
+    memAllocFlagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;
+    memAllocFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
+
     // TODO: Replace memory allocation with a dedicated allocator like in DX12
     VkMemoryAllocateInfo memAllocInfo;
     memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    memAllocInfo.pNext = nullptr;
+    memAllocInfo.pNext = &memAllocFlagsInfo;
     memAllocInfo.allocationSize = memRequirements.size;
     memAllocInfo.memoryTypeIndex = memoryTypeIndex;
     ASSERT_VK_RESULT(vkAllocateMemory(device, &memAllocInfo, nullptr, &dataVk.myMemory));
-    ASSERT_VK_RESULT(vkBindBufferMemory(device, dataVk.myBuffer, dataVk.myMemory, 0));
+    ASSERT_VK_RESULT(vkBindBufferMemory(device, dataVk.myBufferData.myBuffer, dataVk.myMemory, 0));
+
+    VkBufferDeviceAddressInfo bufferDeviceAddressInfo{};
+    bufferDeviceAddressInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    bufferDeviceAddressInfo.buffer = dataVk.myBufferData.myBuffer;
+    dataVk.myBufferData.myAddress = vkGetBufferDeviceAddress(device, &bufferDeviceAddressInfo);
+    ASSERT(dataVk.myBufferData.myAddress != 0ull);
 
     myNativeData = dataVk;
 
@@ -197,7 +212,7 @@ namespace Fancy
     {
       VkDevice device = RenderCore::GetPlatformVk()->myDevice;
       GpuResourceDataVk* dataVk = GetData();
-      vkDestroyBuffer(device, dataVk->myBuffer, nullptr);
+      vkDestroyBuffer(device, dataVk->myBufferData.myBuffer, nullptr);
       vkFreeMemory(device, dataVk->myMemory, nullptr);
     }
 
@@ -216,7 +231,7 @@ namespace Fancy
     info.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
     info.pNext = nullptr;
     info.flags = 0u;
-    info.buffer = static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBuffer;
+    info.buffer = static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBufferData.myBuffer;
     info.format = RenderCore_PlatformVk::ResolveFormat(someProperties.myFormat);
     info.offset = someProperties.myOffset;
     info.range = someProperties.mySize;

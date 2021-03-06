@@ -18,6 +18,7 @@
 #include "Test_AsyncCompute.h"
 #include "Tests/Test_Mipmapping.h"
 #include "Test_ModelViewer.h"
+#include "Test_Raytracing.h"
 #include "fancy_core/StringUtil.h"
 #include "Tests/Test_SharedQueueResourceUsage.h"
 #include "Tests/Test_HazardTracking.h"
@@ -39,6 +40,7 @@ bool test_mipmapping = false;
 bool test_modelviewer = false;
 bool test_sharedQueueResources = false;
 bool test_hazardTracking = false;
+bool test_raytracing = false;
 
 eastl::vector<UniquePtr<Test>> myTests;
 
@@ -139,6 +141,13 @@ void Update()
       myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_HazardTracking*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(eastl::make_unique<Test_HazardTracking>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+  if (ImGui::Checkbox("Test Raytracing", &test_raytracing))
+  {
+    if (!test_raytracing)
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Raytracing*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(eastl::make_unique<Test_Raytracing>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
 
   ImGui::Separator();

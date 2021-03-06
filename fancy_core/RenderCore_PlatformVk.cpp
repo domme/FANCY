@@ -15,8 +15,13 @@
 #include "CommandLine.h"
 #include "GpuResourceViewDataVk.h"
 #include "GpuResourceViewSetVk.h"
+#include "RaytracingBVHVk.h"
 
 #if FANCY_ENABLE_VK
+
+PFN_vkCreateAccelerationStructureKHR VkExt::vkCreateAccelerationStructureKHR;
+PFN_vkDestroyAccelerationStructureKHR VkExt::vkDestroyAccelerationStructureKHR;
+PFN_vkGetAccelerationStructureBuildSizesKHR VkExt::vkGetAccelerationStructureBuildSizesKHR;
 
 namespace Fancy
 {
@@ -658,7 +663,7 @@ namespace Fancy
       ASSERT(aView->myType == GpuResourceViewType::UAV);
       ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
       aDescriptorBufferInfo = VkDescriptorBufferInfo();
-      aDescriptorBufferInfo->buffer = resourceDataVk->myBuffer;
+      aDescriptorBufferInfo->buffer = resourceDataVk->myBufferData.myBuffer;
       aDescriptorBufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
       aDescriptorBufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
     } break;
@@ -678,7 +683,7 @@ namespace Fancy
       ASSERT(aView->myType == GpuResourceViewType::CBV);
       ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
       aDescriptorBufferInfo = VkDescriptorBufferInfo();
-      aDescriptorBufferInfo->buffer = resourceDataVk->myBuffer;
+      aDescriptorBufferInfo->buffer = resourceDataVk->myBufferData.myBuffer;
       aDescriptorBufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
       aDescriptorBufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
     } break;
@@ -713,6 +718,27 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  VkAccelerationStructureTypeKHR RenderCore_PlatformVk::GetRaytracingBVHType(RaytracingBVHType aType)
+  {
+    switch(aType)
+    {
+    case RaytracingBVHType::BOTTOM_LEVEL: return VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+    case RaytracingBVHType::TOP_LEVEL: return VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+    default: ASSERT(false); return VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkGeometryTypeKHR RenderCore_PlatformVk::GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aType)
+  {
+    switch(aType)
+    {
+    case RaytracingBVHGeometryType::TRIANGLES: return VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+    case RaytracingBVHGeometryType::AABBS: return VK_GEOMETRY_TYPE_AABBS_KHR;
+    case RaytracingBVHGeometryType::INSTANCES: return VK_GEOMETRY_TYPE_INSTANCES_KHR;
+    default: ASSERT(false); return VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+    }
+  }
+//---------------------------------------------------------------------------//
   RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)
   {
     LOG("Initializing Vulkan device...");
@@ -741,7 +767,7 @@ namespace Fancy
       createInfo.ppEnabledExtensionNames = extensions;
 
       const bool enableDebugLayer = CommandLine::GetInstance()->HasArgument("DebugLayer");
-      const char* const layers[] = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_standard_validation", "VK_LAYER_LUNARG_monitor"  };
+      const char* const layers[] = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor"  };
       createInfo.enabledLayerCount = enableDebugLayer ? ARRAY_LENGTH(layers) : 0;
       createInfo.ppEnabledLayerNames = enableDebugLayer ? layers : nullptr;
       
@@ -965,6 +991,11 @@ namespace Fancy
 
     constexpr float64 nsToMs = 1e-6;
     myTimestampTicksToMsFactor = myPhysicalDeviceProperties.limits.timestampPeriod * nsToMs;
+
+    // Get extension functions
+    VkExt::vkCreateAccelerationStructureKHR = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(vkGetDeviceProcAddr(myDevice, "vkCreateAccelerationStructureKHR"));
+    VkExt::vkDestroyAccelerationStructureKHR = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(vkGetDeviceProcAddr(myDevice, "vkDestroyAccelerationStructureKHR"));
+    VkExt::vkGetAccelerationStructureBuildSizesKHR = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(vkGetDeviceProcAddr(myDevice, "vkGetAccelerationStructureBuildSizesKHR"));
   }
   
   RenderCore_PlatformVk::~RenderCore_PlatformVk()
@@ -1077,6 +1108,11 @@ namespace Fancy
   GpuResourceViewSet* RenderCore_PlatformVk::CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges)
   {
     return new GpuResourceViewSetVk(someRanges);
+  }
+//---------------------------------------------------------------------------//
+  RaytracingBVH* RenderCore_PlatformVk::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)
+  {
+    return new RaytracingBVHVk(someProps, someGeometries, aName);
   }
 //---------------------------------------------------------------------------//
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

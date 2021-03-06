@@ -191,6 +191,10 @@ namespace Fancy
     VERTEX_BUFFER = 1 << 1,
     INDEX_BUFFER = 1 << 2,
     SHADER_BUFFER = 1 << 3,
+    RAYTRACING_BVH_BUILD_INPUT = 1 << 4,
+    RAYTRACING_BVH_STORAGE = 1 << 5,
+    RAYTRACING_BVH_BINDING_TABLE = 1 << 6,
+
     ALL = ~0
   };
 //---------------------------------------------------------------------------//
@@ -346,6 +350,40 @@ namespace Fancy
     PER_INSTANCE,
 
     NUM
+  };
+//---------------------------------------------------------------------------//
+  enum class RaytracingBVHType
+  {
+    BOTTOM_LEVEL = 0,
+    TOP_LEVEL,
+
+    NUM
+  };
+//---------------------------------------------------------------------------//
+  enum class RaytracingBVHGeometryType
+  {
+    TRIANGLES = 0,
+    AABBS,
+    INSTANCES,
+
+    NUM
+  };
+//---------------------------------------------------------------------------//
+  enum class RaytracingBVHGeometryFlags
+  {
+    NONE = 0u,
+    OPAQUE_GEOMETRY = 1 << 0u,
+    NO_DUPLICATE_ANYHIT_INVOCATION = 1 << 1u
+  };
+//---------------------------------------------------------------------------//
+  enum class RaytracingBVHFlags
+  {
+    NONE = 0u,
+    ALLOW_UPDATE = 1 << 0u,
+    ALLOW_COMPACTION = 1 << 1u,
+    PREFER_FAST_TRACE = 1 << 2u,
+    PREFER_FAST_BUILD = 1 << 3u,
+    MINIMIZE_MEMORY = 1 << 4u
   };
 //---------------------------------------------------------------------------//
 }

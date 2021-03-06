@@ -45,11 +45,11 @@ namespace Fancy
   {
     const uint64 hash = GetHash(someBindings);
 
-    std::lock_guard<std::mutex> lock(myCacheMutex);
-
     VkDescriptorSetLayout layout = TryGetDescriptorSetLayout(hash);
     if (layout != nullptr)
       return layout;
+
+    std::lock_guard<std::mutex> lock(myCacheMutex);
 
     eastl::fixed_vector<VkDescriptorBindingFlags, 16> bindingFlags;
     bindingFlags.resize(someBindings.size());

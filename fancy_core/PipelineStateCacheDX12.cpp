@@ -7,6 +7,8 @@
 #include "DepthStencilState.h"
 #include "RenderCore_PlatformDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
@@ -292,4 +294,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
-
+#endif

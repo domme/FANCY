@@ -28,6 +28,7 @@
 #include "TextureSampler.h"
 #include "Material.h"
 #include "GpuResourceViewSet.h"
+#include "RaytracingBVH.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -924,9 +925,14 @@ namespace Fancy {
     return CreateBufferView(buffer, someViewProperties, aName);
   }
 //---------------------------------------------------------------------------//
-  SharedPtr<GpuResourceViewSet> RenderCore::CreateResourceViewSet(const eastl::span<GpuResourceViewSetElement>& someResources)
+  SharedPtr<GpuResourceViewSet> RenderCore::CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges)
   {
-    return SharedPtr<GpuResourceViewSet>(ourPlatformImpl->CreateResourceViewSet(someResources));
+    return SharedPtr<GpuResourceViewSet>(ourPlatformImpl->CreateResourceViewSet(someRanges));
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<RaytracingBVH> RenderCore::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)
+  {
+    return SharedPtr<RaytracingBVH>(ourPlatformImpl->CreateRtAccelerationStructure(someProps, someGeometries, aName));
   }
 //---------------------------------------------------------------------------//
   uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)
