@@ -14,6 +14,7 @@ namespace Fancy {
     virtual ~GpuBuffer() = default;
 
     virtual void Create(const GpuBufferProperties& clParameters, const char* aName = nullptr, const void* pInitialData = nullptr) = 0;
+    virtual uint64 GetDeviceAddress() const = 0;
     
     void* Map(GpuResourceMapMode aMapMode, uint64 anOffset = 0u, uint64 aSize = UINT64_MAX) const;
     void Unmap(GpuResourceMapMode aMapMode, uint64 anOffset = 0u, uint64 aSize = UINT64_MAX) const;

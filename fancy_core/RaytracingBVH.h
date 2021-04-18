@@ -11,13 +11,18 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct RaytracingBVHGeometry
   {
-    RaytracingBVHGeometryType myType;
-    uint myFlags; // RaytracingBVHGeometryFlags
-    DataFormat myVertexFormat;
-    const GpuBuffer* myVertexBuffer;
-    DataFormat myIndexFormat;
-    const GpuBuffer* myIndexBuffer;
-    const GpuBuffer* myTransformBuffer;
+    const GpuBuffer* myVertexBuffer = nullptr;
+    uint64 myVertexBufferOffset = 0;
+    const GpuBuffer* myIndexBuffer = nullptr;
+    uint64 myIndexBufferOffset = 0;
+    const GpuBuffer* myTransformBuffer = 0;
+    uint64 myTransformBufferOffset = 0;
+    DataFormat myVertexFormat = DataFormat::RGB_32F;
+    DataFormat myIndexFormat = DataFormat::R_32UI;
+    uint myNumVertices = 0;
+    uint myNumIndices = 0;
+    uint myFlags = 0; // RaytracingBVHGeometryFlags
+    RaytracingBVHGeometryType myType = RaytracingBVHGeometryType::TRIANGLES;
   };
 //---------------------------------------------------------------------------//
   class RaytracingBVH

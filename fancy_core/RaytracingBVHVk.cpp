@@ -9,12 +9,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   namespace Private
   {
-    VkDeviceAddress GetBufferDeviceAddress(const GpuBuffer* aBuffer)
-    {
-      const GpuBufferVk* bufferVk = static_cast<const GpuBufferVk*>(aBuffer);
-      return bufferVk->GetData()->myBufferData.myAddress;
-    }
-
     VkIndexType GetIndexType(DataFormat aFormat)
     {
       if (aFormat == DataFormat::R_32UI)
@@ -61,7 +55,6 @@ namespace Fancy
     {
       const RaytracingBVHGeometry& geo = someGeometries[i];
       const uint vertexStride = DataFormatInfo::GetFormatInfo(geo.myVertexFormat).mySizeBytes;
-      const uint numVertices = static_cast<uint>(geo.myVertexBuffer->GetByteSize() / static_cast<uint64>(vertexStride));
       const uint indexStride = DataFormatInfo::GetFormatInfo(geo.myIndexFormat).mySizeBytes;
 
       VkAccelerationStructureGeometryKHR& geoVk = geometriesVk[i];
@@ -79,14 +72,14 @@ namespace Fancy
 
         geoVk.geometry.triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
         geoVk.geometry.triangles.vertexFormat = RenderCore_PlatformVk::ResolveFormat(geo.myVertexFormat);
-        geoVk.geometry.triangles.vertexData.deviceAddress = Private::GetBufferDeviceAddress(geo.myVertexBuffer);
-        geoVk.geometry.triangles.maxVertex = numVertices;
+        geoVk.geometry.triangles.vertexData.deviceAddress = geo.myVertexBuffer->GetDeviceAddress() + geo.myVertexBufferOffset;
+        geoVk.geometry.triangles.maxVertex = geo.myNumVertices;
         geoVk.geometry.triangles.vertexStride = vertexStride;
         geoVk.geometry.triangles.indexType = Private::GetIndexType(geo.myIndexFormat);
-        geoVk.geometry.triangles.indexData.deviceAddress = Private::GetBufferDeviceAddress(geo.myIndexBuffer);
+        geoVk.geometry.triangles.indexData.deviceAddress = geo.myIndexBuffer->GetDeviceAddress() + geo.myIndexBufferOffset;
         if (geo.myTransformBuffer)
         {
-          geoVk.geometry.triangles.transformData.deviceAddress = Private::GetBufferDeviceAddress(geo.myTransformBuffer);
+          geoVk.geometry.triangles.transformData.deviceAddress = geo.myTransformBuffer->GetDeviceAddress() + geo.myTransformBufferOffset;
         }
         else
         {
@@ -131,7 +124,7 @@ namespace Fancy
     asCreateInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
     asCreateInfo.size = asBuildSizesInfo.accelerationStructureSize;
     asCreateInfo.buffer = myBuffer->GetVkData()->myBufferData.myBuffer;
-    asCreateInfo.deviceAddress = myBuffer->GetVkData()->myBufferData.myAddress;
+    asCreateInfo.deviceAddress = 0; // myBuffer->GetVkData()->myBufferData.myAddress;  // Only needed for replay feature
     asCreateInfo.type = accelerationStructureTypeVk;
     ASSERT_VK_RESULT(VkExt::vkCreateAccelerationStructureKHR(RenderCore::GetPlatformVk()->GetDevice(), &asCreateInfo, nullptr, &myAccelerationStructure));
   }
@@ -152,9 +145,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
-
-
-
-
 
 

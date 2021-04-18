@@ -483,6 +483,17 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  D3D12_RAYTRACING_GEOMETRY_TYPE RenderCore_PlatformDX12::GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aGeoType)
+  {
+    switch(aGeoType)
+    {
+    case RaytracingBVHGeometryType::TRIANGLES: return D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+    case RaytracingBVHGeometryType::AABBS: return D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS;
+    case RaytracingBVHGeometryType::NUM: break;
+    default: ASSERT(false, "Not implemented") return D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+    }
+  }
+//---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::RenderCore_PlatformDX12()
     : RenderCore_Platform(RenderPlatformType::DX12)
     , myGpuTicksToMsFactor{}

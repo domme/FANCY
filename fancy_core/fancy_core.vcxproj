@@ -163,6 +163,7 @@
     <ClInclude Include="PipelineLayoutVk.h" />
     <ClInclude Include="PipelineStateCacheDX12.h" />
     <ClInclude Include="PipelineStateCacheVk.h" />
+    <ClInclude Include="RaytracingBvhDX12.h" />
     <ClInclude Include="RenderPassCacheVk.h" />
     <ClInclude Include="RenderPlatformObjectCache.h" />
     <ClInclude Include="GpuResourceViewSet.h" />
@@ -298,6 +299,7 @@
     <ClCompile Include="PipelineLayoutVk.cpp" />
     <ClCompile Include="PipelineStateCacheDX12.cpp" />
     <ClCompile Include="PipelineStateCacheVk.cpp" />
+    <ClCompile Include="RaytracingBvhDX12.cpp" />
     <ClCompile Include="RenderPassCacheVk.cpp" />
     <ClCompile Include="GpuResourceViewSet.cpp" />
     <ClCompile Include="GpuResourceViewSetDX12.cpp" />

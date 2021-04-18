@@ -19,6 +19,7 @@ namespace Fancy
     void SetName(const char* aName) override;
 
     void Create(const GpuBufferProperties& someProperties, const char* aName = nullptr, const void* pInitialData = nullptr) override;
+    uint64 GetDeviceAddress() const override;
 
     GpuResourceDataVk* GetData();
     const GpuResourceDataVk* GetData() const;

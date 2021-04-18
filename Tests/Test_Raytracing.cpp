@@ -54,9 +54,11 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
 
     RaytracingBVHGeometry rtAsGeometry;
     rtAsGeometry.myVertexBuffer = myRTvertexBuffer.get();
+    rtAsGeometry.myNumVertices = (uint) vertices.size();
     rtAsGeometry.myVertexFormat = DataFormat::RGB_32F;
     rtAsGeometry.myIndexBuffer = myRTindexBuffer.get();
     rtAsGeometry.myIndexFormat = DataFormat::R_32UI;
+    rtAsGeometry.myNumIndices = indexCount;
     rtAsGeometry.myTransformBuffer = myRTtransformBuffer.get();
     rtAsGeometry.myType = RaytracingBVHGeometryType::TRIANGLES;
     rtAsGeometry.myFlags = (uint)RaytracingBVHGeometryFlags::OPAQUE_GEOMETRY;

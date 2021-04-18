@@ -48,6 +48,7 @@ namespace Fancy {
     static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
     static D3D12_DESCRIPTOR_HEAP_TYPE GetDescriptorHeapType(const GpuResourceViewType& aViewType);
     static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(const GpuResourceViewType& aViewType);
+    static D3D12_RAYTRACING_GEOMETRY_TYPE GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aGeoType);
 
     RenderCore_PlatformDX12();
     ~RenderCore_PlatformDX12() override;

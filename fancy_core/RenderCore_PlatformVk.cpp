@@ -734,7 +734,7 @@ namespace Fancy
     {
     case RaytracingBVHGeometryType::TRIANGLES: return VK_GEOMETRY_TYPE_TRIANGLES_KHR;
     case RaytracingBVHGeometryType::AABBS: return VK_GEOMETRY_TYPE_AABBS_KHR;
-    case RaytracingBVHGeometryType::INSTANCES: return VK_GEOMETRY_TYPE_INSTANCES_KHR;
+    // case RaytracingBVHGeometryType::INSTANCES: return VK_GEOMETRY_TYPE_INSTANCES_KHR;  // Not available in DX12
     default: ASSERT(false); return VK_GEOMETRY_TYPE_TRIANGLES_KHR;
     }
   }
@@ -971,14 +971,35 @@ namespace Fancy
       vk12Features.shaderOutputLayer = true;
       vk12Features.subgroupBroadcastDynamicId = true;
 
+      VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeatures{};
+      rtPipelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+      rtPipelineFeatures.pNext = &vk12Features;
+      rtPipelineFeatures.rayTracingPipeline = true;
+      // rtPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplay = true;
+      // rtPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplayMixed = true;
+      rtPipelineFeatures.rayTracingPipelineTraceRaysIndirect = true;
+
+      VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures{};
+      asFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+      asFeatures.pNext = &rtPipelineFeatures;
+      asFeatures.accelerationStructure = true;
+      asFeatures.accelerationStructureCaptureReplay = true;
+      //asFeatures.accelerationStructureHostCommands = true;
+      //asFeatures.accelerationStructureIndirectBuild = true;
+      asFeatures.descriptorBindingAccelerationStructureUpdateAfterBind = true;
+      
       VkDeviceCreateInfo deviceCreateInfo = {};
       deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-      deviceCreateInfo.pNext = &vk12Features;
+      deviceCreateInfo.pNext = &asFeatures;
       deviceCreateInfo.pQueueCreateInfos = queueCreateInfos;
       deviceCreateInfo.queueCreateInfoCount = numQueuesToCreate;
       deviceCreateInfo.pEnabledFeatures = &myPhysicalDeviceFeatures;
 
-      const char* const extensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+      const char* const extensions[] = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME };
       deviceCreateInfo.ppEnabledExtensionNames = extensions;
       deviceCreateInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
 

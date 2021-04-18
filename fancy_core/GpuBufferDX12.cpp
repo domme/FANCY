@@ -141,6 +141,14 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  uint64 GpuBufferDX12::GetDeviceAddress() const
+  {
+    if (GetData() == nullptr)
+      return 0;
+
+    return GetData()->myResource->GetGPUVirtualAddress();
+  }
+//---------------------------------------------------------------------------//
   void GpuBufferDX12::Destroy()
   {
     GpuResourceDataDX12* dataDx12 = GetData();

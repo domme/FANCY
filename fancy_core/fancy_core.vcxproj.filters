@@ -446,6 +446,7 @@
     <ClInclude Include="RaytracingBVH.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="RaytracingBvhDX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -719,6 +720,7 @@
     <ClCompile Include="RaytracingBVH.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="RaytracingBvhDX12.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

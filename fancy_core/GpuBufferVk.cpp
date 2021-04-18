@@ -92,6 +92,10 @@ namespace Fancy
     {
       bufferInfo.usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
     }
+    if (someProperties.myBindFlags & (uint) GpuBufferBindFlags::RAYTRACING_BVH_STORAGE)
+    {
+      bufferInfo.usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
+    }
 
     VkMemoryPropertyFlags memPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
@@ -177,6 +181,14 @@ namespace Fancy
         RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
       }
     }
+  }
+//---------------------------------------------------------------------------//
+  uint64 GpuBufferVk::GetDeviceAddress() const
+  {
+    if (GetData() == nullptr)
+      return 0;
+
+    return GetData()->myBufferData.myAddress;
   }
 //---------------------------------------------------------------------------//
   GpuResourceDataVk* GpuBufferVk::GetData()
