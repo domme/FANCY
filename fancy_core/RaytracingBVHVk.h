@@ -2,6 +2,8 @@
 #include "RaytracingBVH.h"
 #include "VkPrerequisites.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
   class RaytracingBVHVk final : public RaytracingBVH
@@ -15,3 +17,5 @@ namespace Fancy
     VkAccelerationStructureKHR myAccelerationStructure = nullptr;
   };
 }
+
+#endif

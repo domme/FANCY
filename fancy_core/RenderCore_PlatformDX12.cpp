@@ -20,6 +20,7 @@
 #include "TextureSamplerDX12.h"
 #include "CommandLine.h"
 #include "GpuResourceViewSetDX12.h"
+#include "RaytracingBVHDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -483,13 +484,22 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE RenderCore_PlatformDX12::GetRaytracingBVHType(RaytracingBVHType aType)
+  {
+    switch (aType)
+    {
+    case RaytracingBVHType::BOTTOM_LEVEL: return D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+    case RaytracingBVHType::TOP_LEVEL: return D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+    default: ASSERT(false); return D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+    }
+  }
+//---------------------------------------------------------------------------//
   D3D12_RAYTRACING_GEOMETRY_TYPE RenderCore_PlatformDX12::GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aGeoType)
   {
     switch(aGeoType)
     {
     case RaytracingBVHGeometryType::TRIANGLES: return D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
     case RaytracingBVHGeometryType::AABBS: return D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS;
-    case RaytracingBVHGeometryType::NUM: break;
     default: ASSERT(false, "Not implemented") return D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
     }
   }
@@ -506,7 +516,7 @@ namespace Fancy {
 
     if (enableDebugLayer)
     {
-      ComPtr<ID3D12Debug> debugInterface;
+      ComPtr<ID3D12Debug3> debugInterface;
       if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
         debugInterface->EnableDebugLayer();
     }
@@ -754,6 +764,11 @@ namespace Fancy {
   GpuResourceViewSet* RenderCore_PlatformDX12::CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges)
   {
     return new GpuResourceViewSetDX12(someRanges);
+  }
+//---------------------------------------------------------------------------//
+  RaytracingBVH* RenderCore_PlatformDX12::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)
+  {
+    return new RaytracingBVHDX12(someProps, someGeometries, aName);
   }
 //---------------------------------------------------------------------------//
   GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

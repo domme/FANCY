@@ -69,6 +69,8 @@ namespace Fancy {
     void TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, D3D12_RESOURCE_STATES aNewState, bool aToSharedReadState = false);
     void AddBarrier(const D3D12_RESOURCE_BARRIER& aBarrier);
 
+    ID3D12GraphicsCommandList6* GetDX12CommandList() const { return myCommandList; }
+
   protected:
     void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut) override;
 
@@ -96,7 +98,7 @@ namespace Fancy {
     eastl::fixed_vector<DescriptorDX12, 32> myTempAllocatedDescriptors;
     
     ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
-    ID3D12GraphicsCommandList* myCommandList;
+    ID3D12GraphicsCommandList6* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
     eastl::fixed_vector<D3D12_RESOURCE_BARRIER, kNumCachedBarriers, false> myPendingBarriers;
     D3D12_RESOURCE_STATES myResourceStateMask;

@@ -11,16 +11,14 @@ namespace Fancy
 {
   class GpuBuffer;
 
-  class RaytracingBvhDX12 : public RaytracingBVH
+  class RaytracingBVHDX12 : public RaytracingBVH
   {
   public:
-    RaytracingBvhDX12(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr);
-    ~RaytracingBvhDX12() override;
+    RaytracingBVHDX12(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr);
     void Destroy() override;
 
   private:
     SharedPtr<GpuBuffer> myAccelerationStructureBuffer;
-
   };
 }
 

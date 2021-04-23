@@ -4,12 +4,14 @@
 #include "RenderCore_PlatformVk.h"
 #include "GpuBufferVk.h"
 
+#if FANCY_ENABLE_VK
+
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
   namespace Private
   {
-    VkIndexType GetIndexType(DataFormat aFormat)
+    static VkIndexType GetIndexType(DataFormat aFormat)
     {
       if (aFormat == DataFormat::R_32UI)
         return VK_INDEX_TYPE_UINT32;
@@ -22,7 +24,7 @@ namespace Fancy
       return VK_INDEX_TYPE_UINT32;
     }
 
-    uint GetBuildGeometryFlags(uint aSomeRaytracingBVHFlags)
+    static uint GetBuildGeometryFlags(uint aSomeRaytracingBVHFlags)
     {
       uint flags = 0u;
 
@@ -32,9 +34,9 @@ namespace Fancy
         flags |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR;
       if (aSomeRaytracingBVHFlags & (uint)RaytracingBVHFlags::MINIMIZE_MEMORY)
         flags |= VK_BUILD_ACCELERATION_STRUCTURE_LOW_MEMORY_BIT_KHR;
-      if (flags & (uint)RaytracingBVHFlags::PREFER_FAST_BUILD)
+      if (aSomeRaytracingBVHFlags & (uint)RaytracingBVHFlags::PREFER_FAST_BUILD)
         flags |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-      if (flags & (uint)RaytracingBVHFlags::PREFER_FAST_TRACE)
+      if (aSomeRaytracingBVHFlags & (uint)RaytracingBVHFlags::PREFER_FAST_TRACE)
         flags |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
 
       return flags;
@@ -127,6 +129,8 @@ namespace Fancy
     asCreateInfo.deviceAddress = 0; // myBuffer->GetVkData()->myBufferData.myAddress;  // Only needed for replay feature
     asCreateInfo.type = accelerationStructureTypeVk;
     ASSERT_VK_RESULT(VkExt::vkCreateAccelerationStructureKHR(RenderCore::GetPlatformVk()->GetDevice(), &asCreateInfo, nullptr, &myAccelerationStructure));
+
+    // TODO: Actually build the acceleration structure using the buffer
   }
 //---------------------------------------------------------------------------//
   RaytracingBVHVk::~RaytracingBVHVk()
@@ -146,4 +150,4 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 }
 
-
+#endif

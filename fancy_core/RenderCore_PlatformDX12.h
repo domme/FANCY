@@ -48,6 +48,7 @@ namespace Fancy {
     static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
     static D3D12_DESCRIPTOR_HEAP_TYPE GetDescriptorHeapType(const GpuResourceViewType& aViewType);
     static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(const GpuResourceViewType& aViewType);
+    static D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE GetRaytracingBVHType(RaytracingBVHType aType);
     static D3D12_RAYTRACING_GEOMETRY_TYPE GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aGeoType);
 
     RenderCore_PlatformDX12();
@@ -62,7 +63,7 @@ namespace Fancy {
 
     void InitNullDescriptors();
 
-    ID3D12Device* GetDevice() const { return ourDevice.Get(); }
+    ID3D12Device8* GetDevice() const { return ourDevice.Get(); }
 
     ID3D12CommandAllocator* GetCommandAllocator(CommandListType aCmdListType);
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, uint64 aFenceVal);
@@ -88,6 +89,7 @@ namespace Fancy {
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuResourceViewSet* CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges) override;
+    RaytracingBVH* CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
@@ -102,7 +104,7 @@ namespace Fancy {
   // protected:
     CommandQueueDX12* GetCommandQueueDX12(CommandListType aCommandListType);
 
-    Microsoft::WRL::ComPtr<ID3D12Device> ourDevice;
+    Microsoft::WRL::ComPtr<ID3D12Device8> ourDevice;
 
     UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     UniquePtr<DynamicDescriptorHeapDX12> myDynamicDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];

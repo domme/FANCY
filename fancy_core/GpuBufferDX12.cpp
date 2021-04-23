@@ -82,7 +82,8 @@ namespace Fancy {
     if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER))
       readStateMask = readStateMask & ~(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    D3D12_RESOURCE_STATES initialStates = (D3D12_RESOURCE_STATE_GENERIC_READ & readStateMask) & writeStateMask;
+    // In most cases, UAV resources will directly be used as such so start with that as an initial state
+    D3D12_RESOURCE_STATES initialStates = someProperties.myIsShaderWritable ? D3D12_RESOURCE_STATE_UNORDERED_ACCESS : (D3D12_RESOURCE_STATE_GENERIC_READ & readStateMask) & writeStateMask;
     bool canChangeStates = true;
     if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap
     {
@@ -93,6 +94,12 @@ namespace Fancy {
     {
       canChangeStates = false;
       initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
+    }
+
+    if (someProperties.myBindFlags & (uint)GpuBufferBindFlags::RAYTRACING_BVH_STORAGE)
+    {
+      initialStates = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
+      writeStateMask |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
     }
 
     GpuSubresourceHazardDataDX12 subHazardData;
