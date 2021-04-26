@@ -1,4 +1,4 @@
-#include "Vulkan_Support.h"
+#include "RootSignature.h"
 
 struct VS_OUT
 {
@@ -12,12 +12,7 @@ struct IMGUI_VS_CBUFFER
   float4x4 ProjectionMatrix;
 };
 
-VK_BINDING_SET(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
-
-#define ROOT_SIGNATURE "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT ), \
-                        CBV(b0), \
-                        DescriptorTable(SRV(t0)), \
-                        DescriptorTable(Sampler(s0))"
+ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0, _LocalCBufferSpace);
 
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_VERTEX)
@@ -37,7 +32,7 @@ VK_BINDING_SET(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
       return rgba;
     }
     
-    [RootSignature(ROOT_SIGNATURE)]
+    [RootSignature(RootSig_Default)]
     VS_OUT main(VS_IN input)
     {
       VS_OUT output = (VS_OUT)0;
@@ -49,10 +44,10 @@ VK_BINDING_SET(0, 0) ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0);
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_FRAGMENT)  
-  VK_BINDING_SET(1, 0) Texture2D texture0 : register(t0);
-  VK_BINDING_SET(2, 0) SamplerState sampler_default : register(s0);
+  Texture2D texture0 : register(t0, _LocalTexSpace);
+  SamplerState sampler_default : register(s0, _LocalSamplerSpace);
  
-  [RootSignature(ROOT_SIGNATURE)]
+  [RootSignature(RootSig_Default)]
   void main(VS_OUT input, out float4 colorOut : SV_Target0)
   {
     float2 uv = input.uv;
