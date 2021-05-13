@@ -119,9 +119,9 @@ namespace Fancy {
     return ourShaderCompiler.get();
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::Init()
+  void RenderCore::Init(const RenderPlatformProperties& someProperties)
   {
-    Init_0_Platform();
+    Init_0_Platform(someProperties);
     Init_1_Services();
     Init_2_Resources();
   }
@@ -397,7 +397,7 @@ namespace Fancy {
     return ReadbackTask(bufferAlloc, fence);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore::Init_0_Platform()
+  void RenderCore::Init_0_Platform(const RenderPlatformProperties& someProperties)
   {
     ASSERT(ourPlatformImpl == nullptr);
 
@@ -411,7 +411,7 @@ namespace Fancy {
     {
       case RenderPlatformType::DX12:
 #if FANCY_ENABLE_DX12
-        ourPlatformImpl = eastl::make_unique<RenderCore_PlatformDX12>();
+        ourPlatformImpl = eastl::make_unique<RenderCore_PlatformDX12>(someProperties);
 #else
         ASSERT(false, "DX12 not supported. Recompile with FANCY_ENABLE_DX12 1");
 #endif

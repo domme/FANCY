@@ -13,8 +13,6 @@
 #include "Profiler.h"
 #include "CommandLine.h"
 #include "ObjectCore.h"
-#include "BinaryCache.h"
-#include "EASTL/fixed_vector.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -23,7 +21,6 @@ namespace Fancy {
   FancyRuntime::FancyRuntime(HINSTANCE anAppInstanceHandle)
     : myAppInstanceHandle(anAppInstanceHandle)
   {
-    eastl::fixed_vector<uint, 100> testVector;
   }
 //---------------------------------------------------------------------------//
   FancyRuntime::~FancyRuntime()
@@ -31,7 +28,7 @@ namespace Fancy {
     RenderCore::Shutdown();
   }
 //---------------------------------------------------------------------------//
-  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams)
+  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams, const RenderPlatformProperties& someRenderProperties)
   {
     ASSERT(ourInstance == nullptr);
     if (ourInstance != nullptr)
@@ -46,7 +43,7 @@ namespace Fancy {
 
     // Init rendering subsystem
     if (!RenderCore::IsInitialized())
-      RenderCore::Init();
+      RenderCore::Init(someRenderProperties);
 
     ASSERT(RenderCore::IsInitialized());
 

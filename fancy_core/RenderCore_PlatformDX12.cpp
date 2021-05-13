@@ -27,6 +27,52 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   namespace {
+ //---------------------------------------------------------------------------//
+    D3D12_SRV_DIMENSION GetSRVDimension(GpuResourceDimension aDimension)
+    {
+      switch(aDimension)
+      {
+      case GpuResourceDimension::UNKONWN: return D3D12_SRV_DIMENSION_BUFFER;
+      case GpuResourceDimension::BUFFER: return D3D12_SRV_DIMENSION_BUFFER;
+      case GpuResourceDimension::TEXTURE_1D: return D3D12_SRV_DIMENSION_TEXTURE1D;
+      case GpuResourceDimension::TEXTURE_2D: return D3D12_SRV_DIMENSION_TEXTURE2D;
+      case GpuResourceDimension::TEXTURE_3D: return D3D12_SRV_DIMENSION_TEXTURE3D;
+      case GpuResourceDimension::TEXTURE_CUBE: return D3D12_SRV_DIMENSION_TEXTURECUBE;
+      case GpuResourceDimension::TEXTURE_1D_ARRAY: return D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+      case GpuResourceDimension::TEXTURE_2D_ARRAY: return D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+      case GpuResourceDimension::TEXTURE_CUBE_ARRAY: return D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
+      default: ASSERT(false); return D3D12_SRV_DIMENSION_BUFFER;
+      }
+    }
+  //---------------------------------------------------------------------------//
+    bool TryGetUAVDimension(GpuResourceDimension aDimension, D3D12_UAV_DIMENSION& aUAVDimension)
+    {
+      switch (aDimension)
+      {
+      case GpuResourceDimension::UNKONWN: 
+        aUAVDimension = D3D12_UAV_DIMENSION_BUFFER;
+        return true;
+      case GpuResourceDimension::BUFFER: 
+        aUAVDimension = D3D12_UAV_DIMENSION_BUFFER;
+        return true;
+      case GpuResourceDimension::TEXTURE_1D: 
+        aUAVDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
+        return true;
+      case GpuResourceDimension::TEXTURE_2D: 
+        aUAVDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+        return true;
+      case GpuResourceDimension::TEXTURE_3D: 
+        aUAVDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+        return true;
+      case GpuResourceDimension::TEXTURE_1D_ARRAY: 
+        aUAVDimension = D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
+        return true;
+      case GpuResourceDimension::TEXTURE_2D_ARRAY: 
+        aUAVDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+        return true;
+      default: aUAVDimension = D3D12_UAV_DIMENSION_BUFFER; return false;
+      }
+    }
   //---------------------------------------------------------------------------//
     CommandListType locGetCommandListType(D3D12_COMMAND_LIST_TYPE aType)
     {
@@ -504,8 +550,8 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  RenderCore_PlatformDX12::RenderCore_PlatformDX12()
-    : RenderCore_Platform(RenderPlatformType::DX12)
+  RenderCore_PlatformDX12::RenderCore_PlatformDX12(const RenderPlatformProperties& someProperties)
+    : RenderCore_Platform(RenderPlatformType::DX12, someProperties)
     , myGpuTicksToMsFactor{}
   {
     using namespace Microsoft::WRL;
@@ -587,10 +633,12 @@ namespace Fancy {
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 64u));
     myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV].reset(new StaticDescriptorAllocatorDX12(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 64u));
 
-    myDynamicDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2048u, 4096u, 256u));
-    myDynamicDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new DynamicDescriptorHeapDX12(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1024u, 1024u, 64u));
+    InitNullDescriptors();  // Must be available before creating dynamic descriptor heaps
 
-    InitNullDescriptors();
+    myDynamicDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new DynamicDescriptorHeapDX12(2048, 2048, 2048, 2048, 4096u, 256u));
+    myDynamicDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new DynamicDescriptorHeapDX12(1024u, 1024u, 64u));
+
+    myRootSignatureCache.reset(new RootSignatureCacheDX12(myProperties));
 
     return true;
   }
@@ -598,33 +646,129 @@ namespace Fancy {
   void RenderCore_PlatformDX12::InitNullDescriptors()
   {
     // Create null descriptors to use as binding-dummies in descriptor tables where some elements are optimized away (e.g. because of unused resources)
+    for (uint i = 0; i < (uint) GpuResourceDimension::NUM; ++i)
+    {
+      D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+      srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+      if (i == (uint)GpuResourceDimension::UNKONWN || i == (uint)GpuResourceDimension::BUFFER)
+        srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+      else
+        srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+      srvDesc.ViewDimension = GetSRVDimension(static_cast<GpuResourceDimension>(i));
+
+      switch(srvDesc.ViewDimension)
+      {
+        case D3D12_SRV_DIMENSION_BUFFER: 
+          srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+          srvDesc.Buffer.FirstElement = 0;
+          srvDesc.Buffer.NumElements = 1;
+          break;
+        case D3D12_SRV_DIMENSION_TEXTURE1D: 
+          srvDesc.Texture1D.MipLevels = 1;
+          srvDesc.Texture1D.MostDetailedMip = 0;
+          srvDesc.Texture1D.ResourceMinLODClamp = 0.0f;
+          break;
+        case D3D12_SRV_DIMENSION_TEXTURE1DARRAY: 
+          srvDesc.Texture1DArray.MipLevels = 1;
+          srvDesc.Texture1DArray.MostDetailedMip = 0;
+          srvDesc.Texture1DArray.ResourceMinLODClamp = 0.0f;
+          srvDesc.Texture1DArray.ArraySize = 1;
+          srvDesc.Texture1DArray.FirstArraySlice = 0;
+          break;
+        case D3D12_SRV_DIMENSION_TEXTURE2D: 
+          srvDesc.Texture2D.MipLevels = 1;
+          srvDesc.Texture2D.MostDetailedMip = 0;
+          srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+          srvDesc.Texture2D.PlaneSlice = 0;
+          break;
+        case D3D12_SRV_DIMENSION_TEXTURE2DARRAY: 
+          srvDesc.Texture2DArray.MipLevels = 1;
+          srvDesc.Texture2DArray.MostDetailedMip = 0;
+          srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+          srvDesc.Texture2DArray.ArraySize = 1;
+          srvDesc.Texture2DArray.FirstArraySlice = 0;
+          srvDesc.Texture2DArray.PlaneSlice = 0;
+          break;
+        case D3D12_SRV_DIMENSION_TEXTURE3D: 
+          srvDesc.Texture3D.MipLevels = 1;
+          srvDesc.Texture3D.MostDetailedMip = 0;
+          srvDesc.Texture3D.ResourceMinLODClamp = 0.0f;
+          break;
+        case D3D12_SRV_DIMENSION_TEXTURECUBE: 
+          srvDesc.TextureCube.MipLevels = 1;
+          srvDesc.TextureCube.MostDetailedMip = 0;
+          srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+          break;
+        case D3D12_SRV_DIMENSION_TEXTURECUBEARRAY: 
+          srvDesc.TextureCubeArray.MipLevels = 1;
+          srvDesc.TextureCubeArray.MostDetailedMip = 0;
+          srvDesc.TextureCubeArray.ResourceMinLODClamp = 0.0f;
+          srvDesc.TextureCubeArray.First2DArrayFace = 0;
+          srvDesc.TextureCubeArray.NumCubes = 1;
+          break;
+        default: ASSERT(false);
+      }
+
+      DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      ourDevice->CreateShaderResourceView(nullptr, &srvDesc, descriptor.myCpuHandle);
+      mySRVNullDescriptors[i] = descriptor;
+
+      D3D12_UAV_DIMENSION uavDimension;
+      if (TryGetUAVDimension(static_cast<GpuResourceDimension>(i), uavDimension))
+      {
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+        if (i == (uint)GpuResourceDimension::UNKONWN || i == (uint)GpuResourceDimension::BUFFER)
+          uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+        else
+          uavDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        uavDesc.ViewDimension = uavDimension;
+
+        switch(uavDimension)
+        {
+        case D3D12_UAV_DIMENSION_BUFFER:
+          uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+          uavDesc.Buffer.FirstElement = 0;
+          uavDesc.Buffer.NumElements = 1;
+          break;
+        case D3D12_UAV_DIMENSION_TEXTURE1D:
+          uavDesc.Texture1D.MipSlice = 0;
+          break;
+        case D3D12_UAV_DIMENSION_TEXTURE1DARRAY: 
+          uavDesc.Texture1DArray.MipSlice = 0;
+          uavDesc.Texture1DArray.ArraySize = 0;
+          uavDesc.Texture1DArray.FirstArraySlice = 0;
+          break;
+        case D3D12_UAV_DIMENSION_TEXTURE2D: 
+          uavDesc.Texture2D.MipSlice = 0;
+          uavDesc.Texture2D.PlaneSlice = 0;
+          break;
+        case D3D12_UAV_DIMENSION_TEXTURE2DARRAY: 
+          uavDesc.Texture2DArray.MipSlice = 0;
+          uavDesc.Texture2DArray.ArraySize = 0;
+          uavDesc.Texture2DArray.FirstArraySlice = 0;
+          uavDesc.Texture2DArray.PlaneSlice = 0;
+          break;
+        case D3D12_UAV_DIMENSION_TEXTURE3D:
+          uavDesc.Texture3D.MipSlice = 0;
+          uavDesc.Texture3D.FirstWSlice = 0;
+          uavDesc.Texture3D.WSize = 1;
+          break;
+        default: ASSERT(false);
+        }
+
+        descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        ourDevice->CreateUnorderedAccessView(nullptr, nullptr, &uavDesc, descriptor.myCpuHandle);
+        myUAVNullDescriptors[i] = descriptor;
+      }
+    }
+
     DescriptorDX12 descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
-    srvDesc.Buffer.FirstElement = 0;
-    srvDesc.Buffer.NumElements = 1;
-    ourDevice->CreateShaderResourceView(nullptr, &srvDesc, descriptor.myCpuHandle);
-    myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_SRV] = descriptor;
-
-    descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-    uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
-    uavDesc.Buffer.FirstElement = 0;
-    uavDesc.Buffer.NumElements = 1;
-    ourDevice->CreateUnorderedAccessView(nullptr, nullptr, &uavDesc, descriptor.myCpuHandle);
-    myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_UAV] = descriptor;
-
-    descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
     cbvDesc.BufferLocation = 0ull;
     cbvDesc.SizeInBytes = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
     ourDevice->CreateConstantBufferView(&cbvDesc, descriptor.myCpuHandle);
-    myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_CBV] = descriptor;
+    myCBVNullDescriptor = descriptor;
 
     descriptor = AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
     D3D12_SAMPLER_DESC samplerDesc = {};
@@ -640,7 +784,7 @@ namespace Fancy {
     samplerDesc.MinLOD = 0.0f;
     samplerDesc.MipLODBias = 0.0f;
     ourDevice->CreateSampler(&samplerDesc, descriptor.myCpuHandle);
-    myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER] = descriptor;
+    mySamplerNullDescriptor = descriptor;
   }
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::Shutdown()
@@ -659,6 +803,8 @@ namespace Fancy {
 
     for (UniquePtr<DynamicDescriptorHeapDX12>& dynamicDescriptorHeap : myDynamicDescriptorAllocators)
       dynamicDescriptorHeap.reset();
+
+    myRootSignatureCache.reset();
 
     ourDevice.Reset();
   }
@@ -804,6 +950,18 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
     ASSERT_HRESULT(dxgiFactory->CreateSwapChain(GetCommandQueueDX12(CommandListType::Graphics)->myQueue.Get(), &swapChainDesc, &swapChain));
     return swapChain;
+  }
+//---------------------------------------------------------------------------//
+  const DescriptorDX12& RenderCore_PlatformDX12::GetNullDescriptor(D3D12_DESCRIPTOR_RANGE_TYPE aType, GpuResourceDimension aResouceDimension) const
+  {
+    switch(aType)
+    {
+    case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return mySRVNullDescriptors[(uint)aResouceDimension];
+    case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return myUAVNullDescriptors[(uint)aResouceDimension];
+    case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return myCBVNullDescriptor;
+    case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return mySamplerNullDescriptor;
+    default: ASSERT(false); return mySamplerNullDescriptor;
+    }
   }
 //---------------------------------------------------------------------------//
 } 

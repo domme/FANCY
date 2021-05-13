@@ -181,7 +181,8 @@ namespace Fancy
     TEXTURE_CUBE,
     TEXTURE_1D_ARRAY,
     TEXTURE_2D_ARRAY,
-    TEXTURE_CUBE_ARRAY
+    TEXTURE_CUBE_ARRAY,
+    NUM
   };
 //---------------------------------------------------------------------------//
   enum class GpuBufferBindFlags

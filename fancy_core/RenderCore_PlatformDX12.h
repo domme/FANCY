@@ -51,7 +51,7 @@ namespace Fancy {
     static D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE GetRaytracingBVHType(RaytracingBVHType aType);
     static D3D12_RAYTRACING_GEOMETRY_TYPE GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aGeoType);
 
-    RenderCore_PlatformDX12();
+    RenderCore_PlatformDX12(const RenderPlatformProperties& someProperties);
     ~RenderCore_PlatformDX12() override;
     // Disallow copy and assignment (class contains a list of unique_ptrs)
     RenderCore_PlatformDX12(const RenderCore_PlatformDX12&) = delete;
@@ -95,10 +95,10 @@ namespace Fancy {
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
-    const DescriptorDX12& GetNullDescriptor(D3D12_DESCRIPTOR_RANGE_TYPE aType) const { return myNullDescriptors[aType]; }
+    const DescriptorDX12& GetNullDescriptor(D3D12_DESCRIPTOR_RANGE_TYPE aType, GpuResourceDimension aResouceDimension) const;
 
     PipelineStateCacheDX12& GetPipelineStateCache() { return myPipelineStateCache; }
-    RootSignatureCacheDX12& GetRootSingatureCache() { return myRootSignatureCache; }
+    RootSignatureCacheDX12* GetRootSingatureCache() { return myRootSignatureCache.get(); }
     DynamicDescriptorHeapDX12* GetDynamicDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return myDynamicDescriptorAllocators[aType].get(); }
 
   // protected:
@@ -112,10 +112,13 @@ namespace Fancy {
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
     float64 myGpuTicksToMsFactor[(uint)CommandListType::NUM];
 
-    DescriptorDX12 myNullDescriptors[D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER + 1];
+    DescriptorDX12 mySRVNullDescriptors[(uint)GpuResourceDimension::NUM];
+    DescriptorDX12 myUAVNullDescriptors[(uint)GpuResourceDimension::NUM];
+    DescriptorDX12 mySamplerNullDescriptor;
+    DescriptorDX12 myCBVNullDescriptor;
 
     PipelineStateCacheDX12 myPipelineStateCache;
-    RootSignatureCacheDX12 myRootSignatureCache;
+    UniquePtr<RootSignatureCacheDX12> myRootSignatureCache;
   };
 //---------------------------------------------------------------------------//
 }

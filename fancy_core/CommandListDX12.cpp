@@ -209,6 +209,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DescriptorDX12 CommandListDX12::AllocateDynamicDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors)
   {
+    DynamicDescriptorHeapDX12* dynamicDescriptorAllocator = RenderCore::GetPlatformDX12()->GetDynamicDescriptorAllocator(aType);
+    ASSERT(dynamicDescriptorAllocator->GetNumTransientDescriptorsPerRange() >= aNumDescriptors, "Can't allocate %d shader-visible descriptors: transient range-size is too small", aNumDescriptors);
+
     if (!myDynamicDescriptorRange[aType].empty())
     {
       DynamicDescriptorHeapDX12::RangeAllocation& range = myDynamicDescriptorRange[aType].back();
@@ -220,7 +223,6 @@ namespace Fancy {
       }
     }
 
-    DynamicDescriptorHeapDX12* dynamicDescriptorAllocator = RenderCore::GetPlatformDX12()->GetDynamicDescriptorAllocator(aType);
     myDynamicDescriptorRange[aType].push_back(dynamicDescriptorAllocator->AllocateTransientRange());
     return AllocateDynamicDescriptors(aType, aNumDescriptors);
   }
@@ -254,7 +256,7 @@ namespace Fancy {
         }
         else // Not bound, pick an appropriate null descriptor
         {
-          srcDescriptors[numSrcRegions] = platformDx12->GetNullDescriptor(srcRange.myType).myCpuHandle;
+          srcDescriptors[numSrcRegions] = platformDx12->GetNullDescriptor(srcRange.myType, GpuResourceDimension::UNKONWN).myCpuHandle;
         }
 
         ++numSrcRegions;
@@ -732,9 +734,11 @@ namespace Fancy {
     BindInternal(*resourceInfo, viewDataDx12.myDescriptor, gpuVirtualAddress, anArrayIndex);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::BindResourceViewSet(const GpuResourceViewSet* aSet, uint aSetOrTableIndex)
+  void CommandListDX12::BindResourceViewSet(const GpuResourceViewSet* /*aSet*/, uint /*aSetOrTableIndex*/)
   {
-    ASSERT(myRootSignatureBindings != nullptr);
+    ASSERT(false, "Deprecated!");
+
+    /*ASSERT(myRootSignatureBindings != nullptr);
     ASSERT(aSetOrTableIndex < (uint)myRootSignatureBindings->myDescriptorTables.size());
 
     RootSignatureBindingsDX12::DescriptorTable& rootSigTable = *myRootSignatureBindings->myDescriptorTables[aSetOrTableIndex];
@@ -778,7 +782,7 @@ namespace Fancy {
     }
 
     rootSigTable.myConstantTableStartDescriptor = tableStartHandle;
-    rootSigTable.myIsDirty = true;
+    rootSigTable.myIsDirty = true;*/
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex /*= 0u*/)
@@ -970,22 +974,28 @@ namespace Fancy {
     const ShaderPipelineDX12* pipelineDx12 = static_cast<const ShaderPipelineDX12*>(aPipeline);
     ID3D12RootSignature* rootSignature = pipelineDx12->GetRootSignature();
 
-    if (aPipeline->IsComputePipeline())
+    if (myRootSignature != rootSignature)
     {
-      if (myRootSignature != rootSignature)
-      {
-        myRootSignature = rootSignature;
+      myRootSignature = rootSignature;
+      myRootSignatureBindings.reset(new RootSignatureBindingsDX12(*pipelineDx12->GetRootSignatureLayout()));
+
+      if (aPipeline->IsComputePipeline())
         myCommandList->SetComputeRootSignature(myRootSignature);
-        myRootSignatureBindings.reset(new RootSignatureBindingsDX12(*pipelineDx12->GetRootSignatureLayout()));
-      }
-    }
-    else
-    {
-      if (myRootSignature != rootSignature)
-      {
-        myRootSignature = rootSignature;
+      else
         myCommandList->SetGraphicsRootSignature(rootSignature);
-        myRootSignatureBindings.reset(new RootSignatureBindingsDX12(*pipelineDx12->GetRootSignatureLayout()));
+
+      // Hacky support for bindless: Just bind all the bindless descriptor table starts up front
+      for (uint i = 0; i < DynamicDescriptorHeapDX12::BINDLESS_NUM; ++i)
+      {
+        if (myRootSignatureBindings->myRootParameters.size() > i 
+          && myRootSignatureBindings->myRootParameters[i].myIsDescriptorTable 
+          && myRootSignatureBindings->myRootParameters[i].myDescriptorTable.myRanges.size() == 1
+          && myRootSignatureBindings->myRootParameters[i].myDescriptorTable.myHasUnboundedRanges)
+        {
+          myRootSignatureBindings->myRootParameters[i].myDescriptorTable.myIsDirty = true;
+          myRootSignatureBindings->myRootParameters[i].myDescriptorTable.myConstantTableStartDescriptor =
+            RenderCore::GetPlatformDX12()->GetDynamicDescriptorAllocator(i == DynamicDescriptorHeapDX12::BINDLESS_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)->GetBindlessHeapStart((DynamicDescriptorHeapDX12::BindlessDescriptorType) i);
+        }
       }
     }
   }

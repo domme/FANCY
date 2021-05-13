@@ -311,7 +311,9 @@ namespace Fancy {
         {
           const D3D12_DESCRIPTOR_RANGE1& descRange = rDescTable.pDescriptorRanges[iDescRange];
 
-          if (descRange.BaseShaderRegister == aResourceDesc.BindPoint && locAreResourceTypesEqual(aResourceDesc.Type, descRange.RangeType))
+          if (descRange.BaseShaderRegister == aResourceDesc.BindPoint &&
+              descRange.RegisterSpace == aResourceDesc.Space &&         
+              locAreResourceTypesEqual(aResourceDesc.Type, descRange.RangeType))
           {
             resourceInfo.myIsDescriptorTableEntry = true;
             resourceInfo.myRootParamIndex = iRootParam;
@@ -401,38 +403,48 @@ namespace Fancy {
       return false;
     }
 
-    // Extract and parse RootSignature
-    uint rootSigPartIdx;
-    success = dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx);
-    ASSERT(success == S_OK);
-
-    ID3D12Device* d3dDevice = RenderCore::GetPlatformDX12()->GetDevice();
+    RootSignatureCacheDX12* rootSigCache = RenderCore::GetPlatformDX12()->GetRootSingatureCache();
 
     ShaderCompiledDataDX12 compiledNativeData;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-    success = d3dDevice->CreateRootSignature(0u, compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
-    compiledNativeData.myRootSignature = rootSignature;
-    if (S_OK != success)
+
+    // Extract and parse the RootSignature
+    uint rootSigPartIdx;
+    const bool hasHLSLRootSig = dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx);
+    if (!hasHLSLRootSig)
     {
-      LOG_ERROR("Failed creating the root signature from shader");
-      return false;
+      // No root signature specified in HLSL - Use the default (bindless) root signature
+      compiledNativeData.myRootSignature = rootSigCache->GetBindlessDefaultRootSignature();
+      compiledNativeData.myRootSignatureLayout = rootSigCache->GetBindlessDefaultRootSignatureLayout();
     }
-
-    Microsoft::WRL::ComPtr<ID3D12VersionedRootSignatureDeserializer> rsDeserializer;
-    success = D3D12CreateVersionedRootSignatureDeserializer(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rsDeserializer));
-    if (S_OK != success)
+    else
     {
-      LOG_ERROR("Failed deserializing the shader root signature");
-      return false;
+      ID3D12Device* d3dDevice = RenderCore::GetPlatformDX12()->GetDevice();
+
+      Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
+      success = d3dDevice->CreateRootSignature(0u, compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+      compiledNativeData.myRootSignature = rootSignature;
+      if (S_OK != success)
+      {
+        LOG_ERROR("Failed creating the root signature from shader");
+        return false;
+      }
+
+      Microsoft::WRL::ComPtr<ID3D12VersionedRootSignatureDeserializer> rsDeserializer;
+      success = D3D12CreateVersionedRootSignatureDeserializer(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rsDeserializer));
+      if (S_OK != success)
+      {
+        LOG_ERROR("Failed deserializing the shader root signature");
+        return false;
+      }
+
+      const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetUnconvertedRootSignatureDesc();
+      ASSERT(rsDesc->Version == D3D_ROOT_SIGNATURE_VERSION_1_1);
+      compiledNativeData.myRootSignatureLayout.reset(new RootSignatureLayoutDX12(rsDesc->Desc_1_1));
+
+      // Make sure that two different shaders with matching rootsingatures actually use the same data so that rootsignatures and rootsignature-layouts can be compared easily by pointer (needed for detecting resource-rebinds in the commandlist)
+      RenderCore::GetPlatformDX12()->GetRootSingatureCache()->ReplaceWithCached(compiledNativeData.myRootSignatureLayout, compiledNativeData.myRootSignature);
+      // TODO: Strip the root signature and reflection data from the shader blob
     }
-
-    const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetUnconvertedRootSignatureDesc();
-    ASSERT(rsDesc->Version == D3D_ROOT_SIGNATURE_VERSION_1_1);
-    compiledNativeData.myRootSignatureLayout.reset(new RootSignatureLayoutDX12(rsDesc->Desc_1_1));
-
-    // Make sure that two different shaders with matching rootsingatures actually use the same data so that rootsignatures and rootsignature-layouts can be compared easily by pointer (needed for detecting resource-rebinds in the commandlist)
-    RenderCore::GetPlatformDX12()->GetRootSingatureCache().ReplaceWithCached(compiledNativeData.myRootSignatureLayout, compiledNativeData.myRootSignature);
-    // TODO: Strip the root signature and reflection data from the shader blob
 
     // Reflect the shader resources
     //---------------------------------------------------------------------------//

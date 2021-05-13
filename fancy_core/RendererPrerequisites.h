@@ -48,4 +48,14 @@ namespace Fancy {
     bool myHasAsyncCopy = false;
   };
 //---------------------------------------------------------------------------//
+  struct RenderPlatformProperties
+  {
+    unsigned int myNumBindlessTexturesRWTextures = 2048u;
+    unsigned int myNumBindlessBuffersRWBuffers = 2048u;
+    unsigned int myNumBindlessSamplers = 1024u;
+    unsigned int myNumLocalSRVsUAVs = 16u;
+    unsigned int myNumLocalSamplers = 16u;
+    unsigned int myNumLocalCBuffers = 16u;
+  };
+//---------------------------------------------------------------------------//
 }  // end of namespace Fancy

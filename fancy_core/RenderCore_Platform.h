@@ -31,11 +31,15 @@ namespace Fancy {
   struct RaytracingBVHGeometry;
   class RaytracingBVH;
   struct RaytracingBVHProps;
-//---------------------------------------------------------------------------//  
+//---------------------------------------------------------------------------//
+  
   class RenderCore_Platform
   {
   public:
-    RenderCore_Platform(RenderPlatformType aType) : myType(aType) {}
+    RenderCore_Platform(RenderPlatformType aType, const RenderPlatformProperties& someProperties)
+    : myProperties(someProperties)
+    , myType(aType) {}
+
     virtual ~RenderCore_Platform() = default;
 
     virtual bool IsInitialized() = 0;
@@ -45,6 +49,7 @@ namespace Fancy {
     virtual void EndFrame() {}
 
     RenderPlatformType GetType() const { return myType; }
+    const RenderPlatformProperties& GetProperties() const { return myProperties; }
     const RenderPlatformCaps& GetCaps() const { return myCaps; }
     virtual RenderOutput* CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams) = 0;
     virtual ShaderCompiler* CreateShaderCompiler() = 0;
@@ -65,6 +70,7 @@ namespace Fancy {
 
   protected:
     RenderPlatformCaps myCaps;
+    RenderPlatformProperties myProperties;
     RenderPlatformType myType;
   };
 //---------------------------------------------------------------------------//

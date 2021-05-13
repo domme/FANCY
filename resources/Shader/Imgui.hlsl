@@ -44,7 +44,7 @@ ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0, _LocalCBufferSpace);
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_FRAGMENT)  
-  Texture2D texture0 : register(t0, _LocalTexSpace);
+  Texture2D texture0 : register(t0, _LocalSRVSpace);
   SamplerState sampler_default : register(s0, _LocalSamplerSpace);
  
   [RootSignature(RootSig_Default)]

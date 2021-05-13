@@ -72,7 +72,7 @@ namespace Fancy
         }
         else // Not bound, pick an appropriate null descriptor
         {
-          srcDescriptors.push_back(platformDx12->GetNullDescriptor(rangeType).myCpuHandle);
+          srcDescriptors.push_back(platformDx12->GetNullDescriptor(rangeType, GpuResourceDimension::UNKONWN).myCpuHandle);
         }
       }
     }

@@ -17,6 +17,7 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
     eastl::vector<ShaderResourceInfoDX12> myResourceInfos;
     SharedPtr<RootSignatureLayoutDX12> myRootSignatureLayout;
+    bool myHasBindlessRootSignature;
   };
 //---------------------------------------------------------------------------//
   class ShaderDX12 : public Shader

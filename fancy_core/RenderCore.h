@@ -73,7 +73,7 @@ namespace Fancy {
     };
 
     /// Init platform-independent stuff
-    static void Init();
+    static void Init(const RenderPlatformProperties& someProperties);
     static void BeginFrame();
     static void EndFrame();
     static void Shutdown();
@@ -157,7 +157,7 @@ namespace Fancy {
   protected:
     RenderCore() = default;
 
-    static void Init_0_Platform();
+    static void Init_0_Platform(const RenderPlatformProperties& someProperties);
     static void Init_1_Services();
     static void Init_2_Resources();
 

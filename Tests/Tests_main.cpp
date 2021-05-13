@@ -58,7 +58,9 @@ void Init(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArgum
   windowParams.myWidth = 1280;
   windowParams.myHeight = 720;
   windowParams.myTitle = "Fancy Engine Tests";
-  myRuntime = FancyRuntime::Init(anInstanceHandle, someArguments, aNumArguments, windowParams);
+
+  Fancy::RenderPlatformProperties renderProperties;  // keep defaults
+  myRuntime = FancyRuntime::Init(anInstanceHandle, someArguments, aNumArguments, windowParams, renderProperties);
 
   myRenderOutput = myRuntime->GetRenderOutput();
   myWindow = myRenderOutput->GetWindow();

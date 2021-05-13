@@ -16,7 +16,7 @@ namespace Fancy {
   class FancyRuntime
   {
   public:
-    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams);
+    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams, const RenderPlatformProperties& someRenderProperties);
     static void Shutdown();
     static FancyRuntime* GetInstance();
 
