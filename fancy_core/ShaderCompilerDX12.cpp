@@ -2,14 +2,11 @@
 #include "ShaderCompilerDX12.h"
 
 #include "Shader.h"
-#include "PathService.h"
-
 #include "ShaderPipeline.h"
 
 #include "ShaderDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
-#include "RootSignatureDX12.h"
 
 #include <dxc/dxcapi.h>
 #include <dxc/DxilContainer/DxilContainer.h>
@@ -207,181 +204,6 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  bool locAreResourceTypesEqual(D3D_SHADER_INPUT_TYPE anInputType, D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
-  {
-    switch (anInputType)
-    {
-      case D3D_SIT_CBUFFER: 
-        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-
-      case D3D_SIT_TBUFFER:
-      case D3D_SIT_TEXTURE:
-      case D3D_SIT_STRUCTURED:
-      case D3D_SIT_BYTEADDRESS:
-        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-
-      case D3D_SIT_SAMPLER:
-        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
-
-      case D3D_SIT_UAV_RWTYPED:
-      case D3D_SIT_UAV_RWSTRUCTURED:
-      case D3D_SIT_UAV_RWBYTEADDRESS:
-      case D3D_SIT_UAV_APPEND_STRUCTURED:
-      case D3D_SIT_UAV_CONSUME_STRUCTURED:
-      case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-        return aRangeType == D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-
-      default: return false;
-    }
-  }
-//---------------------------------------------------------------------------//
-  bool locAreResourceTypesEqual(D3D_SHADER_INPUT_TYPE anInputType, D3D12_ROOT_PARAMETER_TYPE aParamType)
-  {
-    switch (anInputType)
-    {
-    case D3D_SIT_CBUFFER:
-      return aParamType == D3D12_ROOT_PARAMETER_TYPE_CBV;
-
-    case D3D_SIT_TBUFFER:
-    case D3D_SIT_TEXTURE:
-    case D3D_SIT_STRUCTURED:
-    case D3D_SIT_BYTEADDRESS:
-      return aParamType == D3D12_ROOT_PARAMETER_TYPE_SRV;
-
-    case D3D_SIT_UAV_RWTYPED:
-    case D3D_SIT_UAV_RWSTRUCTURED:
-    case D3D_SIT_UAV_RWBYTEADDRESS:
-    case D3D_SIT_UAV_APPEND_STRUCTURED:
-    case D3D_SIT_UAV_CONSUME_STRUCTURED:
-    case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-      return aParamType == D3D12_ROOT_PARAMETER_TYPE_UAV;
-
-    default: return false;
-    }
-  }
-//---------------------------------------------------------------------------//
-  ShaderResourceTypeDX12 locGetShaderResourceInfoType(D3D12_ROOT_PARAMETER_TYPE aRootParamType)
-  {
-    switch (aRootParamType) 
-    { 
-      case D3D12_ROOT_PARAMETER_TYPE_CBV: return ShaderResourceTypeDX12::CBV;
-      case D3D12_ROOT_PARAMETER_TYPE_SRV: return ShaderResourceTypeDX12::SRV;
-      case D3D12_ROOT_PARAMETER_TYPE_UAV: return ShaderResourceTypeDX12::UAV;
-      default: ASSERT(false); return ShaderResourceTypeDX12::CBV;
-    }
-  }
-//---------------------------------------------------------------------------//
-  ShaderResourceTypeDX12 locGetShaderResourceInfoType(D3D12_DESCRIPTOR_RANGE_TYPE aRangeType)
-  {
-    switch (aRangeType)
-    {
-    case D3D12_DESCRIPTOR_RANGE_TYPE_CBV: return ShaderResourceTypeDX12::CBV;
-    case D3D12_DESCRIPTOR_RANGE_TYPE_SRV: return ShaderResourceTypeDX12::SRV;
-    case D3D12_DESCRIPTOR_RANGE_TYPE_UAV: return ShaderResourceTypeDX12::UAV;
-    case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER: return ShaderResourceTypeDX12::Sampler;
-    default: ASSERT(false); return ShaderResourceTypeDX12::CBV;
-    }
-  }
-//---------------------------------------------------------------------------//
-  bool locAddShaderResourceInfo(const D3D12_SHADER_INPUT_BIND_DESC& aResourceDesc, const D3D12_ROOT_SIGNATURE_DESC1& aRsDesc, eastl::vector<ShaderResourceInfoDX12>& someResourceInfos)
-  {
-    if (aResourceDesc.Type == D3D_SIT_SAMPLER) // This could be a static sampler that doesn't need an entry in the resourceInfos since its just defined in the root signature
-    {
-      for (uint i = 0u; i < aRsDesc.NumStaticSamplers; ++i)
-      {
-        if (aResourceDesc.BindPoint == aRsDesc.pStaticSamplers[i].ShaderRegister)
-          return true;  // Ignore this resource - not an actual resource that needs binding from the app
-      }
-    }
-
-    const char* name = aResourceDesc.Name;
-
-    ShaderResourceInfoDX12 resourceInfo;
-    resourceInfo.myNameHash = MathUtil::Hash(name);
-    resourceInfo.myName = name;
-
-    for (uint iRootParam = 0u; iRootParam < aRsDesc.NumParameters; ++iRootParam)
-    {
-      const D3D12_ROOT_PARAMETER1& rParam = aRsDesc.pParameters[iRootParam];
-      if (rParam.ParameterType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE)
-      {
-        const D3D12_ROOT_DESCRIPTOR_TABLE1& rDescTable = rParam.DescriptorTable;
-        uint descriptorOffsetInTable = 0u;
-        for (uint iDescRange = 0u; iDescRange < rDescTable.NumDescriptorRanges; ++iDescRange)
-        {
-          const D3D12_DESCRIPTOR_RANGE1& descRange = rDescTable.pDescriptorRanges[iDescRange];
-
-          if (descRange.BaseShaderRegister == aResourceDesc.BindPoint &&
-              descRange.RegisterSpace == aResourceDesc.Space &&         
-              locAreResourceTypesEqual(aResourceDesc.Type, descRange.RangeType))
-          {
-            resourceInfo.myIsDescriptorTableEntry = true;
-            resourceInfo.myRootParamIndex = iRootParam;
-            ASSERT(descriptorOffsetInTable != UINT_MAX || descRange.OffsetInDescriptorsFromTableStart != D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND, "Ranges following an unbounded range must have an explicit offset");
-            resourceInfo.myDescriptorOffsetInTable = descRange.OffsetInDescriptorsFromTableStart == D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND ? descriptorOffsetInTable : descRange.OffsetInDescriptorsFromTableStart;
-            resourceInfo.myType = locGetShaderResourceInfoType(descRange.RangeType);
-            resourceInfo.myNumDescriptors = descRange.NumDescriptors;
-            resourceInfo.myDescriptorTableRangeIdx = iDescRange;
-
-            someResourceInfos.push_back(resourceInfo);
-
-            return true;
-          }
-
-          if (descRange.NumDescriptors == UINT_MAX)  // Unbounded range. Usually appears as the last range in the table definition
-            descriptorOffsetInTable = UINT_MAX;
-          else
-            descriptorOffsetInTable += descRange.NumDescriptors;
-        }
-      }
-      else if (rParam.ParameterType != D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS)
-      {
-        if (rParam.Descriptor.ShaderRegister == aResourceDesc.BindPoint && locAreResourceTypesEqual(aResourceDesc.Type, rParam.ParameterType))
-        {
-          resourceInfo.myIsDescriptorTableEntry = false;
-          resourceInfo.myRootParamIndex = iRootParam;
-          resourceInfo.myType = locGetShaderResourceInfoType(rParam.ParameterType);
-          resourceInfo.myNumDescriptors = 1u;
-
-          someResourceInfos.push_back(resourceInfo);
-
-          return true;
-        }
-      }
-      else
-      {
-        LOG_ERROR("Unsupported root parameter type for resource %s. FANCY supports only CBVs as root descriptors and doesn't support any root constants", aResourceDesc.Name);
-      }
-    }
-
-    return false;
-  }
-//---------------------------------------------------------------------------//
-  bool locReflectResources(ID3D12ShaderReflection* aReflector, const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* aRootSignatureDesc, 
-    eastl::vector<ShaderResourceInfoDX12>& someResourceInfosOut, bool& aHasUnorderedWritesOut)
-  {
-    ASSERT(aRootSignatureDesc->Version == D3D_ROOT_SIGNATURE_VERSION_1_1);
-    const D3D12_ROOT_SIGNATURE_DESC1& rsDesc = aRootSignatureDesc->Desc_1_1;
-
-    D3D12_SHADER_DESC shaderDesc;
-    aReflector->GetDesc(&shaderDesc);
-
-    bool hasUnorderedWrites = false;
-    for (uint i = 0u; i < shaderDesc.BoundResources && !hasUnorderedWrites; ++i)
-    {
-      D3D12_SHADER_INPUT_BIND_DESC resourceDesc;
-      ASSERT_HRESULT(aReflector->GetResourceBindingDesc(i, &resourceDesc));
-
-      hasUnorderedWrites |= locIsRwResource(resourceDesc.Type);
-
-      if (!locAddShaderResourceInfo(resourceDesc, rsDesc, someResourceInfosOut))
-        return false;
-    }
-    aHasUnorderedWritesOut = hasUnorderedWrites;
-
-    return true;
-  }
-//---------------------------------------------------------------------------//
   bool ShaderCompilerDX12::Compile_Internal(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, ShaderCompilerResult* anOutput) const
   {
     DxcShaderCompiler::Config config =
@@ -403,50 +225,12 @@ namespace Fancy {
       return false;
     }
 
-    RootSignatureCacheDX12* rootSigCache = RenderCore::GetPlatformDX12()->GetRootSingatureCache();
-
     ShaderCompiledDataDX12 compiledNativeData;
 
-    // Extract and parse the RootSignature
     uint rootSigPartIdx;
-    const bool hasHLSLRootSig = dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx);
-    if (!hasHLSLRootSig)
-    {
-      // No root signature specified in HLSL - Use the default (bindless) root signature
-      compiledNativeData.myRootSignature = rootSigCache->GetBindlessDefaultRootSignature();
-      compiledNativeData.myRootSignatureLayout = rootSigCache->GetBindlessDefaultRootSignatureLayout();
-    }
-    else
-    {
-      ID3D12Device* d3dDevice = RenderCore::GetPlatformDX12()->GetDevice();
+    ASSERT(!dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx), "Custom HLSL-specified root signatures are not supported");
 
-      Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-      success = d3dDevice->CreateRootSignature(0u, compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
-      compiledNativeData.myRootSignature = rootSignature;
-      if (S_OK != success)
-      {
-        LOG_ERROR("Failed creating the root signature from shader");
-        return false;
-      }
-
-      Microsoft::WRL::ComPtr<ID3D12VersionedRootSignatureDeserializer> rsDeserializer;
-      success = D3D12CreateVersionedRootSignatureDeserializer(compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize(), IID_PPV_ARGS(&rsDeserializer));
-      if (S_OK != success)
-      {
-        LOG_ERROR("Failed deserializing the shader root signature");
-        return false;
-      }
-
-      const D3D12_VERSIONED_ROOT_SIGNATURE_DESC* rsDesc = rsDeserializer->GetUnconvertedRootSignatureDesc();
-      ASSERT(rsDesc->Version == D3D_ROOT_SIGNATURE_VERSION_1_1);
-      compiledNativeData.myRootSignatureLayout.reset(new RootSignatureLayoutDX12(rsDesc->Desc_1_1));
-
-      // Make sure that two different shaders with matching rootsingatures actually use the same data so that rootsignatures and rootsignature-layouts can be compared easily by pointer (needed for detecting resource-rebinds in the commandlist)
-      RenderCore::GetPlatformDX12()->GetRootSingatureCache()->ReplaceWithCached(compiledNativeData.myRootSignatureLayout, compiledNativeData.myRootSignature);
-      // TODO: Strip the root signature and reflection data from the shader blob
-    }
-
-    // Reflect the shader resources
+    // Shader reflection
     //---------------------------------------------------------------------------//
     uint dxilPartIdx;
     success = dxcReflection->FindFirstPartKind(hlsl::DFCC_DXIL, &dxilPartIdx);
@@ -457,12 +241,6 @@ namespace Fancy {
     if (S_OK != success)
     {
       LOG_ERROR("Failed reflecting shader");
-      return false;
-    }
-
-    if (!locReflectResources(reflector.Get(), rsDesc, compiledNativeData.myResourceInfos, anOutput->myProperties.myHasUnorderedWrites))
-    {
-      LOG_ERROR("Failed reflecting shader resources");
       return false;
     }
 

@@ -13,7 +13,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   class DescriptorDX12;
-  class DynamicDescriptorHeapDX12;
+  class ShaderVisibleDescriptorHeapDX12;
   class GpuResourceDX12;
   class GpuResource;
   struct GpuResourceDataDX12;
@@ -50,7 +50,6 @@ namespace Fancy {
     
     void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) override;
     void BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex = 0u) override;
-    void BindResourceViewSet(const GpuResourceViewSet* aSet, uint aSetOrTableIndex) override;
     void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) override;
 
     GpuQuery BeginQuery(GpuQueryType aType) override;
@@ -76,7 +75,6 @@ namespace Fancy {
 
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
 
-    const ShaderResourceInfoDX12* FindShaderResourceInfo(uint64 aNameHash) const;
     void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex);
     void ClearResourceBindings();
 
@@ -103,7 +101,7 @@ namespace Fancy {
     eastl::fixed_vector<D3D12_RESOURCE_BARRIER, kNumCachedBarriers, false> myPendingBarriers;
     D3D12_RESOURCE_STATES myResourceStateMask;
 
-    eastl::fixed_vector<DynamicDescriptorHeapDX12::RangeAllocation, 4> myDynamicDescriptorRange[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    eastl::fixed_vector<ShaderVisibleDescriptorHeapDX12::RangeAllocation, 4> myDynamicDescriptorRange[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 
     struct SubresourceHazardData
     {

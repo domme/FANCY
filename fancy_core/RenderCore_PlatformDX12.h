@@ -5,17 +5,12 @@
 
 #include "DataFormat.h"
 #include "Ptr.h"
-#include "DynamicDescriptorHeapDX12.h"
+#include "ShaderVisibleDescriptorHeapDX12.h"
 #include "StaticDescriptorAllocatorDX12.h"
 #include "GpuMemoryAllocatorDX12.h"
 #include "CommandAllocatorPoolDX12.h"
 #include "CommandQueueDX12.h"
-#include "GpuQueryHeap.h"
 #include "PipelineStateCacheDX12.h"
-#include "RootSignatureCacheDX12.h"
-
-#include "EASTL/vector.h"
-#include "EASTL/fixed_list.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -62,6 +57,7 @@ namespace Fancy {
     void Shutdown() override;
 
     void InitNullDescriptors();
+    void InitRootSignatures();
 
     ID3D12Device8* GetDevice() const { return ourDevice.Get(); }
 
@@ -70,9 +66,6 @@ namespace Fancy {
 
     DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, const char* aDebugName = nullptr);
     void ReleaseDescriptor(const DescriptorDX12& aDescriptor);
-
-    DynamicDescriptorHeapDX12* AllocateDynamicDescriptorHeap(uint aDescriptorCount, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType);
-    void ReleaseDynamicDescriptorHeap(DynamicDescriptorHeapDX12* aHeap, uint64 aFenceVal);
 
     GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName = nullptr);
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
@@ -88,7 +81,6 @@ namespace Fancy {
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
-    GpuResourceViewSet* CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges) override;
     RaytracingBVH* CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
@@ -96,18 +88,17 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<IDXGISwapChain> CreateSwapChain(const DXGI_SWAP_CHAIN_DESC& aSwapChainDesc);
 
     const DescriptorDX12& GetNullDescriptor(D3D12_DESCRIPTOR_RANGE_TYPE aType, GpuResourceDimension aResouceDimension) const;
-
     PipelineStateCacheDX12& GetPipelineStateCache() { return myPipelineStateCache; }
-    RootSignatureCacheDX12* GetRootSingatureCache() { return myRootSignatureCache.get(); }
-    DynamicDescriptorHeapDX12* GetDynamicDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return myDynamicDescriptorAllocators[aType].get(); }
+    ShaderVisibleDescriptorHeapDX12* GetShaderVisibleDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return myShaderVisibleDescriptorHeaps[aType].get(); }
+    ID3D12RootSignature* GetDefaultBindlessRootSignature() const { return myDefaultBindlessRootSignature.Get(); }
 
-  // protected:
     CommandQueueDX12* GetCommandQueueDX12(CommandListType aCommandListType);
 
     Microsoft::WRL::ComPtr<ID3D12Device8> ourDevice;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> myDefaultBindlessRootSignature;
 
     UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    UniquePtr<DynamicDescriptorHeapDX12> myDynamicDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    UniquePtr<ShaderVisibleDescriptorHeapDX12> myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)CpuMemoryAccessType::NUM];
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
     float64 myGpuTicksToMsFactor[(uint)CommandListType::NUM];
@@ -118,7 +109,6 @@ namespace Fancy {
     DescriptorDX12 myCBVNullDescriptor;
 
     PipelineStateCacheDX12 myPipelineStateCache;
-    UniquePtr<RootSignatureCacheDX12> myRootSignatureCache;
   };
 //---------------------------------------------------------------------------//
 }

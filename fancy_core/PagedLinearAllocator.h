@@ -40,10 +40,12 @@ namespace Fancy
     bool IsEmpty() const { return myPages.empty(); }
     Page* GetPageAndOffset(uint64 aVirtualOffset, uint64& anOffsetInPage);
 
+    uint64 GetPageSize() const { return myPageSize; }
+
   //private:
 
-    virtual bool CreatePageData(uint64 aSize, eastl::any& aPageData) = 0;
-    virtual void DestroyPageData(eastl::any& aPageData) = 0;
+    virtual bool CreatePageData(uint64 /*aSize*/, eastl::any& /*aPageData*/) { return true; }
+    virtual void DestroyPageData(eastl::any& /*aPageData*/) {};
 
     bool CreateAndAddPage(uint64 aSize);
     static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd <= aPage.myEnd; }

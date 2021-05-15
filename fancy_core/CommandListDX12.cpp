@@ -209,12 +209,12 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   DescriptorDX12 CommandListDX12::AllocateDynamicDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors)
   {
-    DynamicDescriptorHeapDX12* dynamicDescriptorAllocator = RenderCore::GetPlatformDX12()->GetDynamicDescriptorAllocator(aType);
+    ShaderVisibleDescriptorHeapDX12* dynamicDescriptorAllocator = RenderCore::GetPlatformDX12()->GetShaderVisibleDescriptorHeap(aType);
     ASSERT(dynamicDescriptorAllocator->GetNumTransientDescriptorsPerRange() >= aNumDescriptors, "Can't allocate %d shader-visible descriptors: transient range-size is too small", aNumDescriptors);
 
     if (!myDynamicDescriptorRange[aType].empty())
     {
-      DynamicDescriptorHeapDX12::RangeAllocation& range = myDynamicDescriptorRange[aType].back();
+      ShaderVisibleDescriptorHeapDX12::RangeAllocation& range = myDynamicDescriptorRange[aType].back();
       if (range.myNumDescriptors - range.myNumAllocatedDescriptors >= aNumDescriptors)
       {
         DescriptorDX12 firstDescriptor = range.myHeap->GetDescriptor(range.myFirstDescriptorIndexInHeap + range.myNumAllocatedDescriptors);
@@ -558,9 +558,9 @@ namespace Fancy {
 
     for (uint i = 0u; i < ARRAY_LENGTH(myDynamicDescriptorRange); ++i)
     {
-      DynamicDescriptorHeapDX12* dynamicDescriptorAllocator = RenderCore::GetPlatformDX12()->GetDynamicDescriptorAllocator(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i));
+      ShaderVisibleDescriptorHeapDX12* dynamicDescriptorAllocator = RenderCore::GetPlatformDX12()->GetShaderVisibleDescriptorHeap(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i));
 
-      for (const DynamicDescriptorHeapDX12::RangeAllocation& rangeAlloc : myDynamicDescriptorRange[i])
+      for (const ShaderVisibleDescriptorHeapDX12::RangeAllocation& rangeAlloc : myDynamicDescriptorRange[i])
         dynamicDescriptorAllocator->FreeTransientRange(rangeAlloc, aFenceVal);
 
       myDynamicDescriptorRange[i].clear();
@@ -595,8 +595,8 @@ namespace Fancy {
 
     // We only use one dynamic (shader-visible) descriptor heap per type, so just bind them up-front
     ID3D12DescriptorHeap* dynamicHeaps[] = {
-      platformDx12->GetDynamicDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)->GetHeap(),
-      platformDx12->GetDynamicDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)->GetHeap()
+      platformDx12->GetShaderVisibleDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)->GetHeap(),
+      platformDx12->GetShaderVisibleDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)->GetHeap()
     };
     myCommandList->SetDescriptorHeaps(ARRAY_LENGTH(dynamicHeaps), dynamicHeaps);
     
@@ -985,7 +985,7 @@ namespace Fancy {
         myCommandList->SetGraphicsRootSignature(rootSignature);
 
       // Hacky support for bindless: Just bind all the bindless descriptor table starts up front
-      for (uint i = 0; i < DynamicDescriptorHeapDX12::BINDLESS_NUM; ++i)
+      for (uint i = 0; i < ShaderVisibleDescriptorHeapDX12::BINDLESS_NUM; ++i)
       {
         if (myRootSignatureBindings->myRootParameters.size() > i 
           && myRootSignatureBindings->myRootParameters[i].myIsDescriptorTable 
@@ -994,7 +994,7 @@ namespace Fancy {
         {
           myRootSignatureBindings->myRootParameters[i].myDescriptorTable.myIsDirty = true;
           myRootSignatureBindings->myRootParameters[i].myDescriptorTable.myConstantTableStartDescriptor =
-            RenderCore::GetPlatformDX12()->GetDynamicDescriptorAllocator(i == DynamicDescriptorHeapDX12::BINDLESS_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)->GetBindlessHeapStart((DynamicDescriptorHeapDX12::BindlessDescriptorType) i);
+            RenderCore::GetPlatformDX12()->GetShaderVisibleDescriptorHeap(i == ShaderVisibleDescriptorHeapDX12::BINDLESS_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)->GetBindlessHeapStart((ShaderVisibleDescriptorHeapDX12::BindlessDescriptorType) i);
         }
       }
     }

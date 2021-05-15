@@ -2,7 +2,6 @@
 #include "ShaderDX12.h"
 
 #include "ShaderCompiler.h"
-#include "RenderCore_PlatformDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -12,17 +11,11 @@ namespace Fancy {
   {
     Shader::SetFromCompilerOutput(aCompilerOutput);
 
-    const ShaderCompiledDataDX12& data = eastl::any_cast<const ShaderCompiledDataDX12&>(aCompilerOutput.myNativeData);
+    myCompiledData = eastl::any_cast<const ShaderCompiledDataDX12&>(aCompilerOutput.myNativeData);
 
-    myBytecode = data.myBytecode;
-    myRootSignature = data.myRootSignature;
-    myRootSignatureLayout = data.myRootSignatureLayout;
-
-    myNativeByteCode.pShaderBytecode = myBytecode.data();
-    myNativeByteCode.BytecodeLength = myBytecode.size();
-    myNativeByteCodeHash = MathUtil::ByteHash(myBytecode.data(), myBytecode.size());
-
-    myResourceInfos = data.myResourceInfos;
+    myNativeByteCode.pShaderBytecode = myCompiledData.myBytecode.data();
+    myNativeByteCode.BytecodeLength = myCompiledData.myBytecode.size();
+    myNativeByteCodeHash = MathUtil::ByteHash(myCompiledData.myBytecode.data(), myCompiledData.myBytecode.size());
   }
 //---------------------------------------------------------------------------//
 }

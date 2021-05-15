@@ -1,5 +1,5 @@
 #include "fancy_core_precompile.h"
-#include "DynamicDescriptorHeapDX12.h"
+#include "ShaderVisibleDescriptorHeapDX12.h"
 
 #include "DescriptorDX12.h"
 #include "RenderCore.h"
@@ -11,7 +11,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Private
   {
-    static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(DynamicDescriptorHeapDX12::BindlessDescriptorType aBindlessType)
+    static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(ShaderVisibleDescriptorHeapDX12::BindlessDescriptorType aBindlessType)
     {
       static D3D12_DESCRIPTOR_RANGE_TYPE rangeType[] =
       {
@@ -26,34 +26,46 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  DynamicDescriptorHeapDX12::DynamicDescriptorHeapDX12(uint aNumBindlessTextures, uint aNumBindlessRWTextures, uint aNumBindlessBuffers, uint aNumBindlessRWBuffers,
+  ShaderVisibleDescriptorHeapDX12::ShaderVisibleDescriptorHeapDX12(uint aNumBindlessTextures, uint aNumBindlessRWTextures, uint aNumBindlessBuffers, uint aNumBindlessRWBuffers,
     uint aNumTransientDescriptors, uint aNumTransientDescriptorsPerRange)
     : myOverallNumBindlessDescriptors(aNumBindlessTextures + aNumBindlessBuffers + aNumBindlessRWTextures + aNumBindlessRWBuffers)
     , myNumBindlessDescriptors{ aNumBindlessTextures, aNumBindlessRWTextures, aNumBindlessBuffers, aNumBindlessRWBuffers, 0 }
     , myNumTransientDescriptors(aNumTransientDescriptors)
     , myNumTransientDescriptorsPerRange(aNumTransientDescriptorsPerRange)
-    , myNextFreeBindlessDescriptorIdx{}
     , myNumTransientRanges(aNumTransientDescriptors / aNumTransientDescriptorsPerRange)
+    , myBindlessAllocators{
+      PagedLinearAllocator(aNumBindlessTextures),
+      PagedLinearAllocator(aNumBindlessRWTextures),
+      PagedLinearAllocator(aNumBindlessBuffers),
+      PagedLinearAllocator(aNumBindlessRWBuffers),
+      PagedLinearAllocator(0)
+    }
   {
     ASSERT(aNumTransientDescriptorsPerRange <= aNumTransientDescriptors);
 
     Init(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
   }
 //---------------------------------------------------------------------------//
-  DynamicDescriptorHeapDX12::DynamicDescriptorHeapDX12(uint aNumBindlessSamplers, uint aNumTransientDescriptors, uint aNumTransientDescriptorsPerRange)
+  ShaderVisibleDescriptorHeapDX12::ShaderVisibleDescriptorHeapDX12(uint aNumBindlessSamplers, uint aNumTransientDescriptors, uint aNumTransientDescriptorsPerRange)
     : myOverallNumBindlessDescriptors(aNumBindlessSamplers)
     , myNumBindlessDescriptors{0, 0, 0, 0, aNumBindlessSamplers}
     , myNumTransientDescriptors(aNumTransientDescriptors)
     , myNumTransientDescriptorsPerRange(aNumTransientDescriptorsPerRange)
-    , myNextFreeBindlessDescriptorIdx{}
     , myNumTransientRanges(aNumTransientDescriptors / aNumTransientDescriptorsPerRange)
+    , myBindlessAllocators{
+        PagedLinearAllocator(0),
+        PagedLinearAllocator(0),
+        PagedLinearAllocator(0),
+        PagedLinearAllocator(0),
+        PagedLinearAllocator(aNumBindlessSamplers)
+    }
   {
     ASSERT(aNumTransientDescriptorsPerRange <= aNumTransientDescriptors);
 
     Init(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
   }
 //---------------------------------------------------------------------------//
-  void DynamicDescriptorHeapDX12::Init(D3D12_DESCRIPTOR_HEAP_TYPE aType)
+  void ShaderVisibleDescriptorHeapDX12::Init(D3D12_DESCRIPTOR_HEAP_TYPE aType)
   {
     myNextFreeTransientDescriptorIdx = myOverallNumBindlessDescriptors;
 
@@ -78,7 +90,7 @@ namespace Fancy {
     uint offset = 0;
     for (uint i = 0; i < BINDLESS_NUM; ++i)
     {
-      myNextFreeBindlessDescriptorIdx[i] = offset;
+      ASSERT(myBindlessAllocators[i].IsEmpty());
       
       myBindlessDescriptorCpuHeapStart[i] = myCpuHeapStart;
       myBindlessDescriptorCpuHeapStart[i].ptr += offset * myHandleIncrementSize;
@@ -128,7 +140,7 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  DynamicDescriptorHeapDX12::RangeAllocation DynamicDescriptorHeapDX12::AllocateTransientRange()
+  ShaderVisibleDescriptorHeapDX12::RangeAllocation ShaderVisibleDescriptorHeapDX12::AllocateTransientRange()
   {
     std::lock_guard<std::mutex> lock(myRangeAllocMutex);
 
@@ -154,32 +166,52 @@ namespace Fancy {
     return alloc;
   }
 //---------------------------------------------------------------------------//
-  void DynamicDescriptorHeapDX12::FreeTransientRange(const RangeAllocation& aRange, uint64 aFence)
+  void ShaderVisibleDescriptorHeapDX12::FreeTransientRange(const RangeAllocation& aRange, uint64 aFence)
   {
     ASSERT(aRange.myHeap == this, "Trying to free a RangeAllocation that doesn't belong to this heap");
 
     const uint rangeIdx = (aRange.myFirstDescriptorIndexInHeap - myOverallNumBindlessDescriptors) / myNumTransientDescriptorsPerRange;
     myTransientRangeLastUseFences[rangeIdx] = glm::max(myTransientRangeLastUseFences[rangeIdx], aFence);
   }
+//---------------------------------------------------------------------------//
+  DescriptorDX12 ShaderVisibleDescriptorHeapDX12::AllocateDescriptor(BindlessDescriptorType aType)
+  {
+    ASSERT(myBindlessAllocators[aType].GetPageSize() != 0);
 
-  D3D12_GPU_DESCRIPTOR_HANDLE DynamicDescriptorHeapDX12::GetBindlessHeapStart(BindlessDescriptorType aType) const
+    uint64 offset;
+    const PagedLinearAllocator::Page* page = myBindlessAllocators[aType].Allocate(1, 0, offset);
+    ASSERT(page, "Failed allocating shader visible descriptor. Consider increasing the max bindless descriptor sizes");
+
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+    cpuHandle.ptr = myBindlessDescriptorCpuHeapStart[aType].ptr + offset * myHandleIncrementSize;
+
+    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+    gpuHandle.ptr = myBindlessDescriptorGpuHeapStart[aType].ptr + offset * myHandleIncrementSize;
+
+    return { cpuHandle, gpuHandle, myDesc.Type, true, true };
+  }
+//---------------------------------------------------------------------------//
+  void ShaderVisibleDescriptorHeapDX12::FreeDescriptorAfterFrame(BindlessDescriptorType aType, const DescriptorDX12& aDescriptor)
+  {
+    ASSERT(aDescriptor.myIsManagedByAllocator && aDescriptor.myIsShaderVisible);
+    ASSERT(myBindlessAllocators[aType].GetPageSize() != 0);
+    ASSERT(aDescriptor.myCpuHandle.ptr >= myBindlessDescriptorCpuHeapStart[aType].ptr && aDescriptor.myCpuHandle.ptr < myBindlessDescriptorCpuHeapStart[aType].ptr + myNumBindlessDescriptors[aType] * myHandleIncrementSize);
+
+    uint offset = (aDescriptor.myCpuHandle.ptr - myBindlessDescriptorCpuHeapStart[aType].ptr) / myHandleIncrementSize;
+
+    PagedLinearAllocator::Block block;
+    block.myStart = offset;
+    block.myEnd = offset + 1;
+
+    myBindlessAllocators[aType].Free(block);
+  }
+//---------------------------------------------------------------------------//
+  D3D12_GPU_DESCRIPTOR_HANDLE ShaderVisibleDescriptorHeapDX12::GetBindlessHeapStart(BindlessDescriptorType aType) const
   {
     return myBindlessDescriptorGpuHeapStart[aType];
   }
-
 //---------------------------------------------------------------------------//
-  DescriptorDX12 DynamicDescriptorHeapDX12::AllocateConstantDescriptorRange(uint /*aNumDescriptors*/)
-  {
-    ASSERT(false, "Deprecated!");
-    return DescriptorDX12();
-
-    //const DescriptorDX12 rangeStartDescriptor = GetDescriptor(myNextFreeBindlessDescriptorIdx);
-    //myNextFreeBindlessDescriptorIdx += aNumDescriptors;
-    //
-    //return rangeStartDescriptor;
-  }
-//---------------------------------------------------------------------------//
-  DescriptorDX12 DynamicDescriptorHeapDX12::GetDescriptor(uint anIndex) const
+  DescriptorDX12 ShaderVisibleDescriptorHeapDX12::GetDescriptor(uint anIndex) const
   {
     ASSERT(anIndex < myDesc.NumDescriptors);
 
@@ -196,10 +228,7 @@ namespace Fancy {
 
     return descr;
   }
-
-  
-
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
 }
 
 

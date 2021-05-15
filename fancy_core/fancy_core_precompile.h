@@ -72,6 +72,6 @@
 #include "GpuBufferProperties.h"
 #include "AdapterDX12.h"
 #include "CommandAllocatorPoolDX12.h"
-#include "DynamicDescriptorHeapDX12.h"
+#include "ShaderVisibleDescriptorHeapDX12.h"
 
 #endif

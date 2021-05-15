@@ -180,9 +180,6 @@
     <ClInclude Include="PagedLinearAllocator.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="DynamicDescriptorHeapDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="GpuResourceDataDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
@@ -362,17 +359,11 @@
     <ClInclude Include="TextureSamplerVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderResourceInfoDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="PipelineLayoutCacheVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="CommandLine.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="RootSignatureDX12.h">
-      <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="DebugUtilsDX12.h">
       <Filter>Rendering\DX12</Filter>
@@ -419,20 +410,11 @@
     <ClInclude Include="EASTLAllocator.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="RootSignatureCacheDX12.h">
-      <Filter>Rendering\DX12</Filter>
-    </ClInclude>
     <ClInclude Include="PipelineStateCacheDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="PipelineLayoutVk.h">
       <Filter>Rendering\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuResourceViewSet.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuResourceViewSetDX12.h">
-      <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="GpuResourceViewSetVk.h">
       <Filter>Rendering\Vulkan</Filter>
@@ -447,6 +429,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="RaytracingBvhDX12.h" />
+    <ClInclude Include="ShaderVisibleDescriptorHeapDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -520,9 +505,6 @@
     </ClCompile>
     <ClCompile Include="CommandQueue.cpp">
       <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="DynamicDescriptorHeapDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="StaticDescriptorAllocatorDX12.cpp">
       <Filter>Rendering\DX12</Filter>
@@ -651,9 +633,6 @@
     <ClCompile Include="CommandLine.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="RootSignatureDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
     <ClCompile Include="MathUtil.cpp">
       <Filter>Math</Filter>
     </ClCompile>
@@ -693,20 +672,11 @@
     <ClCompile Include="EASTLAllocator.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="RootSignatureCacheDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
-    </ClCompile>
     <ClCompile Include="PipelineStateCacheDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="PipelineLayoutVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuResourceViewSet.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuResourceViewSetDX12.cpp">
-      <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="GpuResourceViewSetVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
@@ -721,6 +691,9 @@
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="RaytracingBvhDX12.cpp" />
+    <ClCompile Include="ShaderVisibleDescriptorHeapDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

@@ -145,7 +145,7 @@
     <ClInclude Include="DescriptorPoolAllocatorVk.h" />
     <ClInclude Include="DescriptorSetLayoutCacheVk.h" />
     <ClInclude Include="DxcShaderCompiler.h" />
-    <ClInclude Include="DynamicDescriptorHeapDX12.h" />
+    <ClInclude Include="ShaderVisibleDescriptorHeapDX12.h" />
     <ClInclude Include="EASTLAllocator.h" />
     <ClInclude Include="FrameBufferCacheVk.h" />
     <ClInclude Include="GpuBufferProperties.h" />
@@ -166,17 +166,12 @@
     <ClInclude Include="RaytracingBvhDX12.h" />
     <ClInclude Include="RenderPassCacheVk.h" />
     <ClInclude Include="RenderPlatformObjectCache.h" />
-    <ClInclude Include="GpuResourceViewSet.h" />
-    <ClInclude Include="GpuResourceViewSetDX12.h" />
-    <ClInclude Include="RootSignatureCacheDX12.h" />
-    <ClInclude Include="RootSignatureDX12.h" />
     <ClInclude Include="RaytracingBVH.h" />
     <ClInclude Include="RaytracingBVHVk.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ShaderCompilerVk.h" />
     <ClInclude Include="ShaderPipelineDX12.h" />
     <ClInclude Include="ShaderPipelineVk.h" />
-    <ClInclude Include="ShaderResourceInfoDX12.h" />
     <ClInclude Include="ShaderResourceInfoVk.h" />
     <ClInclude Include="ShaderVk.h" />
     <ClInclude Include="GpuQuery.h" />
@@ -275,7 +270,7 @@
     <ClCompile Include="DescriptorPoolAllocatorVk.cpp" />
     <ClCompile Include="DescriptorSetLayoutCacheVk.cpp" />
     <ClCompile Include="DxcShaderCompiler.cpp" />
-    <ClCompile Include="DynamicDescriptorHeapDX12.cpp" />
+    <ClCompile Include="ShaderVisibleDescriptorHeapDX12.cpp" />
     <ClCompile Include="EASTLAllocator.cpp" />
     <ClCompile Include="FileWatcher.cpp" />
     <ClCompile Include="FrameBufferCacheVk.cpp" />
@@ -301,10 +296,6 @@
     <ClCompile Include="PipelineStateCacheVk.cpp" />
     <ClCompile Include="RaytracingBvhDX12.cpp" />
     <ClCompile Include="RenderPassCacheVk.cpp" />
-    <ClCompile Include="GpuResourceViewSet.cpp" />
-    <ClCompile Include="GpuResourceViewSetDX12.cpp" />
-    <ClCompile Include="RootSignatureCacheDX12.cpp" />
-    <ClCompile Include="RootSignatureDX12.cpp" />
     <ClCompile Include="RaytracingBVH.cpp" />
     <ClCompile Include="RaytracingBVHVk.cpp" />
     <ClCompile Include="Scene.cpp" />

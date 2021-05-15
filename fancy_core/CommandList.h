@@ -87,8 +87,6 @@ namespace Fancy {
 
     void BindSampler(const TextureSampler* aSampler, const char* aName, uint anArrayIndex = 0u);
     virtual void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) = 0;
-
-    virtual void BindResourceViewSet(const GpuResourceViewSet* aSet, uint aSetOrTableIndex) = 0;
     
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) = 0; // TODO: Support regions
@@ -163,7 +161,6 @@ namespace Fancy {
     bool myClipRectDirty;
     bool myTopologyDirty;
     bool myRenderTargetsDirty;
-    bool myShaderPipelineHasUnorderedWrites;
     TextureView* myRenderTargets[RenderConstants::kMaxNumRenderTargets];
     TextureView* myDepthStencilTarget;
 

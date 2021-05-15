@@ -14,14 +14,16 @@ namespace Fancy {
       , myGpuHandle{UINT_MAX}
       , myHeapType(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)
       , myIsManagedByAllocator(false)
+      , myIsShaderVisible(false)
     {
     }
 
-    DescriptorDX12(D3D12_CPU_DESCRIPTOR_HANDLE aCpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE aGpuHandle, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, bool aIsManagedByAllocator)
+    DescriptorDX12(D3D12_CPU_DESCRIPTOR_HANDLE aCpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE aGpuHandle, D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, bool aIsManagedByAllocator, bool aIsShaderVisible)
       : myCpuHandle(aCpuHandle)
       , myGpuHandle(aGpuHandle)
       , myHeapType(aHeapType)
       , myIsManagedByAllocator(aIsManagedByAllocator)
+      , myIsShaderVisible(aIsShaderVisible)
     {
 
     }
@@ -30,6 +32,7 @@ namespace Fancy {
     D3D12_GPU_DESCRIPTOR_HANDLE myGpuHandle;
     D3D12_DESCRIPTOR_HEAP_TYPE myHeapType;
     bool myIsManagedByAllocator;
+    bool myIsShaderVisible;
   };
 //---------------------------------------------------------------------------//
 }

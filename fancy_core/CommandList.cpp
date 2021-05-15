@@ -314,13 +314,6 @@ namespace Fancy {
         aHasPipelineChangedOut = true;
       }
     }
-
-    bool hasUnorderedWrites = false;
-    for (uint i = 0u; i < (uint) ShaderStage::NUM; ++i)
-      if (aPipeline->GetShader(i) != nullptr)
-        hasUnorderedWrites |= aPipeline->GetShader(i)->myProperties.myHasUnorderedWrites;
-
-    myShaderPipelineHasUnorderedWrites = hasUnorderedWrites;
   }
 //---------------------------------------------------------------------------//
   void CommandList::SetClipRect(const glm::uvec4& aClipRect)
