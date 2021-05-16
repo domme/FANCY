@@ -231,6 +231,8 @@ namespace Fancy {
     : TextureView::TextureView(aTexture, someProperties)
   {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
+
+    RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
     
     eastl::string name = aTexture->myName;
 
@@ -243,7 +245,8 @@ namespace Fancy {
       {
         myType = GpuResourceViewType::DSV;
         name.append(" DSV");
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, name.c_str());
+        nativeData.myDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, name.c_str());
+        nativeData.myShaderVisibleDescriptor = platformDx12->
         success = CreateDSV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
       else
@@ -291,6 +294,8 @@ namespace Fancy {
   {
     const GpuResourceViewDataDX12& viewData = eastl::any_cast<const GpuResourceViewDataDX12&>(myNativeData);
     RenderCore::GetPlatformDX12()->ReleaseDescriptor(viewData.myDescriptor);
+
+
   }
 //---------------------------------------------------------------------------//
   bool TextureViewDX12::CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor)

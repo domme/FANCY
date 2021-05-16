@@ -52,6 +52,8 @@ namespace Fancy {
     RenderCore_PlatformDX12(const RenderCore_PlatformDX12&) = delete;
     RenderCore_PlatformDX12& operator=(const RenderCore_PlatformDX12&) = delete;
 
+    void BeginFrame() override;
+
     bool IsInitialized() override { return ourDevice.Get() != nullptr; }
     bool InitInternalResources() override;
     void Shutdown() override;
@@ -66,6 +68,9 @@ namespace Fancy {
 
     DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, const char* aDebugName = nullptr);
     void ReleaseDescriptor(const DescriptorDX12& aDescriptor);
+
+    DescriptorDX12 AllocateShaderVisibleDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, const char* aDebugName = nullptr);
+    void ReleaseShaderVisibleDescriptor(const DescriptorDX12& aDescriptor);
 
     GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName = nullptr);
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);

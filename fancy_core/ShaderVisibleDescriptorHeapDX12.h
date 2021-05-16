@@ -3,6 +3,7 @@
 #include "FancyCoreDefines.h"
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
+#include "RenderCore.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -18,16 +19,6 @@ namespace Fancy {
     friend class RenderCore_PlatformDX12;
 
   public:
-    enum BindlessDescriptorType
-    {
-      BINDLESS_TEXTURE_2D = 0,
-      BINDLESS_RW_TEXTURE_2D,
-      BINDLESS_BUFFER,
-      BINDLESS_RW_BUFFER,
-      BINDLESS_SAMPLER,
-      BINDLESS_NUM
-    };
-
     struct RangeAllocation
     {
       ShaderVisibleDescriptorHeapDX12* myHeap;
@@ -53,7 +44,7 @@ namespace Fancy {
     void FreeTransientRange(const RangeAllocation& aRange, uint64 aFence);
 
     DescriptorDX12 AllocateDescriptor(BindlessDescriptorType aType);
-    void FreeDescriptorAfterFrame(BindlessDescriptorType aType, const DescriptorDX12& aDescriptor);
+    void FreeDescriptorAfterFrame(const DescriptorDX12& aDescriptor);
 
     D3D12_GPU_DESCRIPTOR_HANDLE GetBindlessHeapStart(BindlessDescriptorType aType) const;
 
@@ -61,12 +52,14 @@ namespace Fancy {
 
   private:
     void Init(D3D12_DESCRIPTOR_HEAP_TYPE aType);
+    void ProcessBindlessDescriptorFrees();
+    BindlessDescriptorType GetBindlessType(const DescriptorDX12& aDescriptor);
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myDescriptorHeap;
     D3D12_DESCRIPTOR_HEAP_DESC myDesc;
 
     uint myOverallNumBindlessDescriptors;
-    uint myNumBindlessDescriptors[BINDLESS_NUM];
+    uint myNumBindlessDescriptors[BINDLESS_DESCRIPTOR_NUM];
     uint myNumTransientDescriptors;
     uint myNumTransientDescriptorsPerRange;
 
@@ -75,23 +68,17 @@ namespace Fancy {
 
     D3D12_CPU_DESCRIPTOR_HANDLE myCpuHeapStart;
     D3D12_GPU_DESCRIPTOR_HANDLE myGpuHeapStart;
-    D3D12_CPU_DESCRIPTOR_HANDLE myBindlessDescriptorCpuHeapStart[BINDLESS_NUM];
-    D3D12_GPU_DESCRIPTOR_HANDLE myBindlessDescriptorGpuHeapStart[BINDLESS_NUM];
+    D3D12_CPU_DESCRIPTOR_HANDLE myBindlessDescriptorCpuHeapStart[BINDLESS_DESCRIPTOR_NUM];
+    D3D12_GPU_DESCRIPTOR_HANDLE myBindlessDescriptorGpuHeapStart[BINDLESS_DESCRIPTOR_NUM];
 
-    PagedLinearAllocator myBindlessAllocators[BINDLESS_NUM];
+    PagedLinearAllocator myBindlessAllocators[BINDLESS_DESCRIPTOR_NUM];
 
     uint myNumTransientRanges;
     eastl::vector<uint64> myTransientRangeLastUseFences;
     std::mutex myRangeAllocMutex;
 
-    struct DescriptorFreeData
-    {
-      BindlessDescriptorType myType;
-      uint myOffset;
-      uint64 myFrame;
-    };
-
-    eastl::vector<uint64> my
+    static constexpr uint ourNumBindlessFreeLists = RenderCore::Constants::NUM_QUEUED_FRAMES + 1;
+    eastl::vector<uint> myBindlessDescriptorsToFree[ourNumBindlessFreeLists][BINDLESS_DESCRIPTOR_NUM];
   };
 //---------------------------------------------------------------------------// 
 }

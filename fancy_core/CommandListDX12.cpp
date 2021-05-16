@@ -985,7 +985,7 @@ namespace Fancy {
         myCommandList->SetGraphicsRootSignature(rootSignature);
 
       // Hacky support for bindless: Just bind all the bindless descriptor table starts up front
-      for (uint i = 0; i < ShaderVisibleDescriptorHeapDX12::BINDLESS_NUM; ++i)
+      for (uint i = 0; i < ShaderVisibleDescriptorHeapDX12::BINDLESS_DESCRIPTOR_NUM; ++i)
       {
         if (myRootSignatureBindings->myRootParameters.size() > i 
           && myRootSignatureBindings->myRootParameters[i].myIsDescriptorTable 
@@ -994,7 +994,7 @@ namespace Fancy {
         {
           myRootSignatureBindings->myRootParameters[i].myDescriptorTable.myIsDirty = true;
           myRootSignatureBindings->myRootParameters[i].myDescriptorTable.myConstantTableStartDescriptor =
-            RenderCore::GetPlatformDX12()->GetShaderVisibleDescriptorHeap(i == ShaderVisibleDescriptorHeapDX12::BINDLESS_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)->GetBindlessHeapStart((ShaderVisibleDescriptorHeapDX12::BindlessDescriptorType) i);
+            RenderCore::GetPlatformDX12()->GetShaderVisibleDescriptorHeap(i == ShaderVisibleDescriptorHeapDX12::BINDLESS_DESCRIPTOR_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)->GetBindlessHeapStart((ShaderVisibleDescriptorHeapDX12::BindlessDescriptorType) i);
         }
       }
     }

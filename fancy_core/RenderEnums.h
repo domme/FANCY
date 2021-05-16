@@ -387,4 +387,14 @@ namespace Fancy
     MINIMIZE_MEMORY = 1 << 4u
   };
 //---------------------------------------------------------------------------//
+  enum BindlessDescriptorType
+  {
+    BINDLESS_DESCRIPTOR_TEXTURE_2D = 0,
+    BINDLESS_DESCRIPTOR_RW_TEXTURE_2D,
+    BINDLESS_DESCRIPTOR_BUFFER,
+    BINDLESS_DESCRIPTOR_RW_BUFFER,
+    BINDLESS_DESCRIPTOR_SAMPLER,
+    BINDLESS_DESCRIPTOR_NUM
+  };
+  //---------------------------------------------------------------------------//
 }

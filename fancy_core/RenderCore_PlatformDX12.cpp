@@ -609,6 +609,12 @@ namespace Fancy {
     myCaps.myHasAsyncCopy = true;
   }
 //---------------------------------------------------------------------------//
+  void RenderCore_PlatformDX12::BeginFrame()
+  {
+    for (UniquePtr<ShaderVisibleDescriptorHeapDX12>& shaderVisibleHeap : myShaderVisibleDescriptorHeaps)
+      shaderVisibleHeap->ProcessBindlessDescriptorFrees();
+  }
+//---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
   {
     ourCommandAllocatorPools[(uint)CommandListType::Graphics].reset(new CommandAllocatorPoolDX12(CommandListType::Graphics));
@@ -634,8 +640,18 @@ namespace Fancy {
 
     InitNullDescriptors();  // Must be available before creating dynamic descriptor heaps
 
-    myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new ShaderVisibleDescriptorHeapDX12(2048, 2048, 2048, 2048, 4096u, 256u));
-    myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new ShaderVisibleDescriptorHeapDX12(1024u, 1024u, 64u));
+    myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new ShaderVisibleDescriptorHeapDX12(
+      myProperties.myNumBindlessTexturesRWTextures,
+      myProperties.myNumBindlessTexturesRWTextures,
+      myProperties.myNumBindlessBuffersRWBuffers,
+      myProperties.myNumBindlessBuffersRWBuffers,
+      4096u,
+      256u));
+
+    myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new ShaderVisibleDescriptorHeapDX12(
+      myProperties.myNumBindlessSamplers, 
+      1024u, 
+      64u));
 
     InitRootSignatures();
 
@@ -788,7 +804,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::InitRootSignatures()
   {
-    const uint numBindlessTypes = ShaderVisibleDescriptorHeapDX12::BINDLESS_NUM;
+    const uint numBindlessTypes = ShaderVisibleDescriptorHeapDX12::BINDLESS_DESCRIPTOR_NUM;
 
     const uint numRootParamsNeeded = numBindlessTypes + myProperties.myNumLocalCBuffers + myProperties.myNumLocalBuffers;
     const uint numRangesNeeded = numRootParamsNeeded; // Each param only has one entry and range

@@ -4,6 +4,7 @@
 #include "DescriptorDX12.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
+#include "TimeManager.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -11,18 +12,34 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Private
   {
-    static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(ShaderVisibleDescriptorHeapDX12::BindlessDescriptorType aBindlessType)
+    static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(BindlessDescriptorType aBindlessType)
     {
-      static D3D12_DESCRIPTOR_RANGE_TYPE rangeType[] =
+      switch(aBindlessType)
       {
-        D3D12_DESCRIPTOR_RANGE_TYPE_SRV,    // BINDLESS_TEXTURE_2D
-        D3D12_DESCRIPTOR_RANGE_TYPE_UAV,    // BINLDESS_RW_TEXTURE
-        D3D12_DESCRIPTOR_RANGE_TYPE_SRV,    // BINDLESS_BUFFER
-        D3D12_DESCRIPTOR_RANGE_TYPE_UAV,    // BINDLESS_RW_BUFFER
-        D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER // BINDLESS_SAMPLER
-      };
+      case BINDLESS_DESCRIPTOR_TEXTURE_2D: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+      case BINDLESS_DESCRIPTOR_RW_TEXTURE_2D: return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+      case BINDLESS_DESCRIPTOR_BUFFER: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+      case BINDLESS_DESCRIPTOR_RW_BUFFER: return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+      case BINDLESS_DESCRIPTOR_SAMPLER: return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+      case BINDLESS_DESCRIPTOR_NUM: ASSERT(false); return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+      }
+    }
 
-      return rangeType[aBindlessType];
+    static GpuResourceDimension GetResourceDimension(BindlessDescriptorType aBindlessType)
+    {
+      GpuResourceDimension resourceDimension = GpuResourceDimension::UNKONWN;
+      switch (aBindlessType)
+      {
+      case BINDLESS_DESCRIPTOR_TEXTURE_2D:
+      case BINDLESS_DESCRIPTOR_RW_TEXTURE_2D:
+        return GpuResourceDimension::TEXTURE_2D;
+      case BINDLESS_DESCRIPTOR_BUFFER:
+      case BINDLESS_DESCRIPTOR_RW_BUFFER:
+        return GpuResourceDimension::BUFFER;
+      case BINDLESS_DESCRIPTOR_SAMPLER:
+        return GpuResourceDimension::UNKONWN;
+      default: ASSERT(false); return GpuResourceDimension::TEXTURE_2D;
+      }
     }
   }
 //---------------------------------------------------------------------------//
@@ -88,7 +105,7 @@ namespace Fancy {
     myGpuHeapStart = myDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
 
     uint offset = 0;
-    for (uint i = 0; i < BINDLESS_NUM; ++i)
+    for (uint i = 0; i < BINDLESS_DESCRIPTOR_NUM; ++i)
     {
       ASSERT(myBindlessAllocators[i].IsEmpty());
       
@@ -101,25 +118,11 @@ namespace Fancy {
       if (myNumBindlessDescriptors[i] > 0)
       {
         // Preinitialize heap with appropriate null-descriptors
-        GpuResourceDimension resourceDimension = GpuResourceDimension::UNKONWN;
-        switch((BindlessDescriptorType) i)
-        {
-        case BINDLESS_TEXTURE_2D:
-        case BINDLESS_RW_TEXTURE_2D:
-          resourceDimension = GpuResourceDimension::TEXTURE_2D;
-          break;
-        case BINDLESS_BUFFER:
-        case BINDLESS_RW_BUFFER:
-          resourceDimension = GpuResourceDimension::BUFFER;
-          break;
-        case BINDLESS_SAMPLER:
-          resourceDimension = GpuResourceDimension::UNKONWN;
-          break;
-        default: ASSERT(false);
-        }
+
+        const BindlessDescriptorType bindlessType = static_cast<BindlessDescriptorType>(i);
 
         const DescriptorDX12& nullDescriptor = 
-          RenderCore::GetPlatformDX12()->GetNullDescriptor(Private::GetDescriptorRangeType(static_cast<BindlessDescriptorType>(i)), resourceDimension);
+          RenderCore::GetPlatformDX12()->GetNullDescriptor(Private::GetDescriptorRangeType(bindlessType), Private::GetResourceDimension(bindlessType));
 
         for (uint k = 0; k < myNumBindlessDescriptors[i]; ++k)
         {
@@ -138,6 +141,57 @@ namespace Fancy {
 
       offset += myNumBindlessDescriptors[i];
     }
+  }
+//---------------------------------------------------------------------------//
+  void ShaderVisibleDescriptorHeapDX12::ProcessBindlessDescriptorFrees()
+  {
+    if (Time::ourFrameIdx < ourNumBindlessFreeLists - 1)
+      return;
+
+    const uint64 frameIdxToProcess = Time::ourFrameIdx - static_cast<uint64>(ourNumBindlessFreeLists) - 1u;
+    ASSERT(RenderCore::IsFrameDone(frameIdxToProcess));
+
+    const uint freeListToProcess = frameIdxToProcess % ourNumBindlessFreeLists;
+    for (uint i = 0; i < BINDLESS_DESCRIPTOR_NUM; ++i)
+    {
+      const BindlessDescriptorType bindlessType = static_cast<BindlessDescriptorType>(i);
+      const DescriptorDX12& nullDescriptor =
+        RenderCore::GetPlatformDX12()->GetNullDescriptor(Private::GetDescriptorRangeType(bindlessType), Private::GetResourceDimension(bindlessType));
+
+      for (const uint descriptorIdxToFree : myBindlessDescriptorsToFree[freeListToProcess][i])
+      {
+        myBindlessAllocators[i].Free({descriptorIdxToFree, descriptorIdxToFree + 1});
+
+#if FANCY_HEAVY_DEBUG
+        // Replace with null descriptor
+        // For debugging, this could also become a special error-resource for detecting if something deleted is accessed in a shader.
+        D3D12_CPU_DESCRIPTOR_HANDLE dst;
+        dst.ptr = myBindlessDescriptorCpuHeapStart[i].ptr + descriptorIdxToFree * myHandleIncrementSize;
+        RenderCore::GetPlatformDX12()->GetDevice()->CopyDescriptorsSimple(1, dst, nullDescriptor.myCpuHandle, myDesc.Type);
+#endif
+      }
+
+      myBindlessDescriptorsToFree[freeListToProcess][i].clear();
+    }
+  }
+//---------------------------------------------------------------------------//
+  BindlessDescriptorType ShaderVisibleDescriptorHeapDX12::GetBindlessType(const DescriptorDX12& aDescriptor)
+  {
+    ASSERT(aDescriptor.myHeapType == myDesc.Type);
+    ASSERT(aDescriptor.myIsManagedByAllocator && aDescriptor.myIsShaderVisible);
+
+    for (uint i = 0; i < BINDLESS_DESCRIPTOR_NUM; ++i)
+    {
+      if (aDescriptor.myCpuHandle.ptr >= myBindlessDescriptorCpuHeapStart[i].ptr)
+      {
+        const uint64 endPtr = i < BINDLESS_DESCRIPTOR_NUM - 1 ? myBindlessDescriptorCpuHeapStart[i + 1].ptr : myBindlessDescriptorCpuHeapStart[i].ptr + myNumBindlessDescriptors[i] * myHandleIncrementSize;
+        if (aDescriptor.myCpuHandle.ptr < endPtr)
+          return static_cast<BindlessDescriptorType>(i);
+      }
+    }
+
+    ASSERT(false);
+    return BINDLESS_DESCRIPTOR_NUM;
   }
 //---------------------------------------------------------------------------//
   ShaderVisibleDescriptorHeapDX12::RangeAllocation ShaderVisibleDescriptorHeapDX12::AllocateTransientRange()
@@ -191,19 +245,14 @@ namespace Fancy {
     return { cpuHandle, gpuHandle, myDesc.Type, true, true };
   }
 //---------------------------------------------------------------------------//
-  void ShaderVisibleDescriptorHeapDX12::FreeDescriptorAfterFrame(BindlessDescriptorType aType, const DescriptorDX12& aDescriptor)
+  void ShaderVisibleDescriptorHeapDX12::FreeDescriptorAfterFrame(const DescriptorDX12& aDescriptor)
   {
-    ASSERT(aDescriptor.myIsManagedByAllocator && aDescriptor.myIsShaderVisible);
-    ASSERT(myBindlessAllocators[aType].GetPageSize() != 0);
-    ASSERT(aDescriptor.myCpuHandle.ptr >= myBindlessDescriptorCpuHeapStart[aType].ptr && aDescriptor.myCpuHandle.ptr < myBindlessDescriptorCpuHeapStart[aType].ptr + myNumBindlessDescriptors[aType] * myHandleIncrementSize);
+    const BindlessDescriptorType type = GetBindlessType(aDescriptor);
+    ASSERT(myBindlessAllocators[type].GetPageSize() != 0);
 
-    uint offset = (aDescriptor.myCpuHandle.ptr - myBindlessDescriptorCpuHeapStart[aType].ptr) / myHandleIncrementSize;
-
-    PagedLinearAllocator::Block block;
-    block.myStart = offset;
-    block.myEnd = offset + 1;
-
-    myBindlessAllocators[aType].Free(block);
+    const uint offset = (aDescriptor.myCpuHandle.ptr - myBindlessDescriptorCpuHeapStart[type].ptr) / myHandleIncrementSize;
+    const uint freeListIdx = Time::ourFrameIdx % ourNumBindlessFreeLists;
+    myBindlessDescriptorsToFree[freeListIdx][type].push_back(offset);
   }
 //---------------------------------------------------------------------------//
   D3D12_GPU_DESCRIPTOR_HANDLE ShaderVisibleDescriptorHeapDX12::GetBindlessHeapStart(BindlessDescriptorType aType) const

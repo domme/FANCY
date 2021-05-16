@@ -9,6 +9,7 @@ namespace Fancy {
   struct GpuResourceViewDataDX12
   {
     DescriptorDX12 myDescriptor;
+    DescriptorDX12 myShaderVisibleDescriptor;
   };
 //---------------------------------------------------------------------------//
 }
