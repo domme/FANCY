@@ -78,15 +78,10 @@ namespace Fancy {
 
     virtual void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) = 0;
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
+    virtual void BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) = 0;
 
-    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName, uint anArrayIndex = 0u);
-    virtual void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) = 0;
-
-    void BindResourceView(const GpuResourceView* aView, const char* aName, uint anArrayIndex = 0u);
-    virtual void BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex = 0u) = 0;
-
-    void BindSampler(const TextureSampler* aSampler, const char* aName, uint anArrayIndex = 0u);
-    virtual void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) = 0;
+    void TransitionResourceViewForShaderUse(const GpuResourceView* aView);
+    virtual void TransitionResourceViewsForShaderUse(const eastl::span<const GpuResourceView*>& someViews) = 0;
     
     virtual void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) = 0;
     virtual void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) = 0; // TODO: Support regions
@@ -115,7 +110,7 @@ namespace Fancy {
     const GpuBuffer* GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize);
     void BindVertexBuffer(void* someData, uint64 aDataSize);
     void BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize);
-    void BindConstantBuffer(void* someData, uint64 aDataSize, const char* aName);
+    void BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex);
     void SetViewport(const glm::uvec4& uViewportParams); /// x, y, width, height
     const glm::uvec4& GetViewport() const { return myViewportParams; } /// x, y, width, height
     void SetShaderPipeline(const ShaderPipeline* aShaderPipeline);

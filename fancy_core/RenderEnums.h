@@ -387,14 +387,15 @@ namespace Fancy
     MINIMIZE_MEMORY = 1 << 4u
   };
 //---------------------------------------------------------------------------//
-  enum BindlessDescriptorType
+  enum GlobalResourceType
   {
-    BINDLESS_DESCRIPTOR_TEXTURE_2D = 0,
-    BINDLESS_DESCRIPTOR_RW_TEXTURE_2D,
-    BINDLESS_DESCRIPTOR_BUFFER,
-    BINDLESS_DESCRIPTOR_RW_BUFFER,
-    BINDLESS_DESCRIPTOR_SAMPLER,
-    BINDLESS_DESCRIPTOR_NUM
+    GLOBAL_RESOURCE_TEXTURE_2D = 0,
+    GLOBAL_RESOURCE_RW_TEXTURE_2D,
+    GLOBAL_RESOURCE_BUFFER,
+    GLOBAL_RESOURCE_RW_BUFFER,
+    GLOBAL_RESOURCE_SAMPLER,
+    GLOBAL_RESOURCE_NUM,
+    GLOBAL_RESOURCE_NUM_NOSAMPLER = GLOBAL_RESOURCE_SAMPLER
   };
   //---------------------------------------------------------------------------//
 }

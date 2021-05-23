@@ -11,12 +11,13 @@
 #include "CommandAllocatorPoolDX12.h"
 #include "CommandQueueDX12.h"
 #include "PipelineStateCacheDX12.h"
+#include "RootSignatureDX12.h"
 
 #if FANCY_ENABLE_DX12
 
 namespace Fancy {
+//---------------------------------------------------------------------------//
   enum class GpuResourceViewType;
-  //---------------------------------------------------------------------------//
   struct WindowParameters;
   class Shader;
   class Texture;
@@ -59,7 +60,6 @@ namespace Fancy {
     void Shutdown() override;
 
     void InitNullDescriptors();
-    void InitRootSignatures();
 
     ID3D12Device8* GetDevice() const { return ourDevice.Get(); }
 
@@ -69,8 +69,8 @@ namespace Fancy {
     DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, const char* aDebugName = nullptr);
     void ReleaseDescriptor(const DescriptorDX12& aDescriptor);
 
-    DescriptorDX12 AllocateShaderVisibleDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, const char* aDebugName = nullptr);
-    void ReleaseShaderVisibleDescriptor(const DescriptorDX12& aDescriptor);
+    DescriptorDX12 AllocateGlobalShaderVisibleDescriptor(GlobalResourceType aBindlessType, const char* aDebugName = nullptr);
+    void FreeGlobalShaderVisibleDescriptor(const DescriptorDX12& aDescriptor);
 
     GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName = nullptr);
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
@@ -95,17 +95,17 @@ namespace Fancy {
     const DescriptorDX12& GetNullDescriptor(D3D12_DESCRIPTOR_RANGE_TYPE aType, GpuResourceDimension aResouceDimension) const;
     PipelineStateCacheDX12& GetPipelineStateCache() { return myPipelineStateCache; }
     ShaderVisibleDescriptorHeapDX12* GetShaderVisibleDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return myShaderVisibleDescriptorHeaps[aType].get(); }
-    ID3D12RootSignature* GetDefaultBindlessRootSignature() const { return myDefaultBindlessRootSignature.Get(); }
+    const RootSignatureDX12* GetRootSignature() const { return myRootSignature.get(); }
 
     CommandQueueDX12* GetCommandQueueDX12(CommandListType aCommandListType);
 
     Microsoft::WRL::ComPtr<ID3D12Device8> ourDevice;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> myDefaultBindlessRootSignature;
 
     UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     UniquePtr<ShaderVisibleDescriptorHeapDX12> myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)CpuMemoryAccessType::NUM];
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
+    UniquePtr<RootSignatureDX12> myRootSignature;
     float64 myGpuTicksToMsFactor[(uint)CommandListType::NUM];
 
     DescriptorDX12 mySRVNullDescriptors[(uint)GpuResourceDimension::NUM];

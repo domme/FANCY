@@ -21,6 +21,7 @@ namespace Fancy {
       : myResource(aResource)
       , myCoversAllSubresources(true)
       , myType(GpuResourceViewType::NONE)
+      , myGlobalDescriptorIndex(UINT_MAX)
     { }
 
     virtual ~GpuResourceView() = default;
@@ -28,12 +29,14 @@ namespace Fancy {
     GpuResource* GetResource() const { return myResource.get(); }
     const SubresourceRange& GetSubresourceRange() const { return mySubresourceRange; }
     GpuResourceViewType GetType() const { return myType; }
+    uint GetGlobalDescriptorIndex() const { return myGlobalDescriptorIndex; }
 
     eastl::any myNativeData;
     SubresourceRange mySubresourceRange;
     SharedPtr<GpuResource> myResource;
     bool myCoversAllSubresources;
     GpuResourceViewType myType;
+    uint myGlobalDescriptorIndex;
   };
 //---------------------------------------------------------------------------//
 }

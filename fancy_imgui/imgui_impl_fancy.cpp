@@ -30,6 +30,8 @@ namespace Fancy { namespace ImGuiRendering {
   struct CBufferData
   {
     glm::float4x4 myProjectionMatrix;
+    uint myTextureIndex;
+    uint mySamplerIndex;
   };
 
   SharedPtr<TextureView> ourFontTexture;
@@ -274,10 +276,7 @@ namespace Fancy { namespace ImGuiRendering {
     ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
     ctx->SetVertexInputLayout(ourInputLayout.get());
     ctx->SetShaderPipeline(ourProgramPipeline.get());
-    ctx->BindSampler(ourSampler.get(), "sampler_default");
 
-    // Update the cbuffer data
-    {
       float translate = -0.5f * 2.f;
       const float L = 0.f;
       const float R = ::ImGui::GetIO().DisplaySize.x;
@@ -290,9 +289,8 @@ namespace Fancy { namespace ImGuiRendering {
         0.0f,               2.0f / (T - B),     0.0f,       0.0f,
         0.0f,               0.0f,               0.5f,       0.0f,
         (R + L) / (L - R),  (T + B) / (B - T),  0.5f,       1.0f);
-      
-      ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), "cbVSImgui");
-    }
+
+      cbuffer.mySamplerIndex = ourSampler->GetGlobalDescriptorIndex();
 
     uint cmdListVertexOffset = 0u;
     uint cmdListIndexOffset = 0u;
@@ -319,7 +317,10 @@ namespace Fancy { namespace ImGuiRendering {
           if (textureId != nullptr)
             textureView = static_cast<const GpuResourceView*>(textureId);
 
-          ctx->BindResourceView(textureView, "texture0");
+          cbuffer.myTextureIndex = textureView->GetGlobalDescriptorIndex();
+          ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), 0);
+
+          ctx->TransitionResourceViewForShaderUse(textureView);
 
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
           ctx->SetClipRect(clipRect);

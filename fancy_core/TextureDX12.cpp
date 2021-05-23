@@ -246,14 +246,13 @@ namespace Fancy {
         myType = GpuResourceViewType::DSV;
         name.append(" DSV");
         nativeData.myDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, name.c_str());
-        nativeData.myShaderVisibleDescriptor = platformDx12->
         success = CreateDSV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
       else
       {
         myType = GpuResourceViewType::RTV;
         name.append(" RTV");
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, name.c_str());
+        nativeData.myDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, name.c_str());
         success = CreateRTV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
     }
@@ -263,15 +262,25 @@ namespace Fancy {
       {
         myType = GpuResourceViewType::UAV;
         name.append(" UAV");
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str());
+        nativeData.myDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str());
         success = CreateUAV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
       else
       {
         myType = GpuResourceViewType::SRV;
         name.append(" SRV");
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str());
+        nativeData.myDescriptor = platformDx12->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str());
         success = CreateSRV(aTexture.get(), someProperties, nativeData.myDescriptor);
+      }
+
+      if (someProperties.myDimension == GpuResourceDimension::TEXTURE_2D)
+      {
+        nativeData.myBindlessShaderVisibleDescriptor = 
+          platformDx12->AllocateGlobalShaderVisibleDescriptor(someProperties.myIsShaderWritable ? GLOBAL_RESOURCE_RW_TEXTURE_2D : GLOBAL_RESOURCE_TEXTURE_2D, name.c_str());
+
+        platformDx12->GetDevice()->CopyDescriptorsSimple(1, nativeData.myBindlessShaderVisibleDescriptor.myCpuHandle, nativeData.myDescriptor.myCpuHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+        myGlobalDescriptorIndex = nativeData.myBindlessShaderVisibleDescriptor.myGlobalResourceIndex;
       }
     }
 
@@ -295,7 +304,8 @@ namespace Fancy {
     const GpuResourceViewDataDX12& viewData = eastl::any_cast<const GpuResourceViewDataDX12&>(myNativeData);
     RenderCore::GetPlatformDX12()->ReleaseDescriptor(viewData.myDescriptor);
 
-
+    if (viewData.myBindlessShaderVisibleDescriptor.myCpuHandle.ptr != UINT_MAX)
+      RenderCore::GetPlatformDX12()->FreeGlobalShaderVisibleDescriptor(viewData.myBindlessShaderVisibleDescriptor);
   }
 //---------------------------------------------------------------------------//
   bool TextureViewDX12::CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor)

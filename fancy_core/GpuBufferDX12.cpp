@@ -186,15 +186,30 @@ namespace Fancy {
       ASSERT(myType == GpuResourceViewType::CBV);
       success = CreateCBVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
-    else if (someProperties.myIsShaderWritable)
-    {
-      ASSERT(myType == GpuResourceViewType::UAV);
-      success = CreateUAVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
-    }
     else
     {
-      ASSERT(myType == GpuResourceViewType::SRV);
-      success = CreateSRVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
+      GpuBufferViewProperties rawProperties = someProperties;
+      rawProperties.myIsRaw = true;
+      rawProperties.myIsStructured = false;
+
+      if (someProperties.myIsShaderWritable)
+      {
+        ASSERT(myType == GpuResourceViewType::UAV);
+        success = CreateUAVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
+
+        nativeData.myBindlessShaderVisibleDescriptor = RenderCore::GetPlatformDX12()->AllocateGlobalShaderVisibleDescriptor(GLOBAL_RESOURCE_RW_BUFFER, "GpuBufferView");
+        success &= CreateUAVdescriptor(aBuffer.get(), rawProperties, nativeData.myBindlessShaderVisibleDescriptor);
+      }
+      else
+      {
+        ASSERT(myType == GpuResourceViewType::SRV);
+        success = CreateSRVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
+
+        nativeData.myBindlessShaderVisibleDescriptor = RenderCore::GetPlatformDX12()->AllocateGlobalShaderVisibleDescriptor(GLOBAL_RESOURCE_BUFFER, "GpuBufferView");
+        success &= CreateSRVdescriptor(aBuffer.get(), rawProperties, nativeData.myBindlessShaderVisibleDescriptor);
+      }
+
+      myGlobalDescriptorIndex = nativeData.myBindlessShaderVisibleDescriptor.myGlobalResourceIndex;
     }
 
     ASSERT(success);
@@ -208,6 +223,9 @@ namespace Fancy {
   {
     const GpuResourceViewDataDX12& viewData = eastl::any_cast<const GpuResourceViewDataDX12&>(myNativeData);
     RenderCore::GetPlatformDX12()->ReleaseDescriptor(viewData.myDescriptor);
+
+    if (viewData.myBindlessShaderVisibleDescriptor.myCpuHandle.ptr != UINT_MAX)
+      RenderCore::GetPlatformDX12()->FreeGlobalShaderVisibleDescriptor(viewData.myBindlessShaderVisibleDescriptor);
   }
 //---------------------------------------------------------------------------//
   bool GpuBufferViewDX12::CreateSRVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)

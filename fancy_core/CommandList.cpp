@@ -98,7 +98,6 @@ namespace Fancy {
     , myClipRectDirty(true)
     , myTopologyDirty(true)
     , myRenderTargetsDirty(true)
-    , myShaderPipelineHasUnorderedWrites(false)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr)
   {
@@ -136,22 +135,9 @@ namespace Fancy {
     CopyBufferToTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)), aSrcBuffer, aSrcOffset);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, const char* aName, uint anArrayIndex /*= 0u*/)
+  void CommandList::TransitionResourceViewForShaderUse(const GpuResourceView* aView)
   {
-    const uint64 nameHash = Shader::GetParameterNameHash(aName);
-    BindBuffer(aBuffer, someViewProperties, nameHash, anArrayIndex);
-  }
-//---------------------------------------------------------------------------//
-  void CommandList::BindResourceView(const GpuResourceView* aView, const char* aName, uint anArrayIndex /*= 0u*/)
-  {
-    const uint64 nameHash = Shader::GetParameterNameHash(aName);
-    BindResourceView(aView, nameHash, anArrayIndex);
-  }
-//---------------------------------------------------------------------------//
-  void CommandList::BindSampler(const TextureSampler* aSampler, const char* aName, uint anArrayIndex /*= 0u*/)
-  {
-    const uint64 nameHash = Shader::GetParameterNameHash(aName);
-    BindSampler(aSampler, nameHash, anArrayIndex);
+    TransitionResourceViewsForShaderUse({ &aView, 1 });
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
@@ -265,7 +251,7 @@ namespace Fancy {
     BindIndexBuffer(buffer, anIndexSize, offset, aDataSize);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::BindConstantBuffer(void* someData, uint64 aDataSize, const char* aName)
+  void CommandList::BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex)
   {
     uint64 offset = 0u;
     const GpuBuffer* buffer = GetBuffer(offset, GpuBufferUsage::CONSTANT_BUFFER, someData, aDataSize);
@@ -275,7 +261,7 @@ namespace Fancy {
     viewProperties.myIsConstantBuffer = true;
     viewProperties.myOffset = offset;
 
-    BindBuffer(buffer, viewProperties, aName);
+    BindLocalBuffer(buffer, viewProperties, aRegisterIndex);
   }
 //---------------------------------------------------------------------------//
 // Render Context:

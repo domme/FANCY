@@ -14,9 +14,11 @@ namespace Fancy {
     ~TextureSamplerDX12() override;
 
     const DescriptorDX12& GetDescriptor() const { return myDescriptor; }
+    const DescriptorDX12& GetBindlessShaderVisibleDescriptor() const { return myBindlessShaderVisibleDescriptor; }
 
   protected:
     DescriptorDX12 myDescriptor;
+    DescriptorDX12 myBindlessShaderVisibleDescriptor;
   };
 //---------------------------------------------------------------------------//
 }

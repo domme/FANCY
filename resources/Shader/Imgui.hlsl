@@ -7,12 +7,12 @@ struct VS_OUT
   float4 col : COLOR0;
 };
 
-struct IMGUI_VS_CBUFFER
+cbuffer : register(b0, _LocalCBufferSpace)
 {
-  float4x4 ProjectionMatrix;
+  float4x4 myProjectionMatrix;
+  uint myTextureIndex;
+  uint mySamplerIndex;
 };
-
-ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0, _LocalCBufferSpace);
 
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_VERTEX)
@@ -32,11 +32,10 @@ ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0, _LocalCBufferSpace);
       return rgba;
     }
     
-    [RootSignature(RootSig_Default)]
     VS_OUT main(VS_IN input)
     {
       VS_OUT output = (VS_OUT)0;
-      output.pos = mul( cbVSImgui.ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));
+      output.pos = mul(myProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));
       output.col = UnpackColor(input.col);
       output.uv  = input.uv;
       return output;
@@ -44,14 +43,10 @@ ConstantBuffer<IMGUI_VS_CBUFFER> cbVSImgui : register(b0, _LocalCBufferSpace);
   #endif // PROGRAM_TYPE_VERTEX
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_FRAGMENT)  
-  Texture2D texture0 : register(t0, _LocalSRVSpace);
-  SamplerState sampler_default : register(s0, _LocalSamplerSpace);
- 
-  [RootSignature(RootSig_Default)]
   void main(VS_OUT input, out float4 colorOut : SV_Target0)
   {
     float2 uv = input.uv;
-    float4 tex = texture0.Sample(sampler_default, uv);
+    float4 tex = global_texture2D[myTextureIndex].Sample(global_sampler[mySamplerIndex], uv);
     tex.xyz *= tex.w;
     colorOut = input.col * tex;
   }

@@ -432,6 +432,7 @@
     <ClInclude Include="ShaderVisibleDescriptorHeapDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
+    <ClInclude Include="RootSignatureDX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -694,6 +695,7 @@
     <ClCompile Include="ShaderVisibleDescriptorHeapDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
+    <ClCompile Include="RootSignatureDX12.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

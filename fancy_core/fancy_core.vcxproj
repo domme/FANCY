@@ -145,6 +145,7 @@
     <ClInclude Include="DescriptorPoolAllocatorVk.h" />
     <ClInclude Include="DescriptorSetLayoutCacheVk.h" />
     <ClInclude Include="DxcShaderCompiler.h" />
+    <ClInclude Include="RootSignatureDX12.h" />
     <ClInclude Include="ShaderVisibleDescriptorHeapDX12.h" />
     <ClInclude Include="EASTLAllocator.h" />
     <ClInclude Include="FrameBufferCacheVk.h" />
@@ -270,6 +271,7 @@
     <ClCompile Include="DescriptorPoolAllocatorVk.cpp" />
     <ClCompile Include="DescriptorSetLayoutCacheVk.cpp" />
     <ClCompile Include="DxcShaderCompiler.cpp" />
+    <ClCompile Include="RootSignatureDX12.cpp" />
     <ClCompile Include="ShaderVisibleDescriptorHeapDX12.cpp" />
     <ClCompile Include="EASTLAllocator.cpp" />
     <ClCompile Include="FileWatcher.cpp" />

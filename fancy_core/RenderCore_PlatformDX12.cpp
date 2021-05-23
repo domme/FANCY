@@ -85,7 +85,7 @@ namespace Fancy {
         return CommandListType::Graphics;
       }
     }
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   }  // namespace
 //---------------------------------------------------------------------------//
   D3D12_LOGIC_OP RenderCore_PlatformDX12::ResolveLogicOp(LogicOp aLogicOp)
@@ -612,7 +612,7 @@ namespace Fancy {
   void RenderCore_PlatformDX12::BeginFrame()
   {
     for (UniquePtr<ShaderVisibleDescriptorHeapDX12>& shaderVisibleHeap : myShaderVisibleDescriptorHeaps)
-      shaderVisibleHeap->ProcessBindlessDescriptorFrees();
+      shaderVisibleHeap->ProcessGlobalDescriptorFrees();
   }
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
@@ -644,16 +644,11 @@ namespace Fancy {
       myProperties.myNumBindlessTexturesRWTextures,
       myProperties.myNumBindlessTexturesRWTextures,
       myProperties.myNumBindlessBuffersRWBuffers,
-      myProperties.myNumBindlessBuffersRWBuffers,
-      4096u,
-      256u));
+      myProperties.myNumBindlessBuffersRWBuffers));
 
-    myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new ShaderVisibleDescriptorHeapDX12(
-      myProperties.myNumBindlessSamplers, 
-      1024u, 
-      64u));
+    myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new ShaderVisibleDescriptorHeapDX12(myProperties.myNumBindlessSamplers));
 
-    InitRootSignatures();
+    myRootSignature.reset(new RootSignatureDX12(myProperties));
 
     return true;
   }
@@ -802,126 +797,6 @@ namespace Fancy {
     mySamplerNullDescriptor = descriptor;
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::InitRootSignatures()
-  {
-    const uint numBindlessTypes = ShaderVisibleDescriptorHeapDX12::BINDLESS_DESCRIPTOR_NUM;
-
-    const uint numRootParamsNeeded = numBindlessTypes + myProperties.myNumLocalCBuffers + myProperties.myNumLocalBuffers;
-    const uint numRangesNeeded = numRootParamsNeeded; // Each param only has one entry and range
-    const uint numDescriptorTablesNeeded = numBindlessTypes;  // Local buffers and cbuffers are root params
-
-    D3D12_ROOT_PARAMETER1* rootParams = static_cast<D3D12_ROOT_PARAMETER1*>(alloca(sizeof(D3D12_ROOT_PARAMETER1) * numRootParamsNeeded));
-    D3D12_DESCRIPTOR_RANGE1* ranges = static_cast<D3D12_DESCRIPTOR_RANGE1*>(alloca(sizeof(D3D12_DESCRIPTOR_RANGE1) * numRangesNeeded));
-
-    uint usedRanges = 0;
-    uint usedParams = 0;
-
-    // Bindless textures
-    D3D12_ROOT_PARAMETER1* param = &rootParams[usedParams++];
-    D3D12_DESCRIPTOR_RANGE1* range = &ranges[usedRanges++];
-    param->DescriptorTable.NumDescriptorRanges = 1;
-    param->DescriptorTable.pDescriptorRanges = range;
-    range->BaseShaderRegister = 0;
-    range->NumDescriptors = myProperties.myNumBindlessTexturesRWTextures;
-    range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-    range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 0;
-    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-    // Bindless RW Textures
-    param = &rootParams[usedParams++];
-    range = &ranges[usedRanges++];
-    param->DescriptorTable.NumDescriptorRanges = 1;
-    param->DescriptorTable.pDescriptorRanges = range;
-    range->BaseShaderRegister = 0;
-    range->NumDescriptors = myProperties.myNumBindlessTexturesRWTextures;
-    range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-    range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 1;
-    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-    // Bindless buffers
-    param = &rootParams[usedParams++];
-    range = &ranges[usedRanges++];
-    param->DescriptorTable.NumDescriptorRanges = 1;
-    param->DescriptorTable.pDescriptorRanges = range;
-    range->BaseShaderRegister = 0;
-    range->NumDescriptors = myProperties.myNumBindlessBuffersRWBuffers;
-    range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-    range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 2;
-    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-    // Bindless rw buffers
-    param = &rootParams[usedParams++];
-    range = &ranges[usedRanges++];
-    param->DescriptorTable.NumDescriptorRanges = 1;
-    param->DescriptorTable.pDescriptorRanges = range;
-    range->BaseShaderRegister = 0;
-    range->NumDescriptors = myProperties.myNumBindlessBuffersRWBuffers;
-    range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-    range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 3;
-    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-    // Bindless samplers
-    param = &rootParams[usedParams++];
-    range = &ranges[usedRanges++];
-    param->DescriptorTable.NumDescriptorRanges = 1;
-    param->DescriptorTable.pDescriptorRanges = range;
-    range->BaseShaderRegister = 0;
-    range->NumDescriptors = myProperties.myNumBindlessSamplers;
-    range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
-    range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 4;
-    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-    // Local Buffers
-    for (uint i = 0; i < myProperties.myNumLocalBuffers; ++i)
-    {
-      param = &rootParams[usedParams++];
-      param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-      param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-      param->Descriptor.ShaderRegister = i;
-      param->Descriptor.RegisterSpace = 5;
-    }
-
-    // Local Cbuffers
-    for (uint i = 0; i < myProperties.myNumLocalCBuffers; ++i)
-    {
-      param = &rootParams[usedParams++];
-      param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-      param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-      param->Descriptor.ShaderRegister = i;
-      param->Descriptor.RegisterSpace = 6;
-    }
-
-    // Guard against accidental override. In this case the "numNeeded" numbers are wrong
-    ASSERT(usedParams <= numRootParamsNeeded);
-    ASSERT(usedRanges <= numRangesNeeded);
-
-    D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc;
-    rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    rootSigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-    rootSigDesc.Desc_1_1.NumParameters = usedParams;
-    rootSigDesc.Desc_1_1.NumStaticSamplers = 0;
-    rootSigDesc.Desc_1_1.pStaticSamplers = nullptr;
-    rootSigDesc.Desc_1_1.pParameters = rootParams;
-
-    Microsoft::WRL::ComPtr<ID3DBlob> serializedRootSig;
-    Microsoft::WRL::ComPtr<ID3DBlob> error;
-    HRESULT success = D3D12SerializeVersionedRootSignature(&rootSigDesc, &serializedRootSig, &error);
-    ASSERT(success == S_OK);
-
-    success = ourDevice->CreateRootSignature(0, serializedRootSig.Get(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&myDefaultBindlessRootSignature));
-    ASSERT(success == S_OK);
-  }
-//---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::Shutdown()
   {
     myPipelineStateCache.Clear();
@@ -939,7 +814,7 @@ namespace Fancy {
     for (UniquePtr<ShaderVisibleDescriptorHeapDX12>& dynamicDescriptorHeap : myShaderVisibleDescriptorHeaps)
       dynamicDescriptorHeap.reset();
 
-    myDefaultBindlessRootSignature.Reset();
+    myRootSignature.reset();
 
     ourDevice.Reset();
   }
@@ -968,6 +843,20 @@ namespace Fancy {
   void RenderCore_PlatformDX12::ReleaseDescriptor(const DescriptorDX12& aDescriptor)
   {
     myStaticDescriptorAllocators[(uint)aDescriptor.myHeapType]->FreeDescriptor(aDescriptor);
+  }
+//---------------------------------------------------------------------------//
+  DescriptorDX12 RenderCore_PlatformDX12::AllocateGlobalShaderVisibleDescriptor(GlobalResourceType aBindlessType, const char* aDebugName)
+  {
+    const D3D12_DESCRIPTOR_HEAP_TYPE heapType = GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    ASSERT(myShaderVisibleDescriptorHeaps[heapType]);
+    return myShaderVisibleDescriptorHeaps[heapType]->AllocateGlobalDescriptor(aBindlessType, aDebugName);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformDX12::FreeGlobalShaderVisibleDescriptor(const DescriptorDX12& aDescriptor)
+  {
+    const D3D12_DESCRIPTOR_HEAP_TYPE heapType = GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    ASSERT(myShaderVisibleDescriptorHeaps[heapType]);
+    myShaderVisibleDescriptorHeaps[heapType]->FreeGlobalDescriptorAfterFrameDone(aDescriptor);
   }
 //---------------------------------------------------------------------------//
   CommandQueueDX12* RenderCore_PlatformDX12::GetCommandQueueDX12(CommandListType aCommandListType)

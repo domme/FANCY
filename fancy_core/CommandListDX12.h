@@ -2,11 +2,7 @@
 
 #include "CommandList.h"
 #include "DX12Prerequisites.h"
-#include "DescriptorDX12.h"
-
 #include "RenderEnums.h"
-#include "ShaderResourceInfoDX12.h"
-#include "RootSignatureDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -46,11 +42,10 @@ namespace Fancy {
 
     void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) override;
+    void BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) override;
+    void TransitionResourceViewsForShaderUse(const eastl::span<const GpuResourceView*>& someViews) override;
+
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
-    
-    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) override;
-    void BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex = 0u) override;
-    void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) override;
 
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
@@ -71,12 +66,7 @@ namespace Fancy {
     ID3D12GraphicsCommandList6* GetDX12CommandList() const { return myCommandList; }
 
   protected:
-    void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut) override;
-
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
-
-    void BindInternal(const ShaderResourceInfoDX12& aResourceInfo, const DescriptorDX12& aDescriptor, uint64 aGpuVirtualAddress, uint anArrayIndex);
-    void ClearResourceBindings();
 
     void ApplyViewportAndClipRect();
     void ApplyGraphicsPipelineState();
@@ -89,19 +79,14 @@ namespace Fancy {
     D3D12_RESOURCE_STATES ResolveValidateDstStates(const GpuResource* aResource, D3D12_RESOURCE_STATES aDstStates);
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, D3D12_RESOURCE_STATES aDstStates);
 
-    DescriptorDX12 AllocateDynamicDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE aType, uint aNumDescriptors);
-    DescriptorDX12 UploadTableToGpuVisibleHeap(const RootSignatureBindingsDX12::DescriptorTable& aTable);
-
-    UniquePtr<RootSignatureBindingsDX12> myRootSignatureBindings;
-    eastl::fixed_vector<DescriptorDX12, 32> myTempAllocatedDescriptors;
-    
-    ID3D12RootSignature* myRootSignature;  // The rootSignature that is set on myCommandList
     ID3D12GraphicsCommandList6* myCommandList;
     ID3D12CommandAllocator* myCommandAllocator;
     eastl::fixed_vector<D3D12_RESOURCE_BARRIER, kNumCachedBarriers, false> myPendingBarriers;
-    D3D12_RESOURCE_STATES myResourceStateMask;
+    eastl::fixed_vector<uint64, 16> myLocalBuffersToBind;
+    eastl::fixed_vector<uint64, 16> myLocalRWBuffersToBind;
+    eastl::fixed_vector<uint64, 16> myLocalCBuffersToBind;
 
-    eastl::fixed_vector<ShaderVisibleDescriptorHeapDX12::RangeAllocation, 4> myDynamicDescriptorRange[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    D3D12_RESOURCE_STATES myResourceStateMask;
 
     struct SubresourceHazardData
     {
@@ -122,6 +107,8 @@ namespace Fancy {
     {
       eastl::fixed_vector<SubresourceHazardData, 16> mySubresources;
     };
+
+    // TODO: Make this a simple vector and compare perf. Most likely a vector will be much faster in almost all cases
     eastl::fixed_hash_map<const GpuResource*, LocalHazardData, kNumExpectedResourcesPerDispatch> myLocalHazardData;
   };
 //---------------------------------------------------------------------------//

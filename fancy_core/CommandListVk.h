@@ -62,7 +62,7 @@ namespace Fancy
 
     void BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex = 0u) override;
     void BindResourceViewSet(const GpuResourceViewSet* aSet, uint aSetOrTableIndex) override;
-    void BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) override;
+    void BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) override;
     void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) override;
     
     GpuQuery BeginQuery(GpuQueryType aType) override;

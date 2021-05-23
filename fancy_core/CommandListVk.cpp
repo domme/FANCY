@@ -808,7 +808,7 @@ namespace Fancy
     myPipelineLayoutBindings->myDescriptorSets[aSetOrTableIndex].myIsDirty = true;
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
+  void CommandListVk::BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
   {
     const ShaderResourceInfoVk* resourceInfo = FindShaderResourceInfo(aNameHash);
     if (!resourceInfo)
