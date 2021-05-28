@@ -16,7 +16,6 @@
 #include "GpuQueryHeapVk.h"
 #include "TimeManager.h"
 #include "PipelineLayoutVk.h"
-#include "GpuResourceViewSetVk.h"
 
 #if FANCY_ENABLE_VK
 

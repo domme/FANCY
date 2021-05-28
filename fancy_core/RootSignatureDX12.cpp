@@ -18,6 +18,8 @@ namespace Fancy
 
     D3D12_ROOT_PARAMETER1* rootParams = static_cast<D3D12_ROOT_PARAMETER1*>(alloca(sizeof(D3D12_ROOT_PARAMETER1) * numRootParamsNeeded));
     D3D12_DESCRIPTOR_RANGE1* ranges = static_cast<D3D12_DESCRIPTOR_RANGE1*>(alloca(sizeof(D3D12_DESCRIPTOR_RANGE1) * numRangesNeeded));
+    memset(rootParams, 0, sizeof(D3D12_ROOT_PARAMETER1) * numRootParamsNeeded);
+    memset(ranges, 0, sizeof(D3D12_DESCRIPTOR_RANGE1) * numRangesNeeded);
 
     uint usedRanges = 0;
     uint usedParams = 0;
@@ -29,7 +31,7 @@ namespace Fancy
     param->DescriptorTable.NumDescriptorRanges = 1;
     param->DescriptorTable.pDescriptorRanges = range;
     range->BaseShaderRegister = 0;
-    range->NumDescriptors = someProperties.myNumBindlessTexturesRWTextures;
+    range->NumDescriptors = someProperties.myNumGlobalTextures;
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 0;
@@ -43,7 +45,7 @@ namespace Fancy
     param->DescriptorTable.NumDescriptorRanges = 1;
     param->DescriptorTable.pDescriptorRanges = range;
     range->BaseShaderRegister = 0;
-    range->NumDescriptors = someProperties.myNumBindlessTexturesRWTextures;
+    range->NumDescriptors = someProperties.myNumGlobalTextures;
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 1;
@@ -57,7 +59,7 @@ namespace Fancy
     param->DescriptorTable.NumDescriptorRanges = 1;
     param->DescriptorTable.pDescriptorRanges = range;
     range->BaseShaderRegister = 0;
-    range->NumDescriptors = someProperties.myNumBindlessBuffersRWBuffers;
+    range->NumDescriptors = someProperties.myNumGlobalBuffers;
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 2;
@@ -71,7 +73,7 @@ namespace Fancy
     param->DescriptorTable.NumDescriptorRanges = 1;
     param->DescriptorTable.pDescriptorRanges = range;
     range->BaseShaderRegister = 0;
-    range->NumDescriptors = someProperties.myNumBindlessBuffersRWBuffers;
+    range->NumDescriptors = someProperties.myNumGlobalBuffers;
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 3;
@@ -85,7 +87,7 @@ namespace Fancy
     param->DescriptorTable.NumDescriptorRanges = 1;
     param->DescriptorTable.pDescriptorRanges = range;
     range->BaseShaderRegister = 0;
-    range->NumDescriptors = someProperties.myNumBindlessSamplers;
+    range->NumDescriptors = someProperties.myNumGlobalSamplers;
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 4;
@@ -146,9 +148,18 @@ namespace Fancy
     Microsoft::WRL::ComPtr<ID3DBlob> serializedRootSig;
     Microsoft::WRL::ComPtr<ID3DBlob> error;
     HRESULT success = D3D12SerializeVersionedRootSignature(&rootSigDesc, &serializedRootSig, &error);
-    ASSERT(success == S_OK);
+    if (success != S_OK)
+    {
+      if (error)
+      {
+        const char* errorMsg = static_cast<const char*>(error->GetBufferPointer());
+        LOG_ERROR("Failed creating root signature: %s", errorMsg);
+      }
 
-    success = RenderCore::GetPlatformDX12()->GetDevice()->CreateRootSignature(0, serializedRootSig.Get(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&myRootSignature));
+      ASSERT(false);
+    }
+
+    success = RenderCore::GetPlatformDX12()->GetDevice()->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&myRootSignature));
     ASSERT(success == S_OK);
   }
 //---------------------------------------------------------------------------//

@@ -3,11 +3,12 @@
 #include "fancy_core/RenderCore.h"
 #include "fancy_core/CommandList.h"
 #include "fancy_core/CommandQueue.h"
-#include "fancy_core/GrowingList.h"
 #include "fancy_core/ShaderPipelineDesc.h"
 #include "fancy_core/TempResourcePool.h"
 
 #include "EASTL/vector.h"
+
+#if BINDLESS_ENABLE_ALL_TESTS
 
 using namespace Fancy;
 
@@ -87,3 +88,5 @@ void Test_SharedQueueResourceUsage::OnUpdate(bool aDrawProperties)
 void Test_SharedQueueResourceUsage::OnRender()
 {
 }
+
+#endif

@@ -102,6 +102,7 @@ void Update()
     else
       myTests.push_back(eastl::make_unique<Test_GpuMemoryAllocator>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
+#if BINDLESS_ENABLE_ALL_TESTS
   if (ImGui::Checkbox("Test Synchronization", &test_sychronization))
   {
     if (!test_sychronization)
@@ -151,6 +152,7 @@ void Update()
     else
       myTests.push_back(eastl::make_unique<Test_Raytracing>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
+#endif
 
   ImGui::Separator();
 

@@ -507,29 +507,28 @@ namespace Fancy {
     myPendingBarriers.clear();
     myLocalHazardData.clear();
 
-    // We only use one dynamic (shader-visible) descriptor heap per type, so just bind them up-front
-    ID3D12DescriptorHeap* dynamicHeaps[] = {
-      platformDx12->GetShaderVisibleDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)->GetHeap(),
-      platformDx12->GetShaderVisibleDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)->GetHeap()
+    const ShaderVisibleDescriptorHeapDX12* shaderVisibleHeap = platformDx12->GetShaderVisibleDescriptorHeap();
+
+    // We only use one shader-visible descriptor heap per type, so just bind them up-front
+    ID3D12DescriptorHeap* shaderVisibleHeaps[] = {
+      shaderVisibleHeap->GetResourceHeap(),
+      shaderVisibleHeap->GetSamplerHeap()
     };
-    myCommandList->SetDescriptorHeaps(ARRAY_LENGTH(dynamicHeaps), dynamicHeaps);
+    myCommandList->SetDescriptorHeaps(ARRAY_LENGTH(shaderVisibleHeaps), shaderVisibleHeaps);
 
     // Set the root signature and all global descriptor table pointers up front
     const RootSignatureDX12* rootSignature = platformDx12->GetRootSignature();
     myCommandList->SetComputeRootSignature(rootSignature->GetRootSignature());
     myCommandList->SetGraphicsRootSignature(rootSignature->GetRootSignature());
 
-    const ShaderVisibleDescriptorHeapDX12* resourceHeap = platformDx12->GetShaderVisibleDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    const ShaderVisibleDescriptorHeapDX12* samplerHeap = platformDx12->GetShaderVisibleDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-
-    myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], samplerHeap->GetGlobalHeapStart(GLOBAL_RESOURCE_SAMPLER));
-    myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], samplerHeap->GetGlobalHeapStart(GLOBAL_RESOURCE_SAMPLER));
-
     for (uint i = 0; i < GLOBAL_RESOURCE_NUM_NOSAMPLER; ++i)
     {
-      myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], resourceHeap->GetGlobalHeapStart(static_cast<GlobalResourceType>(i)));
-      myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], resourceHeap->GetGlobalHeapStart(static_cast<GlobalResourceType>(i)));
+      myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], shaderVisibleHeap->GetHeapStart(static_cast<GlobalResourceType>(i)));
+      myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], shaderVisibleHeap->GetHeapStart(static_cast<GlobalResourceType>(i)));
     }
+
+    myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], shaderVisibleHeap->GetHeapStart(GLOBAL_RESOURCE_SAMPLER));
+    myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], shaderVisibleHeap->GetHeapStart(GLOBAL_RESOURCE_SAMPLER));
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::FlushBarriers()

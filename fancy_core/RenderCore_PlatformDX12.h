@@ -67,10 +67,8 @@ namespace Fancy {
     void ReleaseCommandAllocator(ID3D12CommandAllocator* anAllocator, uint64 aFenceVal);
 
     DescriptorDX12 AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, const char* aDebugName = nullptr);
-    void ReleaseDescriptor(const DescriptorDX12& aDescriptor);
-
-    DescriptorDX12 AllocateGlobalShaderVisibleDescriptor(GlobalResourceType aBindlessType, const char* aDebugName = nullptr);
-    void FreeGlobalShaderVisibleDescriptor(const DescriptorDX12& aDescriptor);
+    DescriptorDX12 AllocateShaderVisibleDescriptorForGlobalResource(GlobalResourceType aGlobalResourceType, const char* aDebugName = nullptr);
+    void FreeDescriptor(const DescriptorDX12& aDescriptor);
 
     GpuMemoryAllocationDX12 AllocateGpuMemory(GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment, const char* aDebugName = nullptr);
     void ReleaseGpuMemory(GpuMemoryAllocationDX12& anAllocation);
@@ -94,7 +92,7 @@ namespace Fancy {
 
     const DescriptorDX12& GetNullDescriptor(D3D12_DESCRIPTOR_RANGE_TYPE aType, GpuResourceDimension aResouceDimension) const;
     PipelineStateCacheDX12& GetPipelineStateCache() { return myPipelineStateCache; }
-    ShaderVisibleDescriptorHeapDX12* GetShaderVisibleDescriptorHeap(D3D12_DESCRIPTOR_HEAP_TYPE aType) { return myShaderVisibleDescriptorHeaps[aType].get(); }
+    ShaderVisibleDescriptorHeapDX12* GetShaderVisibleDescriptorHeap() { return myShaderVisibleDescriptorHeap.get(); }
     const RootSignatureDX12* GetRootSignature() const { return myRootSignature.get(); }
 
     CommandQueueDX12* GetCommandQueueDX12(CommandListType aCommandListType);
@@ -102,7 +100,7 @@ namespace Fancy {
     Microsoft::WRL::ComPtr<ID3D12Device8> ourDevice;
 
     UniquePtr<StaticDescriptorAllocatorDX12> myStaticDescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-    UniquePtr<ShaderVisibleDescriptorHeapDX12> myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
+    UniquePtr<ShaderVisibleDescriptorHeapDX12> myShaderVisibleDescriptorHeap;
     UniquePtr<GpuMemoryAllocatorDX12> myGpuMemoryAllocators[(uint)GpuMemoryType::NUM][(uint)CpuMemoryAccessType::NUM];
     UniquePtr<CommandAllocatorPoolDX12> ourCommandAllocatorPools[(uint)CommandListType::NUM];
     UniquePtr<RootSignatureDX12> myRootSignature;

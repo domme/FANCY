@@ -22,7 +22,8 @@
 #include "fancy_core/GpuBuffer.h"
 #include "fancy_core/Material.h"
 #include "fancy_core/Scene.h"
-#include "fancy_core/GpuResourceViewSet.h"
+
+#if BINDLESS_ENABLE_ALL_TESTS
 
 using namespace Fancy;
 
@@ -311,3 +312,5 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     */
   }
 }
+
+#endif

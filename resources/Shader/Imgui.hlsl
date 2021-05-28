@@ -1,4 +1,4 @@
-#include "RootSignature.h"
+#include "GlobalResources.h"
 
 struct VS_OUT
 {
@@ -7,7 +7,7 @@ struct VS_OUT
   float4 col : COLOR0;
 };
 
-cbuffer : register(b0, _LocalCBufferSpace)
+cbuffer Constants : register(b0, _LocalCBufferSpace)
 {
   float4x4 myProjectionMatrix;
   uint myTextureIndex;
@@ -46,7 +46,7 @@ cbuffer : register(b0, _LocalCBufferSpace)
   void main(VS_OUT input, out float4 colorOut : SV_Target0)
   {
     float2 uv = input.uv;
-    float4 tex = global_texture2D[myTextureIndex].Sample(global_sampler[mySamplerIndex], uv);
+    float4 tex = global_textures2D[myTextureIndex].Sample(global_samplers[mySamplerIndex], uv);
     tex.xyz *= tex.w;
     colorOut = input.col * tex;
   }

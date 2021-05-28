@@ -4,6 +4,8 @@
 #include "fancy_core/ShaderPipeline.h"
 #include "fancy_core/Texture.h"
 
+#if BINDLESS_ENABLE_ALL_TESTS
+
 class Test_HazardTracking : public Test
 {
 public:
@@ -24,3 +26,5 @@ private:
   Fancy::SharedPtr<Fancy::ShaderPipeline> myBufferToMipShader;
   Fancy::SharedPtr<Fancy::ShaderPipeline> myMipToBufferShader;
 };
+
+#endif

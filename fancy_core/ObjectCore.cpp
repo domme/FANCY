@@ -24,14 +24,14 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void ObjectCore::Init()
   {
-    ShaderPipelineDesc pipelineDesc;
-    ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
-    shaderDesc.myPath = "Downsample.hlsl";
-    shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
-    shaderDesc.myMainFunction = "main";
-
-    ourMipDownsampleShader = RenderCore::CreateShaderPipeline(pipelineDesc);
-    ASSERT(ourMipDownsampleShader != nullptr);
+    //ShaderPipelineDesc pipelineDesc;
+    //ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
+    //shaderDesc.myPath = "Downsample.hlsl";
+    //shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
+    //shaderDesc.myMainFunction = "main";
+    //
+    //ourMipDownsampleShader = RenderCore::CreateShaderPipeline(pipelineDesc);
+    //ASSERT(ourMipDownsampleShader != nullptr);
   }
  //---------------------------------------------------------------------------//
   SharedPtr<Mesh> ObjectCore::GetMesh(const MeshDesc& aDesc)
@@ -278,6 +278,9 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void ObjectCore::ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter aFilter)
   {
+    ASSERT(false, "Mipmap computation not reenabled after bindless");
+
+    /*
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;
 
@@ -353,6 +356,7 @@ namespace Fancy
       ctx->CopyResource(aTexture.get(), texture.get());
 
     RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
+    */
   }
 //---------------------------------------------------------------------------//
 }

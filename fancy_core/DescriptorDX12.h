@@ -23,14 +23,14 @@ namespace Fancy {
     DescriptorDX12(D3D12_CPU_DESCRIPTOR_HANDLE aCpuHandle, 
       D3D12_GPU_DESCRIPTOR_HANDLE aGpuHandle, 
       D3D12_DESCRIPTOR_HEAP_TYPE aHeapType,
-      GlobalResourceType aBindlessType,
-      uint aBindlessIndex,
+      GlobalResourceType aGlobalType,
+      uint aGlobalIndex,
       bool aIsManagedByAllocator, bool aIsShaderVisible)
       : myCpuHandle(aCpuHandle)
       , myGpuHandle(aGpuHandle)
       , myHeapType(aHeapType)
-      , myGlobalResourceType(aBindlessType)
-      , myGlobalResourceIndex(aBindlessIndex)
+      , myGlobalResourceType(aGlobalType)
+      , myGlobalResourceIndex(aGlobalIndex)
       , myIsManagedByAllocator(aIsManagedByAllocator)
       , myIsShaderVisible(aIsShaderVisible)
     {

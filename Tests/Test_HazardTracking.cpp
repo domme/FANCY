@@ -4,6 +4,8 @@
 #include "fancy_core/RenderCore.h"
 #include "fancy_core/CommandList.h"
 
+#if BINDLESS_ENABLE_ALL_TESTS
+
 using namespace Fancy;
 
 Test_HazardTracking::Test_HazardTracking(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
@@ -116,3 +118,5 @@ void Test_HazardTracking::OnUpdate(bool aDrawProperties)
 void Test_HazardTracking::OnRender()
 {
 }
+
+#endif

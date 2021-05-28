@@ -11,6 +11,8 @@
 
 #include "EASTL/vector.h"
 
+#if BINDLESS_ENABLE_ALL_TESTS
+
 using namespace Fancy;
 
 static uint kNumBufferElements = 1024;
@@ -84,22 +86,20 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
       struct CBuffer
       {
         uint myValue;
-        uint _unused;
-        uint _unused1;
-        uint _unused2;
+        uint myDstBufferIndex;
+        uint mySrcBufferIndex;
       };
       myExpectedBufferValue = (uint)Time::ourFrameIdx;
-      CBuffer cbuf = { myExpectedBufferValue };
-      graphicsContext->BindConstantBuffer(&cbuf, sizeof(cbuf), "CB0");
+      CBuffer cbuf = { myExpectedBufferValue, myBufferUAV->GetGlobalDescriptorIndex(), 0 };
       
-      graphicsContext->BindResourceView(myBufferUAV.get(), "DstBuffer");
+      graphicsContext->TransitionResourceViewForShaderUse(myBufferUAV.get());
       graphicsContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
       const uint64 setValueFence = RenderCore::ExecuteAndResetCommandList(graphicsContext);
 
       CommandList* computeContext = RenderCore::BeginCommandList(CommandListType::Compute);
       RenderCore::GetCommandQueue(CommandListType::Compute)->StallForFence(setValueFence);
       computeContext->SetShaderPipeline(myIncrementBufferShader.get());
-      computeContext->BindResourceView(myBufferUAV.get(), "DstBuffer");
+      computeContext->TransitionResourceViewForShaderUse(myBufferUAV.get());
       computeContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
       const uint64 incrementValueFence = RenderCore::ExecuteAndFreeCommandList(computeContext);
 
@@ -153,3 +153,5 @@ void Test_AsyncCompute::OnRender()
 {
   // LongGpuCopy(myDummyGpuBuffer1.get(), myDummyGpuBuffer2.get());
 }
+
+#endif

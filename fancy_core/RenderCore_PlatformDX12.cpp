@@ -611,8 +611,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformDX12::BeginFrame()
   {
-    for (UniquePtr<ShaderVisibleDescriptorHeapDX12>& shaderVisibleHeap : myShaderVisibleDescriptorHeaps)
-      shaderVisibleHeap->ProcessGlobalDescriptorFrees();
+    myShaderVisibleDescriptorHeap->ProcessGlobalDescriptorFrees();
   }
 //---------------------------------------------------------------------------//
   bool RenderCore_PlatformDX12::InitInternalResources()
@@ -640,13 +639,7 @@ namespace Fancy {
 
     InitNullDescriptors();  // Must be available before creating dynamic descriptor heaps
 
-    myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].reset(new ShaderVisibleDescriptorHeapDX12(
-      myProperties.myNumBindlessTexturesRWTextures,
-      myProperties.myNumBindlessTexturesRWTextures,
-      myProperties.myNumBindlessBuffersRWBuffers,
-      myProperties.myNumBindlessBuffersRWBuffers));
-
-    myShaderVisibleDescriptorHeaps[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER].reset(new ShaderVisibleDescriptorHeapDX12(myProperties.myNumBindlessSamplers));
+    myShaderVisibleDescriptorHeap.reset(new ShaderVisibleDescriptorHeapDX12(myProperties));
 
     myRootSignature.reset(new RootSignatureDX12(myProperties));
 
@@ -811,8 +804,7 @@ namespace Fancy {
     for (uint i = 0u; i < (uint) CommandListType::NUM; ++i)
       ourCommandAllocatorPools[i].reset();
 
-    for (UniquePtr<ShaderVisibleDescriptorHeapDX12>& dynamicDescriptorHeap : myShaderVisibleDescriptorHeaps)
-      dynamicDescriptorHeap.reset();
+    myShaderVisibleDescriptorHeap.reset();
 
     myRootSignature.reset();
 
@@ -840,23 +832,19 @@ namespace Fancy {
     return myStaticDescriptorAllocators[(uint)aHeapType]->AllocateDescriptor(aDebugName);
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::ReleaseDescriptor(const DescriptorDX12& aDescriptor)
+  DescriptorDX12 RenderCore_PlatformDX12::AllocateShaderVisibleDescriptorForGlobalResource(GlobalResourceType aGlobalResourceType, const char* aDebugName)
   {
-    myStaticDescriptorAllocators[(uint)aDescriptor.myHeapType]->FreeDescriptor(aDescriptor);
+    return myShaderVisibleDescriptorHeap->AllocateDescriptor(aGlobalResourceType, aDebugName);
   }
 //---------------------------------------------------------------------------//
-  DescriptorDX12 RenderCore_PlatformDX12::AllocateGlobalShaderVisibleDescriptor(GlobalResourceType aBindlessType, const char* aDebugName)
+  void RenderCore_PlatformDX12::FreeDescriptor(const DescriptorDX12& aDescriptor)
   {
-    const D3D12_DESCRIPTOR_HEAP_TYPE heapType = GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    ASSERT(myShaderVisibleDescriptorHeaps[heapType]);
-    return myShaderVisibleDescriptorHeaps[heapType]->AllocateGlobalDescriptor(aBindlessType, aDebugName);
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore_PlatformDX12::FreeGlobalShaderVisibleDescriptor(const DescriptorDX12& aDescriptor)
-  {
-    const D3D12_DESCRIPTOR_HEAP_TYPE heapType = GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    ASSERT(myShaderVisibleDescriptorHeaps[heapType]);
-    myShaderVisibleDescriptorHeaps[heapType]->FreeGlobalDescriptorAfterFrameDone(aDescriptor);
+    ASSERT(aDescriptor.myIsManagedByAllocator);
+
+    if (aDescriptor.myIsShaderVisible)
+      myShaderVisibleDescriptorHeap->FreeDescriptorAfterFrameDone(aDescriptor);
+    else
+      myStaticDescriptorAllocators[static_cast<uint>(aDescriptor.myHeapType)]->FreeDescriptor(aDescriptor);
   }
 //---------------------------------------------------------------------------//
   CommandQueueDX12* RenderCore_PlatformDX12::GetCommandQueueDX12(CommandListType aCommandListType)

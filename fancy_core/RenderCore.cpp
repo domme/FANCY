@@ -26,8 +26,6 @@
 #include "TextureReadbackTask.h"
 #include "CommandLine.h"
 #include "TextureSampler.h"
-#include "Material.h"
-#include "GpuResourceViewSet.h"
 #include "RaytracingBVH.h"
 
 //---------------------------------------------------------------------------//
@@ -923,11 +921,6 @@ namespace Fancy {
       return nullptr;
 
     return CreateBufferView(buffer, someViewProperties, aName);
-  }
-//---------------------------------------------------------------------------//
-  SharedPtr<GpuResourceViewSet> RenderCore::CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges)
-  {
-    return SharedPtr<GpuResourceViewSet>(ourPlatformImpl->CreateResourceViewSet(someRanges));
   }
 //---------------------------------------------------------------------------//
   SharedPtr<RaytracingBVH> RenderCore::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)

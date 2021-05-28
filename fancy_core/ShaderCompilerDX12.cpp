@@ -228,7 +228,7 @@ namespace Fancy {
     ShaderCompiledDataDX12 compiledNativeData;
 
     uint rootSigPartIdx;
-    ASSERT(!dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx), "Custom HLSL-specified root signatures are not supported");
+    ASSERT(S_OK != dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx), "Custom HLSL-specified root signatures are not supported");
 
     // Shader reflection
     //---------------------------------------------------------------------------//

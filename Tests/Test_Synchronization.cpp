@@ -9,6 +9,8 @@
 
 #include "EASTL/vector.h"
 
+#if BINDLESS_ENABLE_ALL_TESTS
+
 using namespace Fancy;
 
 static uint kNumBufferElements = 1000;
@@ -103,3 +105,5 @@ void Test_Synchronization::OnRender()
 {
   // LongGpuCopy(myDummyGpuBuffer1.get(), myDummyGpuBuffer2.get());
 }
+
+#endif

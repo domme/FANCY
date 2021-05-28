@@ -155,7 +155,6 @@
     <ClInclude Include="GpuMemoryAllocatorDX12.h" />
     <ClInclude Include="GpuQueryHeapVk.h" />
     <ClInclude Include="GpuReadbackBuffer.h" />
-    <ClInclude Include="GpuResourceViewSetVk.h" />
     <ClInclude Include="ImageLoader.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshImporter.h" />
@@ -286,7 +285,6 @@
     <ClCompile Include="GpuQueryHeapVk.cpp" />
     <ClCompile Include="GpuReadbackBuffer.cpp" />
     <ClCompile Include="GpuResource.cpp" />
-    <ClCompile Include="GpuResourceViewSetVk.cpp" />
     <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MathUtil.cpp" />

@@ -2,6 +2,8 @@
 #include "Test.h"
 #include "fancy_core/GpuBuffer.h"
 
+#if BINDLESS_ENABLE_ALL_TESTS
+
 class Test_Synchronization : public Test
 {
 public:
@@ -26,3 +28,5 @@ private:
   Fancy::SharedPtr<Fancy::GpuBuffer> myUploadBuffer;
   Fancy::SharedPtr<Fancy::GpuBuffer> myReadbackBuffer;
 };
+
+#endif

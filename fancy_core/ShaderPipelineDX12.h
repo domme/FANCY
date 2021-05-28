@@ -10,11 +10,6 @@ namespace Fancy
   {
   public:
     void CreateFromShaders() override;
-
-    ID3D12RootSignature* GetRootSignature() const { return myRootSignature.Get(); }
-
-  protected:
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
   };
 }
 

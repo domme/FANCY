@@ -6,6 +6,8 @@
 #include "fancy_imgui/imgui.h"
 #include "fancy_core/ObjectCore.h"
 
+#if BINDLESS_ENABLE_ALL_TESTS
+
 using namespace Fancy;
 
 static const char* locResampleFilterNames[] = { "Linear", "Lanczos" };
@@ -113,3 +115,4 @@ void Test_Mipmapping::OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aS
 }
 
 
+#endif

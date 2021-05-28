@@ -4,6 +4,7 @@
 #include "DX12Prerequisites.h"
 #include "DescriptorDX12.h"
 #include "RenderCore.h"
+#include "PagedLinearAllocator.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -19,39 +20,42 @@ namespace Fancy {
     friend class RenderCore_PlatformDX12;
 
   public:
-    ShaderVisibleDescriptorHeapDX12(uint aNumGlobalTextures, uint aNumGlobalRWTextures, uint aNumGlobalBuffers, uint aNumGlobalRWBuffers);
-    ShaderVisibleDescriptorHeapDX12(uint aNumGlobalSamplers);
+    ShaderVisibleDescriptorHeapDX12(const RenderPlatformProperties& someProperties);
+    
+    ID3D12DescriptorHeap* GetResourceHeap() const { return myResourceHeap.Get(); }
+    ID3D12DescriptorHeap* GetSamplerHeap() const { return mySamplerHeap.Get(); }
 
-    const D3D12_DESCRIPTOR_HEAP_DESC& GetDesc() const { return myDesc; }
-    uint GetHandleIncrementSize() const { return myHandleIncrementSize; }
-    ID3D12DescriptorHeap* GetHeap() const { return myDescriptorHeap.Get(); }
+    DescriptorDX12 AllocateDescriptor(GlobalResourceType aType, const char* aDebugName = nullptr);
+    void FreeDescriptorAfterFrameDone(const DescriptorDX12& aDescriptor);
 
-    DescriptorDX12 AllocateGlobalDescriptor(GlobalResourceType aType, const char* aDebugName = nullptr);
-    void FreeGlobalDescriptorAfterFrameDone(const DescriptorDX12& aDescriptor);
-
-    D3D12_GPU_DESCRIPTOR_HANDLE GetGlobalHeapStart(GlobalResourceType aType) const { return myGlobalDescriptorGpuHeapStart[aType]; }
+    D3D12_GPU_DESCRIPTOR_HANDLE GetHeapStart(GlobalResourceType aType) const { return myGlobalDescriptorGpuHeapStart[aType]; }
 
   private:
-    void Init(D3D12_DESCRIPTOR_HEAP_TYPE aType);
     void ProcessGlobalDescriptorFrees();
+    D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType(GlobalResourceType aResourceType) const { return aResourceType == GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; }
+    uint GetHandleIncementSize(GlobalResourceType aResourceType) const { return aResourceType == GLOBAL_RESOURCE_SAMPLER ? mySamplerHandleIncrementSize : myResourceHandleIncrementSize; }
 
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myDescriptorHeap;
-    D3D12_DESCRIPTOR_HEAP_DESC myDesc;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myResourceHeap;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mySamplerHeap;
 
-    uint myOverallNumGlobalDescriptors;
     uint myNumGlobalDescriptors[GLOBAL_RESOURCE_NUM];
 
-    uint myHandleIncrementSize;
+    uint myResourceHandleIncrementSize;
+    uint mySamplerHandleIncrementSize;
 
-    D3D12_CPU_DESCRIPTOR_HANDLE myCpuHeapStart;
-    D3D12_GPU_DESCRIPTOR_HANDLE myGpuHeapStart;
     D3D12_CPU_DESCRIPTOR_HANDLE myGlobalDescriptorCpuHeapStart[GLOBAL_RESOURCE_NUM];
     D3D12_GPU_DESCRIPTOR_HANDLE myGlobalDescriptorGpuHeapStart[GLOBAL_RESOURCE_NUM];
 
-    PagedLinearAllocator myGlobalAllocators[GLOBAL_RESOURCE_NUM];
+    PagedLinearAllocator myAllocators[GLOBAL_RESOURCE_NUM];
+
+    struct DescriptorToFree
+    {
+      GlobalResourceType myType;
+      uint myIndex;
+    };
 
     static constexpr uint ourNumGlobalFreeLists = RenderCore::Constants::NUM_QUEUED_FRAMES + 1;
-    eastl::vector<uint> myGlobalDescriptorsToFree[ourNumGlobalFreeLists][GLOBAL_RESOURCE_NUM];
+    eastl::fixed_vector<DescriptorToFree, 256> myDescriptorsToFree[ourNumGlobalFreeLists];
   };
 //---------------------------------------------------------------------------// 
 }

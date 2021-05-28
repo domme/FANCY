@@ -104,22 +104,15 @@ namespace Fancy
     desc.MipLODBias = myProperties.myLodBias;
 
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
-    myDescriptor = dx12Platform->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-    dx12Platform->GetDevice()->CreateSampler(&desc, myDescriptor.myCpuHandle);
 
-    myBindlessShaderVisibleDescriptor = dx12Platform->AllocateGlobalShaderVisibleDescriptor(GLOBAL_RESOURCE_SAMPLER);
-    dx12Platform->GetDevice()->CreateSampler(&desc, myBindlessShaderVisibleDescriptor.myCpuHandle);
-
-    myGlobalDescriptorIndex = myBindlessShaderVisibleDescriptor.myGlobalResourceIndex;
+    myDescriptor = dx12Platform->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_SAMPLER);
+    myGlobalDescriptorIndex = myDescriptor.myGlobalResourceIndex;
   }
 //---------------------------------------------------------------------------//
   TextureSamplerDX12::~TextureSamplerDX12()
   {
     RenderCore_PlatformDX12* dx12Platform = RenderCore::GetPlatformDX12();
-    dx12Platform->ReleaseDescriptor(myDescriptor);
-
-    if (myBindlessShaderVisibleDescriptor.myCpuHandle.ptr != UINT_MAX)
-      dx12Platform->FreeGlobalShaderVisibleDescriptor(myBindlessShaderVisibleDescriptor);
+    dx12Platform->FreeDescriptor(myDescriptor);
   }
 //---------------------------------------------------------------------------//
 }

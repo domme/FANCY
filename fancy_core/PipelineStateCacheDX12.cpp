@@ -72,8 +72,7 @@ namespace Fancy
     }
 
     // ROOT SIGNATURE
-    const ShaderPipelineDX12* shaderPipelineDx12 = static_cast<const ShaderPipelineDX12*>(aState.myShaderPipeline);
-    psoDesc.pRootSignature = shaderPipelineDx12->GetRootSignature();
+    psoDesc.pRootSignature = RenderCore::GetPlatformDX12()->GetRootSignature()->GetRootSignature();
 
     // BLEND DESC
     D3D12_BLEND_DESC& blendDesc = psoDesc.BlendState;
@@ -265,7 +264,7 @@ namespace Fancy
     D3D12_COMPUTE_PIPELINE_STATE_DESC desc;
     memset(&desc, 0u, sizeof(desc));
 
-    desc.pRootSignature = computeShader->GetRootSignature();
+    desc.pRootSignature = RenderCore::GetPlatformDX12()->GetRootSignature()->GetRootSignature();
     desc.CS = computeShader->getNativeByteCode();
     desc.NodeMask = 0u;
 

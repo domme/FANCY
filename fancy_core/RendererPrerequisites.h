@@ -50,11 +50,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct RenderPlatformProperties
   {
-    unsigned int myNumBindlessTexturesRWTextures = 2048u;
-    unsigned int myNumBindlessBuffersRWBuffers = 2048u;
-    unsigned int myNumBindlessSamplers = 1024u;
-    unsigned int myNumLocalBuffers = 16u;
-    unsigned int myNumLocalCBuffers = 16u;
+    unsigned int myNumGlobalTextures = 2048u;
+    unsigned int myNumGlobalBuffers = 2048u;
+    unsigned int myNumGlobalSamplers = 1024u;
+    unsigned int myNumLocalBuffers = 8u;
+    unsigned int myNumLocalCBuffers = 8u;
   };
 //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

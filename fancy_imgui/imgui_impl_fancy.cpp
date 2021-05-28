@@ -277,20 +277,20 @@ namespace Fancy { namespace ImGuiRendering {
     ctx->SetVertexInputLayout(ourInputLayout.get());
     ctx->SetShaderPipeline(ourProgramPipeline.get());
 
-      float translate = -0.5f * 2.f;
-      const float L = 0.f;
-      const float R = ::ImGui::GetIO().DisplaySize.x;
-      const float B = ::ImGui::GetIO().DisplaySize.y;
-      const float T = 0.f;
+    float translate = -0.5f * 2.f;
+    const float L = 0.f;
+    const float R = ::ImGui::GetIO().DisplaySize.x;
+    const float B = ::ImGui::GetIO().DisplaySize.y;
+    const float T = 0.f;
 
-      CBufferData cbuffer = {};
-      cbuffer.myProjectionMatrix = glm::float4x4(
-        2.0f / (R - L),     0.0f,               0.0f,       0.0f,
-        0.0f,               2.0f / (T - B),     0.0f,       0.0f,
-        0.0f,               0.0f,               0.5f,       0.0f,
-        (R + L) / (L - R),  (T + B) / (B - T),  0.5f,       1.0f);
+    CBufferData cbuffer = {};
+    cbuffer.myProjectionMatrix = glm::float4x4(
+      2.0f / (R - L),     0.0f,               0.0f,       0.0f,
+      0.0f,               2.0f / (T - B),     0.0f,       0.0f,
+      0.0f,               0.0f,               0.5f,       0.0f,
+      (R + L) / (L - R),  (T + B) / (B - T),  0.5f,       1.0f);
 
-      cbuffer.mySamplerIndex = ourSampler->GetGlobalDescriptorIndex();
+    cbuffer.mySamplerIndex = ourSampler->GetGlobalDescriptorIndex();
 
     uint cmdListVertexOffset = 0u;
     uint cmdListIndexOffset = 0u;

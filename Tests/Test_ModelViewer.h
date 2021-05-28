@@ -5,7 +5,8 @@
 #include "fancy_core/Camera.h"
 #include "fancy_core/CameraController.h"
 #include "fancy_core/MeshImporter.h"
-#include "fancy_core/MathIncludes.h"
+
+#if BINDLESS_ENABLE_ALL_TESTS
 
 namespace Fancy
 {
@@ -49,3 +50,5 @@ private:
   Fancy::SharedPtr<Fancy::GpuResourceViewSet> myResourceViewSet;
   int myNumInstances;
 };
+
+#endif

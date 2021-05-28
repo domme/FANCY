@@ -14,7 +14,6 @@
 #include "TextureSamplerVk.h"
 #include "CommandLine.h"
 #include "GpuResourceViewDataVk.h"
-#include "GpuResourceViewSetVk.h"
 #include "RaytracingBVHVk.h"
 
 #if FANCY_ENABLE_VK
