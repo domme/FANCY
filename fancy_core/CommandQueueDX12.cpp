@@ -58,7 +58,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandQueueDX12::WaitForIdle()
   {
-    WaitForFence(myNextFenceVal - 1u);
+    const uint64 fenceVal = SignalAndIncrementFence();
+    WaitForFence(fenceVal);
   }
 //---------------------------------------------------------------------------//
   void CommandQueueDX12::StallForQueue(const CommandQueue* aCommandQueue)
