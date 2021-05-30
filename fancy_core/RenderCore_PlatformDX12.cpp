@@ -563,7 +563,11 @@ namespace Fancy {
     {
       ComPtr<ID3D12Debug3> debugInterface;
       if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
+      {
         debugInterface->EnableDebugLayer();
+        debugInterface->SetEnableGPUBasedValidation(true);
+      }
+        
     }
 
     ASSERT_HRESULT(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));
