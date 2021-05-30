@@ -441,39 +441,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandList::SetRenderTarget(TextureView* aColorTarget, TextureView* aDepthStencil)
   {
-    const uint newNumRenderTargets = aColorTarget == nullptr ? 0 : 1;
-    const DataFormat colorFormat = aColorTarget != nullptr ? aColorTarget->GetProperties().myFormat : DataFormat::NONE;
-    const DataFormat dsvFormat = aDepthStencil != nullptr ? aDepthStencil->GetProperties().myFormat : DataFormat::NONE;
-
-    bool pipelineStateDirty =
-      myGraphicsPipelineState.myNumRenderTargets != newNumRenderTargets || myGraphicsPipelineState.myRTVformats[0] == colorFormat ||
-      myGraphicsPipelineState.myDSVformat != dsvFormat;
-
-    const bool renderTargetsDirty = myRenderTargets[0] != aColorTarget || myDepthStencilTarget != aDepthStencil;
-                  
-    if (!pipelineStateDirty && !renderTargetsDirty)
-      return;
-
-    myRenderTargets[0] = aColorTarget;
-    for (uint i = 1; i < ARRAY_LENGTH(myRenderTargets); ++i)
-      myRenderTargets[i] = nullptr;
-
-    myDepthStencilTarget = aDepthStencil;
-
-    pipelineStateDirty |= myGraphicsPipelineState.myNumRenderTargets != newNumRenderTargets;
-    myGraphicsPipelineState.myNumRenderTargets = newNumRenderTargets;
-
-    pipelineStateDirty |= myGraphicsPipelineState.myRTVformats[0] != colorFormat;
-    myGraphicsPipelineState.myRTVformats[0] = colorFormat;
-    
-    for (uint i = 1; i < ARRAY_LENGTH(myRenderTargets); ++i)
-      myGraphicsPipelineState.myRTVformats[i] = DataFormat::NONE;
-
-    pipelineStateDirty |= myGraphicsPipelineState.myDSVformat != dsvFormat;
-    myGraphicsPipelineState.myDSVformat = dsvFormat;
-    
-    myGraphicsPipelineState.myIsDirty |= pipelineStateDirty;
-    myRenderTargetsDirty |= renderTargetsDirty;
+    SetRenderTargets(&aColorTarget, 1, aDepthStencil);
   }
 //---------------------------------------------------------------------------//
   void CommandList::SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil)
@@ -482,13 +450,12 @@ namespace Fancy {
 
     bool renderTargetsDirty = false;
     bool pipelineStateDirty = aNumColorTargets != myGraphicsPipelineState.myNumRenderTargets;
+    myGraphicsPipelineState.myNumRenderTargets = static_cast<uint8>(aNumColorTargets);
 
     for (uint i = 0u; i < aNumColorTargets; ++i)
     {
       TextureView* colorTarget = someColorTargets[i];
-      ASSERT(colorTarget != nullptr);
-
-      const DataFormat colorFormat = colorTarget->GetProperties().myFormat;
+      const DataFormat colorFormat = colorTarget ? colorTarget->GetProperties().myFormat : DataFormat::NONE;
 
       pipelineStateDirty |= myGraphicsPipelineState.myRTVformats[i] != colorFormat;
       myGraphicsPipelineState.myRTVformats[i] = colorFormat;

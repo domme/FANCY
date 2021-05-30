@@ -516,19 +516,10 @@ namespace Fancy {
     };
     myCommandList->SetDescriptorHeaps(ARRAY_LENGTH(shaderVisibleHeaps), shaderVisibleHeaps);
 
-    // Set the root signature and all global descriptor table pointers up front
+    // Set the root signature up front since we only use one
     const RootSignatureDX12* rootSignature = platformDx12->GetRootSignature();
     myCommandList->SetComputeRootSignature(rootSignature->GetRootSignature());
     myCommandList->SetGraphicsRootSignature(rootSignature->GetRootSignature());
-
-    for (uint i = 0; i < GLOBAL_RESOURCE_NUM_NOSAMPLER; ++i)
-    {
-      myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], shaderVisibleHeap->GetHeapStart(static_cast<GlobalResourceType>(i)));
-      myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], shaderVisibleHeap->GetHeapStart(static_cast<GlobalResourceType>(i)));
-    }
-
-    myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], shaderVisibleHeap->GetHeapStart(GLOBAL_RESOURCE_SAMPLER));
-    myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], shaderVisibleHeap->GetHeapStart(GLOBAL_RESOURCE_SAMPLER));
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::FlushBarriers()
@@ -762,11 +753,11 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
   {
-    FlushBarriers();
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
     ApplyTopologyType();
     ApplyGraphicsPipelineState();
+    FlushBarriers();
     ApplyResourceBindings();
 
     myCommandList->DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
@@ -852,12 +843,21 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::ApplyResourceBindings()
   {
+    RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
+    const RootSignatureDX12* rootSignature = platformDx12->GetRootSignature();
+    const ShaderVisibleDescriptorHeapDX12* shaderVisibleHeap = platformDx12->GetShaderVisibleDescriptorHeap();
+
+    for (uint i = 0; i < GLOBAL_RESOURCE_NUM_NOSAMPLER; ++i)
+    {
+      myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], shaderVisibleHeap->GetHeapStart(static_cast<GlobalResourceType>(i)));
+      myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], shaderVisibleHeap->GetHeapStart(static_cast<GlobalResourceType>(i)));
+    }
+
+    myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], shaderVisibleHeap->GetHeapStart(GLOBAL_RESOURCE_SAMPLER));
+    myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], shaderVisibleHeap->GetHeapStart(GLOBAL_RESOURCE_SAMPLER));
+
     if (myLocalBuffersToBind.empty() && myLocalRWBuffersToBind.empty() && myLocalCBuffersToBind.empty())
       return;
-
-    FlushBarriers();  // D3D12 needs a barrier flush here so the debug layer doesn't complain about expecting static descriptors and data at this point
-
-    const RootSignatureDX12* rootSignature = RenderCore::GetPlatformDX12()->GetRootSignature();
 
     uint rootParamIdx = rootSignature->myRootParamIndex_LocalBuffers;
     for (uint i = 0; i < (uint) myLocalBuffersToBind.size(); ++i)
@@ -1135,9 +1135,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::Dispatch(const glm::int3& aNumThreads)
   {
-    FlushBarriers();
-
     ApplyComputePipelineState();
+    FlushBarriers();
     ApplyResourceBindings();
     ASSERT(myComputePipelineState.myShaderPipeline != nullptr);
 
