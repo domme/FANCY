@@ -2,8 +2,7 @@
 
 #include "Callback.h"
 
-#include <algorithm>
-
+#include "EASTL/algorithm.h"
 #include "EASTL/fixed_vector.h"
 
 namespace Fancy {
@@ -50,7 +49,7 @@ namespace Fancy {
         if (anObserver == nullptr)
           return;
 
-        std::remove_if(myCallbacks.begin(), myCallbacks.end(), [anObserver](const CallbackT& entry) {
+        eastl::remove_if(myCallbacks.begin(), myCallbacks.end(), [anObserver](const CallbackT& entry) {
           return entry.myInstance == anObserver;
         });
       }
