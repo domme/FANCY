@@ -24,6 +24,8 @@ namespace Fancy
     uint usedRanges = 0;
     uint usedParams = 0;
 
+    const D3D12_DESCRIPTOR_RANGE_FLAGS bindlessRangeFlags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
+
     // Global textures
     myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_TEXTURE_2D] = usedParams;
     D3D12_ROOT_PARAMETER1* param = &rootParams[usedParams++];
@@ -35,6 +37,7 @@ namespace Fancy
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 0;
+    range->Flags = bindlessRangeFlags;
     param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
     
@@ -49,6 +52,7 @@ namespace Fancy
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 1;
+    range->Flags = bindlessRangeFlags;
     param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
@@ -63,6 +67,7 @@ namespace Fancy
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 2;
+    range->Flags = bindlessRangeFlags;
     param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
@@ -77,6 +82,7 @@ namespace Fancy
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 3;
+    range->Flags = bindlessRangeFlags;
     param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
@@ -91,6 +97,7 @@ namespace Fancy
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
     range->OffsetInDescriptorsFromTableStart = 0;
     range->RegisterSpace = 4;
+    range->Flags = bindlessRangeFlags;
     param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 

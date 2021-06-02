@@ -18,7 +18,6 @@ namespace Fancy
     struct Heap
     {
       D3D12_CPU_DESCRIPTOR_HANDLE myCpuHeapStart;
-      D3D12_GPU_DESCRIPTOR_HANDLE myGpuHeapStart;
       Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> myHeap;
     };
 

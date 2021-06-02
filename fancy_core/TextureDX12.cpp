@@ -108,6 +108,7 @@ namespace Fancy {
     }
 
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+    D3D12_RESOURCE_STATES initialStates = readStateMask;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (myProperties.myIsShaderWritable)
       writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
@@ -115,13 +116,18 @@ namespace Fancy {
     {
       writeStateMask |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
       readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
+      initialStates = D3D12_RESOURCE_STATE_DEPTH_WRITE;
     }
     else if (myProperties.myIsRenderTarget)
+    {
       writeStateMask |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+      initialStates = D3D12_RESOURCE_STATE_RENDER_TARGET;
+    }
 
-    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
     // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier
-    const D3D12_RESOURCE_STATES initialStates = hasInitData ? D3D12_RESOURCE_STATE_COPY_DEST : readStateMask;
+    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
+    if (hasInitData)
+      initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
     
     mySubresources = SubresourceRange(0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes);
 

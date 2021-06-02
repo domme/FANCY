@@ -565,9 +565,10 @@ namespace Fancy {
       if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
       {
         debugInterface->EnableDebugLayer();
-        debugInterface->SetEnableGPUBasedValidation(true);
+
+        const bool gpuValidation = CommandLine::GetInstance()->HasArgument("GPUValidation");
+        debugInterface->SetEnableGPUBasedValidation(gpuValidation);
       }
-        
     }
 
     ASSERT_HRESULT(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&ourDevice)));

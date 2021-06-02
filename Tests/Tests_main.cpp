@@ -23,6 +23,10 @@
 #include "Tests/Test_SharedQueueResourceUsage.h"
 #include "Tests/Test_HazardTracking.h"
 
+extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 4; }
+
+extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = u8".\\D3D12\\"; }
+
 using namespace Fancy;
 
 FancyRuntime* myRuntime = nullptr;
@@ -41,6 +45,10 @@ bool test_modelviewer = false;
 bool test_sharedQueueResources = false;
 bool test_hazardTracking = false;
 bool test_raytracing = false;
+
+SharedPtr<Texture> dummyTex;
+SharedPtr<TextureView> dummyTexRead;
+SharedPtr<TextureView> dummyTexWrite;
 
 eastl::vector<UniquePtr<Test>> myTests;
 
@@ -71,6 +79,34 @@ void Init(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArgum
 
   myImGuiContext = ImGui::CreateContext();
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
+
+
+  eastl::vector<uint> pixelData(64, 0xFF0000FF );
+
+  TextureSubData initialData;
+  initialData.myData = (uint8*) pixelData.data();
+  initialData.myPixelSizeBytes = 4;
+  initialData.myRowSizeBytes = 8 * 4;
+  initialData.mySliceSizeBytes = 64 * 4;
+  initialData.myTotalSizeBytes = initialData.mySliceSizeBytes;
+
+  TextureProperties props;
+  props.myFormat = DataFormat::RGBA_8;
+  props.myWidth = 8;
+  props.myHeight = 8;
+  props.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
+  props.myIsShaderWritable = true;
+  dummyTex = RenderCore::CreateTexture(props, "DummyTex", &initialData, 1);
+
+  TextureViewProperties viewProps;
+  dummyTexRead = RenderCore::CreateTextureView(dummyTex, viewProps);
+
+  viewProps.myIsShaderWritable = true;
+  dummyTexWrite = RenderCore::CreateTextureView(dummyTex, viewProps);
+
+  CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+  ctx->TransitionResourceViewForShaderUse(dummyTexWrite.get());
+  RenderCore::ExecuteAndFreeCommandList(ctx);
 }
 
 void Update()

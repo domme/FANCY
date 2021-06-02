@@ -8,6 +8,5 @@ public:
 
 private:
   bool myShowTestWindow = false;
-
 };
 

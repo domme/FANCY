@@ -34,3 +34,4 @@ fancy_assets/x64/
 fancy_imgui/x64/
 /dependencies/bin/*
 /dependencies/lib/*
+packages/*

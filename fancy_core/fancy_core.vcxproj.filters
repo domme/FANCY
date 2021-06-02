@@ -694,4 +694,7 @@
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
 </Project>

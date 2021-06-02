@@ -35,12 +35,9 @@ namespace Fancy
     D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
     cpuHandle.ptr = heapData.myCpuHeapStart.ptr + myHandleIncrementSize * descriptorIndexInHeap;
 
-    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-    gpuHandle.ptr = heapData.myGpuHeapStart.ptr + myHandleIncrementSize * descriptorIndexInHeap;
-
     DescriptorDX12 descr;
     descr.myCpuHandle = cpuHandle;
-    descr.myGpuHandle = gpuHandle;
+    descr.myGpuHandle.ptr = UINT64_MAX;
     descr.myHeapType = myType;
     descr.myIsManagedByAllocator = true;
 
@@ -85,7 +82,6 @@ namespace Fancy
       return false;
 
     heapData.myCpuHeapStart = heapData.myHeap->GetCPUDescriptorHandleForHeapStart();
-    heapData.myGpuHeapStart = heapData.myHeap->GetGPUDescriptorHandleForHeapStart();
 
     aPageData = heapData;
     return true;
