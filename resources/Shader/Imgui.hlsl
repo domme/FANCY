@@ -7,7 +7,7 @@ struct VS_OUT
   float4 col : COLOR0;
 };
 
-cbuffer Constants : register(b0, _LocalCBufferSpace)
+cbuffer Constants : register(b0, Space_LocalCBuffer)
 {
   float4x4 myProjectionMatrix;
   uint myTextureIndex;
@@ -46,7 +46,7 @@ cbuffer Constants : register(b0, _LocalCBufferSpace)
   void main(VS_OUT input, out float4 colorOut : SV_Target0)
   {
     float2 uv = input.uv;
-    float4 tex = global_textures2D[myTextureIndex].Sample(global_samplers[mySamplerIndex], uv);
+    float4 tex = theTextures2D[myTextureIndex].Sample(theSamplers[mySamplerIndex], uv);
     tex.xyz *= tex.w;
     colorOut = input.col * tex;
   }

@@ -14,7 +14,8 @@ namespace Fancy
 
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
 
-    uint myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_NUM];
+    uint myRootParamIndex_GlobalResources = 0;
+    uint myRootParamIndex_GlobalSamplers = 0;
     uint myRootParamIndex_LocalBuffers = 0;
     uint myNumLocalBuffers = 0;
     uint myRootParamIndex_LocalRWBuffers = 0;

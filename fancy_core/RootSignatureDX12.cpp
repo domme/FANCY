@@ -8,98 +8,121 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
+  namespace
+  {
+    uint locGetNumDescriptors(GlobalResourceType aType, const RenderPlatformProperties& someProperties)
+    {
+      switch(aType) {
+        case GLOBAL_RESOURCE_TEXTURE_1D: 
+        case GLOBAL_RESOURCE_TEXTURE_1D_UINT: 
+        case GLOBAL_RESOURCE_TEXTURE_1D_INT:
+        case GLOBAL_RESOURCE_RWTEXTURE_1D:
+        case GLOBAL_RESOURCE_RWTEXTURE_1D_UINT:
+        case GLOBAL_RESOURCE_RWTEXTURE_1D_INT:
+          return someProperties.myNumGlobalTextures1D;
+        case GLOBAL_RESOURCE_TEXTURE_2D: 
+        case GLOBAL_RESOURCE_TEXTURE_2D_UINT: 
+        case GLOBAL_RESOURCE_TEXTURE_2D_INT:
+        case GLOBAL_RESOURCE_RWTEXTURE_2D:
+        case GLOBAL_RESOURCE_RWTEXTURE_2D_UINT:
+        case GLOBAL_RESOURCE_RWTEXTURE_2D_INT:
+          return someProperties.myNumGlobalTextures2D;
+        case GLOBAL_RESOURCE_TEXTURE_3D: 
+        case GLOBAL_RESOURCE_TEXTURE_3D_UINT:
+        case GLOBAL_RESOURCE_TEXTURE_3D_INT:
+        case GLOBAL_RESOURCE_RWTEXTURE_3D:
+        case GLOBAL_RESOURCE_RWTEXTURE_3D_UINT:
+        case GLOBAL_RESOURCE_RWTEXTURE_3D_INT:
+          return someProperties.myNumGlobalTextures3D;
+        case GLOBAL_RESOURCE_TEXTURE_CUBE: 
+        case GLOBAL_RESOURCE_TEXTURE_CUBE_UINT: 
+        case GLOBAL_RESOURCE_TEXTURE_CUBE_INT:
+          return someProperties.myNumGlobalTexturesCube;
+        case GLOBAL_RESOURCE_BUFFER:
+        case GLOBAL_RESOURCE_RWBUFFER:
+          return someProperties.myNumGlobalBuffers;
+        case GLOBAL_RESOURCE_SAMPLER:
+          return someProperties.myNumGlobalSamplers;
+        default: ASSERT(false); return 0;
+      }
+    }
+  }
+//---------------------------------------------------------------------------//
   RootSignatureDX12::RootSignatureDX12(const RenderPlatformProperties& someProperties)
   {
     // Keep in sync with resources/Shader/RootSignature.h
-    const uint numBindlessTypes = GLOBAL_RESOURCE_NUM;
+    const uint numGlobalResourceArrays = GLOBAL_RESOURCE_NUM;
 
-    const uint numRootParamsNeeded = numBindlessTypes + someProperties.myNumLocalCBuffers + someProperties.myNumLocalBuffers * 2;
-    const uint numRangesNeeded = numRootParamsNeeded; // Each param only has one entry and range
+    const uint numRootParamsNeeded = 1 + someProperties.myNumLocalCBuffers + someProperties.myNumLocalBuffers * 2; // buffers and rwbuffers
+    const uint numRangesNeeded = numGlobalResourceArrays + numRootParamsNeeded;
 
     D3D12_ROOT_PARAMETER1* rootParams = static_cast<D3D12_ROOT_PARAMETER1*>(alloca(sizeof(D3D12_ROOT_PARAMETER1) * numRootParamsNeeded));
     D3D12_DESCRIPTOR_RANGE1* ranges = static_cast<D3D12_DESCRIPTOR_RANGE1*>(alloca(sizeof(D3D12_DESCRIPTOR_RANGE1) * numRangesNeeded));
     memset(rootParams, 0, sizeof(D3D12_ROOT_PARAMETER1) * numRootParamsNeeded);
     memset(ranges, 0, sizeof(D3D12_DESCRIPTOR_RANGE1) * numRangesNeeded);
 
+    constexpr D3D12_DESCRIPTOR_RANGE_FLAGS bindlessRangeFlags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
+
     uint usedRanges = 0;
     uint usedParams = 0;
-
-    const D3D12_DESCRIPTOR_RANGE_FLAGS bindlessRangeFlags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
-
-    // Global textures
-    myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_TEXTURE_2D] = usedParams;
-    D3D12_ROOT_PARAMETER1* param = &rootParams[usedParams++];
-    D3D12_DESCRIPTOR_RANGE1* range = &ranges[usedRanges++];
-    param->DescriptorTable.NumDescriptorRanges = 1;
-    param->DescriptorTable.pDescriptorRanges = range;
-    range->BaseShaderRegister = 0;
-    range->NumDescriptors = someProperties.myNumGlobalTextures;
-    range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-    range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 0;
-    range->Flags = bindlessRangeFlags;
-    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+    uint offsetInDescriptorHeap = 0;
     
-    // Global RW Textures
-    myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_RW_TEXTURE_2D] = usedParams;
-    param = &rootParams[usedParams++];
-    range = &ranges[usedRanges++];
-    param->DescriptorTable.NumDescriptorRanges = 1;
-    param->DescriptorTable.pDescriptorRanges = range;
-    range->BaseShaderRegister = 0;
-    range->NumDescriptors = someProperties.myNumGlobalTextures;
-    range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-    range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 1;
-    range->Flags = bindlessRangeFlags;
-    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-    // Global buffers
-    myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_BUFFER] = usedParams;
-    param = &rootParams[usedParams++];
-    range = &ranges[usedRanges++];
-    param->DescriptorTable.NumDescriptorRanges = 1;
-    param->DescriptorTable.pDescriptorRanges = range;
-    range->BaseShaderRegister = 0;
-    range->NumDescriptors = someProperties.myNumGlobalBuffers;
-    range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-    range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 2;
-    range->Flags = bindlessRangeFlags;
+    myRootParamIndex_GlobalResources = usedParams;
+    D3D12_ROOT_PARAMETER1* param = &rootParams[usedParams++];
     param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
     param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+    param->DescriptorTable.NumDescriptorRanges = GLOBAL_RESOURCE_NUM_NOSAMPLER;
+    param->DescriptorTable.pDescriptorRanges = &ranges[usedRanges];
 
-    // Global rw buffers
-    myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_RW_BUFFER] = usedParams;
-    param = &rootParams[usedParams++];
-    range = &ranges[usedRanges++];
-    param->DescriptorTable.NumDescriptorRanges = 1;
-    param->DescriptorTable.pDescriptorRanges = range;
-    range->BaseShaderRegister = 0;
-    range->NumDescriptors = someProperties.myNumGlobalBuffers;
-    range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-    range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 3;
-    range->Flags = bindlessRangeFlags;
-    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+    // SRVs
+    uint registerSpace = 0;
+    for (uint i = GLOBAL_RESOURCE_SRV_START; i < GLOBAL_RESOURCE_SRV_END; ++i)
+    {
+      const uint numDescriptors = locGetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
+
+      D3D12_DESCRIPTOR_RANGE1* range = &ranges[usedRanges++];
+      range->BaseShaderRegister = 0;
+      range->NumDescriptors = numDescriptors;
+      range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+      range->OffsetInDescriptorsFromTableStart = offsetInDescriptorHeap;
+      range->RegisterSpace = registerSpace++;
+      range->Flags = bindlessRangeFlags;
+
+      offsetInDescriptorHeap += numDescriptors;
+    }
+
+    // UAVs
+    registerSpace = 0;
+    for (uint i = GLOBAL_RESOURCE_UAV_START; i < GLOBAL_RESOURCE_UAV_END; ++i)
+    {
+      const uint numDescriptors = locGetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
+
+      D3D12_DESCRIPTOR_RANGE1* range = &ranges[usedRanges++];
+      range->BaseShaderRegister = 0;
+      range->NumDescriptors = numDescriptors;
+      range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+      range->OffsetInDescriptorsFromTableStart = offsetInDescriptorHeap;
+      range->RegisterSpace = registerSpace++;
+      range->Flags = bindlessRangeFlags;
+
+      offsetInDescriptorHeap += numDescriptors;
+    }
 
     // Global samplers
-    myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER] = usedParams;
+    myRootParamIndex_GlobalSamplers = usedParams;
     param = &rootParams[usedParams++];
-    range = &ranges[usedRanges++];
+    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
     param->DescriptorTable.NumDescriptorRanges = 1;
+    D3D12_DESCRIPTOR_RANGE1* range = &ranges[usedRanges++];
     param->DescriptorTable.pDescriptorRanges = range;
     range->BaseShaderRegister = 0;
     range->NumDescriptors = someProperties.myNumGlobalSamplers;
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
     range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 4;
+    range->RegisterSpace = 0;
     range->Flags = bindlessRangeFlags;
-    param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
     myRootParamIndex_LocalBuffers = usedParams;
     myNumLocalBuffers = someProperties.myNumLocalBuffers;
@@ -111,7 +134,7 @@ namespace Fancy
       param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
       param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
       param->Descriptor.ShaderRegister = i;
-      param->Descriptor.RegisterSpace = 5;
+      param->Descriptor.RegisterSpace = GLOBAL_RESOURCE_SRV_END;
     }
 
     myRootParamIndex_LocalRWBuffers = usedParams;
@@ -124,7 +147,7 @@ namespace Fancy
       param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
       param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
       param->Descriptor.ShaderRegister = i;
-      param->Descriptor.RegisterSpace = 6;
+      param->Descriptor.RegisterSpace = GLOBAL_RESOURCE_UAV_END;
     }
 
     myRootParamIndex_LocalCBuffers = usedParams;
@@ -137,7 +160,7 @@ namespace Fancy
       param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
       param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
       param->Descriptor.ShaderRegister = i;
-      param->Descriptor.RegisterSpace = 7;
+      param->Descriptor.RegisterSpace = 0;
     }
 
     // Guard against accidental override. In this case the "numNeeded" numbers are wrong

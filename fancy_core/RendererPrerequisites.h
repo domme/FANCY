@@ -50,7 +50,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct RenderPlatformProperties
   {
-    unsigned int myNumGlobalTextures = 2048u;
+    unsigned int myNumGlobalTextures1D = 64u;
+    unsigned int myNumGlobalTextures2D = 2048u;
+    unsigned int myNumGlobalTextures3D = 1024u;
+    unsigned int myNumGlobalTexturesCube = 128u;
     unsigned int myNumGlobalBuffers = 2048u;
     unsigned int myNumGlobalSamplers = 1024u;
     unsigned int myNumLocalBuffers = 8u;
