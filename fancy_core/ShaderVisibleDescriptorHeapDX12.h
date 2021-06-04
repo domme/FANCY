@@ -11,10 +11,7 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   // Wraps a shader-visible descriptor heap and manages descriptor-allocations.
-  // The heap is split into these sections:
-  // [      Global Descriptors              ]
-  // [Textures|RWTextures|Buffers|RWBuffers ]
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
   class ShaderVisibleDescriptorHeapDX12
   {
     friend class RenderCore_PlatformDX12;
@@ -29,6 +26,8 @@ namespace Fancy {
     void FreeDescriptorAfterFrameDone(const DescriptorDX12& aDescriptor);
 
     D3D12_GPU_DESCRIPTOR_HANDLE GetHeapStart(GlobalResourceType aType) const { return myGlobalDescriptorGpuHeapStart[aType]; }
+    D3D12_GPU_DESCRIPTOR_HANDLE GetResourceHeapStart() const { return myResourceHeap->GetGPUDescriptorHandleForHeapStart(); }
+    D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerHeapStart() const { return mySamplerHeap->GetGPUDescriptorHandleForHeapStart(); }
 
   private:
     void ProcessGlobalDescriptorFrees();

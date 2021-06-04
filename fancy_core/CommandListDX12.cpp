@@ -847,14 +847,10 @@ namespace Fancy {
     const RootSignatureDX12* rootSignature = platformDx12->GetRootSignature();
     const ShaderVisibleDescriptorHeapDX12* shaderVisibleHeap = platformDx12->GetShaderVisibleDescriptorHeap();
 
-    for (uint i = 0; i < GLOBAL_RESOURCE_NUM_NOSAMPLER; ++i)
-    {
-      myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], shaderVisibleHeap->GetHeapStart(static_cast<GlobalResourceType>(i)));
-      myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[i], shaderVisibleHeap->GetHeapStart(static_cast<GlobalResourceType>(i)));
-    }
-
-    myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], shaderVisibleHeap->GetHeapStart(GLOBAL_RESOURCE_SAMPLER));
-    myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources[GLOBAL_RESOURCE_SAMPLER], shaderVisibleHeap->GetHeapStart(GLOBAL_RESOURCE_SAMPLER));
+    myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources, shaderVisibleHeap->GetResourceHeapStart());
+    myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources, shaderVisibleHeap->GetResourceHeapStart());
+    myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalSamplers, shaderVisibleHeap->GetSamplerHeapStart());
+    myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalSamplers, shaderVisibleHeap->GetSamplerHeapStart());
 
     if (myLocalBuffersToBind.empty() && myLocalRWBuffersToBind.empty() && myLocalCBuffersToBind.empty())
       return;

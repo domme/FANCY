@@ -14,51 +14,111 @@ namespace Fancy {
   {
     static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(GlobalResourceType aGlobalType)
     {
-      switch(aGlobalType)
-      {
-      case GLOBAL_RESOURCE_TEXTURE_2D: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-      case GLOBAL_RESOURCE_RW_TEXTURE_2D: return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-      case GLOBAL_RESOURCE_BUFFER: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-      case GLOBAL_RESOURCE_RW_BUFFER: return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-      case GLOBAL_RESOURCE_SAMPLER: return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
-      default: ASSERT(false); return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-      }
-    }
+      if (aGlobalType == GLOBAL_RESOURCE_SAMPLER)
+        return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
 
+      if (aGlobalType >= GLOBAL_RESOURCE_SRV_START && aGlobalType < GLOBAL_RESOURCE_SRV_END)
+        return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+
+      if (aGlobalType >= GLOBAL_RESOURCE_UAV_START && aGlobalType < GLOBAL_RESOURCE_UAV_END)
+        return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+
+      ASSERT(false); // Above should cover all valid cases
+      return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+    }
+  //---------------------------------------------------------------------------//
     static GpuResourceDimension GetResourceDimension(GlobalResourceType aGlobalType)
     {
-      GpuResourceDimension resourceDimension = GpuResourceDimension::UNKONWN;
       switch (aGlobalType)
       {
+      case GLOBAL_RESOURCE_TEXTURE_1D: 
+      case GLOBAL_RESOURCE_TEXTURE_1D_UINT:
+      case GLOBAL_RESOURCE_TEXTURE_1D_INT:
+      case GLOBAL_RESOURCE_RWTEXTURE_1D: 
+      case GLOBAL_RESOURCE_RWTEXTURE_1D_UINT: 
+      case GLOBAL_RESOURCE_RWTEXTURE_1D_INT:
+        return GpuResourceDimension::TEXTURE_1D;
       case GLOBAL_RESOURCE_TEXTURE_2D:
-      case GLOBAL_RESOURCE_RW_TEXTURE_2D:
+      case GLOBAL_RESOURCE_TEXTURE_2D_UINT:
+      case GLOBAL_RESOURCE_TEXTURE_2D_INT:
+      case GLOBAL_RESOURCE_RWTEXTURE_2D:
+      case GLOBAL_RESOURCE_RWTEXTURE_2D_UINT:
+      case GLOBAL_RESOURCE_RWTEXTURE_2D_INT:
         return GpuResourceDimension::TEXTURE_2D;
+      case GLOBAL_RESOURCE_TEXTURE_3D:
+      case GLOBAL_RESOURCE_TEXTURE_3D_UINT:
+      case GLOBAL_RESOURCE_TEXTURE_3D_INT:
+      case GLOBAL_RESOURCE_RWTEXTURE_3D:
+      case GLOBAL_RESOURCE_RWTEXTURE_3D_UINT:
+      case GLOBAL_RESOURCE_RWTEXTURE_3D_INT:
+        return GpuResourceDimension::TEXTURE_3D;
+      case GLOBAL_RESOURCE_TEXTURE_CUBE: 
+      case GLOBAL_RESOURCE_TEXTURE_CUBE_UINT:
+      case GLOBAL_RESOURCE_TEXTURE_CUBE_INT:
+        return GpuResourceDimension::TEXTURE_CUBE;
       case GLOBAL_RESOURCE_BUFFER:
-      case GLOBAL_RESOURCE_RW_BUFFER:
+      case GLOBAL_RESOURCE_RWBUFFER:
         return GpuResourceDimension::BUFFER;
       case GLOBAL_RESOURCE_SAMPLER:
         return GpuResourceDimension::UNKONWN;
-      default: ASSERT(false); return GpuResourceDimension::TEXTURE_2D;
+      default: ASSERT(false); return GpuResourceDimension::UNKONWN;
       }
     }
   }
 //---------------------------------------------------------------------------//
   ShaderVisibleDescriptorHeapDX12::ShaderVisibleDescriptorHeapDX12(const RenderPlatformProperties& someProperties)
     : myNumGlobalDescriptors{
-      someProperties.myNumGlobalTextures,
-      someProperties.myNumGlobalTextures,
-      someProperties.myNumGlobalBuffers,
-      someProperties.myNumGlobalBuffers,
-      someProperties.myNumGlobalSamplers }
+        someProperties.myNumGlobalTextures1D,
+        someProperties.myNumGlobalTextures1D,
+        someProperties.myNumGlobalTextures1D,
+        someProperties.myNumGlobalTextures2D,
+        someProperties.myNumGlobalTextures2D,
+        someProperties.myNumGlobalTextures2D,
+        someProperties.myNumGlobalTextures3D,
+        someProperties.myNumGlobalTextures3D,
+        someProperties.myNumGlobalTextures3D,
+        someProperties.myNumGlobalTexturesCube,
+        someProperties.myNumGlobalTexturesCube,
+        someProperties.myNumGlobalTexturesCube,
+        someProperties.myNumGlobalBuffers,
+        someProperties.myNumGlobalTextures1D,
+        someProperties.myNumGlobalTextures1D,
+        someProperties.myNumGlobalTextures1D,
+        someProperties.myNumGlobalTextures2D,
+        someProperties.myNumGlobalTextures2D,
+        someProperties.myNumGlobalTextures2D,
+        someProperties.myNumGlobalTextures3D,
+        someProperties.myNumGlobalTextures3D,
+        someProperties.myNumGlobalTextures3D,
+        someProperties.myNumGlobalBuffers,
+        someProperties.myNumGlobalSamplers }
     , myAllocators{
-      PagedLinearAllocator(someProperties.myNumGlobalTextures),
-      PagedLinearAllocator(someProperties.myNumGlobalTextures),
-      PagedLinearAllocator(someProperties.myNumGlobalBuffers),
-      PagedLinearAllocator(someProperties.myNumGlobalBuffers),
-      PagedLinearAllocator(someProperties.myNumGlobalSamplers)
+        PagedLinearAllocator(someProperties.myNumGlobalTextures1D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures1D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures1D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures2D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures2D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures2D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures3D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures3D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures3D),
+        PagedLinearAllocator(someProperties.myNumGlobalTexturesCube),
+        PagedLinearAllocator(someProperties.myNumGlobalTexturesCube),
+        PagedLinearAllocator(someProperties.myNumGlobalTexturesCube),
+        PagedLinearAllocator(someProperties.myNumGlobalBuffers),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures1D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures1D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures1D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures2D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures2D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures2D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures3D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures3D),
+        PagedLinearAllocator(someProperties.myNumGlobalTextures3D),
+        PagedLinearAllocator(someProperties.myNumGlobalBuffers),
+        PagedLinearAllocator(someProperties.myNumGlobalSamplers)
     }
   {
-
     // Create resource Heap
     uint numResourceDescriptors = 0;
     for (uint i = 0; i < GLOBAL_RESOURCE_NUM_NOSAMPLER; ++i)

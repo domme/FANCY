@@ -11,7 +11,7 @@ namespace Fancy {
   {
     static DataFormatInfo locOurDataFormats[static_cast<uint>(DataFormat::NUM)] =
     {
-#define DECLARE_DATA_FORMAT(name, byteSize, byteSizePlane0, byteSizePlane1, numComponents, numPlanes, depthStencil, srgb, compressed) { DataFormat::name, byteSize, byteSizePlane0, byteSizePlane1, numComponents, numPlanes, depthStencil, srgb, compressed },
+#define DECLARE_DATA_FORMAT(name, byteSize, byteSizePlane0, byteSizePlane1, numComponents, numPlanes, depthStencil, srgb, compressed, isUintInt) { DataFormat::name, byteSize, byteSizePlane0, byteSizePlane1, numComponents, numPlanes, depthStencil, srgb, compressed, isUintInt },
       #include "DataFormatList.h"
 #undef DECLARE_DATA_FORMAT
     };

@@ -53,7 +53,7 @@ namespace Fancy
     // Keep in sync with resources/Shader/RootSignature.h
     const uint numGlobalResourceArrays = GLOBAL_RESOURCE_NUM;
 
-    const uint numRootParamsNeeded = 1 + someProperties.myNumLocalCBuffers + someProperties.myNumLocalBuffers * 2; // buffers and rwbuffers
+    const uint numRootParamsNeeded = 2 + someProperties.myNumLocalCBuffers + someProperties.myNumLocalBuffers * 2; // buffers and rwbuffers
     const uint numRangesNeeded = numGlobalResourceArrays + numRootParamsNeeded;
 
     D3D12_ROOT_PARAMETER1* rootParams = static_cast<D3D12_ROOT_PARAMETER1*>(alloca(sizeof(D3D12_ROOT_PARAMETER1) * numRootParamsNeeded));

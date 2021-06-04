@@ -196,7 +196,7 @@ namespace Fancy {
       if (someProperties.myIsShaderWritable)
       {
         ASSERT(myType == GpuResourceViewType::UAV);
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_RW_BUFFER, "GpuBufferView");
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_RWBUFFER, "GpuBufferView");
         success = CreateUAVdescriptor(aBuffer.get(), rawProperties, nativeData.myDescriptor);
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
       }

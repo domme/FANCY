@@ -15,6 +15,39 @@
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
+  namespace
+  {
+    GlobalResourceType locGetGlobalResourceType(const TextureViewProperties& someViewProps)
+    {
+      ASSERT(!someViewProps.myIsRenderTarget);
+
+      GlobalResourceType baseType = GLOBAL_RESOURCE_NUM;
+
+      switch (someViewProps.myDimension)
+      {
+        case GpuResourceDimension::TEXTURE_1D: 
+          baseType = someViewProps.myIsShaderWritable ? GLOBAL_RESOURCE_RWTEXTURE_1D : GLOBAL_RESOURCE_TEXTURE_1D;
+          break;
+        case GpuResourceDimension::TEXTURE_2D: 
+          baseType = someViewProps.myIsShaderWritable ? GLOBAL_RESOURCE_RWTEXTURE_2D : GLOBAL_RESOURCE_TEXTURE_2D;
+          break;
+        case GpuResourceDimension::TEXTURE_3D: 
+          baseType = someViewProps.myIsShaderWritable ? GLOBAL_RESOURCE_RWTEXTURE_3D : GLOBAL_RESOURCE_TEXTURE_3D;
+          break;
+        case GpuResourceDimension::TEXTURE_CUBE:
+          ASSERT(!someViewProps.myIsShaderWritable);
+          baseType = GLOBAL_RESOURCE_TEXTURE_CUBE;
+          break;
+        case GpuResourceDimension::NUM: break;
+        default: ASSERT(false, "Resource dimension not implemented in the global resource tables"); return GlobalResourceType::GLOBAL_RESOURCE_NUM;
+      }
+
+      const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someViewProps.myFormat);
+
+      return static_cast<GlobalResourceType>(baseType + formatInfo.myIsUintInt);
+    }
+  }
+//---------------------------------------------------------------------------//
   TextureDX12::TextureDX12(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsPresentable)
     : Texture(std::move(aResource), someProperties, aIsPresentable)
   {
@@ -236,10 +269,7 @@ namespace Fancy {
   TextureViewDX12::TextureViewDX12(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
     : TextureView::TextureView(aTexture, someProperties)
   {
-    ASSERT(someProperties.myDimension == GpuResourceDimension::TEXTURE_2D, "Support for non-2D textures not yet implemented with the global resource tables");
-
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
-
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
     
     eastl::string name = aTexture->myName;
@@ -266,11 +296,13 @@ namespace Fancy {
     }
     else
     {
+      const GlobalResourceType globalResourceType = locGetGlobalResourceType(someProperties);
+
       if (someProperties.myIsShaderWritable)
       {
         myType = GpuResourceViewType::UAV;
         name.append(" UAV");
-        nativeData.myDescriptor = platformDx12->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_RW_TEXTURE_2D, name.c_str());
+        nativeData.myDescriptor = platformDx12->AllocateShaderVisibleDescriptorForGlobalResource(globalResourceType, name.c_str());
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
         success = CreateUAV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
@@ -278,7 +310,7 @@ namespace Fancy {
       {
         myType = GpuResourceViewType::SRV;
         name.append(" SRV");
-        nativeData.myDescriptor = platformDx12->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_TEXTURE_2D, name.c_str());
+        nativeData.myDescriptor = platformDx12->AllocateShaderVisibleDescriptorForGlobalResource(globalResourceType, name.c_str());
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
         success = CreateSRV(aTexture.get(), someProperties, nativeData.myDescriptor);
       }
