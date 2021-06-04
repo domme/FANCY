@@ -345,6 +345,12 @@ namespace Fancy
     DEPTH_STENCIL_READ = 1 << 2
   };
 //---------------------------------------------------------------------------//
+  enum class ShaderResourceTransition
+  {
+    TO_SHADER_READ,
+    TO_SHADER_WRITE
+  };
+//---------------------------------------------------------------------------//
   enum class VertexInputRate
   {
     PER_VERTEX = 0,
@@ -422,5 +428,8 @@ namespace Fancy
     GLOBAL_RESOURCE_NUM,
     GLOBAL_RESOURCE_NUM_NOSAMPLER = GLOBAL_RESOURCE_SAMPLER
   };
-  //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+  
+
+
 }

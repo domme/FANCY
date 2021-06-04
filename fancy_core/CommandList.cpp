@@ -135,11 +135,6 @@ namespace Fancy {
     CopyBufferToTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)), aSrcBuffer, aSrcOffset);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::TransitionResourceViewForShaderUse(const GpuResourceView* aView)
-  {
-    TransitionResourceViewsForShaderUse({ &aView, 1 });
-  }
-//---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
   {
     const uint type = (uint)aType;
@@ -314,6 +309,11 @@ namespace Fancy {
   void CommandList::TransitionResource(const GpuResource* aResource, ResourceTransition aTransition, uint someUsageFlags /* = 0u */)
   {
     TransitionResource(aResource, aResource->GetSubresources(), aTransition, someUsageFlags);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::TransitionShaderResource(const GpuResourceView* aView, ShaderResourceTransition aTransition)
+  {
+    TransitionShaderResource(aView->GetResource(), aView->GetSubresourceRange(), aTransition);
   }
 //---------------------------------------------------------------------------//
   void CommandList::PostExecute(uint64 aFenceVal)

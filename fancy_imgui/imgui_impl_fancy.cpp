@@ -317,10 +317,10 @@ namespace Fancy { namespace ImGuiRendering {
           if (textureId != nullptr)
             textureView = static_cast<const GpuResourceView*>(textureId);
 
+          ctx->TransitionShaderResource(textureView, ShaderResourceTransition::TO_SHADER_READ);
+
           cbuffer.myTextureIndex = textureView->GetGlobalDescriptorIndex();
           ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), 0);
-
-          ctx->TransitionResourceViewForShaderUse(textureView);
 
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
           ctx->SetClipRect(clipRect);

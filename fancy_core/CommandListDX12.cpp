@@ -571,26 +571,6 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::TransitionResourceViewsForShaderUse(const eastl::span<const GpuResourceView*>& someViews)
-  {
-    for (const GpuResourceView* view : someViews)
-    {
-      switch(view->myType)
-      {
-      case GpuResourceViewType::CBV: 
-        TrackResourceTransition(view->GetResource(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-        break;
-      case GpuResourceViewType::SRV: 
-        TrackSubresourceTransition(view->GetResource(), view->GetSubresourceRange(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-        break;
-      case GpuResourceViewType::UAV: 
-        TrackSubresourceTransition(view->GetResource(), view->GetSubresourceRange(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-        break;
-      default: ASSERT(false);
-      }
-    }
-  }
-//---------------------------------------------------------------------------//
   GpuQuery CommandListDX12::BeginQuery(GpuQueryType aType)
   {
     ASSERT(aType != GpuQueryType::TIMESTAMP, "Timestamp-queries should be used with InsertTimestamp");
@@ -669,6 +649,20 @@ namespace Fancy {
     }
 
     TrackSubresourceTransition(aResource, aSubresourceRange, newStates, toSharedRead);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::TransitionShaderResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange,  ShaderResourceTransition aTransition)
+  {
+    switch(aTransition)
+    {
+      case ShaderResourceTransition::TO_SHADER_READ:
+        TrackSubresourceTransition(aResource, aSubresourceRange, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+        break;
+      case ShaderResourceTransition::TO_SHADER_WRITE:
+        TrackSubresourceTransition(aResource, aSubresourceRange, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+        break;
+      default: ASSERT(false, "Missing implementation!");
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources)
