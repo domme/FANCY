@@ -4,8 +4,6 @@
 #include "fancy_core/RenderCore.h"
 #include "fancy_core/CommandList.h"
 
-#if BINDLESS_ENABLE_ALL_TESTS
-
 using namespace Fancy;
 
 Test_HazardTracking::Test_HazardTracking(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
@@ -94,11 +92,25 @@ void Test_HazardTracking::OnUpdate(bool aDrawProperties)
     glm::int3(8, 8, 1)
   };
 
+  struct cBuffer
+  {
+    uint myBufferIndex;
+    uint myTextureIndex;
+  };
+  
   for (uint i = 0u; i < 3; ++i)
   {
     ctx->SetShaderPipeline(myBufferToMipShader.get());
-    ctx->BindResourceView(myBufferRead[i].get(), "SrcBuffer");
-    ctx->BindResourceView(myTexMipWrite[i].get(), "DstTexture");
+
+    cBuffer cbuf =
+    {
+      myBufferRead[i]->GetGlobalDescriptorIndex(),
+      myTexMipWrite[i]->GetGlobalDescriptorIndex()
+    };
+    ctx->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
+
+    ctx->TransitionShaderResource(myBufferRead[i].get(), ShaderResourceTransition::TO_SHADER_READ);
+    ctx->TransitionShaderResource(myTexMipWrite[i].get(), ShaderResourceTransition::TO_SHADER_WRITE);
     ctx->Dispatch(dispatchSizes[i]);
   }
 
@@ -107,8 +119,15 @@ void Test_HazardTracking::OnUpdate(bool aDrawProperties)
   for (uint i = 0u; i < 3; ++i)
   {
     ctx->SetShaderPipeline(myMipToBufferShader.get());
-    ctx->BindResourceView(myTexMipRead[i].get(), "SrcTexture");
-    ctx->BindResourceView(myBufferWrite[i].get(), "DstBuffer");
+
+    cBuffer cbuf =
+    {
+      myBufferWrite[i]->GetGlobalDescriptorIndex(),
+      myTexMipRead[i]->GetGlobalDescriptorIndex()
+    };
+    ctx->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
+    ctx->TransitionShaderResource(myTexMipRead[i].get(), ShaderResourceTransition::TO_SHADER_READ);
+    ctx->TransitionShaderResource(myBufferWrite[i].get(), ShaderResourceTransition::TO_SHADER_WRITE);
     ctx->Dispatch(dispatchSizes[i]);
   }
 
@@ -118,5 +137,3 @@ void Test_HazardTracking::OnUpdate(bool aDrawProperties)
 void Test_HazardTracking::OnRender()
 {
 }
-
-#endif

@@ -113,6 +113,13 @@ void Update()
     else
       myTests.push_back(eastl::make_unique<Test_AsyncCompute>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
+  if (ImGui::Checkbox("Test Hazard Tracking", &test_hazardTracking))
+  {
+    if (!test_hazardTracking)
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_HazardTracking*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(eastl::make_unique<Test_HazardTracking>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
 #if BINDLESS_ENABLE_ALL_TESTS
   if (ImGui::Checkbox("Test Synchronization", &test_sychronization))
   {
@@ -141,13 +148,6 @@ void Update()
       myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_SharedQueueResourceUsage*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(eastl::make_unique<Test_SharedQueueResourceUsage>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
-  if (ImGui::Checkbox("Test Hazard Tracking", &test_hazardTracking))
-  {
-    if (!test_hazardTracking)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_HazardTracking*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_HazardTracking>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Raytracing", &test_raytracing))
   {
