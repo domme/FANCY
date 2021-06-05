@@ -37,7 +37,7 @@ namespace Fancy {
     void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override; // TODO: Support regions
 
     void PostExecute(uint64 aFenceVal) override;
-    void PreBegin() override;
+    void ResetAndOpen() override;
     void FlushBarriers() override;
 
     void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) override;
@@ -66,6 +66,8 @@ namespace Fancy {
 
   protected:
     static D3D12_DESCRIPTOR_HEAP_TYPE ResolveDescriptorHeapTypeFromMask(uint aDescriptorTypeMask);
+
+    void PrepareForRecord(bool aResetCommandList);
 
     void ApplyViewportAndClipRect();
     void ApplyGraphicsPipelineState();

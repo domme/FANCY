@@ -1,6 +1,6 @@
 #include "GlobalResources.h"
 
-cbuffer CB0 : register(b0, _LocalCBufferSpace)
+cbuffer CB0 : register(b0, Space_LocalCBuffer)
 {
 	uint myValue;
 	uint myDstBufferIndex;
@@ -10,19 +10,19 @@ cbuffer CB0 : register(b0, _LocalCBufferSpace)
 [numthreads(64, 1, 1)]
 void main_increment(uint3 aDTid : SV_DispatchThreadID)
 {
-    uint val = global_rw_buffers[myDstBufferIndex].Load<uint>(aDTid.x);
-    global_rw_buffers[myDstBufferIndex].Store<uint>(aDTid.x, val + 1);
+    uint val = theRwBuffers[myDstBufferIndex].Load<uint>(aDTid.x);
+    theRwBuffers[myDstBufferIndex].Store<uint>(aDTid.x, val + 1);
 }
 
 [numthreads(64, 1, 1)]
 void main_set(uint3 aDTid : SV_DispatchThreadID)
 {
-    global_rw_buffers[myDstBufferIndex].Store<uint>(aDTid.x, myValue);
+    theRwBuffers[myDstBufferIndex].Store<uint>(aDTid.x, myValue);
 }
 
 [numthreads(64, 1, 1)]
 void main_copy(uint3 aDTid : SV_DispatchThreadID)
 {
-	uint val = global_buffers[mySrcBufferIndex].Load<uint>(aDTid.x);
-    global_rw_buffers[myDstBufferIndex].Store<uint>(aDTid.x, val); 
+	uint val = theBuffers[mySrcBufferIndex].Load<uint>(aDTid.x);
+    theRwBuffers[myDstBufferIndex].Store<uint>(aDTid.x, val); 
 }

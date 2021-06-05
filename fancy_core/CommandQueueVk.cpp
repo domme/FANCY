@@ -192,7 +192,7 @@ namespace Fancy
   uint64 CommandQueueVk::ExecuteAndResetCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode)
   {
     const uint64 fenceVal = ExecuteCommandListInternal(aCommandList, aSyncMode);
-    aCommandList->PreBegin();
+    aCommandList->ResetAndOpen();
     return fenceVal;
   }
 //---------------------------------------------------------------------------//

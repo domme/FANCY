@@ -453,9 +453,9 @@ namespace Fancy
     myLocalHazardData.clear();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::PreBegin()
+  void CommandListVk::ResetAndOpen()
   {
-    CommandList::PreBegin();
+    CommandList::ResetAndOpen();
 
     myRenderPass = nullptr;
     myFramebuffer = nullptr;

@@ -102,7 +102,7 @@ namespace Fancy {
 
     virtual void FlushBarriers() = 0;
     virtual void PostExecute(uint64 aFenceVal);
-    virtual void PreBegin();
+    virtual void ResetAndOpen();
 
     bool IsOpen() const { return myIsOpen; }
     void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height

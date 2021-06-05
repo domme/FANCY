@@ -343,9 +343,9 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandList::PreBegin()
+  void CommandList::ResetAndOpen()
   {
-    ASSERT(!IsOpen(), "PreBegin() called on open command list. Gpu-resources will not get freed! Did you forget to execute the command list?");
+    ASSERT(!IsOpen(), "ResetAndOpen() called on open command list. Gpu-resources will not get freed! Did you forget to execute the command list?");
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();

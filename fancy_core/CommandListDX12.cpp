@@ -110,6 +110,8 @@ namespace Fancy {
       RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandList(0, nativeCmdListType,
         myCommandAllocator, nullptr, IID_PPV_ARGS(&myCommandList))
     );
+
+    PrepareForRecord(false);
   }
 //---------------------------------------------------------------------------//
   CommandListDX12::~CommandListDX12()
@@ -134,6 +136,43 @@ namespace Fancy {
 
     ASSERT(false, "unsupported descriptor type mask");
     return (D3D12_DESCRIPTOR_HEAP_TYPE)-1;
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::PrepareForRecord(bool aResetCommandList)
+  {
+    RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
+
+    if (aResetCommandList)
+      ASSERT_HRESULT(myCommandList->Reset(myCommandAllocator, nullptr));
+
+    myTopologyDirty = true;
+    myPendingBarriers.clear();
+    myLocalHazardData.clear();
+
+    const ShaderVisibleDescriptorHeapDX12* shaderVisibleHeap = platformDx12->GetShaderVisibleDescriptorHeap();
+
+    // We only use one shader-visible descriptor heap per type, so just bind them up-front
+    ID3D12DescriptorHeap* shaderVisibleHeaps[] = {
+      shaderVisibleHeap->GetResourceHeap(),
+      shaderVisibleHeap->GetSamplerHeap()
+    };
+    myCommandList->SetDescriptorHeaps(ARRAY_LENGTH(shaderVisibleHeaps), shaderVisibleHeaps);
+
+    // Set the root signature up front since we only use one
+    const RootSignatureDX12* rootSignature = platformDx12->GetRootSignature();
+    if (myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute)
+    {
+      myCommandList->SetComputeRootSignature(rootSignature->GetRootSignature());
+      myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources, shaderVisibleHeap->GetResourceHeapStart());
+      myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalSamplers, shaderVisibleHeap->GetSamplerHeapStart());
+    }
+
+    if (myCommandListType == CommandListType::Graphics)
+    {
+      myCommandList->SetGraphicsRootSignature(rootSignature->GetRootSignature());
+      myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources, shaderVisibleHeap->GetResourceHeapStart());
+      myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalSamplers, shaderVisibleHeap->GetSamplerHeapStart());
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::UpdateSubresources(ID3D12Resource* aDstResource, ID3D12Resource* aStagingResource,
@@ -492,34 +531,15 @@ namespace Fancy {
     myLocalHazardData.clear();
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::PreBegin()
+  void CommandListDX12::ResetAndOpen()
   {
-    CommandList::PreBegin();
+    CommandList::ResetAndOpen();
 
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
-
     myCommandAllocator = platformDx12->GetCommandAllocator(myCommandListType);
     ASSERT(myCommandAllocator != nullptr);
-    
-    ASSERT_HRESULT(myCommandList->Reset(myCommandAllocator, nullptr));
 
-    myTopologyDirty = true;
-    myPendingBarriers.clear();
-    myLocalHazardData.clear();
-
-    const ShaderVisibleDescriptorHeapDX12* shaderVisibleHeap = platformDx12->GetShaderVisibleDescriptorHeap();
-
-    // We only use one shader-visible descriptor heap per type, so just bind them up-front
-    ID3D12DescriptorHeap* shaderVisibleHeaps[] = {
-      shaderVisibleHeap->GetResourceHeap(),
-      shaderVisibleHeap->GetSamplerHeap()
-    };
-    myCommandList->SetDescriptorHeaps(ARRAY_LENGTH(shaderVisibleHeaps), shaderVisibleHeaps);
-
-    // Set the root signature up front since we only use one
-    const RootSignatureDX12* rootSignature = platformDx12->GetRootSignature();
-    myCommandList->SetComputeRootSignature(rootSignature->GetRootSignature());
-    myCommandList->SetGraphicsRootSignature(rootSignature->GetRootSignature());
+    PrepareForRecord(true);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::FlushBarriers()
@@ -839,13 +859,7 @@ namespace Fancy {
   {
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
     const RootSignatureDX12* rootSignature = platformDx12->GetRootSignature();
-    const ShaderVisibleDescriptorHeapDX12* shaderVisibleHeap = platformDx12->GetShaderVisibleDescriptorHeap();
-
-    myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources, shaderVisibleHeap->GetResourceHeapStart());
-    myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalResources, shaderVisibleHeap->GetResourceHeapStart());
-    myCommandList->SetComputeRootDescriptorTable(rootSignature->myRootParamIndex_GlobalSamplers, shaderVisibleHeap->GetSamplerHeapStart());
-    myCommandList->SetGraphicsRootDescriptorTable(rootSignature->myRootParamIndex_GlobalSamplers, shaderVisibleHeap->GetSamplerHeapStart());
-
+    
     if (myLocalBuffersToBind.empty() && myLocalRWBuffersToBind.empty() && myLocalCBuffersToBind.empty())
       return;
 

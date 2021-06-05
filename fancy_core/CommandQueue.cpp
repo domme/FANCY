@@ -23,7 +23,7 @@ namespace Fancy
     {
       CommandList* commandList = myAvailableCommandLists.front();
       if (!commandList->IsOpen())
-        commandList->PreBegin();
+        commandList->ResetAndOpen();
       myAvailableCommandLists.pop_front();
 
       return commandList;

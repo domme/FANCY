@@ -52,7 +52,7 @@ namespace Fancy
     void CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
 
     void PostExecute(uint64 aFenceVal) override;
-    void PreBegin() override;
+    void ResetAndOpen() override;
     void FlushBarriers() override;
 
     void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) override;

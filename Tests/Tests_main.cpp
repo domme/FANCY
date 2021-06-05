@@ -106,6 +106,13 @@ void Update()
     else
       myTests.push_back(eastl::make_unique<Test_GpuMemoryAllocator>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
+  if (ImGui::Checkbox("Test Async Compute", &test_asyncCompute))
+  {
+    if (!test_asyncCompute)
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_AsyncCompute*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(eastl::make_unique<Test_AsyncCompute>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
 #if BINDLESS_ENABLE_ALL_TESTS
   if (ImGui::Checkbox("Test Synchronization", &test_sychronization))
   {
@@ -113,13 +120,6 @@ void Update()
       myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Synchronization*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(eastl::make_unique<Test_Synchronization>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
-  if (ImGui::Checkbox("Test Async Compute", &test_asyncCompute))
-  {
-    if (!test_asyncCompute)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_AsyncCompute*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_AsyncCompute>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Mipmapping", &test_mipmapping))
   {
