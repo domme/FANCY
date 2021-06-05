@@ -451,7 +451,7 @@ namespace Fancy {
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
     ourDebugLogResourceBarriers = cmdLine->HasArgument("logBarriers");
 #endif
-    ourDebugWaitAfterEachSubmit = cmdLine->HasArgument("waitAfterSubmit") || (cmdLine->HasArgument("DebugLayer") && cmdLine->HasArgument("GPUValidation"));
+    ourDebugWaitAfterEachSubmit = cmdLine->HasArgument("waitAfterSubmit");
   }
 //---------------------------------------------------------------------------//
   void RenderCore::Init_2_Resources()
