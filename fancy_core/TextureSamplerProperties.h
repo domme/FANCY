@@ -12,7 +12,7 @@ namespace Fancy {
     SamplerAddressMode  myAddressModeX = SamplerAddressMode::CLAMP_BORDER;
     SamplerAddressMode  myAddressModeY = SamplerAddressMode::CLAMP_BORDER;
     SamplerAddressMode  myAddressModeZ = SamplerAddressMode::CLAMP_BORDER;
-    CompFunc            myComparisonFunc = CompFunc::ALWAYS;
+    CompFunc            myComparisonFunc = CompFunc::NEVER;
     SamplerBorderColor  myBorderColor = SamplerBorderColor::FLOAT_TRANSPARENT_BLACK;
     float               myMinLod = 0.0f;
     float               myMaxLod = FLT_MAX;

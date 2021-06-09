@@ -29,6 +29,8 @@ namespace Fancy
       // Rules for conversion: Mipmap-filtering is controlled only by the MinMode - the MagMode doesn't influence it
       // If any filter mode is anisotropic, all modes are anisotropic
 
+      // TODO: ADD support for comparison and MIN/MAX filters
+
       if (aMinMode == SamplerFilterMode::ANISOTROPIC || aMagMode == SamplerFilterMode::ANISOTROPIC)
         return D3D12_FILTER_COMPARISON_ANISOTROPIC;
 
@@ -38,36 +40,36 @@ namespace Fancy
         switch (aMagMode)
         {
         case SamplerFilterMode::NEAREST:
-          return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+          return D3D12_FILTER_MIN_MAG_MIP_POINT;
         case SamplerFilterMode::BILINEAR:
         case SamplerFilterMode::TRILINEAR:
-          return D3D12_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT;
+          return D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
         }
         break;
       case SamplerFilterMode::BILINEAR:
         switch (aMagMode)
         {
         case SamplerFilterMode::NEAREST:
-          return D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT;
+          return D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
         case SamplerFilterMode::BILINEAR:
         case SamplerFilterMode::TRILINEAR:
-          return D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+          return D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
         }
         break;
       case SamplerFilterMode::TRILINEAR:
         switch (aMagMode)
         {
         case SamplerFilterMode::NEAREST:
-          return D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+          return D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
         case SamplerFilterMode::BILINEAR:
         case SamplerFilterMode::TRILINEAR:
-          return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+          return D3D12_FILTER_MIN_MAG_MIP_LINEAR;
         }
         break;
       }
 
       ASSERT(false, "Missing conversion");
-      return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+      return D3D12_FILTER_MIN_MAG_MIP_POINT;
     }
 //---------------------------------------------------------------------------//
     glm::vec4 locResolveBorderColor(SamplerBorderColor aColor)
@@ -107,6 +109,8 @@ namespace Fancy
 
     myDescriptor = dx12Platform->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_SAMPLER);
     myGlobalDescriptorIndex = myDescriptor.myGlobalResourceIndex;
+
+    dx12Platform->GetDevice()->CreateSampler(&desc, myDescriptor.myCpuHandle);
   }
 //---------------------------------------------------------------------------//
   TextureSamplerDX12::~TextureSamplerDX12()

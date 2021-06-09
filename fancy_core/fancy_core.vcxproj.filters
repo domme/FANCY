@@ -168,12 +168,6 @@
     <ClInclude Include="GpuResourceView.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceRefs.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceNameList.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="DataFormatList.h">
       <Filter>Rendering</Filter>
     </ClInclude>

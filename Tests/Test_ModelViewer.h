@@ -6,8 +6,6 @@
 #include "fancy_core/CameraController.h"
 #include "fancy_core/MeshImporter.h"
 
-#if BINDLESS_ENABLE_ALL_TESTS
-
 namespace Fancy
 {
   class CommandList;
@@ -17,8 +15,6 @@ namespace Fancy
   class GpuBuffer;
   struct Material;
   struct Scene;
-  class GpuResourceViewSet;
-
 }
 
 class Test_ModelViewer : public Test
@@ -47,8 +43,5 @@ private:
   Fancy::SharedPtr<Fancy::GpuBuffer> myInstancePositions;
   Fancy::SharedPtr<Fancy::TextureView> myDefaultFloorTexture;
   Fancy::SharedPtr<Fancy::TextureView> myMarmorTexture;
-  Fancy::SharedPtr<Fancy::GpuResourceViewSet> myResourceViewSet;
   int myNumInstances;
 };
-
-#endif

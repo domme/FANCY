@@ -1,14 +1,10 @@
+#include "GlobalResources.h"
 
-#define ROOT_SIGNATURE  "RootFlags ( ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT )," \
-                        "CBV(b0)"
-
-struct CBUFFER
+cbuffer CB0 : register(b0, Space_LocalCBuffer)
 {
-  float4x4 c_WorldViewProjectionMatrix;
-  float4 c_Color;
+  float4x4 myWVP; 
+  float4 myColor;
 };
-
-ConstantBuffer<CBUFFER> cbPerObject : register(b0);
 
 struct VS_OUT
 {
@@ -23,11 +19,10 @@ struct VS_IN
   float4 color : COLOR;
 };
 
-[RootSignature(ROOT_SIGNATURE)]
 VS_OUT main(VS_IN v)
 {
   VS_OUT vs_out = (VS_OUT)0;
-  vs_out.pos = mul(cbPerObject.c_WorldViewProjectionMatrix, float4(v.position, 1.0f));
+  vs_out.pos = mul(myWVP, float4(v.position, 1.0f));
   vs_out.color = v.color;
   return vs_out;
 }
@@ -35,10 +30,9 @@ VS_OUT main(VS_IN v)
 //---------------------------------------------------------------------------//
 #if defined(PROGRAM_TYPE_FRAGMENT)  
 
-[RootSignature(ROOT_SIGNATURE)]
 float4 main(VS_OUT fs_in) : SV_TARGET
 {
-  return cbPerObject.c_Color;
+  return myColor;
 }
 #endif // PROGRAM_TYPE_FRAGMENT
 //---------------------------------------------------------------------------// 

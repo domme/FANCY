@@ -8,8 +8,6 @@
 
 #include "EASTL/vector.h"
 
-#if BINDLESS_ENABLE_ALL_TESTS
-
 using namespace Fancy;
 
 static uint kNumBufferElements = 1024;
@@ -56,10 +54,19 @@ Test_SharedQueueResourceUsage::~Test_SharedQueueResourceUsage()
 
 void Test_SharedQueueResourceUsage::OnUpdate(bool aDrawProperties)
 {
+  struct CBuffer
+  {
+    uint myValue;
+    uint myDstBufferIndex;
+    uint mySrcBufferIndex;
+  } cbuf;
+
   CommandList* graphicsContext = RenderCore::BeginCommandList(CommandListType::Graphics);
   graphicsContext->SetShaderPipeline(myWriteBufferShader.get());
 
-  graphicsContext->BindResourceView(myBufferWrite.get(), "DstBuffer");
+  cbuf.myDstBufferIndex = myBufferWrite->GetGlobalDescriptorIndex();
+  graphicsContext->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
+  graphicsContext->TransitionShaderResource(myBufferWrite.get(), ShaderResourceTransition::TO_SHADER_WRITE);
   graphicsContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
   graphicsContext->TransitionResource(myBuffer.get(), ResourceTransition::TO_SHARED_CONTEXT_READ);
   const uint64 setValueFence = RenderCore::ExecuteAndFreeCommandList(graphicsContext);
@@ -74,8 +81,12 @@ void Test_SharedQueueResourceUsage::OnUpdate(bool aDrawProperties)
   RenderCore::GetCommandQueue(CommandListType::Compute)->StallForFence(setValueFence);
   CommandList* computeContext = RenderCore::BeginCommandList(CommandListType::Compute);
   computeContext->SetShaderPipeline(myCopyBufferShader.get());
-  computeContext->BindResourceView(myBufferRead.get(), "SrcBuffer");
-  computeContext->BindResourceView(tempBuffer.myWriteView, "DstBuffer");
+
+  cbuf.mySrcBufferIndex = myBufferRead->GetGlobalDescriptorIndex();
+  cbuf.myDstBufferIndex = tempBuffer.myWriteView->GetGlobalDescriptorIndex();
+  computeContext->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
+  computeContext->TransitionShaderResource(myBufferRead.get(), ShaderResourceTransition::TO_SHADER_READ);
+  computeContext->TransitionShaderResource(tempBuffer.myWriteView, ShaderResourceTransition::TO_SHADER_WRITE);
   computeContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
   
   computeContext->ResourceUAVbarrier();
@@ -89,4 +100,3 @@ void Test_SharedQueueResourceUsage::OnRender()
 {
 }
 
-#endif

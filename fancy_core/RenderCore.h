@@ -182,6 +182,7 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultDiffuseTexture;
     static SharedPtr<Texture> ourDefaultNormalTexture;
     static SharedPtr<Texture> ourDefaultSpecularTexture;
+    static SharedPtr<Texture> ourMissingTexture;
 
     static eastl::hash_map<uint64, SharedPtr<Shader>> ourShaderCache;  
     static eastl::hash_map<uint64, SharedPtr<ShaderPipeline>> ourShaderPipelineCache;

@@ -1,15 +1,13 @@
-#include "Vulkan_Support.h"
+#include "GlobalResources.h"
 
-VK_BINDING_SET(0, 0) cbuffer CB0 : register(b0)
+cbuffer CB0 : register(b0, Space_LocalCBuffer)
 {
   int2 mySrcTextureSize;
   int myIsSRGB;   
+  int mySrcTextureIdx;
+  int myDstTextureIdx;
 };
 
-VK_BINDING_SET(1, 0) Texture2D<float4> SrcTexture : register(t0);
-VK_BINDING_SET(2, 0) RWTexture2D<float4> DestTexture: register(u0);
-
-[RootSignature("CBV(b0), DescriptorTable(SRV(t0), UAV(u0))")]
 [numthreads(8, 8, 1)]
 void main(uint3 aDTid : SV_DispatchThreadID)
 {
@@ -28,12 +26,12 @@ void main(uint3 aDTid : SV_DispatchThreadID)
     for (int i = 0; i < 4; ++i)
     {
       int2 texel = srcTexel + offsets[i];
-      if (texel.x > mySrcTextureSize.x - 1)
+      if (texel.x >= mySrcTextureSize.x )
         texel.x = mySrcTextureSize.x - 1 - texel.x;
-      if (texel.y > mySrcTextureSize.y - 1)
+      if (texel.y >= mySrcTextureSize.y )
         texel.y = mySrcTextureSize.y - 1 - texel.y;
 
-      outCol += SrcTexture[texel];
+      outCol += theTextures2D[mySrcTextureIdx][texel];
     }
 
     outCol *= 0.25;
@@ -41,7 +39,5 @@ void main(uint3 aDTid : SV_DispatchThreadID)
     if (myIsSRGB)
       outCol = pow(outCol, 1.0 / 2.2);
 
-      
-
-    DestTexture[destTexel] = outCol;
+    theRwTextures2D[myDstTextureIdx][destTexel] = outCol;
 }

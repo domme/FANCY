@@ -23,8 +23,6 @@
 #include "fancy_core/Material.h"
 #include "fancy_core/Scene.h"
 
-#if BINDLESS_ENABLE_ALL_TESTS
-
 using namespace Fancy;
 
 bool ourDrawInstanced = false;
@@ -130,15 +128,6 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
 
   myDefaultFloorTexture = ObjectCore::LoadTexture("Textures/Sibenik/kamen.png");
   myMarmorTexture = ObjectCore::LoadTexture("Textures/Sibenik/mramor6x6.png");
-
-  /*
-  GpuResourceViewSetElement setElements[] = { 
-    { myDefaultFloorTexture.get(), myDefaultFloorTexture->GetType() },
-    { myMarmorTexture.get(), myMarmorTexture->GetType()} 
-  };
-
-  myResourceViewSet = RenderCore::CreateResourceViewSet(setElements);
-  */
 }
 
 Test_ModelViewer::~Test_ModelViewer()
@@ -197,7 +186,7 @@ void Test_ModelViewer::RenderGrid(Fancy::CommandList* ctx)
     myCamera.myViewProj,
     glm::float4(1.0f, 0.0f, 0.0f, 1.0f),
   };
-  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), "cbPerObject");
+  ctx->BindConstantBuffer(&cbuffer_debugGeo, sizeof(cbuffer_debugGeo), 0);
 
   struct GridGeoVertex
   {
@@ -236,7 +225,6 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
 
   ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
   ctx->SetShaderPipeline(ourDrawInstanced ? myInstancedUnlitTexturedShader.get() : myUnlitTexturedShader.get());
-  ctx->BindSampler(mySampler.get(), "sampler_default");
 
   const uint numInstances = ourDrawInstanced ? (uint) myNumInstances : 1u;
 
@@ -267,50 +255,25 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
     {
       glm::float4x4 myWorldViewProj;
       uint myTextureIndex;
+      uint mySamplerIndex;
     };
     Cbuffer_PerObject cbuffer_perObject
     {
       myCamera.myViewProj * transform,
-      0u
+      UINT_MAX,
+      mySampler->GetGlobalDescriptorIndex()
     };
-    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
-
+    
     const GpuResourceView* diffuseTex = material->myTextures[(uint)MaterialTextureType::BASE_COLOR].get();
     if (diffuseTex)
-      ctx->BindResourceView(diffuseTex, "textures", 0);
+    {
+      ctx->TransitionShaderResource(diffuseTex, ShaderResourceTransition::TO_SHADER_READ);
+      cbuffer_perObject.myTextureIndex = diffuseTex->GetGlobalDescriptorIndex();
+    }
 
-    ctx->BindResourceView(myDefaultFloorTexture.get(), "textures", 1);
-    //ctx->BindResourceViewSet(myResourceViewSet.get(), 0u);
-
-    RenderMesh(mesh);
-
-    transform = glm::translate(transform, glm::float3(5.0f, 0.0f, 0.0f));
-    cbuffer_perObject.myWorldViewProj = myCamera.myViewProj * transform;
-    cbuffer_perObject.myTextureIndex = 1u;
-    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
+    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), 0);
 
     RenderMesh(mesh);
-    
-    /*
-    // Below the resource-binding is tested by updating only some resources. The render-backend should only bind those that are needed
-
-    // Render mesh-copy to the right (only CBV should update)
-    transform = glm::translate(transform, glm::float3(5.0f, 0.0f, 0.0f));
-    cbuffer_perObject.myWorldViewProj = myCamera.myViewProj * transform;
-    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
-
-    RenderMesh(mesh);
-
-    // Render mesh-copy to the left with a different texture (both the texture and the CBV should update)
-    transform = glm::translate(transform, glm::float3(-10.0f, 0.0f, 0.0f));
-    cbuffer_perObject.myWorldViewProj = myCamera.myViewProj * transform;
-    ctx->BindConstantBuffer(&cbuffer_perObject, sizeof(cbuffer_perObject), "cbPerObject");
-
-    ctx->BindResourceView(myReplacementTexture.get(), "tex_diffuse");
-
-    RenderMesh(mesh);
-    */
   }
 }
 
-#endif

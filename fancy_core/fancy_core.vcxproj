@@ -225,7 +225,6 @@
     <ClInclude Include="RenderOutput.h" />
     <ClInclude Include="RenderOutputDX12.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="ResourceNameList.h" />
     <ClInclude Include="Slot.h" />
     <ClInclude Include="SmallObjectAllocator.h" />
     <ClInclude Include="StaticDescriptorAllocatorDX12.h" />
@@ -237,7 +236,6 @@
     <ClInclude Include="TextureData.h" />
     <ClInclude Include="TextureProperties.h" />
     <ClInclude Include="TextureDX12.h" />
-    <ClInclude Include="ResourceRefs.h" />
     <ClInclude Include="TextureReadbackTask.h" />
     <ClInclude Include="TextureSampler.h" />
     <ClInclude Include="TextureSamplerProperties.h" />

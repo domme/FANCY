@@ -120,14 +120,6 @@ void Update()
     else
       myTests.push_back(eastl::make_unique<Test_HazardTracking>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
-#if BINDLESS_ENABLE_ALL_TESTS
-  if (ImGui::Checkbox("Test Synchronization", &test_sychronization))
-  {
-    if (!test_sychronization)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Synchronization*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_Synchronization>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
   if (ImGui::Checkbox("Test Mipmapping", &test_mipmapping))
   {
     if (!test_mipmapping)
@@ -141,6 +133,13 @@ void Update()
       myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ModelViewer*>(aTestItem.get()) != nullptr; }));
     else
       myTests.push_back(eastl::make_unique<Test_ModelViewer>(myRuntime, myWindow, myRenderOutput, &myInputState));
+  }
+  if (ImGui::Checkbox("Test Synchronization", &test_sychronization))
+  {
+    if (!test_sychronization)
+      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Synchronization*>(aTestItem.get()) != nullptr; }));
+    else
+      myTests.push_back(eastl::make_unique<Test_Synchronization>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
   if (ImGui::Checkbox("Test Shared Queue Resources", &test_sharedQueueResources))
   {
@@ -156,7 +155,6 @@ void Update()
     else
       myTests.push_back(eastl::make_unique<Test_Raytracing>(myRuntime, myWindow, myRenderOutput, &myInputState));
   }
-#endif
 
   ImGui::Separator();
 

@@ -24,14 +24,14 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void ObjectCore::Init()
   {
-    //ShaderPipelineDesc pipelineDesc;
-    //ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
-    //shaderDesc.myPath = "Downsample.hlsl";
-    //shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
-    //shaderDesc.myMainFunction = "main";
-    //
-    //ourMipDownsampleShader = RenderCore::CreateShaderPipeline(pipelineDesc);
-    //ASSERT(ourMipDownsampleShader != nullptr);
+    ShaderPipelineDesc pipelineDesc;
+    ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
+    shaderDesc.myPath = "Downsample.hlsl";
+    shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
+    shaderDesc.myMainFunction = "main";
+    
+    ourMipDownsampleShader = RenderCore::CreateShaderPipeline(pipelineDesc);
+    ASSERT(ourMipDownsampleShader != nullptr);
   }
  //---------------------------------------------------------------------------//
   SharedPtr<Mesh> ObjectCore::GetMesh(const MeshDesc& aDesc)
@@ -167,7 +167,8 @@ namespace Fancy
 
     if ((someLoadFlags & NO_MEM_CACHE) == 0)
       if (SharedPtr<TextureView> texFromMemCache = GetTexture(texPathRel.c_str()))
-        return texFromMemCache;
+        if(texFromMemCache->GetProperties().myIsShaderWritable == ((someLoadFlags & SHADER_WRITABLE) != 0))
+          return texFromMemCache;
 
     uint64 texPathRelHash = MathUtil::Hash(texPathRel);
     MathUtil::hash_combine(texPathRelHash, ((uint64)someLoadFlags & SHADER_WRITABLE));
@@ -278,9 +279,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void ObjectCore::ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter aFilter)
   {
-    ASSERT(false, "Mipmap computation not reenabled after bindless");
-
-    /*
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;
 
@@ -333,6 +331,8 @@ namespace Fancy
     {
       glm::int2 mySrcTextureSize;
       int myIsSRGB;
+      int mySrcTextureIdx;
+      int myDstTextureIdx;
     } cBuffer;
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
@@ -344,10 +344,12 @@ namespace Fancy
       const glm::int2 srcSize = fullSize >> (int)(mip - 1);
       const glm::int2 dstSize = fullSize >> (int)mip;
 
+      cBuffer.mySrcTextureIdx = readViews[mip - 1]->GetGlobalDescriptorIndex();
+      cBuffer.myDstTextureIdx = writeViews[mip]->GetGlobalDescriptorIndex();
       cBuffer.mySrcTextureSize = glm::int2((int)srcSize.x, (int)srcSize.y);
-      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), "CB0");
-      ctx->BindResourceView(readViews[mip - 1].get(), "SrcTexture");
-      ctx->BindResourceView(writeViews[mip].get(), "DestTexture");
+      ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0);
+      ctx->TransitionShaderResource(readViews[mip - 1].get(), ShaderResourceTransition::TO_SHADER_READ);
+      ctx->TransitionShaderResource(writeViews[mip].get(), ShaderResourceTransition::TO_SHADER_WRITE);
       ctx->Dispatch(glm::int3(dstSize.x, dstSize.y, 1));
       ctx->ResourceUAVbarrier();
     }
@@ -356,7 +358,6 @@ namespace Fancy
       ctx->CopyResource(aTexture.get(), texture.get());
 
     RenderCore::ExecuteAndFreeCommandList(ctx, SyncMode::BLOCKING);
-    */
   }
 //---------------------------------------------------------------------------//
 }

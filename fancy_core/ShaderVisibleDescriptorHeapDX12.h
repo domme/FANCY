@@ -25,7 +25,6 @@ namespace Fancy {
     DescriptorDX12 AllocateDescriptor(GlobalResourceType aType, const char* aDebugName = nullptr);
     void FreeDescriptorAfterFrameDone(const DescriptorDX12& aDescriptor);
 
-    D3D12_GPU_DESCRIPTOR_HANDLE GetHeapStart(GlobalResourceType aType) const { return myGlobalDescriptorGpuHeapStart[aType]; }
     D3D12_GPU_DESCRIPTOR_HANDLE GetResourceHeapStart() const { return myResourceHeap->GetGPUDescriptorHandleForHeapStart(); }
     D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerHeapStart() const { return mySamplerHeap->GetGPUDescriptorHandleForHeapStart(); }
 

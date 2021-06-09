@@ -157,8 +157,8 @@ namespace Fancy {
 
     ASSERT(myAllocators[GLOBAL_RESOURCE_SAMPLER].IsEmpty());
 
-    myGlobalDescriptorCpuHeapStart[GLOBAL_RESOURCE_SAMPLER] = mySamplerHeap->GetCPUDescriptorHandleForHeapStart();;
-    myGlobalDescriptorGpuHeapStart[GLOBAL_RESOURCE_SAMPLER] = mySamplerHeap->GetGPUDescriptorHandleForHeapStart();;
+    myGlobalDescriptorCpuHeapStart[GLOBAL_RESOURCE_SAMPLER] = mySamplerHeap->GetCPUDescriptorHandleForHeapStart();
+    myGlobalDescriptorGpuHeapStart[GLOBAL_RESOURCE_SAMPLER] = mySamplerHeap->GetGPUDescriptorHandleForHeapStart();
 
     // Initialize heaps with null-descriptors
     for (uint i = 0; i < GLOBAL_RESOURCE_NUM; ++i)

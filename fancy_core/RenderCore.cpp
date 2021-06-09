@@ -5,7 +5,6 @@
 #include "RenderCore_PlatformVk.h"
 
 #include "DepthStencilState.h"
-#include "ResourceRefs.h"
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
 #include "GpuReadbackBuffer.h"
@@ -456,6 +455,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderCore::Init_2_Resources()
   {
+    // TODO: Rework this so that it can load actual textures
+
     ASSERT(ourPlatformImpl != nullptr);
 
     {
@@ -464,7 +465,7 @@ namespace Fancy {
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
-      props.myPath = TextureRef::ToString(TextureRef::DEFAULT_DIFFUSE);
+      props.myPath = "default_diffuse";
 
       TextureSubData data(props);
       uint8 color[4] = { 0, 0, 0, 255 };
@@ -472,7 +473,7 @@ namespace Fancy {
 
       ourDefaultDiffuseTexture = CreateTexture(props, "Default_Diffuse", &data, 1);
 
-      props.myPath = TextureRef::ToString(TextureRef::DEFAULT_SPECULAR);
+      props.myPath = "default_specular";
       ourDefaultSpecularTexture = CreateTexture(props, "Default_Specular", &data, 1);
     }
 
@@ -482,7 +483,7 @@ namespace Fancy {
       props.myDimension = GpuResourceDimension::TEXTURE_2D;
       props.myHeight = 1u;
       props.myWidth = 1u;
-      props.myPath = TextureRef::ToString(TextureRef::DEFAULT_NORMAL);
+      props.myPath = "default_normal";
 
       TextureSubData data(props);
       uint8 color[4] = { 128, 128, 128, 255 };
