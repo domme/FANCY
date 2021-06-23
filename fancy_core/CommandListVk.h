@@ -10,7 +10,6 @@ namespace Fancy
 {
   struct ShaderResourceInfoVk;
   class ShaderPipelineVk;
-  struct PipelineLayoutBindingsVk;
 
   class CommandListVk : public CommandList
   {
@@ -59,11 +58,6 @@ namespace Fancy
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset, uint64 aSize) override;
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override;
-
-    void BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex = 0u) override;
-    void BindResourceViewSet(const GpuResourceViewSet* aSet, uint aSetOrTableIndex) override;
-    void BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex = 0u) override;
-    void BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex = 0u) override;
     
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
@@ -71,6 +65,7 @@ namespace Fancy
     void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
 
     void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint someUsageFlags = 0u) override;
+    void TransitionShaderResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceTransition aTransition) override;
     void ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources) override;
 
     void Close() override;
@@ -85,17 +80,9 @@ namespace Fancy
     void AddBarrier(const ImageMemoryBarrierData& aBarrier);
     
   protected:
-    void ClearResourceBindings();
     void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut) override;
 
     const ShaderPipelineVk* GetShaderPipeline() const;
-
-    const ShaderResourceInfoVk* FindShaderResourceInfo(uint64 aNameHash) const;
-    void BindInternal(const ShaderResourceInfoVk &aResourceInfo,
-      uint anArrayIndex,
-      const eastl::optional<VkDescriptorBufferInfo>& aDescriptorBufferInfo,
-      const eastl::optional<VkDescriptorImageInfo>& aDescriptorImageInfo,
-      const eastl::optional<VkBufferView>& aBufferView);
 
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout);
 
@@ -115,7 +102,6 @@ namespace Fancy
     glm::uvec2 myFramebufferRes;
         
     VkPipelineLayout myPipelineLayout = nullptr;
-    UniquePtr<PipelineLayoutBindingsVk> myPipelineLayoutBindings;
     eastl::fixed_vector<eastl::pair<VkBufferView, uint64>, 32> myTempBufferViews;
 
     struct SubresourceHazardData

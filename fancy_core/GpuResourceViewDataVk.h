@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GlobalDescriptorAllocation.h"
 #include "VkPrerequisites.h"
 
 #if FANCY_ENABLE_VK
@@ -22,6 +23,7 @@ namespace Fancy
     } myView;
 
     Type myType = None;
+    GlobalDescriptorAllocation myGlobalDescriptor;
   };
 }
 

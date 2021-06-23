@@ -27,18 +27,24 @@ namespace Fancy
  //---------------------------------------------------------------------------//
   VkDescriptorPool DescriptorPoolAllocatorVk::CreateDescriptorPool(uint aMaxNumDescriptors, uint aMaxNumSets)
   {
+    return CreateDescriptorPool(aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumSets);
+  }
+//---------------------------------------------------------------------------//
+  VkDescriptorPool DescriptorPoolAllocatorVk::CreateDescriptorPool(
+    uint aNumImages, uint aNumBuffers, uint aNumUniformBuffers, uint aNumSamplers, uint aMaxNumSets)
+  {
     VkDescriptorPoolSize poolSizes[] =
     {
-      { VK_DESCRIPTOR_TYPE_SAMPLER, aMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, aMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, aMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, aMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, aMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, aMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, aMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, aMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, aMaxNumDescriptors },
-      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, aMaxNumDescriptors },
+      { VK_DESCRIPTOR_TYPE_SAMPLER, aNumSamplers },
+      { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, aNumImages },
+      { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, aNumImages },
+      { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, aNumImages},
+      { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, aNumBuffers },
+      { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, aNumBuffers },
+      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, aNumUniformBuffers },
+      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, aNumBuffers },
+      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, aNumUniformBuffers},
+      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, aNumBuffers },
     };
 
     VkDescriptorPoolCreateInfo poolCreateInfo = {};

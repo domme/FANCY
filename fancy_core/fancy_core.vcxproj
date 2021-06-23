@@ -144,8 +144,10 @@
     <ClInclude Include="DebugUtilsVk.h" />
     <ClInclude Include="DescriptorDX12.h" />
     <ClInclude Include="DescriptorPoolAllocatorVk.h" />
-    <ClInclude Include="DescriptorSetLayoutCacheVk.h" />
     <ClInclude Include="DxcShaderCompiler.h" />
+    <ClInclude Include="GlobalDescriptorAllocation.h" />
+    <ClInclude Include="GlobalDescriptorSetVk.h" />
+    <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="RootSignatureDX12.h" />
     <ClInclude Include="ShaderVisibleDescriptorHeapDX12.h" />
     <ClInclude Include="EASTLAllocator.h" />
@@ -160,7 +162,6 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="MeshImporter.h" />
     <ClInclude Include="ObjectCore.h" />
-    <ClInclude Include="PipelineLayoutCacheVk.h" />
     <ClInclude Include="PipelineLayoutVk.h" />
     <ClInclude Include="PipelineStateCacheDX12.h" />
     <ClInclude Include="PipelineStateCacheVk.h" />
@@ -267,8 +268,8 @@
     <ClCompile Include="DebugUtilsDX12.cpp" />
     <ClCompile Include="DebugUtilsVk.cpp" />
     <ClCompile Include="DescriptorPoolAllocatorVk.cpp" />
-    <ClCompile Include="DescriptorSetLayoutCacheVk.cpp" />
     <ClCompile Include="DxcShaderCompiler.cpp" />
+    <ClCompile Include="GlobalDescriptorSetVk.cpp" />
     <ClCompile Include="RootSignatureDX12.cpp" />
     <ClCompile Include="ShaderVisibleDescriptorHeapDX12.cpp" />
     <ClCompile Include="EASTLAllocator.cpp" />
@@ -289,7 +290,6 @@
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MeshImporter.cpp" />
     <ClCompile Include="ObjectCore.cpp" />
-    <ClCompile Include="PipelineLayoutCacheVk.cpp" />
     <ClCompile Include="PipelineLayoutVk.cpp" />
     <ClCompile Include="PipelineStateCacheDX12.cpp" />
     <ClCompile Include="PipelineStateCacheVk.cpp" />

@@ -15,7 +15,6 @@
 #include "GpuResourceViewDataDX12.h"
 #include "TimeManager.h"
 #include "GpuQueryHeapDX12.h"
-#include "TextureSamplerDX12.h"
 #include "DebugUtilsDX12.h"
 
 #if FANCY_ENABLE_DX12

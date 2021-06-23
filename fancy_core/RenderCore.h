@@ -18,10 +18,10 @@
 #include "EASTL/span.h"
 
 namespace Fancy {
+//---------------------------------------------------------------------------//
   struct MaterialDesc;
   struct Material;
   struct MeshDesc;
-  //---------------------------------------------------------------------------//
   struct MeshPartData;
   struct VertexInputLayoutProperties;
   struct Mesh;
@@ -71,7 +71,7 @@ namespace Fancy {
 
       NUM_QUERY_BUFFERS = NUM_QUEUED_FRAMES + QUERY_BUFFER_LIFETIME,
     };
-
+    
     /// Init platform-independent stuff
     static void Init(const RenderPlatformProperties& someProperties);
     static void BeginFrame();

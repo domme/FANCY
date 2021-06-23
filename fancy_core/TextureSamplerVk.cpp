@@ -112,12 +112,22 @@ namespace Fancy
 
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     ASSERT_VK_RESULT(vkCreateSampler(platformVk->myDevice, &info, nullptr, &mySampler));
+
+    VkDescriptorImageInfo descriptorInfo;
+    descriptorInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    descriptorInfo.imageView = nullptr;
+    descriptorInfo.sampler = mySampler;
+
+    myDescriptorAllocation = platformVk->AllocateAndWriteGlobalResourceDescriptor(GLOBAL_RESOURCE_SAMPLER, descriptorInfo, "Sampler");
+    myGlobalDescriptorIndex = myDescriptorAllocation.myIndex;
   }
 //---------------------------------------------------------------------------//
   TextureSamplerVk::~TextureSamplerVk()
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     vkDestroySampler(platformVk->myDevice, mySampler, nullptr);
+
+    platformVk->FreeGlobalResourceDescriptor(myDescriptorAllocation);
   }
 //---------------------------------------------------------------------------//
 }

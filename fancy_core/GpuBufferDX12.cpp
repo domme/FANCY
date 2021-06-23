@@ -177,7 +177,6 @@ namespace Fancy {
     : GpuBufferView::GpuBufferView(aBuffer, someProperties)
   {
     GpuResourceViewDataDX12 nativeData;
-    
 
     bool success = false;
     if (someProperties.myIsConstantBuffer)

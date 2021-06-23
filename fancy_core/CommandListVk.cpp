@@ -700,113 +700,6 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindResourceView(const GpuResourceView* aView, uint64 aNameHash, uint anArrayIndex /* = 0u */)
-  {
-    const ShaderResourceInfoVk* resourceInfo = FindShaderResourceInfo(aNameHash);
-    if (!resourceInfo)
-      return;
-
-    const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-
-    eastl::optional<VkDescriptorBufferInfo> descriptorBufferInfo;
-    eastl::optional<VkDescriptorImageInfo> descriptorImageInfo;
-    eastl::optional<VkBufferView> bufferView;
-    RenderCore_PlatformVk::GetResourceViewDescriptorData(aView, resourceInfo->myType, descriptorBufferInfo, descriptorImageInfo, bufferView);
-
-    switch (resourceInfo->myType)
-    {
-    case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
-    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
-    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-    {
-      TrackSubresourceTransition(aView->GetResource(), aView->GetSubresourceRange(), VK_ACCESS_SHADER_READ_BIT, descriptorImageInfo->imageLayout, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-    {
-      TrackSubresourceTransition(aView->GetResource(), aView->GetSubresourceRange(), VK_ACCESS_SHADER_WRITE_BIT, descriptorImageInfo->imageLayout, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-    {
-      TrackResourceTransition(aView->GetResource(), VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-    {
-      TrackResourceTransition(aView->GetResource(), VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
-      break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-    {
-      TrackResourceTransition(aView->GetResource(), VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-    {
-      TrackResourceTransition(aView->GetResource(), VK_ACCESS_UNIFORM_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
-      break;
-    default: ASSERT(false);
-    }
-
-    BindInternal(*resourceInfo, anArrayIndex, descriptorBufferInfo, descriptorImageInfo, bufferView);
-  }
-//---------------------------------------------------------------------------//
-  void CommandListVk::BindResourceViewSet(const GpuResourceViewSet* aSet, uint aSetOrTableIndex)
-  {
-    ASSERT(myPipelineLayoutBindings != nullptr);
-    ASSERT(aSetOrTableIndex < (uint) myPipelineLayoutBindings->myDescriptorSets.size());
-
-    const GpuResourceViewSetVk* viewSetVk = static_cast<const GpuResourceViewSetVk*>(aSet);
-
-    PipelineLayoutBindingsVk::DescriptorSet& pipelineLayoutSet = myPipelineLayoutBindings->myDescriptorSets[aSetOrTableIndex];
-
-    if (pipelineLayoutSet.myConstantDescriptorSet == viewSetVk->GetDescriptorSet())
-      return;
-
-#if FANCY_HEAVY_DEBUG
-    // Verify that the number and types of the descriptors expected by the RootSignature match up with the ones held by the set.
-    // Can only be done tables that don't contain unbounded arrays.
-    if (!pipelineLayoutSet.myHasUnboundedRanges)
-    {
-      ASSERT(pipelineLayoutSet.myRanges.size() == aSet->GetRanges().size());
-
-      for (uint iRange = 0u; iRange < pipelineLayoutSet.myRanges.size(); ++iRange)
-      {
-        const GpuResourceViewRange& setRange = aSet->GetRanges()[iRange];
-        PipelineLayoutBindingsVk::DescriptorRange& pipelineLayoutRange = pipelineLayoutSet.myRanges[iRange];
-        ASSERT(setRange.myResources.size() == pipelineLayoutRange.Size());
-        ASSERT(pipelineLayoutRange.myType == viewSetVk->GetDescriptorType(iRange));
-      }
-    }
-#endif
-
-    const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-
-    // Transition all resources used by this set
-    uint rangeIdx = 0u;
-    for (const GpuResourceViewRange& range : aSet->GetRanges())
-    {
-      const VkAccessFlags rangeAccessFlags = viewSetVk->GetDstAccessFlags(rangeIdx);
-      const VkImageLayout rangeImageLayout = viewSetVk->GetDstImageLayout(rangeIdx);
-
-      for (const SharedPtr<GpuResourceView>& view : range.myResources)
-      {
-        if (view)
-        {
-          const VkImageLayout imageLayout = RenderCore_PlatformVk::ResolveImageLayout(rangeImageLayout, view->GetResource(), view->GetSubresourceRange());
-          TrackSubresourceTransition(view->GetResource(), view->GetSubresourceRange(), rangeAccessFlags, imageLayout, pipelineStage);
-        }
-      }
-
-      ++rangeIdx;
-    }
-
-    myPipelineLayoutBindings->myDescriptorSets[aSetOrTableIndex].myConstantDescriptorSet = viewSetVk->GetDescriptorSet();
-    myPipelineLayoutBindings->myDescriptorSets[aSetOrTableIndex].myIsDirty = true;
-  }
-//---------------------------------------------------------------------------//
   void CommandListVk::BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
   {
     const ShaderResourceInfoVk* resourceInfo = FindShaderResourceInfo(aNameHash);
@@ -970,6 +863,23 @@ namespace Fancy
     }
 
     TrackSubresourceTransition(aResource, aSubresourceRange, newAccessFlags, newLayout, newPipelineStageFlags, toSharedRead);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::TransitionShaderResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceTransition aTransition)
+  {
+    const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    const bool isBuffer = aResource->GetType() == GpuResourceType::BUFFER;
+
+    switch (aTransition)
+    {
+    case ShaderResourceTransition::TO_SHADER_READ:
+      TrackSubresourceTransition(aResource, aSubresourceRange, VK_ACCESS_SHADER_READ_BIT, isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pipelineStage);
+      break;
+    case ShaderResourceTransition::TO_SHADER_WRITE:
+      TrackSubresourceTransition(aResource, aSubresourceRange, VK_ACCESS_SHADER_WRITE_BIT, isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_GENERAL, pipelineStage);
+      break;
+    default: ASSERT(false, "Missing implementation!");
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GlobalDescriptorAllocation.h"
 #include "VkPrerequisites.h"
 #include "TextureSampler.h"
 
@@ -17,6 +18,7 @@ namespace Fancy {
 
   protected:
     VkSampler mySampler;
+    GlobalDescriptorAllocation myDescriptorAllocation;
   };
 //---------------------------------------------------------------------------//
 }

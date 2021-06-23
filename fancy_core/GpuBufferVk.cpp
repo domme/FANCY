@@ -258,35 +258,59 @@ namespace Fancy
   GpuBufferViewVk::GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
     : GpuBufferView(aBuffer, someProperties)
   {
+    GpuResourceViewDataVk nativeData;
+    nativeData.myType = GpuResourceViewDataVk::Buffer;
+    nativeData.myView.myBuffer = nullptr;
+
     // Creating a vkBufferView is only needed for uniform texel buffers or storage texel buffers (Buffer<T> or RWBuffer<T> in HLSL)
     // For anything else, GpuBufferViewVk just acts as a reference-holder to the GpuBuffer and stores the view-properties needed when binding
     if (myProperties.myFormat != DataFormat::UNKNOWN && !myProperties.myIsStructured && !myProperties.myIsRaw)
-    {
-      VkBufferView bufferView = CreateVkBufferView(aBuffer.get(), someProperties);
+      nativeData.myView.myBuffer = CreateVkBufferView(aBuffer.get(), someProperties);
 
-      GpuResourceViewDataVk nativeData;
-      nativeData.myType = GpuResourceViewDataVk::Buffer;
-      nativeData.myView.myBuffer = bufferView;
-      myNativeData = nativeData;
+
+    if (!someProperties.myIsConstantBuffer)
+    {
+      GlobalResourceType globalType;
+      if (someProperties.myIsShaderWritable)
+      {
+        ASSERT(myType == GpuResourceViewType::UAV);
+        globalType = GLOBAL_RESOURCE_RWBUFFER;
+      }
+      else
+      {
+        ASSERT(myType == GpuResourceViewType::SRV);
+        globalType = GLOBAL_RESOURCE_RWBUFFER;
+      }
+
+      GpuBufferVk* bufferVk = static_cast<GpuBufferVk*>(aBuffer.get());
+
+      VkDescriptorBufferInfo descriptorInfo = {};
+      descriptorInfo.buffer = bufferVk->GetData()->myBufferData.myBuffer;
+      descriptorInfo.offset = someProperties.myOffset;
+      descriptorInfo.range = someProperties.mySize;
+
+      nativeData.myGlobalDescriptor = RenderCore::GetPlatformVk()->AllocateAndWriteGlobalResourceDescriptor(globalType, descriptorInfo, "GpuBufferView");
+      myGlobalDescriptorIndex = nativeData.myGlobalDescriptor.myIndex;
     }
+
+    myNativeData = nativeData;
   }
 //---------------------------------------------------------------------------//
   GpuBufferViewVk::~GpuBufferViewVk()
   {
-    if (myNativeData.type() == typeid(GpuResourceViewDataVk))
-    {
-      const GpuResourceViewDataVk& nativeData = eastl::any_cast<const GpuResourceViewDataVk&>(myNativeData);
-      if (nativeData.myView.myBuffer != nullptr)
-        vkDestroyBufferView(RenderCore::GetPlatformVk()->myDevice, nativeData.myView.myBuffer, nullptr);
-    }
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+
+    const GpuResourceViewDataVk& nativeData = eastl::any_cast<const GpuResourceViewDataVk&>(myNativeData);
+    if (nativeData.myView.myBuffer != nullptr)
+      vkDestroyBufferView(platformVk->myDevice, nativeData.myView.myBuffer, nullptr);
+
+    if (nativeData.myGlobalDescriptor.myResourceType != GLOBAL_RESOURCE_NUM)
+      platformVk->FreeGlobalResourceDescriptor(nativeData.myGlobalDescriptor);
   }
 //---------------------------------------------------------------------------//
   VkBufferView GpuBufferViewVk::GetBufferView() const
   {
-    if (myNativeData.type() == typeid(GpuResourceViewDataVk))
-      return eastl::any_cast<const GpuResourceViewDataVk&>(myNativeData).myView.myBuffer;
-
-    return nullptr;
+    return eastl::any_cast<const GpuResourceViewDataVk&>(myNativeData).myView.myBuffer;
   }
 //---------------------------------------------------------------------------//
 }

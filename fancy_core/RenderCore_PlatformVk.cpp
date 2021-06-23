@@ -13,6 +13,7 @@
 #include "GpuQueryHeapVk.h"
 #include "TextureSamplerVk.h"
 #include "CommandLine.h"
+#include "GlobalDescriptorSetVk.h"
 #include "GpuResourceViewDataVk.h"
 #include "RaytracingBVHVk.h"
 
@@ -615,84 +616,6 @@ namespace Fancy
     return aLayout;
   }
 //---------------------------------------------------------------------------//
-  void RenderCore_PlatformVk::GetResourceViewDescriptorData(const GpuResourceView* aView, VkDescriptorType aDescriptorType, 
-    eastl::optional<VkDescriptorBufferInfo>& aDescriptorBufferInfo,
-    eastl::optional<VkDescriptorImageInfo>& aDescriptorImageInfo,
-    eastl::optional<VkBufferView>& aBufferView)
-  {
-    const GpuResourceViewDataVk& viewDataVk = eastl::any_cast<const GpuResourceViewDataVk&>(aView->myNativeData);
-    const GpuResourceDataVk* resourceDataVk = aView->myResource->GetVkData();
-
-    aDescriptorBufferInfo.reset();
-    aDescriptorImageInfo.reset();
-    aBufferView.reset();
-
-    switch (aDescriptorType)
-    {
-    case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
-    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
-    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-    {
-      ASSERT(aView->myType == GpuResourceViewType::SRV);
-      ASSERT(aView->myResource->GetType() == GpuResourceType::TEXTURE);
-      aDescriptorImageInfo = VkDescriptorImageInfo();
-      aDescriptorImageInfo->imageLayout = ResolveImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, aView->GetResource(), aView->GetSubresourceRange());
-      aDescriptorImageInfo->imageView = viewDataVk.myView.myImage;
-      aDescriptorImageInfo->sampler = nullptr;
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-    {
-      ASSERT(aView->myType == GpuResourceViewType::UAV);
-      ASSERT(aView->myResource->GetType() == GpuResourceType::TEXTURE);
-      aDescriptorImageInfo = VkDescriptorImageInfo();
-      aDescriptorImageInfo->imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-      aDescriptorImageInfo->imageView = viewDataVk.myView.myImage;
-      aDescriptorImageInfo->sampler = nullptr;
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-    {
-      ASSERT(aView->myType == GpuResourceViewType::UAV);
-      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
-      const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
-      ASSERT(bufferViewVk->GetBufferView() != nullptr);
-      aBufferView = bufferViewVk->GetBufferView();
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-    {
-      ASSERT(aView->myType == GpuResourceViewType::UAV);
-      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
-      aDescriptorBufferInfo = VkDescriptorBufferInfo();
-      aDescriptorBufferInfo->buffer = resourceDataVk->myBufferData.myBuffer;
-      aDescriptorBufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
-      aDescriptorBufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
-      break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-    {
-      ASSERT(aView->myType == GpuResourceViewType::SRV);
-      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
-      const GpuBufferViewVk* bufferViewVk = static_cast<const GpuBufferViewVk*>(aView);
-      ASSERT(bufferViewVk->GetBufferView() != nullptr);
-      aBufferView = bufferViewVk->GetBufferView();
-    } break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-    {
-      ASSERT(aView->myType == GpuResourceViewType::CBV);
-      ASSERT(aView->myResource->GetType() == GpuResourceType::BUFFER);
-      aDescriptorBufferInfo = VkDescriptorBufferInfo();
-      aDescriptorBufferInfo->buffer = resourceDataVk->myBufferData.myBuffer;
-      aDescriptorBufferInfo->offset = static_cast<const GpuBufferView*>(aView)->GetProperties().myOffset;
-      aDescriptorBufferInfo->range = static_cast<const GpuBufferView*>(aView)->GetProperties().mySize;
-    } break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
-      break;
-    default: ASSERT(false);
-    }
-  }
-//---------------------------------------------------------------------------//
   VkDescriptorType RenderCore_PlatformVk::GetDescriptorType(const GpuResourceView* aView)
   {
     const GpuResourceViewDataVk& viewDataVk = eastl::any_cast<const GpuResourceViewDataVk&>(aView->myNativeData);
@@ -714,6 +637,46 @@ namespace Fancy
     case GpuResourceViewType::UAV:
       return viewDataVk.myView.myBuffer != nullptr ? VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
     default: ASSERT(false); return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    }
+  }
+//---------------------------------------------------------------------------//
+  VkDescriptorType RenderCore_PlatformVk::GetDescriptorType(GlobalResourceType aResourceType)
+  {
+    switch (aResourceType)
+    {
+    case GLOBAL_RESOURCE_TEXTURE_1D:
+    case GLOBAL_RESOURCE_TEXTURE_1D_UINT:
+    case GLOBAL_RESOURCE_TEXTURE_1D_INT:
+    case GLOBAL_RESOURCE_TEXTURE_2D:
+    case GLOBAL_RESOURCE_TEXTURE_2D_UINT:
+    case GLOBAL_RESOURCE_TEXTURE_2D_INT:
+    case GLOBAL_RESOURCE_TEXTURE_3D:
+    case GLOBAL_RESOURCE_TEXTURE_3D_UINT:
+    case GLOBAL_RESOURCE_TEXTURE_3D_INT:
+    case GLOBAL_RESOURCE_TEXTURE_CUBE:
+    case GLOBAL_RESOURCE_TEXTURE_CUBE_UINT:
+    case GLOBAL_RESOURCE_TEXTURE_CUBE_INT:
+      return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+
+    case GLOBAL_RESOURCE_BUFFER:
+    case GLOBAL_RESOURCE_RWBUFFER:
+      return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+    case GLOBAL_RESOURCE_RWTEXTURE_1D:
+    case GLOBAL_RESOURCE_RWTEXTURE_1D_UINT:
+    case GLOBAL_RESOURCE_RWTEXTURE_1D_INT:
+    case GLOBAL_RESOURCE_RWTEXTURE_2D:
+    case GLOBAL_RESOURCE_RWTEXTURE_2D_UINT:
+    case GLOBAL_RESOURCE_RWTEXTURE_2D_INT:
+    case GLOBAL_RESOURCE_RWTEXTURE_3D:
+    case GLOBAL_RESOURCE_RWTEXTURE_3D_UINT:
+    case GLOBAL_RESOURCE_RWTEXTURE_3D_INT:
+      return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+
+    case GLOBAL_RESOURCE_SAMPLER:
+      return VK_DESCRIPTOR_TYPE_SAMPLER;
+
+    default: ASSERT(false); return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
     }
   }
 //---------------------------------------------------------------------------//
@@ -970,9 +933,16 @@ namespace Fancy
       vk12Features.shaderOutputLayer = true;
       vk12Features.subgroupBroadcastDynamicId = true;
 
+      VkPhysicalDeviceRobustness2FeaturesEXT robustnessFeatures = {};
+      robustnessFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
+      robustnessFeatures.pNext = &vk12Features;
+      robustnessFeatures.nullDescriptor = true;
+      robustnessFeatures.robustBufferAccess2 = true;
+      robustnessFeatures.robustImageAccess2 = true;
+      
       VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeatures{};
       rtPipelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
-      rtPipelineFeatures.pNext = &vk12Features;
+      rtPipelineFeatures.pNext = &robustnessFeatures;
       rtPipelineFeatures.rayTracingPipeline = true;
       // rtPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplay = true;
       // rtPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplayMixed = true;
@@ -1036,8 +1006,10 @@ namespace Fancy
       myCommandBufferAllocators[(uint)CommandListType::Compute].reset(new CommandBufferAllocatorVk(CommandListType::Compute));
 
     myDescriptorPoolAllocator.reset(new DescriptorPoolAllocatorVk(256, 64));
-    myStaticDescriptorPool = DescriptorPoolAllocatorVk::CreateDescriptorPool(2048, 512);
-    ASSERT(myStaticDescriptorPool != nullptr);
+
+    myPipelineLayout.reset(new PipelineLayoutVk(myProperties));
+
+    myGlobalDescriptorSet.reset(new GlobalDescriptorSetVk(myProperties));
     
     return true;
   }
@@ -1052,7 +1024,8 @@ namespace Fancy
 
     myDescriptorPoolAllocator.reset();
 
-    myPipelineLayoutCache.Clear();
+    myPipelineLayout.reset();
+
     myFrameBufferCache.Clear();
     myRenderPassCache.Clear();
     myPipelineStateCache.Clear();
@@ -1064,6 +1037,7 @@ namespace Fancy
   void RenderCore_PlatformVk::BeginFrame()
   {
     DestroyTempBufferViews();
+    myGlobalDescriptorSet->ProcessGlobalDescriptorFrees();
   }
 //---------------------------------------------------------------------------//
   RenderOutput* RenderCore_PlatformVk::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
@@ -1125,11 +1099,6 @@ namespace Fancy
     return new GpuBufferViewVk(aBuffer, someProperties);
   }
 //---------------------------------------------------------------------------//
-  GpuResourceViewSet* RenderCore_PlatformVk::CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges)
-  {
-    return new GpuResourceViewSetVk(someRanges);
-  }
-//---------------------------------------------------------------------------//
   RaytracingBVH* RenderCore_PlatformVk::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)
   {
     return new RaytracingBVHVk(someProps, someGeometries, aName);
@@ -1173,6 +1142,22 @@ namespace Fancy
   void RenderCore_PlatformVk::FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence)
   {
     myDescriptorPoolAllocator->FreeDescriptorPool(aDescriptorPool, aFence);
+  }
+//---------------------------------------------------------------------------//
+  GlobalDescriptorAllocation RenderCore_PlatformVk::AllocateAndWriteGlobalResourceDescriptor(GlobalResourceType aType, const VkDescriptorImageInfo& anImageInfo, const char* aDebugName)
+  {
+    return myGlobalDescriptorSet->AllocateAndWriteDescriptor(aType, anImageInfo, aDebugName);
+  }
+//---------------------------------------------------------------------------//
+  GlobalDescriptorAllocation RenderCore_PlatformVk::AllocateAndWriteGlobalResourceDescriptor(GlobalResourceType aType, const VkDescriptorBufferInfo& aBufferInfo, const char* aDebugName)
+  {
+    return myGlobalDescriptorSet->AllocateAndWriteDescriptor(aType, aBufferInfo, aDebugName);
+  }
+//---------------------------------------------------------------------------//
+  void RenderCore_PlatformVk::FreeGlobalResourceDescriptor(const GlobalDescriptorAllocation& aDescriptor)
+  {
+    if (aDescriptor.myResourceType != GLOBAL_RESOURCE_NUM)
+      myGlobalDescriptorSet->FreeDescriptorAfterFrameDone(aDescriptor);
   }
 //---------------------------------------------------------------------------//
   uint RenderCore_PlatformVk::FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags)

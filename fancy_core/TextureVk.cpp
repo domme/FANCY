@@ -1,5 +1,7 @@
 #include "fancy_core_precompile.h"
 #include "TextureVk.h"
+
+#include "GlobalDescriptorAllocation.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
 #include "GpuResourceDataVk.h"
@@ -338,12 +340,24 @@ namespace Fancy
 
     nativeData.myView.myImage = Priv_TextureViewVk::locCreateImageView(aTexture.get(), someProperties);
     ASSERT(nativeData.myView.myImage != nullptr && myType != GpuResourceViewType::NONE);
+
+    if (myType == GpuResourceViewType::SRV || myType == GpuResourceViewType::UAV)
+    {
+      VkDescriptorImageInfo imageInfo = {};
+      imageInfo.imageLayout = myType == GpuResourceViewType::SRV ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
+      imageInfo.imageView = nativeData.myView.myImage;
+      imageInfo.sampler = nullptr;
+
+      nativeData.myGlobalDescriptor = RenderCore::GetPlatformVk()->AllocateAndWriteGlobalResourceDescriptor(GetGlobalResourceType(someProperties), imageInfo, name.data());
+      myGlobalDescriptorIndex = nativeData.myGlobalDescriptor.myIndex;
+    }
+
+    myNativeData = nativeData;
     
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numTexMips = texProps.myNumMipLevels;
     const uint numTexArraySlices = texProps.GetArraySize();
-
-    myNativeData = nativeData;
+    
     const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
     mySubresourceRange = subresourceRange;
 
@@ -355,7 +369,10 @@ namespace Fancy
   TextureViewVk::~TextureViewVk()
   {
     const GpuResourceViewDataVk& viewDataVk = eastl::any_cast<const GpuResourceViewDataVk&>(myNativeData);
-    vkDestroyImageView(RenderCore::GetPlatformVk()->myDevice, viewDataVk.myView.myImage, nullptr);
+
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    platformVk->FreeGlobalResourceDescriptor(viewDataVk.myGlobalDescriptor);
+    vkDestroyImageView(platformVk->myDevice, viewDataVk.myView.myImage, nullptr);
   }
 //---------------------------------------------------------------------------//
 }

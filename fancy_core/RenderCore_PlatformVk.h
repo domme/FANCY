@@ -5,11 +5,10 @@
 #include "FancyCoreDefines.h"
 #include "CommandBufferAllocatorVk.h"
 #include "DescriptorPoolAllocatorVk.h"
-#include "PipelineLayoutCacheVk.h"
 #include "FrameBufferCacheVk.h"
+#include "GlobalDescriptorAllocation.h"
 #include "RenderPassCacheVk.h"
 #include "PipelineStateCacheVk.h"
-#include "DescriptorSetLayoutCacheVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -22,7 +21,10 @@ struct VkExt
 
 namespace Fancy
 {
-//---------------------------------------------------------------------------//
+  class GlobalDescriptorSetVk;
+  struct PipelineLayoutVk;
+
+  //---------------------------------------------------------------------------//
   struct ResourceBarrierInfoVk
   {
     VkPipelineStageFlags myStageMask;
@@ -56,11 +58,8 @@ namespace Fancy
     static VkVertexInputRate ResolveVertexInputRate(VertexInputRate aRate);
     static uint ImageLayoutToFlag(VkImageLayout aLayout);
     static VkImageLayout ResolveImageLayout(VkImageLayout aLayout, const GpuResource* aResource, const SubresourceRange& aSubresourceRange);
-    static void GetResourceViewDescriptorData(const GpuResourceView* aView, VkDescriptorType aDescriptorType,
-      eastl::optional<VkDescriptorBufferInfo>& aDescriptorBufferInfo,
-      eastl::optional<VkDescriptorImageInfo>& aDescriptorImageInfo,
-      eastl::optional<VkBufferView>& aBufferView);
     static VkDescriptorType GetDescriptorType(const GpuResourceView* aView);
+    static VkDescriptorType GetDescriptorType(GlobalResourceType aResourceType);
     static VkAccelerationStructureTypeKHR GetRaytracingBVHType(RaytracingBVHType aType);
     static VkGeometryTypeKHR GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aType);
 
@@ -86,7 +85,6 @@ namespace Fancy
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName) override;
-    GpuResourceViewSet* CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges) override;
     RaytracingBVH* CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
@@ -95,9 +93,12 @@ namespace Fancy
     VkCommandBuffer GetNewCommandBuffer(CommandListType aCommandListType);
     void ReleaseCommandBuffer(VkCommandBuffer aCommandBuffer, CommandListType aCommandListType, uint64 aCommandBufferDoneFence);
   
-    VkDescriptorPool GetStaticDescriptorPool() const { return myStaticDescriptorPool; }
     VkDescriptorPool AllocateDescriptorPool();
     void FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence);
+
+    GlobalDescriptorAllocation AllocateAndWriteGlobalResourceDescriptor(GlobalResourceType aType, const VkDescriptorImageInfo& anImageInfo, const char* aDebugName = nullptr);
+    GlobalDescriptorAllocation AllocateAndWriteGlobalResourceDescriptor(GlobalResourceType aType, const VkDescriptorBufferInfo& aBufferInfo, const char* aDebugName = nullptr);
+    void FreeGlobalResourceDescriptor(const GlobalDescriptorAllocation& aDescriptor);
 
     uint FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags);
     const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return myPhysicalDeviceMemoryProperties; }
@@ -115,11 +116,10 @@ namespace Fancy
 
     VkDevice GetDevice() const { return myDevice; }
 
-    DescriptorSetLayoutCacheVk& GetDescriptorSetLayoutCache() { return myDescriptorSetLayoutCache; }
-    PipelineLayoutCacheVk& GetPipelineLayoutCache() { return myPipelineLayoutCache; }
     FrameBufferCacheVk& GetFrameBufferCache() { return myFrameBufferCache; }
     RenderPassCacheVk& GetRenderPassCache() { return myRenderPassCache; }
     PipelineStateCacheVk& GetPipelineStateCache() { return myPipelineStateCache; }
+    PipelineLayoutVk* GetPipelineLayout() const { return myPipelineLayout.get(); }
 
     // TODO: Make these members private and add getter-functions where needed
     VkInstance myInstance = nullptr;
@@ -139,12 +139,11 @@ namespace Fancy
 
     UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::NUM];
     UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
-    VkDescriptorPool myStaticDescriptorPool = nullptr;  // Descriptor pool used for all static descriptor set allocations (e.g. from GpuResourceViewSets)
+    UniquePtr<PipelineLayoutVk> myPipelineLayout;
+    UniquePtr<GlobalDescriptorSetVk> myGlobalDescriptorSet;
 
     eastl::fixed_vector<eastl::pair<VkBufferView, uint64>, 64> myTempBufferViews;
 
-    DescriptorSetLayoutCacheVk myDescriptorSetLayoutCache;
-    PipelineLayoutCacheVk myPipelineLayoutCache;
     FrameBufferCacheVk myFrameBufferCache;
     RenderPassCacheVk myRenderPassCache;
     PipelineStateCacheVk myPipelineStateCache;

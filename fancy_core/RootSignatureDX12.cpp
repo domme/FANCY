@@ -2,51 +2,12 @@
 #include "RootSignatureDX12.h"
 
 #include "RenderCore_PlatformDX12.h"
+#include "RenderUtils.h"
 
 #if FANCY_ENABLE_DX12
 
 namespace Fancy
 {
-//---------------------------------------------------------------------------//
-  namespace
-  {
-    uint locGetNumDescriptors(GlobalResourceType aType, const RenderPlatformProperties& someProperties)
-    {
-      switch(aType) {
-        case GLOBAL_RESOURCE_TEXTURE_1D: 
-        case GLOBAL_RESOURCE_TEXTURE_1D_UINT: 
-        case GLOBAL_RESOURCE_TEXTURE_1D_INT:
-        case GLOBAL_RESOURCE_RWTEXTURE_1D:
-        case GLOBAL_RESOURCE_RWTEXTURE_1D_UINT:
-        case GLOBAL_RESOURCE_RWTEXTURE_1D_INT:
-          return someProperties.myNumGlobalTextures1D;
-        case GLOBAL_RESOURCE_TEXTURE_2D: 
-        case GLOBAL_RESOURCE_TEXTURE_2D_UINT: 
-        case GLOBAL_RESOURCE_TEXTURE_2D_INT:
-        case GLOBAL_RESOURCE_RWTEXTURE_2D:
-        case GLOBAL_RESOURCE_RWTEXTURE_2D_UINT:
-        case GLOBAL_RESOURCE_RWTEXTURE_2D_INT:
-          return someProperties.myNumGlobalTextures2D;
-        case GLOBAL_RESOURCE_TEXTURE_3D: 
-        case GLOBAL_RESOURCE_TEXTURE_3D_UINT:
-        case GLOBAL_RESOURCE_TEXTURE_3D_INT:
-        case GLOBAL_RESOURCE_RWTEXTURE_3D:
-        case GLOBAL_RESOURCE_RWTEXTURE_3D_UINT:
-        case GLOBAL_RESOURCE_RWTEXTURE_3D_INT:
-          return someProperties.myNumGlobalTextures3D;
-        case GLOBAL_RESOURCE_TEXTURE_CUBE: 
-        case GLOBAL_RESOURCE_TEXTURE_CUBE_UINT: 
-        case GLOBAL_RESOURCE_TEXTURE_CUBE_INT:
-          return someProperties.myNumGlobalTexturesCube;
-        case GLOBAL_RESOURCE_BUFFER:
-        case GLOBAL_RESOURCE_RWBUFFER:
-          return someProperties.myNumGlobalBuffers;
-        case GLOBAL_RESOURCE_SAMPLER:
-          return someProperties.myNumGlobalSamplers;
-        default: ASSERT(false); return 0;
-      }
-    }
-  }
 //---------------------------------------------------------------------------//
   RootSignatureDX12::RootSignatureDX12(const RenderPlatformProperties& someProperties)
   {
@@ -79,7 +40,7 @@ namespace Fancy
     uint registerSpace = 0;
     for (uint i = GLOBAL_RESOURCE_SRV_START; i < GLOBAL_RESOURCE_SRV_END; ++i)
     {
-      const uint numDescriptors = locGetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
+      const uint numDescriptors = RenderUtils::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
 
       D3D12_DESCRIPTOR_RANGE1* range = &ranges[usedRanges++];
       range->BaseShaderRegister = 0;
@@ -96,7 +57,7 @@ namespace Fancy
     registerSpace = 0;
     for (uint i = GLOBAL_RESOURCE_UAV_START; i < GLOBAL_RESOURCE_UAV_END; ++i)
     {
-      const uint numDescriptors = locGetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
+      const uint numDescriptors = RenderUtils::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
 
       D3D12_DESCRIPTOR_RANGE1* range = &ranges[usedRanges++];
       range->BaseShaderRegister = 0;
