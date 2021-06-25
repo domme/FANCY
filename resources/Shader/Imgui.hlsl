@@ -7,7 +7,6 @@ struct VS_OUT
   float4 col : COLOR0;
 };
 
-[[vk::binding(0, DescSet_Local)]] 
 cbuffer Constants : register(b0, Space_LocalCBuffer)
 {
   float4x4 myProjectionMatrix;

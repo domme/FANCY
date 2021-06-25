@@ -1016,9 +1016,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformVk::Shutdown()
   {
-    DestroyTempBufferViews();
-    ASSERT(myTempBufferViews.empty());
-
     for (UniquePtr<CommandBufferAllocatorVk>& cmdBufferAllocator : myCommandBufferAllocators)
       cmdBufferAllocator.reset();
 
@@ -1036,7 +1033,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformVk::BeginFrame()
   {
-    DestroyTempBufferViews();
     myGlobalDescriptorSet->ProcessGlobalDescriptorFrees();
   }
 //---------------------------------------------------------------------------//
@@ -1175,29 +1171,6 @@ namespace Fancy
     ASSERT(false, "Couldn't find appropriate memory type");
 
     return UINT_MAX;
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore_PlatformVk::ReleaseTempBufferView(VkBufferView aBufferView, uint64 aFence)
-  {
-#if FANCY_HEAVY_DEBUG
-    for (uint i = 0u; i < myTempBufferViews.size(); ++i)
-      ASSERT(myTempBufferViews[i].first != aBufferView);
-#endif
-
-    myTempBufferViews.push_back({ aBufferView, aFence });
-  }
-//---------------------------------------------------------------------------//
-  void RenderCore_PlatformVk::DestroyTempBufferViews()
-  {
-    for (uint i = 0u; i < (uint) myTempBufferViews.size(); ++i)
-    {
-      if (RenderCore::IsFenceDone(myTempBufferViews[i].second))
-      {
-        vkDestroyBufferView(myDevice, myTempBufferViews[i].first, nullptr);
-        myTempBufferViews.erase_unsorted(myTempBufferViews.begin() + i);
-        --i;
-      }
-    } 
   }
 //---------------------------------------------------------------------------//
 }

@@ -13,6 +13,7 @@
 #include "ShaderResourceInfoVk.h"
 #include "TextureSamplerVk.h"
 #include "DebugUtilsVk.h"
+#include "GlobalDescriptorSetVk.h"
 #include "GpuQueryHeapVk.h"
 #include "TimeManager.h"
 #include "PipelineLayoutVk.h"
@@ -122,10 +123,7 @@ namespace Fancy
     , myPendingBarrierSrcStageMask(0u)
     , myPendingBarrierDstStageMask(0u)
   {
-    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    myCommandBuffer = platformVk->GetNewCommandBuffer(myCommandListType);
-
-    BeginCommandBuffer();
+    PrepareForRecord(false);
   }
 //---------------------------------------------------------------------------//
   CommandListVk::~CommandListVk()
@@ -445,11 +443,6 @@ namespace Fancy
       platformVk->FreeDescriptorPool(myUsedDescriptorPools[i], aFenceVal);
     myUsedDescriptorPools.clear();
 
-    for (uint i = 0u; i < (uint) myTempBufferViews.size(); ++i)
-      myTempBufferViews[i].second = glm::max(myTempBufferViews[i].second, aFenceVal);
-  
-    ClearResourceBindings();  // Clear needed here since the descriptor pools are also being freed above
-
     myLocalHazardData.clear();
   }
 //---------------------------------------------------------------------------//
@@ -463,13 +456,8 @@ namespace Fancy
     myPendingBufferBarriers.clear();
     myPendingImageBarriers.clear();
     myLocalHazardData.clear();
-    ClearResourceBindings();
 
-    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    myCommandBuffer = platformVk->GetNewCommandBuffer(myCommandListType);
-    ASSERT_VK_RESULT(vkResetCommandBuffer(myCommandBuffer, 0u));
-
-    BeginCommandBuffer();
+    PrepareForRecord(true);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::FlushBarriers()
@@ -530,20 +518,6 @@ namespace Fancy
     
     myPendingBarrierSrcStageMask = 0u;
     myPendingBarrierDstStageMask = 0u;
-  }
-//---------------------------------------------------------------------------//
-  void CommandListVk::SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut)
-  {
-    CommandList::SetShaderPipelineInternal(aPipeline, aHasPipelineChangedOut);
-
-    const ShaderPipelineVk* pipelineVk = static_cast<const ShaderPipelineVk*>(aPipeline);
-    const PipelineLayoutVk* pipelineLayout = pipelineVk->GetPipelineLayout();
-
-    if (myPipelineLayout != pipelineLayout->myPipelineLayout)
-    {
-      myPipelineLayout = pipelineLayout->myPipelineLayout;
-      myPipelineLayoutBindings.reset(new PipelineLayoutBindingsVk(*pipelineLayout));
-    }
   }
 //---------------------------------------------------------------------------//
   const ShaderPipelineVk* CommandListVk::GetShaderPipeline() const
@@ -700,87 +674,52 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
+  void CommandListVk::BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex)
   {
-    const ShaderResourceInfoVk* resourceInfo = FindShaderResourceInfo(aNameHash);
-    if (!resourceInfo)
-      return;
+    constexpr VkDescriptorBufferInfo invalidDescriptorInfo = { nullptr, UINT64_MAX, UINT64_MAX };
+
+    VkDescriptorBufferInfo descriptorInfo;
+    descriptorInfo.buffer = aBuffer->GetVkData()->myBufferData.myBuffer;
+    descriptorInfo.offset = someViewProperties.myOffset;
+    descriptorInfo.range = someViewProperties.mySize;
 
     const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    const RenderPlatformProperties& renderProps = RenderCore::GetPlatform()->GetProperties();
 
-    const GpuBufferProperties& bufferProps = aBuffer->GetProperties();
-
-    bool needsTempBufferView = false;
-    switch (resourceInfo->myType)
+    if (someViewProperties.myIsConstantBuffer)
     {
-    case VK_DESCRIPTOR_TYPE_SAMPLER: ASSERT(false); break;  // Needs to be handled in BindSampler()
-    case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
-    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE: ASSERT(false); break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE: ASSERT(false); break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-    {
-      ASSERT(someViewProperties.myIsShaderWritable && bufferProps.myIsShaderWritable && (bufferProps.myBindFlags & (uint) GpuBufferBindFlags::SHADER_BUFFER));
-      needsTempBufferView = true;
-      TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-    {
-      ASSERT(someViewProperties.myIsShaderWritable && bufferProps.myIsShaderWritable && (bufferProps.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER));
-      TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
-      TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-      break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-    {
-      ASSERT(!someViewProperties.myIsShaderWritable && (bufferProps.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER));
-      needsTempBufferView = true;
-      TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-    {
-      ASSERT(!someViewProperties.myIsShaderWritable && someViewProperties.myIsConstantBuffer && (bufferProps.myBindFlags & (uint)GpuBufferBindFlags::CONSTANT_BUFFER));
+      ASSERT(aRegisterIndex < renderProps.myNumLocalCBuffers);
       TrackResourceTransition(aBuffer, VK_ACCESS_UNIFORM_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-    } break;
-    case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-      ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
-      TrackResourceTransition(aBuffer, VK_ACCESS_UNIFORM_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
-      break;
-    default: ASSERT(false);
-    }
+      
+      if (aRegisterIndex >= myLocalCBuffersToBind.size())
+        myLocalCBuffersToBind.resize(aRegisterIndex + 1, invalidDescriptorInfo);
 
-    VkBufferView bufferView = nullptr;
-    if (needsTempBufferView)
+      myLocalCBuffersToBind[aRegisterIndex] = descriptorInfo;
+    }
+    else
     {
-      bufferView = GpuBufferViewVk::CreateVkBufferView(aBuffer, someViewProperties);
-      myTempBufferViews.push_back({ bufferView, 0u });
+      ASSERT(aRegisterIndex < renderProps.myNumLocalBuffers);
+      ASSERT(someViewProperties.myIsRaw || someViewProperties.myIsStructured, "Only raw or structured buffers are supported for local buffers. These buffertypes are also not supported for DX12 for local buffers");
+
+      if (someViewProperties.myIsShaderWritable)
+      {
+        TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
+
+        if (aRegisterIndex >= myLocalRWBuffersToBind.size())
+          myLocalRWBuffersToBind.resize(aRegisterIndex + 1, invalidDescriptorInfo);
+
+        myLocalRWBuffersToBind[aRegisterIndex] = descriptorInfo;
+      }
+      else
+      {
+        TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
+
+        if (aRegisterIndex >= myLocalBuffersToBind.size())
+          myLocalBuffersToBind.resize(aRegisterIndex + 1, invalidDescriptorInfo);
+
+        myLocalBuffersToBind[aRegisterIndex] = descriptorInfo;
+      }
     }
-
-    VkDescriptorBufferInfo descriptorBufferInfo;
-    descriptorBufferInfo.buffer = static_cast<const GpuBufferVk*>(aBuffer)->GetData()->myBufferData.myBuffer;
-    descriptorBufferInfo.offset = someViewProperties.myOffset;
-    descriptorBufferInfo.range = someViewProperties.mySize;
-
-    BindInternal(*resourceInfo, anArrayIndex, descriptorBufferInfo, eastl::optional<VkDescriptorImageInfo>(), bufferView);
-  }
-//---------------------------------------------------------------------------//
-  void CommandListVk::BindSampler(const TextureSampler* aSampler, uint64 aNameHash, uint anArrayIndex/* = 0u*/)
-  {
-    const ShaderResourceInfoVk* resourceInfo = FindShaderResourceInfo(aNameHash);
-    if (!resourceInfo)
-      return;
-  
-    ASSERT(resourceInfo->myType == VK_DESCRIPTOR_TYPE_SAMPLER);
-
-    VkSampler sampler = static_cast<const TextureSamplerVk*>(aSampler)->GetVkSampler();
-
-    VkDescriptorImageInfo descriptorImageInfo;
-    descriptorImageInfo.imageView = nullptr;
-    descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    descriptorImageInfo.sampler = sampler;
-
-    BindInternal(*resourceInfo, anArrayIndex, eastl::optional<VkDescriptorBufferInfo>(), descriptorImageInfo, eastl::optional<VkBufferView>());
   }
 //---------------------------------------------------------------------------//
   GpuQuery CommandListVk::BeginQuery(GpuQueryType aType)
@@ -1147,14 +1086,25 @@ namespace Fancy
     myPendingImageBarriers.push_back(aBarrier);
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::ClearResourceBindings()
+  void CommandListVk::PrepareForRecord(bool aResetCommandList)
   {
-    if (myPipelineLayoutBindings)
-      myPipelineLayoutBindings->Clear();
+    RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
+    myCommandBuffer = platformVk->GetNewCommandBuffer(myCommandListType);
+    if (aResetCommandList)
+      ASSERT_VK_RESULT(vkResetCommandBuffer(myCommandBuffer, 0u));
 
-    for (uint i = 0u; i < (uint)myTempBufferViews.size(); ++i)
-      RenderCore::GetPlatformVk()->ReleaseTempBufferView(myTempBufferViews[i].first, myTempBufferViews[i].second);
-    myTempBufferViews.clear();
+    BeginCommandBuffer();
+
+    // Set the global descriptor set for bindless up-front
+    PipelineLayoutVk* pipelineLayout = platformVk->GetPipelineLayout();
+    GlobalDescriptorSetVk* globalDescriptorSet = platformVk->GetGlobalDescriptorSet();
+    VkDescriptorSet globalSet = globalDescriptorSet->GetDescriptorSet();
+
+    if (myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute)
+      vkCmdBindDescriptorSets(myCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_GlobalResourcesSamplers, 1, &globalSet, 0, nullptr);
+
+    if (myCommandListType == CommandListType::Graphics)
+      vkCmdBindDescriptorSets(myCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_GlobalResourcesSamplers, 1, &globalSet, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
   bool CommandListVk::ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout)
@@ -1202,28 +1152,6 @@ namespace Fancy
     }
 
     return true;
-  }
-//---------------------------------------------------------------------------//
-  const ShaderResourceInfoVk* CommandListVk::FindShaderResourceInfo(uint64 aNameHash) const
-  {
-    ASSERT(myGraphicsPipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Graphics);
-    ASSERT(myComputePipelineState.myShaderPipeline != nullptr || myCurrentContext != CommandListType::Compute);
-
-    const ShaderPipelineVk* pipeline = GetShaderPipeline();
-    const eastl::vector<ShaderResourceInfoVk>& shaderResources = pipeline->GetResourceInfos();
-
-    auto it = std::find_if(shaderResources.begin(), shaderResources.end(), [aNameHash](const ShaderResourceInfoVk& aResourceInfo) {
-      return aResourceInfo.myNameHash == aNameHash;
-    });
-
-    if (it == shaderResources.end())
-    {
-      LOG_WARNING("Resource not found in shader");
-      return nullptr;
-    }
-
-    const ShaderResourceInfoVk& info = *it;
-    return &info;
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyViewportAndClipRect()
@@ -1371,174 +1299,104 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyResourceBindings()
   {
-    if (myPipelineLayout == nullptr || !myPipelineLayoutBindings->myIsDirty || myPipelineLayoutBindings->myDescriptorSets.empty())
+    if (myLocalBuffersToBind.empty() && myLocalRWBuffersToBind.empty() && myLocalCBuffersToBind.empty())
       return;
 
-    myPipelineLayoutBindings->myIsDirty = false;
-
-    ASSERT(myCurrentContext != CommandListType::Graphics || myGraphicsPipelineState.myShaderPipeline != nullptr);
-    ASSERT(myCurrentContext != CommandListType::Compute || myComputePipelineState.myShaderPipeline != nullptr);
-
-    const ShaderPipelineVk* pipeline = GetShaderPipeline();
+    const PipelineLayoutVk* pipelineLayout = RenderCore::GetPlatformVk()->GetPipelineLayout();
 
     eastl::fixed_vector<VkWriteDescriptorSet, 64> writeInfos;
-    eastl::fixed_vector<VkDescriptorSet, kVkMaxNumBoundDescriptorSets> descriptorSets;
-    uint firstSet = UINT_MAX;
-    for (uint iSet = 0u; iSet < (uint) myPipelineLayoutBindings->myDescriptorSets.size(); ++iSet)
+    VkDescriptorSet localBufferSet = nullptr;
+    VkDescriptorSet localRwBufferSet = nullptr;
+    VkDescriptorSet localCBufferSet = nullptr;
+
+    if (!myLocalBuffersToBind.empty())
     {
-      const PipelineLayoutBindingsVk::DescriptorSet& set = myPipelineLayoutBindings->myDescriptorSets[iSet];
-      if (!set.myIsDirty || !pipeline->HasDescriptorSet(iSet)) 
-        continue;
+      localBufferSet = CreateTempDescriptorSet(pipelineLayout->myDescriptorSetLayout_LocalBuffers);
 
-      set.myIsDirty = false;
-
-      firstSet = glm::min(firstSet, iSet);
-
-      if (set.myConstantDescriptorSet)
+      for (uint i = 0; i < (uint)myLocalBuffersToBind.size(); ++i)
       {
-        descriptorSets.push_back(set.myConstantDescriptorSet);
-      }
-      else  // We haven't pre-allocated this descriptor set and need to create it and dynamically copy descriptors into it
-      {
-        ASSERT(!set.myRanges.empty(), "Shader pipeline is using descriptor set %d but nothing is bound", iSet);
-        VkDescriptorSet vkSet = CreateDescriptorSet(set.myLayout);
-        descriptorSets.push_back(vkSet);
+        if (myLocalBuffersToBind[i].buffer == nullptr)
+          continue;
 
-        VkWriteDescriptorSet baseWriteInfo = {};
-        baseWriteInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        baseWriteInfo.dstSet = vkSet;
-
-        for (uint iRange = 0u; iRange < (uint)set.myRanges.size(); ++iRange)
-        {
-          const PipelineLayoutBindingsVk::DescriptorRange& range = set.myRanges[iRange];
-
-          if (range.myType == VK_DESCRIPTOR_TYPE_MAX_ENUM || range.myData.empty())
-            continue;
-
-          if (!range.myHasAllDescriptorsBound)  // There are holes in the array, we can't write the hole range-data all at once
-          {
-            for (uint iArrayElement = 0u; iArrayElement < range.Size(); ++iArrayElement)
-            {
-              const void* descriptorData = range.myData.data() + iArrayElement * range.myElementSize;
-
-              VkWriteDescriptorSet writeInfo = baseWriteInfo;
-              writeInfo.descriptorType = range.myType;
-              writeInfo.dstArrayElement = iArrayElement;
-              writeInfo.descriptorCount = 1;
-              writeInfo.dstBinding = iRange;
-              writeInfo.pImageInfo = (VkDescriptorImageInfo*) descriptorData;
-              writeInfo.pBufferInfo = (VkDescriptorBufferInfo*) descriptorData;
-              writeInfo.pTexelBufferView = (VkBufferView*) descriptorData;
-              writeInfos.push_back(writeInfo);
-            }
-          }
-          else
-          {
-            VkWriteDescriptorSet writeInfo = baseWriteInfo;
-            writeInfo.descriptorType = range.myType;
-            writeInfo.dstArrayElement = 0u;
-            writeInfo.descriptorCount = range.Size();
-            writeInfo.dstBinding = iRange;
-            writeInfo.pImageInfo = (VkDescriptorImageInfo*)range.myData.data();
-            writeInfo.pBufferInfo = (VkDescriptorBufferInfo*)range.myData.data();
-            writeInfo.pTexelBufferView = (VkBufferView*)range.myData.data();
-            writeInfos.push_back(writeInfo);
-          }
-        }
+        VkWriteDescriptorSet& writeInfo = writeInfos.push_back();
+        writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeInfo.pNext = nullptr;
+        writeInfo.descriptorType = pipelineLayout->myDescriptorType_LocalBuffers;
+        writeInfo.descriptorCount = 1;
+        writeInfo.dstArrayElement = 0;
+        writeInfo.dstBinding = i;
+        writeInfo.dstSet = localBufferSet;
+        writeInfo.pBufferInfo = &myLocalBuffersToBind[i];
       }
     }
 
-    // Update the descriptors in all the descriptor sets that need updating
-    ASSERT(writeInfos.empty() == descriptorSets.empty());
+    if (!myLocalRWBuffersToBind.empty())
+    {
+      localRwBufferSet = CreateTempDescriptorSet(pipelineLayout->myDescriptorSetLayout_LocalRwBuffers);
+
+      for (uint i = 0; i < (uint)myLocalRWBuffersToBind.size(); ++i)
+      {
+        if (myLocalRWBuffersToBind[i].buffer == nullptr)
+          continue;
+
+        VkWriteDescriptorSet& writeInfo = writeInfos.push_back();
+        writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeInfo.pNext = nullptr;
+        writeInfo.descriptorType = pipelineLayout->myDescriptorType_LocalRwBuffers;
+        writeInfo.descriptorCount = 1;
+        writeInfo.dstArrayElement = 0;
+        writeInfo.dstBinding = i;
+        writeInfo.dstSet = localRwBufferSet;
+        writeInfo.pBufferInfo = &myLocalRWBuffersToBind[i];
+      }
+    }
+
+    if (!myLocalCBuffersToBind.empty())
+    {
+      localCBufferSet = CreateTempDescriptorSet(pipelineLayout->myDescriptorSetLayout_LocalCbuffers);
+
+      for (uint i = 0; i < (uint)myLocalCBuffersToBind.size(); ++i)
+      {
+        if (myLocalCBuffersToBind[i].buffer == nullptr)
+          continue;
+
+        VkWriteDescriptorSet& writeInfo = writeInfos.push_back();
+        writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeInfo.pNext = nullptr;
+        writeInfo.descriptorType = pipelineLayout->myDescriptorType_LocalCBuffers;
+        writeInfo.descriptorCount = 1;
+        writeInfo.dstArrayElement = 0;
+        writeInfo.dstBinding = i;
+        writeInfo.dstSet = localCBufferSet;
+        writeInfo.pBufferInfo = &myLocalCBuffersToBind[i];
+      }
+    }
+    
     if (!writeInfos.empty())
-    {
       vkUpdateDescriptorSets(RenderCore::GetPlatformVk()->myDevice, (uint)writeInfos.size(), writeInfos.data(), 0u, nullptr);
-    }
 
-    VkPipelineBindPoint bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    switch (myCurrentContext)
+    if (localBufferSet)
     {
-    case CommandListType::Graphics:
-      bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-      break;
-    case CommandListType::Compute:
-      bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
-      break;
-    default: ASSERT(false);
+      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalBuffers, 1, &localBufferSet, 0, nullptr);
+      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalBuffers, 1, &localBufferSet, 0, nullptr);
+    }
+    if (localRwBufferSet)
+    {
+      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalRwBuffers, 1, &localRwBufferSet, 0, nullptr);
+      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalRwBuffers, 1, &localRwBufferSet, 0, nullptr);
+    }
+    if (localCBufferSet)
+    {
+      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalCbuffers, 1, &localCBufferSet, 0, nullptr);
+      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalCbuffers, 1, &localCBufferSet, 0, nullptr);
     }
 
-    // TODO: Dynamic offsets might be needed for ring-allocated cbuffers
-    const uint numDynamicOffsets = 0u;
-    const uint* dynamicOffsets = nullptr;
-    vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipeline->GetPipelineLayout()->myPipelineLayout, firstSet, (uint) descriptorSets.size(), descriptorSets.data(), numDynamicOffsets, dynamicOffsets);
+    myLocalBuffersToBind.clear();
+    myLocalRWBuffersToBind.clear();
+    myLocalCBuffersToBind.clear();
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::BindInternal(const ShaderResourceInfoVk& aResourceInfo, uint anArrayIndex, 
-    const eastl::optional<VkDescriptorBufferInfo>& aDescriptorBufferInfo,
-    const eastl::optional<VkDescriptorImageInfo>& aDescriptorImageInfo,
-    const eastl::optional<VkBufferView>& aBufferView)
-  {
-    ASSERT(myPipelineLayoutBindings != nullptr);
-    ASSERT(aResourceInfo.myNumDescriptors > anArrayIndex);
-    ASSERT(aResourceInfo.myDescriptorSet < (uint) myPipelineLayoutBindings->myDescriptorSets.size());
-
-    const ShaderPipelineVk* shaderPipeline = GetShaderPipeline();
-    ASSERT(shaderPipeline != nullptr);
-
-    PipelineLayoutBindingsVk::DescriptorSet& set = myPipelineLayoutBindings->myDescriptorSets[aResourceInfo.myDescriptorSet];
-
-    ASSERT(aResourceInfo.myBindingInSet < (uint)set.myRanges.size());
-    PipelineLayoutBindingsVk::DescriptorRange& range = set.myRanges[aResourceInfo.myBindingInSet];
-
-    if (range.myIsUnbounded)
-    {
-      ASSERT(anArrayIndex < RenderCore_PlatformVk::MAX_DESCRIPTOR_ARRAY_SIZE);  // Currently we don't have a way to handle true unbounded arrays in Vulkan.
-      const uint oldNumDescriptors = range.Size();
-      range.ResizeUp(anArrayIndex + 1);
-      memset(&range.myData[oldNumDescriptors * range.GetElementSize()], 0u, (range.Size() - oldNumDescriptors) * range.GetElementSize());
-    }
-    else
-    {
-      ASSERT(anArrayIndex < range.Size());
-    }
-
-    switch (aResourceInfo.myType)
-    {
-        case VK_DESCRIPTOR_TYPE_SAMPLER:
-        {
-          ASSERT(aDescriptorImageInfo && aDescriptorImageInfo->sampler != nullptr);
-          set.myIsDirty |= range.Set(*aDescriptorImageInfo, anArrayIndex);
-        } break;
-        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: ASSERT(false); break;  // Not supported in HLSL, so this should never happen
-        case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-        {
-          ASSERT(aDescriptorImageInfo && aDescriptorImageInfo->imageView != nullptr);
-          set.myIsDirty |= range.Set(*aDescriptorImageInfo, anArrayIndex);
-        } break;
-        case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-        case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-        {
-          ASSERT(aBufferView && *aBufferView != nullptr);
-          set.myIsDirty |= range.Set(*aBufferView, anArrayIndex);
-        } break;
-        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-        {
-          ASSERT(aDescriptorBufferInfo && aDescriptorBufferInfo->buffer != nullptr && aDescriptorBufferInfo->range > 0ull);
-          set.myIsDirty |= range.Set(*aDescriptorBufferInfo, anArrayIndex);
-        } break;
-        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-          ASSERT(false);  // TODO: Support dynamic uniform and storage buffers. 
-          break;
-        default: ASSERT(false);
-    }
-
-    myPipelineLayoutBindings->myIsDirty |= set.myIsDirty;
-  }
-//---------------------------------------------------------------------------//
-  VkDescriptorSet CommandListVk::CreateDescriptorSet(VkDescriptorSetLayout aLayout)
+  VkDescriptorSet CommandListVk::CreateTempDescriptorSet(VkDescriptorSetLayout aLayout)
   {
     if (myUsedDescriptorPools.empty())
       myUsedDescriptorPools.push_back(RenderCore::GetPlatformVk()->AllocateDescriptorPool());

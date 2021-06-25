@@ -103,9 +103,6 @@ namespace Fancy
     uint FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags);
     const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return myPhysicalDeviceMemoryProperties; }
 
-    void ReleaseTempBufferView(VkBufferView aBufferView, uint64 aFence);
-    void DestroyTempBufferViews();
-
     struct QueueInfo
     {
       uint myQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -120,6 +117,7 @@ namespace Fancy
     RenderPassCacheVk& GetRenderPassCache() { return myRenderPassCache; }
     PipelineStateCacheVk& GetPipelineStateCache() { return myPipelineStateCache; }
     PipelineLayoutVk* GetPipelineLayout() const { return myPipelineLayout.get(); }
+    GlobalDescriptorSetVk* GetGlobalDescriptorSet() const { return myGlobalDescriptorSet.get(); }
 
     // TODO: Make these members private and add getter-functions where needed
     VkInstance myInstance = nullptr;
@@ -141,8 +139,6 @@ namespace Fancy
     UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
     UniquePtr<PipelineLayoutVk> myPipelineLayout;
     UniquePtr<GlobalDescriptorSetVk> myGlobalDescriptorSet;
-
-    eastl::fixed_vector<eastl::pair<VkBufferView, uint64>, 64> myTempBufferViews;
 
     FrameBufferCacheVk myFrameBufferCache;
     RenderPassCacheVk myRenderPassCache;

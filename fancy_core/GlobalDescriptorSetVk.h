@@ -27,6 +27,8 @@ namespace Fancy
 
     void ProcessGlobalDescriptorFrees();
 
+    VkDescriptorSet GetDescriptorSet() const { return myDescriptorSet; }
+
   private:
     GlobalDescriptorAllocation AllocateAndWriteDescriptor(GlobalResourceType aType, const VkDescriptorImageInfo* anImageInfo, const VkDescriptorBufferInfo* aBufferInfo, const char* aDebugName = nullptr);
   

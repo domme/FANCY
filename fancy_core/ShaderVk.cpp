@@ -31,33 +31,28 @@ namespace Fancy
   ShaderVk::~ShaderVk()
   {
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-    vkDestroyShaderModule(platformVk->myDevice, myModule, nullptr);
-    myModule = nullptr;
+    vkDestroyShaderModule(platformVk->myDevice, myCompiledData.myModule, nullptr);
   }
 //---------------------------------------------------------------------------//
   void ShaderVk::SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput)
   {
     Shader::SetFromCompilerOutput(aCompilerOutput);
-
-    const ShaderCompiledDataVk& data = eastl::any_cast<const ShaderCompiledDataVk&>(aCompilerOutput.myNativeData);
-
-    if (myModule != nullptr)
+    
+    if (myCompiledData.myModule != nullptr)
     {
       RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
-      vkDestroyShaderModule(platformVk->myDevice, myModule, nullptr);
+      vkDestroyShaderModule(platformVk->myDevice, myCompiledData.myModule, nullptr);
     }
 
-    myModule = data.myModule;
-    myResourceInfos = data.myResourceInfos;
-    myBytecodeHash = data.myBytecodeHash;
-    myVertexAttributeLocations = data.myVertexAttributeLocations;
+    const ShaderCompiledDataVk& data = eastl::any_cast<const ShaderCompiledDataVk&>(aCompilerOutput.myNativeData);
+    myCompiledData = data;
 
     myShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     myShaderStageCreateInfo.pNext = nullptr;
     myShaderStageCreateInfo.flags = 0;
     myShaderStageCreateInfo.pName = myDesc.myMainFunction.c_str();
     myShaderStageCreateInfo.pSpecializationInfo = nullptr;
-    myShaderStageCreateInfo.module = myModule;
+    myShaderStageCreateInfo.module = myCompiledData.myModule;
     myShaderStageCreateInfo.stage = Priv_ShaderVk::locResolveShaderStage((ShaderStage) myDesc.myShaderStage);
   }
 //---------------------------------------------------------------------------//

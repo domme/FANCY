@@ -46,10 +46,47 @@ namespace Fancy
   PipelineLayoutVk::PipelineLayoutVk(const RenderPlatformProperties& someProperties)
     : myPipelineLayout(nullptr)
   {
+    // Local buffers
+    {
+      // Might be _DYNAMIC in the future
+      myDescriptorType_LocalBuffers = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+      myDescriptorType_LocalRwBuffers = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+
+      eastl::vector<VkDescriptorSetLayoutBinding> bindings(someProperties.myNumLocalBuffers);
+      for (uint i = 0; i < someProperties.myNumLocalBuffers; ++i)
+      {
+        VkDescriptorSetLayoutBinding& binding = bindings[i];
+        binding.binding = i;
+        binding.descriptorCount = 1;
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        binding.stageFlags = VK_SHADER_STAGE_ALL;
+      }
+
+      myDescriptorSetLayout_LocalBuffers = locCreateDescriptorSetLayout(bindings.data(), bindings.size());
+      myDescriptorSetLayout_LocalRwBuffers = locCreateDescriptorSetLayout(bindings.data(), bindings.size());
+    }
+
+    // Local Cbuffers
+    {
+      // Might be _DYNAMIC in the future
+      myDescriptorType_LocalCBuffers = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+
+      eastl::vector<VkDescriptorSetLayoutBinding> bindings(someProperties.myNumLocalCBuffers);
+      for (uint i = 0; i < someProperties.myNumLocalCBuffers; ++i)
+      {
+        VkDescriptorSetLayoutBinding& binding = bindings[i];
+        binding.binding = i;
+        binding.descriptorCount = 1;
+        binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        binding.stageFlags = VK_SHADER_STAGE_ALL;
+      }
+
+      myDescriptorSetLayout_LocalCbuffers = locCreateDescriptorSetLayout(bindings.data(), bindings.size());
+    }
+
     // Resource- & Sampler-descriptor set
     {
-      VkDescriptorSetLayoutBinding* bindings = (VkDescriptorSetLayoutBinding*)alloca(sizeof(VkDescriptorSetLayoutBinding) * GLOBAL_RESOURCE_NUM);
-      memset(bindings, 0, sizeof(VkDescriptorSetLayoutBinding) * GLOBAL_RESOURCE_NUM);
+      eastl::vector<VkDescriptorSetLayoutBinding> bindings(GLOBAL_RESOURCE_NUM);
 
       for (uint i = 0; i < GLOBAL_RESOURCE_NUM; ++i)
       {
@@ -60,44 +97,20 @@ namespace Fancy
         binding.stageFlags = VK_SHADER_STAGE_ALL;
       }
 
-      myDescriptorSetLayout_GlobalResourcesSamplers = locCreateDescriptorSetLayout(bindings, GLOBAL_RESOURCE_NUM);
+      myDescriptorSetLayout_GlobalResourcesSamplers = locCreateDescriptorSetLayout(bindings.data(), bindings.size());
     }
-
-    // Local buffer descriptor set
-    {
-      const uint numBindingsNeeded = someProperties.myNumLocalBuffers * 2 + someProperties.myNumLocalCBuffers;
-      VkDescriptorSetLayoutBinding* bindings = (VkDescriptorSetLayoutBinding*)alloca(sizeof(VkDescriptorSetLayoutBinding) * numBindingsNeeded);
-      memset(bindings, 0, sizeof(VkDescriptorSetLayoutBinding) * numBindingsNeeded);
-
-      uint bindingIdx = 0;
-      for (uint i = 0; i < someProperties.myNumLocalBuffers * 2; ++i)
-      {
-        VkDescriptorSetLayoutBinding& binding = bindings[bindingIdx];
-        binding.binding = bindingIdx;
-        binding.descriptorCount = 1;
-        // binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-        binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        binding.stageFlags = VK_SHADER_STAGE_ALL;
-        ++bindingIdx;
-      }
-
-      for (uint i = 0; i < someProperties.myNumLocalCBuffers; ++i)
-      {
-        VkDescriptorSetLayoutBinding& binding = bindings[bindingIdx];
-        binding.binding = bindingIdx;
-        binding.descriptorCount = 1;
-        // binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-        binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        binding.stageFlags = VK_SHADER_STAGE_ALL;
-        ++bindingIdx;
-      }
-
-      ASSERT(bindingIdx == numBindingsNeeded);
-      myDescriptorSetLayout_LocalBuffersCBuffers = locCreateDescriptorSetLayout(bindings, numBindingsNeeded);
-    }
-
+      
     // Create the pipeline layout
-    VkDescriptorSetLayout descSetLayouts[] = { myDescriptorSetLayout_GlobalResourcesSamplers, myDescriptorSetLayout_LocalBuffersCBuffers };
+    VkDescriptorSetLayout descSetLayouts[] = {
+      myDescriptorSetLayout_LocalBuffers,
+      myDescriptorSetLayout_LocalRwBuffers,
+      myDescriptorSetLayout_LocalCbuffers,
+      myDescriptorSetLayout_GlobalResourcesSamplers };
+
+    myDescriptorSetIndex_LocalBuffers = 0;
+    myDescriptorSetIndex_LocalRwBuffers = 1;
+    myDescriptorSetIndex_LocalCbuffers = 2;
+    myDescriptorSetIndex_GlobalResourcesSamplers = 3;
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -115,8 +128,10 @@ namespace Fancy
 
     VkDevice device = RenderCore::GetPlatformVk()->GetDevice();
     vkDestroyPipelineLayout(device, myPipelineLayout, nullptr);
+    vkDestroyDescriptorSetLayout(device, myDescriptorSetLayout_LocalBuffers, nullptr);
+    vkDestroyDescriptorSetLayout(device, myDescriptorSetLayout_LocalRwBuffers, nullptr);
+    vkDestroyDescriptorSetLayout(device, myDescriptorSetLayout_LocalCbuffers, nullptr);
     vkDestroyDescriptorSetLayout(device, myDescriptorSetLayout_GlobalResourcesSamplers, nullptr);
-    vkDestroyDescriptorSetLayout(device, myDescriptorSetLayout_LocalBuffersCBuffers, nullptr);
   }
 //---------------------------------------------------------------------------//
 }

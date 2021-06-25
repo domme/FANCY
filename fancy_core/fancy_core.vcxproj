@@ -174,7 +174,6 @@
     <ClInclude Include="ShaderCompilerVk.h" />
     <ClInclude Include="ShaderPipelineDX12.h" />
     <ClInclude Include="ShaderPipelineVk.h" />
-    <ClInclude Include="ShaderResourceInfoVk.h" />
     <ClInclude Include="ShaderVk.h" />
     <ClInclude Include="GpuQuery.h" />
     <ClInclude Include="GpuQueryHeap.h" />

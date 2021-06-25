@@ -27,7 +27,6 @@ namespace Fancy
     uint usedRanges = 0;
     uint usedParams = 0;
     uint offsetInDescriptorHeap = 0;
-    
 
     myRootParamIndex_GlobalResources = usedParams;
     D3D12_ROOT_PARAMETER1* param = &rootParams[usedParams++];
@@ -36,8 +35,10 @@ namespace Fancy
     param->DescriptorTable.NumDescriptorRanges = GLOBAL_RESOURCE_NUM_NOSAMPLER;
     param->DescriptorTable.pDescriptorRanges = &ranges[usedRanges];
 
+    constexpr uint globalResourcesStartSpace = 3;  // Local resources will be placed in the first spaces to make it more convenient for vulkan
+
     // SRVs
-    uint registerSpace = 0;
+    uint registerSpace = globalResourcesStartSpace;
     for (uint i = GLOBAL_RESOURCE_SRV_START; i < GLOBAL_RESOURCE_SRV_END; ++i)
     {
       const uint numDescriptors = RenderUtils::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
@@ -54,7 +55,7 @@ namespace Fancy
     }
 
     // UAVs
-    registerSpace = 0;
+    registerSpace = globalResourcesStartSpace;
     for (uint i = GLOBAL_RESOURCE_UAV_START; i < GLOBAL_RESOURCE_UAV_END; ++i)
     {
       const uint numDescriptors = RenderUtils::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
@@ -82,7 +83,7 @@ namespace Fancy
     range->NumDescriptors = someProperties.myNumGlobalSamplers;
     range->RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
     range->OffsetInDescriptorsFromTableStart = 0;
-    range->RegisterSpace = 0;
+    range->RegisterSpace = globalResourcesStartSpace;
     range->Flags = bindlessRangeFlags;
 
     myRootParamIndex_LocalBuffers = usedParams;
@@ -95,7 +96,7 @@ namespace Fancy
       param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
       param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
       param->Descriptor.ShaderRegister = i;
-      param->Descriptor.RegisterSpace = GLOBAL_RESOURCE_SRV_END;
+      param->Descriptor.RegisterSpace = 0;
     }
 
     myRootParamIndex_LocalRWBuffers = usedParams;
@@ -108,7 +109,7 @@ namespace Fancy
       param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_UAV;
       param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
       param->Descriptor.ShaderRegister = i;
-      param->Descriptor.RegisterSpace = GLOBAL_RESOURCE_UAV_END;
+      param->Descriptor.RegisterSpace = 1;
     }
 
     myRootParamIndex_LocalCBuffers = usedParams;
@@ -121,7 +122,7 @@ namespace Fancy
       param->ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
       param->ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
       param->Descriptor.ShaderRegister = i;
-      param->Descriptor.RegisterSpace = 0;
+      param->Descriptor.RegisterSpace = 2;
     }
 
     // Guard against accidental override. In this case the "numNeeded" numbers are wrong

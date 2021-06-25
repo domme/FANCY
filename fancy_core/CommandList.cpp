@@ -263,24 +263,15 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandList::SetShaderPipeline(const ShaderPipeline* aShaderPipeline)
   {
-    bool hasChanged = false;
-    SetShaderPipelineInternal(aShaderPipeline, hasChanged);
-  }
-//---------------------------------------------------------------------------//
-  void CommandList::SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut)
-  {
     ASSERT(myCommandListType != CommandListType::DMA);
 
-    aHasPipelineChangedOut = false;
-
-    if (aPipeline->IsComputePipeline())
+    if (aShaderPipeline->IsComputePipeline())
     {
       myCurrentContext = CommandListType::Compute;
-      if (myComputePipelineState.myShaderPipeline != aPipeline)
+      if (myComputePipelineState.myShaderPipeline != aShaderPipeline)
       {
-        myComputePipelineState.myShaderPipeline = aPipeline;
+        myComputePipelineState.myShaderPipeline = aShaderPipeline;
         myComputePipelineState.myIsDirty = true;
-        aHasPipelineChangedOut = true;
       }
     }
     else
@@ -288,11 +279,10 @@ namespace Fancy {
       ASSERT(myCommandListType == CommandListType::Graphics);
       myCurrentContext = CommandListType::Graphics;
 
-      if (myGraphicsPipelineState.myShaderPipeline != aPipeline)
+      if (myGraphicsPipelineState.myShaderPipeline != aShaderPipeline)
       {
-        myGraphicsPipelineState.myShaderPipeline = aPipeline;
+        myGraphicsPipelineState.myShaderPipeline = aShaderPipeline;
         myGraphicsPipelineState.myIsDirty = true;
-        aHasPipelineChangedOut = true;
       }
     }
   }

@@ -8,7 +8,6 @@
 
 namespace Fancy
 {
-  struct ShaderResourceInfoVk;
   class ShaderPipelineVk;
 
   class CommandListVk : public CommandList
@@ -49,6 +48,7 @@ namespace Fancy
     void CopyTextureToBuffer(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) override;
     void CopyTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion, const Texture* aSrcTexture, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) override;
     void CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) override;
+    void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override;
 
     void PostExecute(uint64 aFenceVal) override;
     void ResetAndOpen() override;
@@ -56,8 +56,7 @@ namespace Fancy
 
     void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) override;
     void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset, uint64 aSize) override;
-    void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
-    void UpdateTextureData(const Texture* aDstTexture, const SubresourceRange& aSubresourceRange, const TextureSubData* someDatas, uint aNumDatas /*, const TextureRegion* someRegions = nullptr */) override;
+    void BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) override;
     
     GpuQuery BeginQuery(GpuQueryType aType) override;
     void EndQuery(const GpuQuery& aQuery) override;
@@ -69,7 +68,8 @@ namespace Fancy
     void ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources) override;
 
     void Close() override;
-    
+
+    void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     void Dispatch(const glm::int3& aNumThreads) override;
 
     VkCommandBuffer GetCommandBuffer() const { return myCommandBuffer; }
@@ -80,7 +80,7 @@ namespace Fancy
     void AddBarrier(const ImageMemoryBarrierData& aBarrier);
     
   protected:
-    void SetShaderPipelineInternal(const ShaderPipeline* aPipeline, bool& aHasPipelineChangedOut) override;
+    void PrepareForRecord(bool aResetCommandList);
 
     const ShaderPipelineVk* GetShaderPipeline() const;
 
@@ -92,7 +92,7 @@ namespace Fancy
     void ApplyComputePipelineState();
     void ApplyResourceBindings();
 
-    VkDescriptorSet CreateDescriptorSet(VkDescriptorSetLayout aLayout);
+    VkDescriptorSet CreateTempDescriptorSet(VkDescriptorSetLayout aLayout);
 
     void BeginCommandBuffer();
 
@@ -100,9 +100,6 @@ namespace Fancy
     VkRenderPass myRenderPass;
     VkFramebuffer myFramebuffer;
     glm::uvec2 myFramebufferRes;
-        
-    VkPipelineLayout myPipelineLayout = nullptr;
-    eastl::fixed_vector<eastl::pair<VkBufferView, uint64>, 32> myTempBufferViews;
 
     struct SubresourceHazardData
     {
@@ -129,6 +126,9 @@ namespace Fancy
     eastl::fixed_vector<VkDescriptorPool, 16> myUsedDescriptorPools;
     eastl::fixed_vector<BufferMemoryBarrierData, kNumCachedBarriers> myPendingBufferBarriers;
     eastl::fixed_vector<ImageMemoryBarrierData, kNumCachedBarriers> myPendingImageBarriers;
+    eastl::fixed_vector<VkDescriptorBufferInfo, 16> myLocalBuffersToBind;
+    eastl::fixed_vector<VkDescriptorBufferInfo, 16> myLocalRWBuffersToBind;
+    eastl::fixed_vector<VkDescriptorBufferInfo, 16> myLocalCBuffersToBind;
 
     VkPipelineStageFlags myPendingBarrierSrcStageMask;
     VkPipelineStageFlags myPendingBarrierDstStageMask;

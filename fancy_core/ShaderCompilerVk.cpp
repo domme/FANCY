@@ -5,11 +5,8 @@
 #include "ShaderVk.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
-#include "ShaderResourceInfoVk.h"
 
 #include "spirv_reflect/spirv_reflect.h"
-
-#include <atomic>
 
 #if FANCY_ENABLE_VK
 

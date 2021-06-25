@@ -1,6 +1,5 @@
 #include "GlobalResources.h"
 
-[[vk::binding(0, DescSet_Local)]] 
 cbuffer CB0 : register(b0, Space_LocalCBuffer)
 {
   int2 mySrcTextureSize;
