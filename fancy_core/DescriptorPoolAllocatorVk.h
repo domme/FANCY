@@ -6,6 +6,10 @@
 
 namespace Fancy
 {
+  /// <summary>
+  /// Handles allocation/freeing of small temp descriptor pools that can be used during commandlist-recording for local resource bindings. The global/bindless resource descriptors are NOT handled with this class
+  /// </summary>
+
   class DescriptorPoolAllocatorVk
   {
   public:

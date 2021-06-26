@@ -18,7 +18,6 @@ namespace Fancy {
   struct ShaderProperties
   {
     ShaderStage myShaderStage = ShaderStage::NONE;
-    bool myHasUnorderedWrites = false;
     glm::int3 myNumGroupThreads = { 1, 1, 1 };
   };
 //---------------------------------------------------------------------------//

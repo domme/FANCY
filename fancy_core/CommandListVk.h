@@ -39,7 +39,7 @@ namespace Fancy
     };
 
     CommandListVk(CommandListType aType);
-    ~CommandListVk();
+    ~CommandListVk() override;
 
     void ClearRenderTarget(TextureView* aTextureView, const float* aColor) override;
     void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags) override;

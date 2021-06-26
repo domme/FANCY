@@ -63,7 +63,7 @@ namespace Fancy
     static VkAccelerationStructureTypeKHR GetRaytracingBVHType(RaytracingBVHType aType);
     static VkGeometryTypeKHR GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aType);
 
-    RenderCore_PlatformVk();
+    RenderCore_PlatformVk(const RenderPlatformProperties& someProperties);
     ~RenderCore_PlatformVk() override;
     // Disallow copy and assignment (class contains a list of unique_ptrs)
     RenderCore_PlatformVk(const RenderCore_PlatformVk&) = delete;
@@ -118,7 +118,6 @@ namespace Fancy
     PipelineStateCacheVk& GetPipelineStateCache() { return myPipelineStateCache; }
     PipelineLayoutVk* GetPipelineLayout() const { return myPipelineLayout.get(); }
     GlobalDescriptorSetVk* GetGlobalDescriptorSet() const { return myGlobalDescriptorSet.get(); }
-
     // TODO: Make these members private and add getter-functions where needed
     VkInstance myInstance = nullptr;
     VkPhysicalDevice myPhysicalDevice = nullptr;

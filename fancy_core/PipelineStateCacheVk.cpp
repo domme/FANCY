@@ -7,6 +7,7 @@
 #include "ShaderVk.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
+#include "PipelineLayoutVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -75,7 +76,7 @@ namespace Fancy
 
     // Pipeline layout
     const ShaderPipelineVk* shaderPipelineVk = static_cast<const ShaderPipelineVk*>(aState.myShaderPipeline);
-    pipelineCreateInfo.layout = shaderPipelineVk->GetPipelineLayout()->myPipelineLayout;
+    pipelineCreateInfo.layout = RenderCore::GetPlatformVk()->GetPipelineLayout()->myPipelineLayout;
 
     // Vertex input state
     const ShaderVk* vertexShader = static_cast<const ShaderVk*>(aState.myShaderPipeline->GetShader(ShaderStage::VERTEX));
@@ -95,7 +96,7 @@ namespace Fancy
     }
 
     const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& shaderAttributes = vertexShader->myVertexAttributes;
-    const eastl::fixed_vector<uint, 16>& shaderAttributeLocations = vertexShader->myVertexAttributeLocations;
+    const eastl::fixed_vector<uint, 16>& shaderAttributeLocations = vertexShader->myCompiledData.myVertexAttributeLocations;
     const eastl::fixed_vector<VertexInputAttributeDesc, 8>& inputAttributes = inputLayoutProps.myAttributes;
     for (uint i = 0u; i < shaderAttributes.size(); ++i)
     {
@@ -317,7 +318,7 @@ namespace Fancy
     createInfo.pNext = nullptr;
     createInfo.flags = VK_PIPELINE_CREATE_DISPATCH_BASE;
     createInfo.stage = computeShader->GetStageCreateInfo();
-    createInfo.layout = shaderPipeline->GetPipelineLayout()->myPipelineLayout;
+    createInfo.layout = RenderCore::GetPlatformVk()->GetPipelineLayout()->myPipelineLayout;
 
     const uint64 hash = aState.GetHash();
 

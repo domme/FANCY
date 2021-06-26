@@ -147,7 +147,6 @@
     <ClInclude Include="DxcShaderCompiler.h" />
     <ClInclude Include="GlobalDescriptorAllocation.h" />
     <ClInclude Include="GlobalDescriptorSetVk.h" />
-    <ClInclude Include="RenderUtils.h" />
     <ClInclude Include="RootSignatureDX12.h" />
     <ClInclude Include="ShaderVisibleDescriptorHeapDX12.h" />
     <ClInclude Include="EASTLAllocator.h" />

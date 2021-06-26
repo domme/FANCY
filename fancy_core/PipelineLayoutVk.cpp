@@ -2,7 +2,6 @@
 #include "PipelineLayoutVk.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
-#include "RenderUtils.h"
 
 #if FANCY_ENABLE_VK
 
@@ -62,8 +61,8 @@ namespace Fancy
         binding.stageFlags = VK_SHADER_STAGE_ALL;
       }
 
-      myDescriptorSetLayout_LocalBuffers = locCreateDescriptorSetLayout(bindings.data(), bindings.size());
-      myDescriptorSetLayout_LocalRwBuffers = locCreateDescriptorSetLayout(bindings.data(), bindings.size());
+      myDescriptorSetLayout_LocalBuffers = locCreateDescriptorSetLayout(bindings.data(), static_cast<uint>(bindings.size()));
+      myDescriptorSetLayout_LocalRwBuffers = locCreateDescriptorSetLayout(bindings.data(), static_cast<uint>(bindings.size()));
     }
 
     // Local Cbuffers
@@ -81,7 +80,7 @@ namespace Fancy
         binding.stageFlags = VK_SHADER_STAGE_ALL;
       }
 
-      myDescriptorSetLayout_LocalCbuffers = locCreateDescriptorSetLayout(bindings.data(), bindings.size());
+      myDescriptorSetLayout_LocalCbuffers = locCreateDescriptorSetLayout(bindings.data(), static_cast<uint>(bindings.size()));
     }
 
     // Resource- & Sampler-descriptor set
@@ -92,12 +91,12 @@ namespace Fancy
       {
         VkDescriptorSetLayoutBinding& binding = bindings[i];
         binding.binding = i;
-        binding.descriptorCount = RenderUtils::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
+        binding.descriptorCount = RenderCore::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
         binding.descriptorType = RenderCore_PlatformVk::GetDescriptorType(static_cast<GlobalResourceType>(i));
         binding.stageFlags = VK_SHADER_STAGE_ALL;
       }
 
-      myDescriptorSetLayout_GlobalResourcesSamplers = locCreateDescriptorSetLayout(bindings.data(), bindings.size());
+      myDescriptorSetLayout_GlobalResourcesSamplers = locCreateDescriptorSetLayout(bindings.data(), static_cast<uint>(bindings.size()));
     }
       
     // Create the pipeline layout
@@ -126,7 +125,7 @@ namespace Fancy
     RenderCore::WaitForIdle(CommandListType::Graphics);
     RenderCore::WaitForIdle(CommandListType::Compute);
 
-    VkDevice device = RenderCore::GetPlatformVk()->GetDevice();
+    const VkDevice device = RenderCore::GetPlatformVk()->GetDevice();
     vkDestroyPipelineLayout(device, myPipelineLayout, nullptr);
     vkDestroyDescriptorSetLayout(device, myDescriptorSetLayout_LocalBuffers, nullptr);
     vkDestroyDescriptorSetLayout(device, myDescriptorSetLayout_LocalRwBuffers, nullptr);

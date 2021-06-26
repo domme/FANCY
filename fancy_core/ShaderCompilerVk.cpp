@@ -68,34 +68,6 @@ namespace Fancy
       aSemanticOut = ShaderCompiler::GetVertexAttributeSemantic(aSemanticString);
     }
 //---------------------------------------------------------------------------//
-    VkDescriptorType locResolveDescriptorType(SpvReflectDescriptorType aReflDescType)
-    {
-      switch (aReflDescType)
-      {
-        case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER: return VK_DESCRIPTOR_TYPE_SAMPLER;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER: return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-        case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-        default: ASSERT(false, "Missing implementation"); return VK_DESCRIPTOR_TYPE_SAMPLER;
-      }
-    }
-//---------------------------------------------------------------------------//
-  }
-//---------------------------------------------------------------------------//
-  ShaderCompilerVk::ShaderCompilerVk()
-  {
-    
-  }
-//---------------------------------------------------------------------------//
-  ShaderCompilerVk::~ShaderCompilerVk()
-  {
   }
 //---------------------------------------------------------------------------//
   bool ShaderCompilerVk::Compile_Internal(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const
@@ -135,35 +107,6 @@ namespace Fancy
     SpvReflectShaderModule reflectModule;
     SpvReflectResult reflectResult = spvReflectCreateShaderModule(spvBinaryData.size(), spvBinaryData.data(), &reflectModule);
     ASSERT(reflectResult == SPV_REFLECT_RESULT_SUCCESS);
-
-    // Handle unordered writes. It seems we can only determine if a UAV is used in the shader but not if its actually written to in the shader.
-    bool hasUnorderedWrites = false;
-    for (uint i = 0u; i < reflectModule.descriptor_binding_count && !hasUnorderedWrites; ++i)
-      hasUnorderedWrites |= (reflectModule.descriptor_bindings[i].resource_type & SpvReflectResourceType::SPV_REFLECT_RESOURCE_FLAG_UAV) != 0;
-    aCompilerOutput->myProperties.myHasUnorderedWrites = hasUnorderedWrites;
-
-    compiledDataVk.myResourceInfos.clear();
-
-    for (uint s = 0u; s < reflectModule.descriptor_set_count; ++s)
-    {
-      const SpvReflectDescriptorSet& reflSet = reflectModule.descriptor_sets[s];
-
-      for (uint b = 0u; b < reflSet.binding_count; ++b )
-      {
-        const SpvReflectDescriptorBinding* reflBinding = reflSet.bindings[b];
-        ASSERT(reflBinding != nullptr);
-
-        ShaderResourceInfoVk resourceInfo;
-        resourceInfo.myType = Priv_ShaderCompilerVk::locResolveDescriptorType(reflBinding->descriptor_type);
-        resourceInfo.myBindingInSet = reflBinding->binding;
-        resourceInfo.myDescriptorSet = reflSet.set;
-        resourceInfo.myName = reflBinding->name;
-        resourceInfo.myNameHash = MathUtil::Hash(reflBinding->name);
-        resourceInfo.myIsUnbounded = reflBinding->type_description->op == SpvOpTypeRuntimeArray;
-        resourceInfo.myNumDescriptors = resourceInfo.myIsUnbounded ? RenderCore_PlatformVk::MAX_DESCRIPTOR_ARRAY_SIZE : reflBinding->count;
-        compiledDataVk.myResourceInfos.push_back(std::move(resourceInfo));
-      }
-    }
 
     if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
     {

@@ -8,10 +8,7 @@
 #include "BlendState.h"
 #include "Texture.h"
 #include "TextureVk.h"
-#include "GpuResourceViewDataVk.h"
 #include "GpuBufferVk.h"
-#include "ShaderResourceInfoVk.h"
-#include "TextureSamplerVk.h"
 #include "DebugUtilsVk.h"
 #include "GlobalDescriptorSetVk.h"
 #include "GpuQueryHeapVk.h"
@@ -449,14 +446,7 @@ namespace Fancy
   void CommandListVk::ResetAndOpen()
   {
     CommandList::ResetAndOpen();
-
-    myRenderPass = nullptr;
-    myFramebuffer = nullptr;
-    myFramebufferRes = glm::uvec2(0u, 0u);
-    myPendingBufferBarriers.clear();
-    myPendingImageBarriers.clear();
-    myLocalHazardData.clear();
-
+    
     PrepareForRecord(true);
   }
 //---------------------------------------------------------------------------//
@@ -1088,6 +1078,13 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::PrepareForRecord(bool aResetCommandList)
   {
+    myRenderPass = nullptr;
+    myFramebuffer = nullptr;
+    myFramebufferRes = glm::uvec2(0u, 0u);
+    myPendingBufferBarriers.clear();
+    myPendingImageBarriers.clear();
+    myLocalHazardData.clear();
+
     RenderCore_PlatformVk* platformVk = RenderCore::GetPlatformVk();
     myCommandBuffer = platformVk->GetNewCommandBuffer(myCommandListType);
     if (aResetCommandList)
@@ -1375,21 +1372,14 @@ namespace Fancy
     if (!writeInfos.empty())
       vkUpdateDescriptorSets(RenderCore::GetPlatformVk()->myDevice, (uint)writeInfos.size(), writeInfos.data(), 0u, nullptr);
 
+    const VkPipelineBindPoint bindPoint = myCurrentContext == CommandListType::Graphics ? VK_PIPELINE_BIND_POINT_GRAPHICS : VK_PIPELINE_BIND_POINT_COMPUTE;
+
     if (localBufferSet)
-    {
-      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalBuffers, 1, &localBufferSet, 0, nullptr);
-      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalBuffers, 1, &localBufferSet, 0, nullptr);
-    }
+        vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalBuffers, 1, &localBufferSet, 0, nullptr);
     if (localRwBufferSet)
-    {
-      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalRwBuffers, 1, &localRwBufferSet, 0, nullptr);
-      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalRwBuffers, 1, &localRwBufferSet, 0, nullptr);
-    }
+      vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalRwBuffers, 1, &localRwBufferSet, 0, nullptr);
     if (localCBufferSet)
-    {
-      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalCbuffers, 1, &localCBufferSet, 0, nullptr);
-      vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalCbuffers, 1, &localCBufferSet, 0, nullptr);
-    }
+      vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalCbuffers, 1, &localCBufferSet, 0, nullptr);
 
     myLocalBuffersToBind.clear();
     myLocalRWBuffersToBind.clear();

@@ -2,7 +2,6 @@
 #include "RootSignatureDX12.h"
 
 #include "RenderCore_PlatformDX12.h"
-#include "RenderUtils.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -41,7 +40,7 @@ namespace Fancy
     uint registerSpace = globalResourcesStartSpace;
     for (uint i = GLOBAL_RESOURCE_SRV_START; i < GLOBAL_RESOURCE_SRV_END; ++i)
     {
-      const uint numDescriptors = RenderUtils::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
+      const uint numDescriptors = RenderCore::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
 
       D3D12_DESCRIPTOR_RANGE1* range = &ranges[usedRanges++];
       range->BaseShaderRegister = 0;
@@ -58,7 +57,7 @@ namespace Fancy
     registerSpace = globalResourcesStartSpace;
     for (uint i = GLOBAL_RESOURCE_UAV_START; i < GLOBAL_RESOURCE_UAV_END; ++i)
     {
-      const uint numDescriptors = RenderUtils::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
+      const uint numDescriptors = RenderCore::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
 
       D3D12_DESCRIPTOR_RANGE1* range = &ranges[usedRanges++];
       range->BaseShaderRegister = 0;

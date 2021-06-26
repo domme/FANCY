@@ -1,8 +1,5 @@
 #pragma once
 #include "ShaderPipeline.h"
-#include "VkPrerequisites.h"
-#include "PipelineLayoutVk.h"
-#include "eastl/vector.h"
 
 #if FANCY_ENABLE_VK
 

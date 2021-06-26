@@ -15,6 +15,7 @@
 #include "CommandLine.h"
 #include "GlobalDescriptorSetVk.h"
 #include "GpuResourceViewDataVk.h"
+#include "PipelineLayoutVk.h"
 #include "RaytracingBVHVk.h"
 
 #if FANCY_ENABLE_VK
@@ -701,7 +702,7 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  RenderCore_PlatformVk::RenderCore_PlatformVk() : RenderCore_Platform(RenderPlatformType::VULKAN)
+  RenderCore_PlatformVk::RenderCore_PlatformVk(const RenderPlatformProperties& someProperties) : RenderCore_Platform(RenderPlatformType::VULKAN, someProperties)
   {
     LOG("Initializing Vulkan device...");
     locPrintAvailableInstanceExtensions();
@@ -715,9 +716,27 @@ namespace Fancy
       appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
       appInfo.apiVersion = VK_API_VERSION_1_2;
 
+      const bool enableDebugLayer = CommandLine::GetInstance()->HasArgument("DebugLayer");
+      const bool gpuValidation = CommandLine::GetInstance()->HasArgument("GPUValidation");
+
+      eastl::fixed_vector<VkValidationFeatureEnableEXT, 2> enabledValidationFeatures;
+      if (gpuValidation)
+      {
+        enabledValidationFeatures.push_back(VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT);
+        enabledValidationFeatures.push_back(VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_RESERVE_BINDING_SLOT_EXT);
+      }
+
+      VkValidationFeaturesEXT validationFeatures = {};
+      validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+      validationFeatures.pEnabledValidationFeatures = enabledValidationFeatures.empty() ? nullptr : enabledValidationFeatures.data();
+      validationFeatures.enabledValidationFeatureCount = static_cast<uint>(enabledValidationFeatures.size());
+
       VkInstanceCreateInfo createInfo = {};
       createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
       createInfo.pApplicationInfo = &appInfo;
+
+      if (enableDebugLayer)
+        createInfo.pNext = &validationFeatures;
 
       const char* const extensions[] = { 
         VK_KHR_SURFACE_EXTENSION_NAME, 
@@ -727,8 +746,7 @@ namespace Fancy
 
       createInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
       createInfo.ppEnabledExtensionNames = extensions;
-
-      const bool enableDebugLayer = CommandLine::GetInstance()->HasArgument("DebugLayer");
+      
       const char* const layers[] = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor"  };
       createInfo.enabledLayerCount = enableDebugLayer ? ARRAY_LENGTH(layers) : 0;
       createInfo.ppEnabledLayerNames = enableDebugLayer ? layers : nullptr;

@@ -64,6 +64,10 @@ namespace Fancy {
   class RenderCore
   {
   public:
+
+    // Utility functions
+    static uint GetNumDescriptors(GlobalResourceType aType, const RenderPlatformProperties& someProperties);
+
     enum Constants
     {
       NUM_QUEUED_FRAMES = 3u,

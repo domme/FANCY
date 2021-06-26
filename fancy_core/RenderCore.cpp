@@ -116,6 +116,45 @@ namespace Fancy {
     return ourShaderCompiler.get();
   }
 //---------------------------------------------------------------------------//
+  uint RenderCore::GetNumDescriptors(GlobalResourceType aType, const RenderPlatformProperties& someProperties)
+  {
+    switch (aType)
+    {
+    case GLOBAL_RESOURCE_TEXTURE_1D:
+    case GLOBAL_RESOURCE_TEXTURE_1D_UINT:
+    case GLOBAL_RESOURCE_TEXTURE_1D_INT:
+    case GLOBAL_RESOURCE_RWTEXTURE_1D:
+    case GLOBAL_RESOURCE_RWTEXTURE_1D_UINT:
+    case GLOBAL_RESOURCE_RWTEXTURE_1D_INT:
+      return someProperties.myNumGlobalTextures1D;
+    case GLOBAL_RESOURCE_TEXTURE_2D:
+    case GLOBAL_RESOURCE_TEXTURE_2D_UINT:
+    case GLOBAL_RESOURCE_TEXTURE_2D_INT:
+    case GLOBAL_RESOURCE_RWTEXTURE_2D:
+    case GLOBAL_RESOURCE_RWTEXTURE_2D_UINT:
+    case GLOBAL_RESOURCE_RWTEXTURE_2D_INT:
+      return someProperties.myNumGlobalTextures2D;
+    case GLOBAL_RESOURCE_TEXTURE_3D:
+    case GLOBAL_RESOURCE_TEXTURE_3D_UINT:
+    case GLOBAL_RESOURCE_TEXTURE_3D_INT:
+    case GLOBAL_RESOURCE_RWTEXTURE_3D:
+    case GLOBAL_RESOURCE_RWTEXTURE_3D_UINT:
+    case GLOBAL_RESOURCE_RWTEXTURE_3D_INT:
+      return someProperties.myNumGlobalTextures3D;
+    case GLOBAL_RESOURCE_TEXTURE_CUBE:
+    case GLOBAL_RESOURCE_TEXTURE_CUBE_UINT:
+    case GLOBAL_RESOURCE_TEXTURE_CUBE_INT:
+      return someProperties.myNumGlobalTexturesCube;
+    case GLOBAL_RESOURCE_BUFFER:
+    case GLOBAL_RESOURCE_RWBUFFER:
+      return someProperties.myNumGlobalBuffers;
+    case GLOBAL_RESOURCE_SAMPLER:
+      return someProperties.myNumGlobalSamplers;
+    default: assert(false);
+      return 0;
+    }
+  }
+//---------------------------------------------------------------------------//
   void RenderCore::Init(const RenderPlatformProperties& someProperties)
   {
     Init_0_Platform(someProperties);
@@ -415,7 +454,7 @@ namespace Fancy {
         break;
       case RenderPlatformType::VULKAN:
 #if FANCY_ENABLE_VK
-        ourPlatformImpl = eastl::make_unique<RenderCore_PlatformVk>();
+        ourPlatformImpl = eastl::make_unique<RenderCore_PlatformVk>(someProperties);
 #else
         ASSERT(false, "Vulkan not supported. Recompile with FANCY_ENABLE_VK 1");
 #endif
