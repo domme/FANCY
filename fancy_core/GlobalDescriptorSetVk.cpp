@@ -90,7 +90,11 @@ namespace Fancy
 
     const uint numSamplerDescriptors = myNumGlobalDescriptors[GLOBAL_RESOURCE_SAMPLER];
 
-    myDescriptorPool = DescriptorPoolAllocatorVk::CreateDescriptorPool(numImageDescriptors, numBufferDescriptors, 0, numSamplerDescriptors, 1);
+    myDescriptorPool = DescriptorPoolAllocatorVk::CreateDescriptorPool(
+      glm::max(1u, numImageDescriptors), 
+      glm::max(1u, numBufferDescriptors), 
+      1u, 
+      glm::max(1u, numSamplerDescriptors), 1);
     ASSERT(myDescriptorPool);
 
     // Allocate the one single descriptor set from the pool.
@@ -112,7 +116,7 @@ namespace Fancy
     VkDescriptorBufferInfo nullBufferDescriptor;
     nullBufferDescriptor.buffer = VK_NULL_HANDLE;
     nullBufferDescriptor.offset = 0;
-    nullBufferDescriptor.range = 0;
+    nullBufferDescriptor.range = VK_WHOLE_SIZE;
 
     uint maxNumDescriptors = 0;
     for (uint i = 0; i < GLOBAL_RESOURCE_NUM; ++i)
@@ -126,6 +130,9 @@ namespace Fancy
     
     for (uint i = 0; i < GLOBAL_RESOURCE_NUM; ++i)
     {
+      if (i == GLOBAL_RESOURCE_SAMPLER)
+        continue; // Apparently there is no such thing as a null-descriptor for samplers. The debug-layer complains
+
       VkWriteDescriptorSet writeInfo;
       writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
       writeInfo.pNext = nullptr;
@@ -218,7 +225,7 @@ namespace Fancy
     VkDescriptorBufferInfo nullBufferDescriptor;
     nullBufferDescriptor.buffer = VK_NULL_HANDLE;
     nullBufferDescriptor.offset = 0;
-    nullBufferDescriptor.range = 0;
+    nullBufferDescriptor.range = VK_WHOLE_SIZE;
 
     VkBufferView nullBufferView = VK_NULL_HANDLE;
 
@@ -232,21 +239,23 @@ namespace Fancy
       myAllocators[resourceType].Free({ descriptorToFree.myIndex, descriptorToFree.myIndex + 1 });
 
 #if FANCY_HEAVY_DEBUG
-      // Replace with null descriptor
-      // For debugging, this could also become a special error-resource for detecting if something deleted is accessed in a shader.
-      VkWriteDescriptorSet writeInfo = {};
-      writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      writeInfo.pNext = nullptr;
-      writeInfo.dstSet = myDescriptorSet;
-      writeInfo.dstBinding = static_cast<uint>(descriptorToFree.myResourceType);
-      writeInfo.dstArrayElement = descriptorToFree.myIndex;
-      writeInfo.descriptorType = RenderCore_PlatformVk::GetDescriptorType(descriptorToFree.myResourceType);
-      writeInfo.descriptorCount = 1;
-      writeInfo.pBufferInfo = &nullBufferDescriptor;
-      writeInfo.pImageInfo = &nullImageDescriptor;
-      writeInfo.pTexelBufferView = &nullBufferView;
+      if (resourceType != GLOBAL_RESOURCE_SAMPLER)
+      {
+        // Replace with null descriptor
+        // For debugging, this could also become a special error-resource for detecting if something deleted is accessed in a shader.
+        VkWriteDescriptorSet& writeInfo = writeInfos.push_back();
 
-      writeInfos.push_back(writeInfo);
+        writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeInfo.pNext = nullptr;
+        writeInfo.dstSet = myDescriptorSet;
+        writeInfo.dstBinding = static_cast<uint>(descriptorToFree.myResourceType);
+        writeInfo.dstArrayElement = descriptorToFree.myIndex;
+        writeInfo.descriptorType = RenderCore_PlatformVk::GetDescriptorType(descriptorToFree.myResourceType);
+        writeInfo.descriptorCount = 1;
+        writeInfo.pBufferInfo = &nullBufferDescriptor;
+        writeInfo.pImageInfo = &nullImageDescriptor;
+        writeInfo.pTexelBufferView = &nullBufferView;
+      }
 #endif
     }
 

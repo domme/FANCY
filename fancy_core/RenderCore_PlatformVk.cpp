@@ -731,12 +731,12 @@ namespace Fancy
       validationFeatures.pEnabledValidationFeatures = enabledValidationFeatures.empty() ? nullptr : enabledValidationFeatures.data();
       validationFeatures.enabledValidationFeatureCount = static_cast<uint>(enabledValidationFeatures.size());
 
-      VkInstanceCreateInfo createInfo = {};
-      createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-      createInfo.pApplicationInfo = &appInfo;
+      VkInstanceCreateInfo instanceCreateInfo = {};
+      instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+      instanceCreateInfo.pApplicationInfo = &appInfo;
 
       if (enableDebugLayer)
-        createInfo.pNext = &validationFeatures;
+        instanceCreateInfo.pNext = &validationFeatures;
 
       const char* const extensions[] = { 
         VK_KHR_SURFACE_EXTENSION_NAME, 
@@ -744,14 +744,14 @@ namespace Fancy
         VK_EXT_DEBUG_UTILS_EXTENSION_NAME
       };
 
-      createInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
-      createInfo.ppEnabledExtensionNames = extensions;
+      instanceCreateInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
+      instanceCreateInfo.ppEnabledExtensionNames = extensions;
       
       const char* const layers[] = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor"  };
-      createInfo.enabledLayerCount = enableDebugLayer ? ARRAY_LENGTH(layers) : 0;
-      createInfo.ppEnabledLayerNames = enableDebugLayer ? layers : nullptr;
+      instanceCreateInfo.enabledLayerCount = enableDebugLayer ? ARRAY_LENGTH(layers) : 0;
+      instanceCreateInfo.ppEnabledLayerNames = enableDebugLayer ? layers : nullptr;
       
-      ASSERT_VK_RESULT(vkCreateInstance(&createInfo, nullptr, &myInstance));
+      ASSERT_VK_RESULT(vkCreateInstance(&instanceCreateInfo, nullptr, &myInstance));
       LOG("Initialized Vulkan instance");
 
       VkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT) vkGetInstanceProcAddr(myInstance, "vkSetDebugUtilsObjectNameEXT");

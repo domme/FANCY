@@ -878,7 +878,7 @@ namespace eastl
 	inline typename vector<T, Allocator>::pointer
 	vector<T, Allocator>::data() EA_NOEXCEPT
 	{
-		return ;
+		return mpBegin;
 	}
 
 

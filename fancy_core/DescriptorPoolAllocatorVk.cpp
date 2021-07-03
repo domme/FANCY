@@ -33,6 +33,8 @@ namespace Fancy
   VkDescriptorPool DescriptorPoolAllocatorVk::CreateDescriptorPool(
     uint aNumImages, uint aNumBuffers, uint aNumUniformBuffers, uint aNumSamplers, uint aMaxNumSets)
   {
+    ASSERT(aNumImages > 0 && aNumBuffers > 0 && aNumUniformBuffers > 0 && aNumSamplers > 0, "Vk requires at least one descriptor per type when creating a descriptor pool");
+
     VkDescriptorPoolSize poolSizes[] =
     {
       { VK_DESCRIPTOR_TYPE_SAMPLER, aNumSamplers },
