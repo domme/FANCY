@@ -24,5 +24,5 @@ Mostly created for personal learning-purposes and graphics-demos. Most areas are
 * [EASTL](https://github.com/electronicarts/EASTL)
 
 ## Building
-A Visual Studio 2017 solution is included in the sources. The required data (binaries, libs, models, textures,...) is not included in this repository and needs to be downloaded here:
+A Visual Studio 2019 solution is included in the sources. The required data (binaries, libs, models, textures,...) is not included in this repository and needs to be downloaded here:
 https://www.dropbox.com/s/0vh9ktvtxa8mztg/Fancy_Data.zip?dl=0
