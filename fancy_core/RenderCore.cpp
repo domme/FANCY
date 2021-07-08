@@ -147,6 +147,7 @@ namespace Fancy {
       return someProperties.myNumGlobalTexturesCube;
     case GLOBAL_RESOURCE_BUFFER:
     case GLOBAL_RESOURCE_RWBUFFER:
+    case GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE:
       return someProperties.myNumGlobalBuffers;
     case GLOBAL_RESOURCE_SAMPLER:
       return someProperties.myNumGlobalSamplers;

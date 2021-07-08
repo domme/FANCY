@@ -7,6 +7,7 @@
 
 namespace Fancy
 {
+//---------------------------------------------------------------------------//
   PagedLinearAllocator::PagedLinearAllocator(uint64 aPageSize)
     : myPageSize(aPageSize)
   {

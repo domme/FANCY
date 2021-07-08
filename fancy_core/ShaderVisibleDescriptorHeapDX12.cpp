@@ -58,6 +58,7 @@ namespace Fancy {
         return GpuResourceDimension::TEXTURE_CUBE;
       case GLOBAL_RESOURCE_BUFFER:
       case GLOBAL_RESOURCE_RWBUFFER:
+      case GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE:
         return GpuResourceDimension::BUFFER;
       case GLOBAL_RESOURCE_SAMPLER:
         return GpuResourceDimension::UNKONWN;
@@ -67,58 +68,14 @@ namespace Fancy {
   }
 //---------------------------------------------------------------------------//
   ShaderVisibleDescriptorHeapDX12::ShaderVisibleDescriptorHeapDX12(const RenderPlatformProperties& someProperties)
-    : myNumGlobalDescriptors{
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTexturesCube,
-        someProperties.myNumGlobalTexturesCube,
-        someProperties.myNumGlobalTexturesCube,
-        someProperties.myNumGlobalBuffers,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalBuffers,
-        someProperties.myNumGlobalSamplers }
-    , myAllocators{
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTexturesCube,
-        someProperties.myNumGlobalTexturesCube,
-        someProperties.myNumGlobalTexturesCube,
-        someProperties.myNumGlobalBuffers,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures1D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures2D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalTextures3D,
-        someProperties.myNumGlobalBuffers,
-        someProperties.myNumGlobalSamplers
-    }
   {
+    for (uint i = 0; i < GLOBAL_RESOURCE_NUM; ++i)
+    {
+      const uint numDescriptors = RenderCore::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
+      myNumGlobalDescriptors[i] = numDescriptors;
+      myAllocators[i] = PagedLinearAllocator(numDescriptors);
+    }
+
     // Create resource Heap
     uint numResourceDescriptors = 0;
     for (uint i = 0; i < GLOBAL_RESOURCE_NUM_NOSAMPLER; ++i)

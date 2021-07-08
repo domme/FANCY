@@ -134,18 +134,6 @@ namespace Fancy
     NONE
   };
 //---------------------------------------------------------------------------//
-  enum class ShaderStageFlag
-  {
-    VERTEX = 0x01,
-    FRAGMENT = 0x02,
-    GEOMETRY = 0x04,
-    TESS_HULL = 0x08,
-    TESS_DOMAIN = 0x10,
-    COMPUTE = 0x20,
-
-    ALL = 0xFF
-  };
-//-----------------------------------------------------------------------//
   enum class CpuMemoryAccessType
   {
     NO_CPU_ACCESS = 0,
@@ -409,7 +397,8 @@ namespace Fancy
     GLOBAL_RESOURCE_TEXTURE_CUBE_UINT,
     GLOBAL_RESOURCE_TEXTURE_CUBE_INT,
     GLOBAL_RESOURCE_BUFFER,
-    GLOBAL_RESOURCE_SRV_END = GLOBAL_RESOURCE_BUFFER + 1,
+    GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE,
+    GLOBAL_RESOURCE_SRV_END = GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE + 1,
 
     GLOBAL_RESOURCE_UAV_START = GLOBAL_RESOURCE_SRV_END,
     GLOBAL_RESOURCE_RWTEXTURE_1D = GLOBAL_RESOURCE_UAV_START,

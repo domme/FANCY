@@ -17,6 +17,11 @@ namespace Fancy
   class PagedLinearAllocator
   {
   public:
+    enum Consts
+    {
+      DEFAULT_PAGESIZE = 64
+    };
+
     struct Page
     {
       uint64 myStart;
@@ -31,7 +36,7 @@ namespace Fancy
       uint64 myEnd;
     };
 
-    PagedLinearAllocator(uint64 aPageSize);
+    PagedLinearAllocator(uint64 aPageSize = DEFAULT_PAGESIZE);
     virtual ~PagedLinearAllocator();
 
     const Page* FindPage(eastl::function<bool(const Page&)> aPredicateFn);
@@ -50,7 +55,7 @@ namespace Fancy
     bool CreateAndAddPage(uint64 aSize);
     static bool IsBlockInPage(const Block& aBlock, const Page& aPage) { return aBlock.myStart >= aPage.myStart && aBlock.myEnd <= aPage.myEnd; }
 
-    const uint64 myPageSize;
+    uint64 myPageSize;
     using FreeListT = GrowingList<Block, 64>;
     using FreeListIterator = typename FreeListT::Iterator;
     FreeListT myFreeList;

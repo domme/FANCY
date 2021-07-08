@@ -1,4 +1,7 @@
 #include "fancy_core_precompile.h"
+
+#if FANCY_ENABLE_VK
+
 #include "GlobalDescriptorSetVk.h"
 
 #include "DescriptorPoolAllocatorVk.h"
@@ -10,58 +13,14 @@ namespace Fancy
 {
 //---------------------------------------------------------------------------//
   GlobalDescriptorSetVk::GlobalDescriptorSetVk(const RenderPlatformProperties& someProperties)
-    : myNumGlobalDescriptors{
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTexturesCube,
-          someProperties.myNumGlobalTexturesCube,
-          someProperties.myNumGlobalTexturesCube,
-          someProperties.myNumGlobalBuffers,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalBuffers,
-          someProperties.myNumGlobalSamplers }
-    , myAllocators{
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTexturesCube,
-          someProperties.myNumGlobalTexturesCube,
-          someProperties.myNumGlobalTexturesCube,
-          someProperties.myNumGlobalBuffers,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures1D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures2D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalTextures3D,
-          someProperties.myNumGlobalBuffers,
-          someProperties.myNumGlobalSamplers
-    }
   {
+    for (uint i = 0; i < GLOBAL_RESOURCE_NUM; ++i)
+    {
+      const uint numDescriptors = RenderCore::GetNumDescriptors(static_cast<GlobalResourceType>(i), someProperties);
+      myNumGlobalDescriptors[i] = numDescriptors;
+      myAllocators[i] = PagedLinearAllocator(numDescriptors);
+    }
+
     const uint numImageDescriptors =
       myNumGlobalDescriptors[GLOBAL_RESOURCE_TEXTURE_1D] +
       myNumGlobalDescriptors[GLOBAL_RESOURCE_TEXTURE_1D_UINT] +
@@ -267,3 +226,5 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 }
+
+#endif
