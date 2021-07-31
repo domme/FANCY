@@ -126,7 +126,7 @@ namespace Fancy
 
     PFN_vkSetDebugUtilsObjectNameEXT VkSetDebugUtilsObjectNameEXT = nullptr;
 
-    QueueInfo myQueueInfos[(uint)CommandListType::NUM];
+    QueueInfo myQueueInfos[(uint)CommandListType::SHADERSTAGE_NUM];
 
     VkPhysicalDeviceFeatures myPhysicalDeviceFeatures;
     VkPhysicalDeviceProperties myPhysicalDeviceProperties;
@@ -134,7 +134,7 @@ namespace Fancy
   protected:
     VkPhysicalDeviceMemoryProperties myPhysicalDeviceMemoryProperties;
 
-    UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::NUM];
+    UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::SHADERSTAGE_NUM];
     UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
     UniquePtr<PipelineLayoutVk> myPipelineLayout;
     UniquePtr<GlobalDescriptorSetVk> myGlobalDescriptorSet;

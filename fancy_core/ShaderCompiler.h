@@ -7,7 +7,9 @@
 #include "EASTL/any.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  struct RtShaderCompiledData;
+  struct RtShaderProperties;
+  //---------------------------------------------------------------------------//
   struct ShaderDesc;
 //---------------------------------------------------------------------------//
   struct ShaderCompilerResult
@@ -24,7 +26,7 @@ namespace Fancy {
     public:
       static const char* GetShaderRootFolderRelative() { return "resources/shader"; }
       static const char* ShaderStageToDefineString(ShaderStage aShaderStage);
-      static const char* GetHLSLprofileString(ShaderStage aShaderStage, ShaderModel aShaderModel = ShaderModel::SM_6_4);
+      static StaticShortString GetHLSLprofileString(ShaderStage aShaderStage, ShaderModel aShaderModel = SM_LATEST);
       static VertexAttributeSemantic GetVertexAttributeSemantic(const char* aSemanticName);
 
       virtual ~ShaderCompiler() = default;

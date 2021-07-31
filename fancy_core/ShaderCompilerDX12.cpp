@@ -230,57 +230,60 @@ namespace Fancy {
     uint rootSigPartIdx;
     ASSERT(S_OK != dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx), "Custom HLSL-specified root signatures are not supported");
 
-    // Shader reflection
-    //---------------------------------------------------------------------------//
-    uint dxilPartIdx;
-    success = dxcReflection->FindFirstPartKind(hlsl::DFCC_DXIL, &dxilPartIdx);
-    ASSERT(success == S_OK);
-
-    Microsoft::WRL::ComPtr<ID3D12ShaderReflection> reflector;
-    success = dxcReflection->GetPartReflection(dxilPartIdx, IID_PPV_ARGS(&reflector));
-    if (S_OK != success)
+    if (!IsRaytracingStage(static_cast<ShaderStage>(aDesc.myShaderStage)))  // Raytracing-shaders are always compiled as library shaders and can't be reflected
     {
-      LOG_ERROR("Failed reflecting shader");
-      return false;
-    }
+      // Shader reflection
+      //---------------------------------------------------------------------------//
+        uint dxilPartIdx;
+        success = dxcReflection->FindFirstPartKind(hlsl::DFCC_DXIL, &dxilPartIdx);
+        ASSERT(success == S_OK);
 
-    if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::VERTEX))
-    {
-      D3D12_SHADER_DESC shaderDesc;
-      reflector->GetDesc(&shaderDesc);
+        Microsoft::WRL::ComPtr<ID3D12ShaderReflection> reflector;
+        success = dxcReflection->GetPartReflection(dxilPartIdx, IID_PPV_ARGS(&reflector));
+        if (S_OK != success)
+        {
+          LOG_ERROR("Failed reflecting shader");
+          return false;
+        }
 
-      eastl::fixed_vector<VertexShaderAttributeDesc, 16>& vertexAttributes = anOutput->myVertexAttributes;
-      for (uint i = 0u; i < shaderDesc.InputParameters; ++i)
-      {
-        D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
-        reflector->GetInputParameterDesc(i, &paramDesc);
+        if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::SHADERSTAGE_VERTEX))
+        {
+          D3D12_SHADER_DESC shaderDesc;
+          reflector->GetDesc(&shaderDesc);
 
-        VertexShaderAttributeDesc& attributeDesc = vertexAttributes.push_back();
-        attributeDesc.myFormat = locResolveFormat(paramDesc);
-        ASSERT(attributeDesc.myFormat != DataFormat::NONE);
-        attributeDesc.mySemantic = ShaderCompiler::GetVertexAttributeSemantic(paramDesc.SemanticName);
-        attributeDesc.mySemanticIndex = paramDesc.SemanticIndex;
-      }
+          eastl::fixed_vector<VertexShaderAttributeDesc, 16>& vertexAttributes = anOutput->myVertexAttributes;
+          for (uint i = 0u; i < shaderDesc.InputParameters; ++i)
+          {
+            D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
+            reflector->GetInputParameterDesc(i, &paramDesc);
 
-      // Create a default vertex input layout that assumes that all vertex attributes come from one interleaved vertex buffer.
-     // A custom vertex input layout can be set using using CommandList::SetVertexInputLayout()
-      uint overallVertexSize = 0u;
-      VertexInputLayoutProperties props;
-      for (uint i = 0u; i < vertexAttributes.size(); ++i)
-      {
-        const VertexShaderAttributeDesc& shaderAttribute = vertexAttributes[i];
-        props.myAttributes.push_back({ shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u });
-        overallVertexSize += DataFormatInfo::GetFormatInfo(shaderAttribute.myFormat).mySizeBytes;
-      }
+            VertexShaderAttributeDesc& attributeDesc = vertexAttributes.push_back();
+            attributeDesc.myFormat = locResolveFormat(paramDesc);
+            ASSERT(attributeDesc.myFormat != DataFormat::NONE);
+            attributeDesc.mySemantic = ShaderCompiler::GetVertexAttributeSemantic(paramDesc.SemanticName);
+            attributeDesc.mySemanticIndex = paramDesc.SemanticIndex;
+          }
 
-      props.myBufferBindings.push_back({ overallVertexSize, VertexInputRate::PER_VERTEX });
-      anOutput->myDefaultVertexInputLayout = RenderCore::CreateVertexInputLayout(props);
-    }
-    else if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::COMPUTE))
-    {
-      uint x, y, z;
-      reflector->GetThreadGroupSize(&x, &y, &z);
-      anOutput->myProperties.myNumGroupThreads = glm::int3(static_cast<int>(x), static_cast<int>(y), static_cast<int>(z));
+          // Create a default vertex input layout that assumes that all vertex attributes come from one interleaved vertex buffer.
+         // A custom vertex input layout can be set using using CommandList::SetVertexInputLayout()
+          uint overallVertexSize = 0u;
+          VertexInputLayoutProperties props;
+          for (uint i = 0u; i < vertexAttributes.size(); ++i)
+          {
+            const VertexShaderAttributeDesc& shaderAttribute = vertexAttributes[i];
+            props.myAttributes.push_back({ shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u });
+            overallVertexSize += DataFormatInfo::GetFormatInfo(shaderAttribute.myFormat).mySizeBytes;
+          }
+
+          props.myBufferBindings.push_back({ overallVertexSize, VertexInputRate::PER_VERTEX });
+          anOutput->myDefaultVertexInputLayout = RenderCore::CreateVertexInputLayout(props);
+        }
+        else if (aDesc.myShaderStage == static_cast<uint>(ShaderStage::SHADERSTAGE_COMPUTE))
+        {
+          uint x, y, z;
+          reflector->GetThreadGroupSize(&x, &y, &z);
+          anOutput->myProperties.myNumGroupThreads = glm::int3(static_cast<int>(x), static_cast<int>(y), static_cast<int>(z));
+        }
     }
     
     compiledNativeData.myBytecode.resize(compiledShaderBytecode->GetBufferSize());

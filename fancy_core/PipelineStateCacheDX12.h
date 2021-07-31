@@ -11,14 +11,20 @@ namespace Fancy
   struct GraphicsPipelineState;
   struct ComputePipelineState;
 
-  class PipelineStateCacheDX12 : public RenderPlatformObjectCache<ID3D12PipelineState*>
+  class PipelineStateCacheDX12
   {
   public:
-    ~PipelineStateCacheDX12() override;
+    ~PipelineStateCacheDX12();
 
     ID3D12PipelineState* GetCreateGraphicsPSO(const GraphicsPipelineState& aState);
     ID3D12PipelineState* GetCreateComputePSO(const ComputePipelineState& aState);
-    void Clear() override;
+    
+    void Clear();
+
+  private:
+    std::mutex myCacheMutex;
+    eastl::hash_map<uint64, ID3D12PipelineState*> myGraphicsPsoCache;
+    eastl::hash_map<uint64, ID3D12PipelineState*> myComputePsoCache;
   };
 }
 

@@ -6,6 +6,7 @@ namespace Fancy
 {
   class GpuBuffer;
   class RaytracingBVH;
+  class Shader;
 }
 
 class Test_Raytracing : public Test
@@ -24,5 +25,7 @@ public:
 
   Fancy::SharedPtr<Fancy::RaytracingBVH> myBottomLevelBVH;
   Fancy::SharedPtr<Fancy::RaytracingBVH> myTopLevelBVH;
+
+  Fancy::SharedPtr<Fancy::Shader> myRayGenShader;
 }; 
 

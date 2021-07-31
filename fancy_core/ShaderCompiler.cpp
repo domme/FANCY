@@ -9,95 +9,77 @@ namespace Fancy
   {
     switch (aShaderStage)
     {
-    case Fancy::ShaderStage::VERTEX:
+    case SHADERSTAGE_VERTEX:
       return "PROGRAM_TYPE_VERTEX";
-    case Fancy::ShaderStage::FRAGMENT:
+    case SHADERSTAGE_FRAGMENT:
       return "PROGRAM_TYPE_FRAGMENT";
-    case Fancy::ShaderStage::GEOMETRY:
+    case SHADERSTAGE_GEOMETRY:
       return "PROGRAM_TYPE_GEOMETRY";
-    case Fancy::ShaderStage::TESS_HULL:
+    case SHADERSTAGE_TESS_HULL:
       return "PROGRAM_TYPE_TESS_HULL";
-    case Fancy::ShaderStage::TESS_DOMAIN:
+    case SHADERSTAGE_TESS_DOMAIN:
       return "PROGRAM_TYPE_TESS_DOMAIN";
-    case Fancy::ShaderStage::COMPUTE:
+    case SHADERSTAGE_COMPUTE:
       return "PROGRAM_TYPE_COMPUTE";
+    case SHADERSTAGE_RAYGEN:
+      return "PROGRAM_TYPE_RAYGEN";
+    case SHADERSTAGE_MISS:
+      return "PROGRAM_TYPE_MISS";
+    case SHADERSTAGE_INTERSECTION:
+      return "PROGRAM_TYPE_INTERSECTION";
+    case SHADERSTAGE_ANYHIT: 
+      return "PROGRAM_TYPE_ANYHIT";
+    case SHADERSTAGE_CLOSEST_HIT: 
+      return "PROGRAM_TYPE_CLOSEST_HIT";
     default:
-      return "";
+      ASSERT(false); return "";
     }
   }
 //---------------------------------------------------------------------------//
-  const char* ShaderCompiler::GetHLSLprofileString(ShaderStage aShaderStage, ShaderModel aShaderModel)
+  const char* locGetShaderStagePrefix(ShaderStage aShaderStage)
   {
-    switch (aShaderModel)
+    switch (aShaderStage)
     {
-      case ShaderModel::SM_6_0:
-      {
-        switch (aShaderStage)
-        {
-        case ShaderStage::VERTEX: return "vs_6_0";
-        case ShaderStage::FRAGMENT: return "ps_6_0";
-        case ShaderStage::GEOMETRY: return "gs_6_0";
-        case ShaderStage::COMPUTE: return "cs_6_0";
-        default:
-          ASSERT(false, "Unsupported HLSL shader-profile");
-          return "";
-        }
-      }
-      case ShaderModel::SM_6_1:
-      {
-        switch (aShaderStage)
-        {
-        case ShaderStage::VERTEX: return "vs_6_1";
-        case ShaderStage::FRAGMENT: return "ps_6_1";
-        case ShaderStage::GEOMETRY: return "gs_6_1";
-        case ShaderStage::COMPUTE: return "cs_6_1";
-        default:
-          ASSERT(false, "Unsupported HLSL shader-profile");
-          return "";
-        }
-      }
-      case ShaderModel::SM_6_2:
-      {
-        switch (aShaderStage)
-        {
-        case ShaderStage::VERTEX: return "vs_6_2";
-        case ShaderStage::FRAGMENT: return "ps_6_2";
-        case ShaderStage::GEOMETRY: return "gs_6_2";
-        case ShaderStage::COMPUTE: return "cs_6_2";
-        default:
-          ASSERT(false, "Unsupported HLSL shader-profile");
-          return "";
-        }
-      }
-      case ShaderModel::SM_6_3:
-      {
-        switch (aShaderStage)
-        {
-        case ShaderStage::VERTEX: return "vs_6_3";
-        case ShaderStage::FRAGMENT: return "ps_6_3";
-        case ShaderStage::GEOMETRY: return "gs_6_3";
-        case ShaderStage::COMPUTE: return "cs_6_3";
-        default:
-          ASSERT(false, "Unsupported HLSL shader-profile");
-          return "";
-        }
-      }
-      case ShaderModel::SM_6_4:
-      {
-        switch (aShaderStage)
-        {
-        case ShaderStage::VERTEX: return "vs_6_4";
-        case ShaderStage::FRAGMENT: return "ps_6_4";
-        case ShaderStage::GEOMETRY: return "gs_6_4";
-        case ShaderStage::COMPUTE: return "cs_6_4";
-        default:
-          ASSERT(false, "Unsupported HLSL shader-profile");
-          return "";
-        }
-      }
-      default: ASSERT(false, "Unsupported shader model");
-        return "";
+    case SHADERSTAGE_VERTEX: 
+      return "vs_";
+    case SHADERSTAGE_FRAGMENT: 
+      return "ps_";
+    case SHADERSTAGE_GEOMETRY: 
+      return "gs_";
+    case SHADERSTAGE_TESS_HULL: 
+      return "hs_";
+    case SHADERSTAGE_TESS_DOMAIN: 
+      return "ds_";
+    case SHADERSTAGE_COMPUTE: 
+      return "cs_";
+    case SHADERSTAGE_RAYGEN: 
+    case SHADERSTAGE_MISS: 
+    case SHADERSTAGE_INTERSECTION: 
+    case SHADERSTAGE_ANYHIT: 
+    case SHADERSTAGE_CLOSEST_HIT:
+      return "lib_";
+    default: ASSERT(false); return "";
     }
+  }
+//---------------------------------------------------------------------------//
+  const char* locGetShaderModelSuffix(ShaderModel aShaderModel)
+  {
+    switch(aShaderModel)
+    {
+    case SM_6_0: return "6_0";
+    case SM_6_1: return "6_1";
+    case SM_6_2: return "6_2";
+    case SM_6_3: return "6_3";
+    case SM_6_4: return "6_4";
+    default: ASSERT(false); return "";
+    }
+  }
+//---------------------------------------------------------------------------//
+  StaticShortString ShaderCompiler::GetHLSLprofileString(ShaderStage aShaderStage, ShaderModel aShaderModel)
+  {
+    StaticShortString str;
+    str.Format("%s%s", locGetShaderStagePrefix(aShaderStage), locGetShaderModelSuffix(aShaderModel));
+    return str;
   }
 //---------------------------------------------------------------------------//
   VertexAttributeSemantic ShaderCompiler::GetVertexAttributeSemantic(const char* aSemanticName)
@@ -144,5 +126,5 @@ namespace Fancy
     }
     return success;
   }
- //---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
 }

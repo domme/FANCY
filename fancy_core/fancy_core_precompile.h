@@ -44,6 +44,7 @@
 #include "EASTL/shared_ptr.h"
 #include "EASTL/safe_ptr.h"
 #include "EASTL/string.h"
+#include "EASTL/fixed_string.h"
 #include "EASTL/chrono.h"
 #include "EASTL/memory.h"
 #include "EASTL/utility.h"

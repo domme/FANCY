@@ -25,9 +25,9 @@ namespace Fancy
   void ObjectCore::Init()
   {
     ShaderPipelineDesc pipelineDesc;
-    ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
+    ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_COMPUTE];
     shaderDesc.myPath = "Downsample.hlsl";
-    shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
+    shaderDesc.myShaderStage = (uint)ShaderStage::SHADERSTAGE_COMPUTE;
     shaderDesc.myMainFunction = "main";
     
     ourMipDownsampleShader = RenderCore::CreateShaderPipeline(pipelineDesc);

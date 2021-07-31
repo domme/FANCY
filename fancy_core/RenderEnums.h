@@ -120,19 +120,30 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class ShaderStage
+  enum ShaderStage
   {
-    VERTEX = 0,
-    FRAGMENT,
-    GEOMETRY,
-    TESS_HULL,
-    TESS_DOMAIN,
-    COMPUTE,
-
-    NUM,
-    NUM_NO_COMPUTE = NUM - 1,
-    NONE
+    SHADERSTAGE_VERTEX = 0,
+    SHADERSTAGE_FRAGMENT,
+    SHADERSTAGE_GEOMETRY,
+    SHADERSTAGE_TESS_HULL,
+    SHADERSTAGE_TESS_DOMAIN,
+    SHADERSTAGE_COMPUTE,
+    SHADERSTAGE_RAYGEN,
+    SHADERSTAGE_MISS,
+    SHADERSTAGE_INTERSECTION,
+    SHADERSTAGE_ANYHIT,
+    SHADERSTAGE_CLOSEST_HIT,
+    
+    SHADERSTAGE_NUM,
+    SHADERSTAGE_NUM_RASTERIZATION = SHADERSTAGE_TESS_DOMAIN + 1 - SHADERSTAGE_VERTEX,
+    SHADERSTAGE_NUM_RAYTRACING = SHADERSTAGE_CLOSEST_HIT + 1 - SHADERSTAGE_RAYGEN,
+    SHADERSTAGE_NONE = SHADERSTAGE_NUM
   };
+//---------------------------------------------------------------------------//
+  inline bool IsRaytracingStage(ShaderStage aStage)
+  {
+    return aStage >= SHADERSTAGE_RAYGEN && aStage <= SHADERSTAGE_CLOSEST_HIT;
+  }
 //---------------------------------------------------------------------------//
   enum class CpuMemoryAccessType
   {
@@ -310,15 +321,14 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class ShaderModel
+  enum ShaderModel
   {
     SM_6_0 = 0,
     SM_6_1,
     SM_6_2,
     SM_6_3,
     SM_6_4,
-
-    NUM
+    SM_LATEST = SM_6_4,
   };
 //---------------------------------------------------------------------------//
   enum class ResourceTransition
@@ -379,6 +389,13 @@ namespace Fancy
     PREFER_FAST_TRACE = 1 << 2u,
     PREFER_FAST_BUILD = 1 << 3u,
     MINIMIZE_MEMORY = 1 << 4u
+  };
+//---------------------------------------------------------------------------//
+  enum RaytracingHitGroupType
+  {
+    RT_HIT_GROUP_TYPE_TRIANGLES = 0,
+    RT_HIT_GROUP_TYPE_PROCEDURAL_GEOMETRY,
+    RT_HIT_GROUP_TYPE_NUM,
   };
 //---------------------------------------------------------------------------//
   enum GlobalResourceType

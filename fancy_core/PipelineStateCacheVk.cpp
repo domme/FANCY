@@ -79,7 +79,7 @@ namespace Fancy
     pipelineCreateInfo.layout = RenderCore::GetPlatformVk()->GetPipelineLayout()->myPipelineLayout;
 
     // Vertex input state
-    const ShaderVk* vertexShader = static_cast<const ShaderVk*>(aState.myShaderPipeline->GetShader(ShaderStage::VERTEX));
+    const ShaderVk* vertexShader = static_cast<const ShaderVk*>(aState.myShaderPipeline->GetShader(ShaderStage::SHADERSTAGE_VERTEX));
     const VertexInputLayout* inputLayout = aState.myVertexInputLayout ? aState.myVertexInputLayout : vertexShader->myDefaultVertexInputLayout.get();
     ASSERT(inputLayout);
 
@@ -311,7 +311,7 @@ namespace Fancy
     ASSERT(aState.myShaderPipeline != nullptr);
     const ShaderPipelineVk* shaderPipeline = static_cast<const ShaderPipelineVk*>(aState.myShaderPipeline);
     ASSERT(shaderPipeline->IsComputePipeline());
-    const ShaderVk* computeShader = static_cast<const ShaderVk*>(shaderPipeline->GetShader(ShaderStage::COMPUTE));
+    const ShaderVk* computeShader = static_cast<const ShaderVk*>(shaderPipeline->GetShader(ShaderStage::SHADERSTAGE_COMPUTE));
 
     VkComputePipelineCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;

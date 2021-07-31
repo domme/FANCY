@@ -137,13 +137,13 @@ namespace Fancy { namespace ImGuiRendering {
     // Load the imgui-shader state
     {
       ShaderPipelineDesc pipelineDesc;
-      ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
+      ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_VERTEX];
       shaderDesc->myPath = "Imgui.hlsl";
       shaderDesc->myMainFunction = "main";
-      shaderDesc->myShaderStage = (uint)ShaderStage::VERTEX;
-      shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
+      shaderDesc->myShaderStage = (uint)ShaderStage::SHADERSTAGE_VERTEX;
+      shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_FRAGMENT];
       shaderDesc->myPath = "Imgui.hlsl";
-      shaderDesc->myShaderStage = (uint)ShaderStage::FRAGMENT;
+      shaderDesc->myShaderStage = (uint)ShaderStage::SHADERSTAGE_FRAGMENT;
       shaderDesc->myMainFunction = "main";
       ourProgramPipeline = RenderCore::CreateShaderPipeline(pipelineDesc);
       ASSERT(ourProgramPipeline != nullptr);

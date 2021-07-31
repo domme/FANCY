@@ -146,8 +146,8 @@ namespace Fancy
     CommandListVk* commandListVk = static_cast<CommandListVk*>(aCommandList);
     VkCommandBuffer commandBuffer = commandListVk->GetCommandBuffer();
 
-    eastl::fixed_vector<VkSemaphore, (uint)CommandListType::NUM, false> waitSemaphores;
-    eastl::fixed_vector<uint64, (uint)CommandListType::NUM, false> waitValues;
+    eastl::fixed_vector<VkSemaphore, (uint)CommandListType::SHADERSTAGE_NUM, false> waitSemaphores;
+    eastl::fixed_vector<uint64, (uint)CommandListType::SHADERSTAGE_NUM, false> waitValues;
     for (uint i = 0u; i < (uint) myPendingStallSemaphores.size(); ++i)
     {
       waitSemaphores.push_back(myPendingStallSemaphores[i].first);

@@ -108,7 +108,7 @@ namespace Fancy
     SpvReflectResult reflectResult = spvReflectCreateShaderModule(spvBinaryData.size(), spvBinaryData.data(), &reflectModule);
     ASSERT(reflectResult == SPV_REFLECT_RESULT_SUCCESS);
 
-    if (aDesc.myShaderStage == (uint) ShaderStage::VERTEX)
+    if (aDesc.myShaderStage == (uint) ShaderStage::SHADERSTAGE_VERTEX)
     {
       eastl::fixed_vector<VertexShaderAttributeDesc, 16>& vertexAttributes = aCompilerOutput->myVertexAttributes;
       eastl::fixed_vector<uint, 16>& vertexAttributeLocations = compiledDataVk.myVertexAttributeLocations;
@@ -142,7 +142,7 @@ namespace Fancy
       props.myBufferBindings.push_back({ overallVertexSize, VertexInputRate::PER_VERTEX });
       aCompilerOutput->myDefaultVertexInputLayout = RenderCore::CreateVertexInputLayout(props);
     }
-    else if (aDesc.myShaderStage == (uint)ShaderStage::COMPUTE)
+    else if (aDesc.myShaderStage == (uint)ShaderStage::SHADERSTAGE_COMPUTE)
     {
       // SPIR-V reflect doesn't provide a way to reflect group-thread count yet, so just parse the source-code as a workaround for now
       eastl::string hlslSource = FileReader::ReadTextFile(anHlslSrcPathAbs);

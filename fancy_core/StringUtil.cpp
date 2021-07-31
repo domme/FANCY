@@ -4,9 +4,14 @@
 namespace Fancy
 {
 //---------------------------------------------------------------------------//
+  eastl::wstring StringUtil::ToWideString(const char* aStr)
+  {
+    return eastl::wstring(eastl::wstring::CtorConvert(), aStr);
+  }
+//---------------------------------------------------------------------------//
   eastl::wstring StringUtil::ToWideString(const eastl::string& aStr)
   {
-    return eastl::wstring(eastl::wstring::CtorConvert(), aStr.c_str());
+    return ToWideString(aStr.c_str());
   }
 //---------------------------------------------------------------------------//
   eastl::string StringUtil::ToNarrowString(const std::wstring& aStr)

@@ -46,6 +46,7 @@ namespace Fancy {
     static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(const GpuResourceViewType& aViewType);
     static D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE GetRaytracingBVHType(RaytracingBVHType aType);
     static D3D12_RAYTRACING_GEOMETRY_TYPE GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aGeoType);
+    static D3D12_HIT_GROUP_TYPE GetRaytracingHitGroupType(RaytracingHitGroupType aType);
 
     RenderCore_PlatformDX12(const RenderPlatformProperties& someProperties);
     ~RenderCore_PlatformDX12() override;
@@ -85,6 +86,7 @@ namespace Fancy {
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
     RaytracingBVH* CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr) override;
+    RaytracingPipelineState* CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps) override;
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;

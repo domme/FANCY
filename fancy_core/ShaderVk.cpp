@@ -16,12 +16,12 @@ namespace Fancy
     {
       switch (aShaderStage)
       {
-        case ShaderStage::VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
-        case ShaderStage::FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
-        case ShaderStage::GEOMETRY: return VK_SHADER_STAGE_GEOMETRY_BIT;
-        case ShaderStage::TESS_HULL: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        case ShaderStage::TESS_DOMAIN: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        case ShaderStage::COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
+        case ShaderStage::SHADERSTAGE_VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderStage::SHADERSTAGE_FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderStage::SHADERSTAGE_GEOMETRY: return VK_SHADER_STAGE_GEOMETRY_BIT;
+        case ShaderStage::SHADERSTAGE_TESS_HULL: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        case ShaderStage::SHADERSTAGE_TESS_DOMAIN: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+        case ShaderStage::SHADERSTAGE_COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
         default: ASSERT(false, "Missing implementation"); return VK_SHADER_STAGE_VERTEX_BIT;
       }
     }

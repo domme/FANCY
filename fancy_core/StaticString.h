@@ -64,6 +64,20 @@ namespace Fancy
       return *this;
     }
 
+    template<uint BufferSize2>
+    StaticString<BufferSize>& operator=(const StaticString<BufferSize2>& aStr)
+    {
+      if (BufferSize < aStr.Size() + 1)
+        LOG_WARNING("Truncating StaticString on copy-assignment");
+
+      uint numCharsToCopy = glm::min(BufferSize - 1, aStr.Size());
+      memcpy(myBuffer, aStr.myBuffer, numCharsToCopy);
+
+      myNextFree = numCharsToCopy;
+      myBuffer[myNextFree] = '\0';
+      return *this;
+    }
+
     bool operator==(const char* aStr) const 
     {
       uint len = (uint) strlen(aStr);
@@ -149,5 +163,6 @@ namespace Fancy
   using CircularStringBuffer = CircularStringBufferSized<4096>;
   using CircularStringBufferLarge = CircularStringBufferSized<8192>;
   using StaticFilePath = StaticString<260>;
+
 }
 //---------------------------------------------------------------------------//

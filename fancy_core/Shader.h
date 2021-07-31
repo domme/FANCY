@@ -17,15 +17,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct ShaderProperties
   {
-    ShaderStage myShaderStage = ShaderStage::NONE;
+    ShaderStage myShaderStage = SHADERSTAGE_NONE;
     glm::int3 myNumGroupThreads = { 1, 1, 1 };
   };
 //---------------------------------------------------------------------------//
   class Shader
   {
   public:
-    static uint64 GetParameterNameHash(const char* aName);
-
     virtual ~Shader() = default;
 
     const ShaderDesc& GetDescription() const { return myDesc; }

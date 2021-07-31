@@ -41,8 +41,8 @@ namespace Fancy
 
     {
       std::lock_guard<std::mutex> lock(myCacheMutex);
-      auto it = myCache.find(hash);
-      if (it != myCache.end())
+      auto it = myGraphicsPsoCache.find(hash);
+      if (it != myGraphicsPsoCache.end())
         return it->second;
     }
 
@@ -56,12 +56,12 @@ namespace Fancy
     memset(&psoDesc, 0u, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 
     // SHADER BYTECODES
-    D3D12_SHADER_BYTECODE* shaderDescs[]{ &psoDesc.VS, &psoDesc.PS, &psoDesc.DS, &psoDesc.HS, &psoDesc.GS };
-    ASSERT(ARRAY_LENGTH(shaderDescs) == (uint)ShaderStage::NUM_NO_COMPUTE);
+    D3D12_SHADER_BYTECODE* shaderDescs[]{ &psoDesc.VS, &psoDesc.PS, &psoDesc.GS, &psoDesc.HS, &psoDesc.DS };
+    ASSERT(ARRAY_LENGTH(shaderDescs) == SHADERSTAGE_NUM_RASTERIZATION);
 
     if (aState.myShaderPipeline != nullptr)
     {
-      for (uint i = 0u; i < (uint)ShaderStage::NUM_NO_COMPUTE; ++i)
+      for (uint i = 0u; i < SHADERSTAGE_NUM_RASTERIZATION; ++i)
       {
         if (nullptr == aState.myShaderPipeline->GetShader(i))
           continue;
@@ -175,7 +175,7 @@ namespace Fancy
     }
 
     // INPUT LAYOUT
-    const ShaderDX12* vertexShader = static_cast<const ShaderDX12*>(aState.myShaderPipeline->GetShader(ShaderStage::VERTEX));
+    const ShaderDX12* vertexShader = static_cast<const ShaderDX12*>(aState.myShaderPipeline->GetShader(ShaderStage::SHADERSTAGE_VERTEX));
     const VertexInputLayout* inputLayout = aState.myVertexInputLayout ? aState.myVertexInputLayout : vertexShader->myDefaultVertexInputLayout.get();
     ASSERT(inputLayout);
     const VertexInputLayoutProperties& inputLayoutProps = inputLayout->myProperties;
@@ -227,7 +227,7 @@ namespace Fancy
     // TOPOLOGY TYPE
     psoDesc.PrimitiveTopologyType = Adapter::ResolveTopologyType(aState.myTopologyType);
 
-    // NUM RENDER TARGETS
+    // SHADERSTAGE_NUM RENDER TARGETS
     psoDesc.NumRenderTargets = aState.myNumRenderTargets;
 
     // RTV-FORMATS
@@ -243,13 +243,13 @@ namespace Fancy
     psoDesc.NodeMask = 0u;
 
     std::lock_guard<std::mutex> lock(myCacheMutex);
-    auto it = myCache.find(hash);
-    if (it != myCache.end())
+    auto it = myGraphicsPsoCache.find(hash);
+    if (it != myGraphicsPsoCache.end())
       return it->second;
 
     ID3D12PipelineState* pso = nullptr;
     ASSERT_HRESULT(RenderCore::GetPlatformDX12()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso)));
-    myCache[hash] = pso;
+    myGraphicsPsoCache[hash] = pso;
 
     return pso;
   }
@@ -259,7 +259,7 @@ namespace Fancy
     ASSERT(aState.myShaderPipeline != nullptr);
     const ShaderPipelineDX12* shaderPipeline = static_cast<const ShaderPipelineDX12*>(aState.myShaderPipeline);
     ASSERT(shaderPipeline->IsComputePipeline());
-    const ShaderDX12* computeShader = static_cast<const ShaderDX12*>(shaderPipeline->GetShader(ShaderStage::COMPUTE));
+    const ShaderDX12* computeShader = static_cast<const ShaderDX12*>(shaderPipeline->GetShader(ShaderStage::SHADERSTAGE_COMPUTE));
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC desc;
     memset(&desc, 0u, sizeof(desc));
@@ -271,13 +271,13 @@ namespace Fancy
     const uint64 hash = aState.GetHash();
 
     std::lock_guard<std::mutex> lock(myCacheMutex);
-    auto it = myCache.find(hash);
-    if (it != myCache.end())
+    auto it = myComputePsoCache.find(hash);
+    if (it != myComputePsoCache.end())
       return it->second;
 
     ID3D12PipelineState* pso = nullptr;
     ASSERT_HRESULT(RenderCore::GetPlatformDX12()->GetDevice()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pso)));
-    myCache[hash] = pso;
+    myComputePsoCache[hash] = pso;
 
     return pso;
   }
@@ -285,10 +285,15 @@ namespace Fancy
   void PipelineStateCacheDX12::Clear()
   {
     std::lock_guard<std::mutex> lock(myCacheMutex);
-    for (auto it : myCache)
+    for (auto it : myGraphicsPsoCache)
       it.second->Release();
 
-    myCache.clear();
+    myGraphicsPsoCache.clear();
+
+    for (auto it : myComputePsoCache)
+      it.second->Release();
+
+    myComputePsoCache.clear();
   }
 //---------------------------------------------------------------------------//
 }

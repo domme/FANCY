@@ -35,13 +35,13 @@ static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const ch
 
   ShaderPipelineDesc pipelineDesc;
 
-  ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::VERTEX];
+  ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_VERTEX];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainVtxFunction;
   for (const eastl::string& str : defines)
     shaderDesc->myDefines.push_back(str);
 
-  shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::FRAGMENT];
+  shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_FRAGMENT];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainFragmentFunction;
   for (const eastl::string& str : defines)

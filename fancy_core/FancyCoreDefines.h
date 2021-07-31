@@ -4,6 +4,9 @@
 #include <climits>
 #include <string>
 #include <cinttypes>
+#include <EASTL/fixed_string.h>
+
+using FixedShortString = eastl::fixed_string<char, 32>;
 
 //Common MACRO defines
 #define SAFE_DELETE(p) if(p){ delete p; p = NULL; }

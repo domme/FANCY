@@ -715,7 +715,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers)
   {
-    const Shader* vertexShader = myGraphicsPipelineState.myShaderPipeline ? myGraphicsPipelineState.myShaderPipeline->GetShader(ShaderStage::VERTEX) : nullptr;
+    const Shader* vertexShader = myGraphicsPipelineState.myShaderPipeline ? myGraphicsPipelineState.myShaderPipeline->GetShader(ShaderStage::SHADERSTAGE_VERTEX) : nullptr;
     const VertexInputLayout* shaderInputLayout = vertexShader ? vertexShader->myDefaultVertexInputLayout.get() : nullptr;
     const VertexInputLayout* inputLayout = myGraphicsPipelineState.myVertexInputLayout ? myGraphicsPipelineState.myVertexInputLayout : shaderInputLayout;
 
@@ -1143,7 +1143,7 @@ namespace Fancy {
     ApplyResourceBindings();
     ASSERT(myComputePipelineState.myShaderPipeline != nullptr);
 
-    const Shader* shader = myComputePipelineState.myShaderPipeline->GetShader(ShaderStage::COMPUTE);
+    const Shader* shader = myComputePipelineState.myShaderPipeline->GetShader(ShaderStage::SHADERSTAGE_COMPUTE);
     ASSERT(shader != nullptr);
 
     const glm::int3& numGroupThreads = shader->GetProperties().myNumGroupThreads;

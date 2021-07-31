@@ -811,7 +811,7 @@ namespace Fancy
       // If that doesn't work, try to use different queues from the same family. Most likely these will be synchronous on hardware-level though.
       // Else disable certain queue-types that can't be filled in.
 
-      int numUsedQueues[(uint)CommandListType::NUM] = { 0u };
+      int numUsedQueues[(uint)CommandListType::SHADERSTAGE_NUM] = { 0u };
       for (uint i = 0u, e = (uint) queueFamilyProps.size(); i < e; ++i)
       {
         const VkQueueFamilyProperties& props = queueFamilyProps[i];
@@ -841,7 +841,7 @@ namespace Fancy
       ASSERT(myQueueInfos[(uint)CommandListType::Graphics].myQueueFamilyIndex != VK_QUEUE_FAMILY_IGNORED, "Could not find a graphics-capable Vulkan queue");
 
       // If the graphics device has multiple queues on a higher-level queue family, try to use those for lower-level queues on API-level
-      for (int queueType = (int)CommandListType::Compute; queueType < (int)CommandListType::NUM; ++queueType)
+      for (int queueType = (int)CommandListType::Compute; queueType < (int)CommandListType::SHADERSTAGE_NUM; ++queueType)
       {
         if (myQueueInfos[queueType].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
@@ -887,8 +887,8 @@ namespace Fancy
 
       const float queuePriority = 1.0f;
       uint numQueuesToCreate = 0u;
-      VkDeviceQueueCreateInfo queueCreateInfos[(uint) CommandListType::NUM] = {};
-      for (uint queueType = 0u; queueType < (uint)CommandListType::NUM; ++queueType)
+      VkDeviceQueueCreateInfo queueCreateInfos[(uint) CommandListType::SHADERSTAGE_NUM] = {};
+      for (uint queueType = 0u; queueType < (uint)CommandListType::SHADERSTAGE_NUM; ++queueType)
       {
         if (numUsedQueues[queueType] > 0)
         {

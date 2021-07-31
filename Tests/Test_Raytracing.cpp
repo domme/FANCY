@@ -6,6 +6,8 @@
 #include <EASTL/vector.h>
 
 #include "fancy_core/RaytracingBVH.h"
+#include "fancy_core/ShaderDesc.h"
+#include "fancy_core/RenderEnums.h"
 
 using namespace Fancy;
 
@@ -13,7 +15,12 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
     : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Raytracing")
 {
-
+  ShaderDesc shaderDesc;
+  shaderDesc.myShaderStage = SHADERSTAGE_RAYGEN;
+  shaderDesc.myMainFunction = "RayGen";
+  shaderDesc.myPath = "RayTracing/RayGen.hlsl";
+  myRayGenShader = RenderCore::CreateShader(shaderDesc);
+  
   // Create bottom level BVH
   {
     struct Vertex {

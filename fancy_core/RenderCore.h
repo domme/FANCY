@@ -18,7 +18,8 @@
 #include "EASTL/span.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  struct RaytracingPipelineState;
+  //---------------------------------------------------------------------------//
   struct MaterialDesc;
   struct Material;
   struct MeshDesc;
@@ -104,9 +105,9 @@ namespace Fancy {
     static SharedPtr<TextureView> CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, GpuBufferViewProperties someProperties, const char* aName = nullptr);
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, GpuBufferViewProperties someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
-    static SharedPtr<GpuResourceViewSet> CreateResourceViewSet(const eastl::span<GpuResourceViewRange>& someRanges);
     static SharedPtr<RaytracingBVH> CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr);
-    static uint GetQueryTypeDataSize(GpuQueryType aType); 
+    static SharedPtr<RaytracingPipelineState> CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps);
+    static uint GetQueryTypeDataSize(GpuQueryType aType);
     
     static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);
     static SharedPtr<DepthStencilState> CreateDepthStencilState(const DepthStencilStateProperties& aDesc);
@@ -194,6 +195,7 @@ namespace Fancy {
     static eastl::hash_map<uint64, SharedPtr<DepthStencilState>> ourDepthStencilStateCache;
     static eastl::hash_map<uint64, SharedPtr<TextureSampler>> ourSamplerCache;
     static eastl::hash_map<uint64, SharedPtr<VertexInputLayout>> ourVertexInputLayoutCache;
+    static eastl::hash_map<uint64, SharedPtr<RaytracingPipelineState>> ourRtPipelineStateCache;
 
     static eastl::vector<UniquePtr<GpuRingBuffer>> ourRingBufferPool;
     static eastl::fixed_list<GpuRingBuffer*, 128> ourAvailableRingBuffers;

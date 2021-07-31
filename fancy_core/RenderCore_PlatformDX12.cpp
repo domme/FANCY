@@ -20,6 +20,7 @@
 #include "TextureSamplerDX12.h"
 #include "CommandLine.h"
 #include "RaytracingBVHDX12.h"
+#include "RaytracingPipelineStateDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -549,6 +550,18 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
+  D3D12_HIT_GROUP_TYPE RenderCore_PlatformDX12::GetRaytracingHitGroupType(RaytracingHitGroupType aType)
+  {
+    static D3D12_HIT_GROUP_TYPE toNativeType[RT_HIT_GROUP_TYPE_NUM] =
+    {
+      D3D12_HIT_GROUP_TYPE_TRIANGLES,
+      D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE,
+    };
+
+    ASSERT(aType < ARRAY_LENGTH(toNativeType));
+    return toNativeType[aType];
+  }
+//---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::RenderCore_PlatformDX12(const RenderPlatformProperties& someProperties)
     : RenderCore_Platform(RenderPlatformType::DX12, someProperties)
     , myGpuTicksToMsFactor{}
@@ -927,6 +940,11 @@ namespace Fancy {
   RaytracingBVH* RenderCore_PlatformDX12::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)
   {
     return new RaytracingBVHDX12(someProps, someGeometries, aName);
+  }
+//---------------------------------------------------------------------------//
+  RaytracingPipelineState* RenderCore_PlatformDX12::CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps)
+  {
+    return new RaytracingPipelineStateDX12(someProps);
   }
 //---------------------------------------------------------------------------//
   GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

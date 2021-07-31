@@ -5,6 +5,7 @@
 #include "RenderEnums.h"
 
 #include "EASTL/fixed_vector.h"
+#include "EASTL/fixed_string.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -14,8 +15,8 @@ namespace Fancy {
     
     eastl::string myPath;
     eastl::string myMainFunction = "main";
-    uint myShaderStage = (uint) ShaderStage::NONE;
-    eastl::fixed_vector<eastl::string, 32> myDefines;
+    uint myShaderStage = (uint) SHADERSTAGE_NONE;
+    eastl::fixed_vector<eastl::string, 8> myDefines;
   };
 //---------------------------------------------------------------------------//
   inline uint64 ShaderDesc::GetHash() const

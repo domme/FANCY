@@ -26,6 +26,7 @@
 #include "CommandLine.h"
 #include "TextureSampler.h"
 #include "RaytracingBVH.h"
+#include "RaytracingPipelineState.h"
 
 //---------------------------------------------------------------------------//
 namespace Fancy {
@@ -65,6 +66,7 @@ namespace Fancy {
   eastl::hash_map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
   eastl::hash_map<uint64, SharedPtr<TextureSampler>> RenderCore::ourSamplerCache;
   eastl::hash_map<uint64, SharedPtr<VertexInputLayout>> RenderCore::ourVertexInputLayoutCache;
+  eastl::hash_map<uint64, SharedPtr<RaytracingPipelineState>> RenderCore::ourRtPipelineStateCache;
   
   eastl::vector<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
   eastl::fixed_list<GpuRingBuffer*, 128> RenderCore::ourAvailableRingBuffers;
@@ -780,8 +782,8 @@ namespace Fancy {
     if (it != ourShaderPipelineCache.end())
       return it->second;
 
-    SharedPtr<Shader> pipelinePrograms[(uint)ShaderStage::NUM];
-    for (uint i = 0u; i < (uint)ShaderStage::NUM; ++i)
+    SharedPtr<Shader> pipelinePrograms[(uint)ShaderStage::SHADERSTAGE_NUM];
+    for (uint i = 0u; i < (uint)ShaderStage::SHADERSTAGE_NUM; ++i)
     {
       if (!aDesc.myShader[i].myPath.empty())
         pipelinePrograms[i] = CreateShader(aDesc.myShader[i]);
@@ -967,6 +969,18 @@ namespace Fancy {
   SharedPtr<RaytracingBVH> RenderCore::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)
   {
     return SharedPtr<RaytracingBVH>(ourPlatformImpl->CreateRtAccelerationStructure(someProps, someGeometries, aName));
+  }
+//---------------------------------------------------------------------------//
+  SharedPtr<RaytracingPipelineState> RenderCore::CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps)
+  {
+    const uint64 hash = someProps.GetHash();
+    auto it = ourRtPipelineStateCache.find(hash);
+    if (it != ourRtPipelineStateCache.end())
+      return it->second;
+
+    SharedPtr<RaytracingPipelineState> state(ourPlatformImpl->CreateRtPipelineState(someProps));
+    ourRtPipelineStateCache[hash] = state;
+    return state;
   }
 //---------------------------------------------------------------------------//
   uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)

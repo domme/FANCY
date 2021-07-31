@@ -9,6 +9,7 @@ namespace Fancy
   namespace StringUtil
   {
 //---------------------------------------------------------------------------//
+    eastl::wstring ToWideString(const char* aStr);
     eastl::wstring ToWideString(const eastl::string& aStr);
     eastl::string ToNarrowString(const std::wstring& aStr);
 //---------------------------------------------------------------------------//

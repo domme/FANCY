@@ -158,7 +158,7 @@ namespace Fancy
       AddArgument(L"-fspv-reflect");          // Emit additional SPIR-V instructions to aid reflection
       AddArgument(L"-fvk-use-dx-layout");     // Use DirectX memory layout for Vulkan resources
       AddArgument(L"-fvk-use-dx-position-w"); // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
-      if (aDesc.myShaderStage == (uint)ShaderStage::VERTEX)
+      if (aDesc.myShaderStage == (uint)ShaderStage::SHADERSTAGE_VERTEX)
         AddArgument(L"-fvk-invert-y");
     }
 
@@ -166,7 +166,7 @@ namespace Fancy
     eastl::fixed_vector<DxcDefine, 32> defines;
     for (const eastl::string& define : aDesc.myDefines)
     {
-      defineNames.push_back(StringUtil::ToWideString(define));
+      defineNames.push_back(StringUtil::ToWideString(define.c_str()));
       defines.push_back({ defineNames[defineNames.size() - 1].c_str(), nullptr });
     }
 

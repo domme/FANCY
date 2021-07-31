@@ -36,8 +36,8 @@ Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage(Fancy::FancyRuntime
   myBufferRead = RenderCore::CreateBufferView(myBuffer, viewProps, "Shared Queue Test Buffer SRV");
 
   ShaderPipelineDesc pipelineDesc;
-  ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::COMPUTE];
-  shaderDesc.myShaderStage = (uint)ShaderStage::COMPUTE;
+  ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_COMPUTE];
+  shaderDesc.myShaderStage = (uint)ShaderStage::SHADERSTAGE_COMPUTE;
   shaderDesc.myPath = "Tests/ModifyBuffer.hlsl";
   shaderDesc.myMainFunction = "main_increment";
   myWriteBufferShader = RenderCore::CreateShaderPipeline(pipelineDesc);
