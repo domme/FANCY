@@ -4,8 +4,6 @@ namespace Fancy
 {
   struct RaytracingPipelineStateProperties
   {
-    RaytracingPipelineStateProperties();
-
     void SetRayGenShader(const SharedPtr<Shader>& aShader);
     void SetMissShader(const SharedPtr<Shader>& aShader);
     uint AddHitGroup(const char* aName, const SharedPtr<Shader>& anIntersectionShader, const SharedPtr<Shader>& anAnyHitShader, const SharedPtr<Shader>& aClosestHitShader, RaytracingHitGroupType aType);
@@ -13,6 +11,8 @@ namespace Fancy
     uint AddUniqueHitShaderGetIndex(const SharedPtr<Shader>& aShader);
     void SetMaxPayloadSize(uint aSizeBytes) { myMaxPayloadSizeBytes = aSizeBytes; }
     void SetMaxAttributeSize(uint aSizeBytes) { myMaxAttributeSizeBytes = aSizeBytes; }
+    void SetMaxRecursionDepth(uint aMaxDepth) { myMaxRecursionDepth = aMaxDepth; }
+    void AddPipelineFlag(RaytracingPipelineFlags aFlag) { myPipelineFlags = RaytracingPipelineFlags(myPipelineFlags | aFlag); }
 
     struct HitShader
     {
@@ -33,8 +33,10 @@ namespace Fancy
     eastl::vector<HitShader> myHitShaders;
     SharedPtr<Shader> myRaygenShader;
     SharedPtr<Shader> myMissShader;
-    uint myMaxPayloadSizeBytes;
-    uint myMaxAttributeSizeBytes;
+    uint myMaxPayloadSizeBytes = sizeof(glm::float4);
+    uint myMaxAttributeSizeBytes = 32;
+    uint myMaxRecursionDepth = 1;
+    RaytracingPipelineFlags myPipelineFlags = RT_PIPELINE_FLAG_NONE;
   };
 
   class RaytracingPipelineState

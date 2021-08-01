@@ -398,6 +398,13 @@ namespace Fancy
     RT_HIT_GROUP_TYPE_NUM,
   };
 //---------------------------------------------------------------------------//
+  enum RaytracingPipelineFlags
+  {
+    RT_PIPELINE_FLAG_NONE = 0,
+    RT_PIPELINE_FLAG_SKIP_TRIANGLES = 1 << 0u,
+    RT_PIPELINE_FLAG_SKIP_PROCEDURAL = 1 << 1u,
+  };
+//---------------------------------------------------------------------------//
   enum GlobalResourceType
   {
     GLOBAL_RESOURCE_SRV_START = 0,

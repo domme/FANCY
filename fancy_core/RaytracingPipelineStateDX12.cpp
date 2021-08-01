@@ -11,26 +11,26 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     struct RtPsoBuilder
     {
-      RtPsoBuilder();
       void AddShaderLibrarySubobject(Shader* aShader, const char* aMainFunctionRename = nullptr);
       void AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::HitShader>& someHitShaders);
       void AddShaderConfig(uint aMaxPayloadSizeBytes, uint aMaxAttributeSizeBytes);
+      void AddGlobalRootSignature(ID3D12RootSignature* aRootSignature);
+      void SetPipelineConfig(uint aMaxRecursionDepth, RaytracingPipelineFlags someFlags);
+      void AddSubobject(D3D12_STATE_SUBOBJECT_TYPE aType, void* aSubobject);
       const wchar_t* AddWideString(const char* aString);
       const wchar_t* AddWideString(const eastl::string& aString);
+      bool BuildRtPso(Microsoft::WRL::ComPtr<ID3D12StateObject>& aStateObjectOut);
 
-      D3D12_STATE_OBJECT_DESC myDesc;
+      D3D12_RAYTRACING_PIPELINE_CONFIG1 myPipelineConfig = {UINT_MAX};
       eastl::vector<D3D12_STATE_SUBOBJECT> mySubObjects;
       eastl::vector<D3D12_DXIL_LIBRARY_DESC> myLibraryDescs;
       eastl::vector<D3D12_EXPORT_DESC> myExportDescs;
       eastl::vector<D3D12_HIT_GROUP_DESC> myHitGroups;
       eastl::vector<D3D12_RAYTRACING_SHADER_CONFIG> myShaderConfigs;
+      eastl::vector<D3D12_GLOBAL_ROOT_SIGNATURE> myGlobalRootSigs;
+      
       eastl::vector<eastl::wstring> myWideStrings;
     };
-//---------------------------------------------------------------------------//
-    RtPsoBuilder::RtPsoBuilder()
-    : myDesc{}
-    {
-    }
 //---------------------------------------------------------------------------//
     void RtPsoBuilder::AddShaderLibrarySubobject(Shader* aShader, const char* aMainFunctionRename)
     {
@@ -53,9 +53,7 @@ namespace Fancy
       libDesc.NumExports = 1;
       libDesc.pExports = &exportDesc;
 
-      D3D12_STATE_SUBOBJECT& subobject = mySubObjects.push_back();
-      subobject.Type = D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY;
-      subobject.pDesc = &libDesc;
+      AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &libDesc);
     }
 //---------------------------------------------------------------------------//
     void RtPsoBuilder::AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::HitShader>& someHitShaders)
@@ -72,9 +70,7 @@ namespace Fancy
       if (aHitGroup.myClosestHitShaderIdx != UINT_MAX)
         hitGroupDesc.ClosestHitShaderImport = AddWideString(someHitShaders[aHitGroup.myClosestHitShaderIdx].myUniqueMainFunctionName);
 
-      D3D12_STATE_SUBOBJECT& subobject = mySubObjects.push_back();
-      subobject.Type = D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP;
-      subobject.pDesc = &hitGroupDesc;
+      AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &hitGroupDesc);
     }
 //---------------------------------------------------------------------------//
     void RtPsoBuilder::AddShaderConfig(uint aMaxPayloadSizeBytes, uint aMaxAttributeSizeBytes)
@@ -83,9 +79,32 @@ namespace Fancy
       config.MaxPayloadSizeInBytes = aMaxPayloadSizeBytes;
       config.MaxAttributeSizeInBytes = aMaxAttributeSizeBytes;
 
+      AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG, &config);
+    }
+//---------------------------------------------------------------------------//
+    void RtPsoBuilder::AddGlobalRootSignature(ID3D12RootSignature* aRootSignature)
+    {
+      D3D12_GLOBAL_ROOT_SIGNATURE& rootSig = myGlobalRootSigs.push_back();
+      rootSig.pGlobalRootSignature = aRootSignature;
+
+      AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE, &rootSig);
+    }
+//---------------------------------------------------------------------------//
+    void RtPsoBuilder::SetPipelineConfig(uint aMaxRecursionDepth, RaytracingPipelineFlags someFlags)
+    {
+      ASSERT(myPipelineConfig.MaxTraceRecursionDepth == UINT_MAX, "Pipeline config already added");
+
+      myPipelineConfig.MaxTraceRecursionDepth = aMaxRecursionDepth;
+      myPipelineConfig.Flags = RenderCore_PlatformDX12::GetRaytracingPipelineFlags(someFlags);
+
+      AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG1, &myPipelineConfig);
+    }
+//---------------------------------------------------------------------------//
+    void RtPsoBuilder::AddSubobject(D3D12_STATE_SUBOBJECT_TYPE aType, void* aSubobject)
+    {
       D3D12_STATE_SUBOBJECT& subobject = mySubObjects.push_back();
-      subobject.Type = D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG;
-      subobject.pDesc = &config;
+      subobject.Type = aType;
+      subobject.pDesc = aSubobject;
     }
 //---------------------------------------------------------------------------//
     const wchar_t* RtPsoBuilder::AddWideString(const char* aString)
@@ -98,6 +117,18 @@ namespace Fancy
     {
       return AddWideString(aString.c_str());
     }
+//---------------------------------------------------------------------------//
+    bool RtPsoBuilder::BuildRtPso(Microsoft::WRL::ComPtr<ID3D12StateObject>& aStateObjectOut)
+    {
+      D3D12_STATE_OBJECT_DESC aDesc = {};
+      aDesc.Type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
+      aDesc.NumSubobjects = (uint) mySubObjects.size();
+      aDesc.pSubobjects = mySubObjects.data();
+
+      HRESULT result = RenderCore::GetPlatformDX12()->GetDevice()->CreateStateObject(&aDesc, IID_PPV_ARGS(&aStateObjectOut)));
+      return result == S_OK;
+    }
+//---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
 
@@ -107,7 +138,7 @@ namespace Fancy
   {
     Recompile();
   }
-
+//---------------------------------------------------------------------------//
   bool RaytracingPipelineStateDX12::Recompile()
   {
     RtPsoBuilder builder;
@@ -125,10 +156,21 @@ namespace Fancy
 
     builder.AddShaderConfig(myProperties.myMaxPayloadSizeBytes, myProperties.myMaxAttributeSizeBytes);
 
+    RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
+    builder.AddGlobalRootSignature(platformDx12->GetRootSignature()->GetRootSignature());
 
+    builder.SetPipelineConfig(myProperties.myMaxRecursionDepth, myProperties.myPipelineFlags);
 
+    Microsoft::WRL::ComPtr<ID3D12StateObject> rtPso;
+    if (builder.BuildRtPso(rtPso))
+    {
+      myStateObject = rtPso;
+      return true;
+    }
+
+    LOG_ERROR("Failed building RTPSO");
+    return false;
   }
-
 //---------------------------------------------------------------------------//
 }
 

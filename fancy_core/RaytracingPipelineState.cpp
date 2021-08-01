@@ -55,7 +55,9 @@ namespace Fancy
 
     hasher.Add(myMaxPayloadSizeBytes);
     hasher.Add(myMaxAttributeSizeBytes);
-    
+    hasher.Add(myMaxRecursionDepth);
+    hasher.Add((uint)myPipelineFlags);
+        
     return hasher.GetHashValue();
   }
 

@@ -47,6 +47,7 @@ namespace Fancy {
     static D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE GetRaytracingBVHType(RaytracingBVHType aType);
     static D3D12_RAYTRACING_GEOMETRY_TYPE GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aGeoType);
     static D3D12_HIT_GROUP_TYPE GetRaytracingHitGroupType(RaytracingHitGroupType aType);
+    static D3D12_RAYTRACING_PIPELINE_FLAGS GetRaytracingPipelineFlags(RaytracingPipelineFlags someFlags);
 
     RenderCore_PlatformDX12(const RenderPlatformProperties& someProperties);
     ~RenderCore_PlatformDX12() override;

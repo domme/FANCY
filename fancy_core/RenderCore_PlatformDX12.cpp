@@ -562,6 +562,18 @@ namespace Fancy {
     return toNativeType[aType];
   }
 //---------------------------------------------------------------------------//
+  D3D12_RAYTRACING_PIPELINE_FLAGS RenderCore_PlatformDX12::GetRaytracingPipelineFlags(RaytracingPipelineFlags someFlags)
+  {
+    D3D12_RAYTRACING_PIPELINE_FLAGS dstFlags = (D3D12_RAYTRACING_PIPELINE_FLAGS) 0u;
+    if (someFlags & RT_PIPELINE_FLAG_SKIP_TRIANGLES)
+      dstFlags |= D3D12_RAYTRACING_PIPELINE_FLAG_SKIP_TRIANGLES;
+      
+    if (someFlags & RT_PIPELINE_FLAG_SKIP_PROCEDURAL)
+      dstFlags |= D3D12_RAYTRACING_PIPELINE_FLAG_SKIP_PROCEDURAL_PRIMITIVES;
+
+    return dstFlags;
+  }
+//---------------------------------------------------------------------------//
   RenderCore_PlatformDX12::RenderCore_PlatformDX12(const RenderPlatformProperties& someProperties)
     : RenderCore_Platform(RenderPlatformType::DX12, someProperties)
     , myGpuTicksToMsFactor{}
