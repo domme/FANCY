@@ -423,6 +423,8 @@
     </ClInclude>
     <ClInclude Include="RaytracingPipelineState.h" />
     <ClInclude Include="RaytracingPipelineStateDX12.h" />
+    <ClInclude Include="RaytracingShaderTable.h" />
+    <ClInclude Include="RaytracingShaderTableDX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -682,6 +684,8 @@
     </ClCompile>
     <ClCompile Include="RaytracingPipelineState.cpp" />
     <ClCompile Include="RaytracingPipelineStateDX12.cpp" />
+    <ClCompile Include="RaytracingShaderTable.cpp" />
+    <ClCompile Include="RaytracingShaderTableDX12.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

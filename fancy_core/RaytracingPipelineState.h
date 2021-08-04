@@ -4,35 +4,41 @@ namespace Fancy
 {
   struct RaytracingPipelineStateProperties
   {
-    void SetRayGenShader(const SharedPtr<Shader>& aShader);
-    void SetMissShader(const SharedPtr<Shader>& aShader);
-    uint AddHitGroup(const char* aName, const SharedPtr<Shader>& anIntersectionShader, const SharedPtr<Shader>& anAnyHitShader, const SharedPtr<Shader>& aClosestHitShader, RaytracingHitGroupType aType);
-    uint64 GetHash() const;
-    uint AddUniqueHitShaderGetIndex(const SharedPtr<Shader>& aShader);
+    uint AddRayGenShader(const char* aPath, const char* aMainFunction, const char* someDefines = nullptr);
+    uint AddRayGenShader(const SharedPtr<Shader>& aShader);
+    uint AddMissShader(const char* aPath, const char* aMainFunction, const char* someDefines = nullptr);
+    uint AddMissShader(const SharedPtr<Shader>& aShader);
+    uint AddHitGroup(const wchar_t* aName, RaytracingHitGroupType aType, const SharedPtr<Shader>& anIntersectionShader, const SharedPtr<Shader>& anAnyHitShader, const SharedPtr<Shader>& aClosestHitShader);
+    uint AddHitGroup(const wchar_t* aName, RaytracingHitGroupType aType,
+      const char* anIntersectionPath, const char* anIntersectionMainFunction,
+      const char* anAnyHitPath, const char* anAnyHitMainFunction,
+      const char* aClosestHitPath, const char* aClosestHitMainFunction,
+      const char* someDefines = nullptr);
     void SetMaxPayloadSize(uint aSizeBytes) { myMaxPayloadSizeBytes = aSizeBytes; }
     void SetMaxAttributeSize(uint aSizeBytes) { myMaxAttributeSizeBytes = aSizeBytes; }
     void SetMaxRecursionDepth(uint aMaxDepth) { myMaxRecursionDepth = aMaxDepth; }
     void AddPipelineFlag(RaytracingPipelineFlags aFlag) { myPipelineFlags = RaytracingPipelineFlags(myPipelineFlags | aFlag); }
+    uint64 GetHash() const;
 
-    struct HitShader
+    struct ShaderEntry
     {
-      eastl::string myUniqueMainFunctionName;
+      eastl::wstring myUniqueMainFunctionName;
       SharedPtr<Shader> myShader;
     };
 
     struct HitGroup
     {
       RaytracingHitGroupType myType;
-      eastl::string myName;
+      eastl::wstring myName;
       uint myIntersectionShaderIdx;
       uint myAnyHitShaderIdx;
       uint myClosestHitShaderIdx;
     };
 
     eastl::vector<HitGroup> myHitGroups;
-    eastl::vector<HitShader> myHitShaders;
-    SharedPtr<Shader> myRaygenShader;
-    SharedPtr<Shader> myMissShader;
+    eastl::vector<ShaderEntry> myHitShaders;
+    eastl::vector<ShaderEntry> myMissShaders;
+    eastl::vector<ShaderEntry> myRaygenShaders;
     uint myMaxPayloadSizeBytes = sizeof(glm::float4);
     uint myMaxAttributeSizeBytes = 32;
     uint myMaxRecursionDepth = 1;

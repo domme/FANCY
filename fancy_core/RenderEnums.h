@@ -193,7 +193,7 @@ namespace Fancy
     SHADER_BUFFER = 1 << 3,
     RAYTRACING_BVH_BUILD_INPUT = 1 << 4,
     RAYTRACING_BVH_STORAGE = 1 << 5,
-    RAYTRACING_BVH_BINDING_TABLE = 1 << 6,
+    RAYTRACING_SHADER_BINDING_TABLE = 1 << 6,
 
     ALL = ~0
   };
@@ -403,6 +403,13 @@ namespace Fancy
     RT_PIPELINE_FLAG_NONE = 0,
     RT_PIPELINE_FLAG_SKIP_TRIANGLES = 1 << 0u,
     RT_PIPELINE_FLAG_SKIP_PROCEDURAL = 1 << 1u,
+  };
+//---------------------------------------------------------------------------//
+  enum RaytracingShaderTableType
+  {
+    RT_SHADER_TABLE_TYPE_RAYGEN = 0,
+    RT_SHADER_TABLE_TYPE_MISS,
+    RT_SHADER_TABLE_TYPE_HIT,
   };
 //---------------------------------------------------------------------------//
   enum GlobalResourceType

@@ -19,18 +19,6 @@ namespace Fancy
     return eastl::string(eastl::string::CtorConvert(), aStr.c_str());
   }
 //---------------------------------------------------------------------------//
-  void StringUtil::Tokenize(const eastl::string& _str, const char* _szDelimiters, eastl::vector<eastl::string>& _outTokenList)
-  {
-    char* cstr = const_cast<char*>(_str.c_str());
-    cstr = strtok(cstr, _szDelimiters);
-
-    while (cstr != nullptr)
-    {
-      _outTokenList.push_back(cstr);
-      cstr = strtok(nullptr, _szDelimiters);
-    }
-  }
-//---------------------------------------------------------------------------//
   int StringUtil::FindFirstOf(const char* aStr, char aChar)
   {
     const uint len = (uint)strlen(aStr);

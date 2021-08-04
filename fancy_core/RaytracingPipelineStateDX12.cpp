@@ -11,8 +11,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     struct RtPsoBuilder
     {
-      void AddShaderLibrarySubobject(Shader* aShader, const char* aMainFunctionRename = nullptr);
-      void AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::HitShader>& someHitShaders);
+      void AddShaderLibrarySubobject(Shader* aShader, const wchar_t* aMainFunctionRename = nullptr);
+      void AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::ShaderEntry>& someHitShaders);
       void AddShaderConfig(uint aMaxPayloadSizeBytes, uint aMaxAttributeSizeBytes);
       void AddGlobalRootSignature(ID3D12RootSignature* aRootSignature);
       void SetPipelineConfig(uint aMaxRecursionDepth, RaytracingPipelineFlags someFlags);
@@ -32,7 +32,7 @@ namespace Fancy
       eastl::vector<eastl::wstring> myWideStrings;
     };
 //---------------------------------------------------------------------------//
-    void RtPsoBuilder::AddShaderLibrarySubobject(Shader* aShader, const char* aMainFunctionRename)
+    void RtPsoBuilder::AddShaderLibrarySubobject(Shader* aShader, const wchar_t* aMainFunctionRename)
     {
       ShaderDX12* shaderDx12 = (ShaderDX12*)aShader;
 
@@ -40,7 +40,7 @@ namespace Fancy
       exportDesc = {};
       if (aMainFunctionRename)
       {
-        exportDesc.Name = AddWideString(aMainFunctionRename);
+        exportDesc.Name = aMainFunctionRename;
         exportDesc.ExportToRename = AddWideString(shaderDx12->myDesc.myMainFunction);
       }
       else
@@ -56,19 +56,19 @@ namespace Fancy
       AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &libDesc);
     }
 //---------------------------------------------------------------------------//
-    void RtPsoBuilder::AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::HitShader>& someHitShaders)
+    void RtPsoBuilder::AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::ShaderEntry>& someHitShaders)
     {
       D3D12_HIT_GROUP_DESC& hitGroupDesc = myHitGroups.push_back();
       hitGroupDesc = {};
       hitGroupDesc.Type = RenderCore_PlatformDX12::GetRaytracingHitGroupType(aHitGroup.myType);
-      hitGroupDesc.HitGroupExport = AddWideString(aHitGroup.myName);
+      hitGroupDesc.HitGroupExport = aHitGroup.myName.c_str();
 
       if (aHitGroup.myIntersectionShaderIdx != UINT_MAX)
-        hitGroupDesc.IntersectionShaderImport = AddWideString(someHitShaders[aHitGroup.myIntersectionShaderIdx].myUniqueMainFunctionName);
+        hitGroupDesc.IntersectionShaderImport = someHitShaders[aHitGroup.myIntersectionShaderIdx].myUniqueMainFunctionName.c_str();
       if (aHitGroup.myAnyHitShaderIdx != UINT_MAX)
-        hitGroupDesc.AnyHitShaderImport = AddWideString(someHitShaders[aHitGroup.myAnyHitShaderIdx].myUniqueMainFunctionName);
+        hitGroupDesc.AnyHitShaderImport = someHitShaders[aHitGroup.myAnyHitShaderIdx].myUniqueMainFunctionName.c_str();
       if (aHitGroup.myClosestHitShaderIdx != UINT_MAX)
-        hitGroupDesc.ClosestHitShaderImport = AddWideString(someHitShaders[aHitGroup.myClosestHitShaderIdx].myUniqueMainFunctionName);
+        hitGroupDesc.ClosestHitShaderImport = someHitShaders[aHitGroup.myClosestHitShaderIdx].myUniqueMainFunctionName.c_str();
 
       AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &hitGroupDesc);
     }
@@ -125,7 +125,7 @@ namespace Fancy
       aDesc.NumSubobjects = (uint) mySubObjects.size();
       aDesc.pSubobjects = mySubObjects.data();
 
-      HRESULT result = RenderCore::GetPlatformDX12()->GetDevice()->CreateStateObject(&aDesc, IID_PPV_ARGS(&aStateObjectOut)));
+      HRESULT result = RenderCore::GetPlatformDX12()->GetDevice()->CreateStateObject(&aDesc, IID_PPV_ARGS(&aStateObjectOut));
       return result == S_OK;
     }
 //---------------------------------------------------------------------------//
@@ -142,13 +142,15 @@ namespace Fancy
   bool RaytracingPipelineStateDX12::Recompile()
   {
     RtPsoBuilder builder;
-    ASSERT(myProperties.myRaygenShader.get(), "Raygen shader is required to build an RT PSO");
-    builder.AddShaderLibrarySubobject(myProperties.myRaygenShader.get());
+    ASSERT(!myProperties.myRaygenShaders.empty(), "Raygen shader is required to build an RT PSO");
 
-    if (myProperties.myMissShader)
-      builder.AddShaderLibrarySubobject(myProperties.myMissShader.get());
+    for (const RaytracingPipelineStateProperties::ShaderEntry& shader : myProperties.myRaygenShaders)
+      builder.AddShaderLibrarySubobject(shader.myShader.get(), shader.myUniqueMainFunctionName.c_str());
 
-    for (const RaytracingPipelineStateProperties::HitShader& it : myProperties.myHitShaders)
+    for (const RaytracingPipelineStateProperties::ShaderEntry& shader : myProperties.myMissShaders)
+      builder.AddShaderLibrarySubobject(shader.myShader.get(), shader.myUniqueMainFunctionName.c_str());
+
+    for (const RaytracingPipelineStateProperties::ShaderEntry& it : myProperties.myHitShaders)
       builder.AddShaderLibrarySubobject(it.myShader.get(), it.myUniqueMainFunctionName.c_str());
 
     for (const RaytracingPipelineStateProperties::HitGroup& hitGroup : myProperties.myHitGroups)

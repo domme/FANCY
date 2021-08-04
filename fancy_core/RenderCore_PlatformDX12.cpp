@@ -632,6 +632,7 @@ namespace Fancy {
     myCaps.myTextureRowAlignment = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
     myCaps.myTextureSubresourceBufferAlignment = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
     myCaps.myMaxTextureAnisotropy = D3D12_DEFAULT_MAX_ANISOTROPY;
+    myCaps.myRaytracingShaderIdentifierSizeBytes = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
     // DX12 always supports async compute and copy on the API-level, even though there might not
     // be hardware-support for it.
     // TODO: Check if there's a way to detect missing HW-support and disable the missing queues

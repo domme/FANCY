@@ -149,6 +149,8 @@
     <ClInclude Include="GlobalDescriptorSetVk.h" />
     <ClInclude Include="RaytracingPipelineStateDX12.h" />
     <ClInclude Include="RaytracingPipelineState.h" />
+    <ClInclude Include="RaytracingShaderTable.h" />
+    <ClInclude Include="RaytracingShaderTableDX12.h" />
     <ClInclude Include="RootSignatureDX12.h" />
     <ClInclude Include="ShaderVisibleDescriptorHeapDX12.h" />
     <ClInclude Include="EASTLAllocator.h" />
@@ -272,6 +274,8 @@
     <ClCompile Include="GlobalDescriptorSetVk.cpp" />
     <ClCompile Include="RaytracingPipelineStateDX12.cpp" />
     <ClCompile Include="RaytracingPipelineState.cpp" />
+    <ClCompile Include="RaytracingShaderTable.cpp" />
+    <ClCompile Include="RaytracingShaderTableDX12.cpp" />
     <ClCompile Include="RootSignatureDX12.cpp" />
     <ClCompile Include="ShaderVisibleDescriptorHeapDX12.cpp" />
     <ClCompile Include="EASTLAllocator.cpp" />

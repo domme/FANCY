@@ -8,28 +8,6 @@
 
 namespace Fancy { namespace MathUtil {
 //---------------------------------------------------------------------------//
-  struct Hasher
-  {
-    Hasher(uint64 aSeed = 0u);
-    ~Hasher();
-
-    // Disallow copy and assignment
-    // Hasher should only be used locally to produce a hash
-    Hasher(const Hasher&) = delete;
-    Hasher(const Hasher&&) = delete;
-    Hasher& operator=(const Hasher&) = delete;
-
-    template<class T>
-    void Add(const T& aValue) { Add(&aValue, sizeof(aValue)); }
-
-    void Add(const void* aValue, uint64 aSize);
-
-    uint64 GetHashValue() const;
-
-  private:
-    void* myState;
-  };
-//---------------------------------------------------------------------------//
   // Deprecated: Use Hasher instead:
   void BeginMultiHash();
   void AddToMultiHash(const void* aValue, uint64 aSize);
@@ -56,6 +34,12 @@ namespace Fancy { namespace MathUtil {
   inline size_t Hash<const char*>(const char* const& aValue)
   {
     return ByteHash(reinterpret_cast<const uint8*>(aValue), strlen(aValue));
+  }
+//---------------------------------------------------------------------------//
+  template<>
+  inline size_t Hash<const wchar_t*>(const wchar_t* const& aValue)
+  {
+    return ByteHash(reinterpret_cast<const uint8*>(aValue), sizeof(wchar_t) * wcslen(aValue));
   }
 //---------------------------------------------------------------------------//
   template<class T>
@@ -119,4 +103,30 @@ namespace Fancy { namespace MathUtil {
     return ((n < 2) ? 1 : 1 + Log2(n / 2));
   }
 //---------------------------------------------------------------------------//
+  struct Hasher
+  {
+    Hasher(uint64 aSeed = 0u);
+    ~Hasher();
+
+    // Disallow copy and assignment
+    // Hasher should only be used locally to produce a hash
+    Hasher(const Hasher&) = delete;
+    Hasher(const Hasher&&) = delete;
+    Hasher& operator=(const Hasher&) = delete;
+
+    template<class T>
+    void Add(const T& aValue)
+    {
+      size_t hash = Hash(aValue);
+      Add(&hash, sizeof(hash));
+    }
+
+    void Add(const void* aValue, uint64 aSize);
+
+    uint64 GetHashValue() const;
+
+  private:
+    void* myState;
+  };
+
 } } // end of namespace Fancy::MathUtil

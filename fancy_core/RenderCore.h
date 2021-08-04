@@ -18,6 +18,7 @@
 #include "EASTL/span.h"
 
 namespace Fancy {
+  class RaytracingShaderTable;
   struct RaytracingPipelineState;
   //---------------------------------------------------------------------------//
   struct MaterialDesc;
