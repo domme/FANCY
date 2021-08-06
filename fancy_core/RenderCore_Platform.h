@@ -5,6 +5,7 @@
 #include "EASTL/span.h"
 
 namespace Fancy {
+  class RaytracingShaderTable;
   struct RaytracingPipelineState;
   class RaytracingPipelineStateProperties;
   //---------------------------------------------------------------------------//
@@ -68,6 +69,7 @@ namespace Fancy {
     virtual uint GetQueryTypeDataSize(GpuQueryType aType) = 0;
     virtual float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) = 0;
     virtual RaytracingPipelineState* CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps) = 0;
+    virtual RaytracingShaderTable* CreateRtShaderTable(RaytracingShaderTableType aType, uint aMaxNumRecords, const SharedPtr<RaytracingPipelineState>& anRtPso) = 0;
 
   protected:
     RenderPlatformCaps myCaps;

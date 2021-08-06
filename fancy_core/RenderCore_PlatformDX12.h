@@ -88,6 +88,8 @@ namespace Fancy {
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
     RaytracingBVH* CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr) override;
     RaytracingPipelineState* CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps) override;
+    RaytracingShaderTable* CreateRtShaderTable(RaytracingShaderTableType aType, uint aMaxNumRecords, const SharedPtr<RaytracingPipelineState>& anRtPso) override;
+
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;

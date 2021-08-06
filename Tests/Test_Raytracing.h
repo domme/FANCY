@@ -2,8 +2,12 @@
 #include "Test.h"
 #include "fancy_core/Ptr.h"
 
+using namespace Fancy;
+
 namespace Fancy
 {
+  class RaytracingShaderTable;
+  struct RaytracingPipelineState;
   class GpuBuffer;
   class RaytracingBVH;
   class Shader;
@@ -19,13 +23,17 @@ public:
   void OnUpdate(bool aDrawProperties) override;
   void OnRender() override;
 
-  Fancy::SharedPtr<Fancy::GpuBuffer> myRTvertexBuffer;
-  Fancy::SharedPtr<Fancy::GpuBuffer> myRTindexBuffer;
-  Fancy::SharedPtr<Fancy::GpuBuffer> myRTtransformBuffer;
+  SharedPtr<GpuBuffer> myRTvertexBuffer;
+  SharedPtr<GpuBuffer> myRTindexBuffer;
+  SharedPtr<GpuBuffer> myRTtransformBuffer;
 
-  Fancy::SharedPtr<Fancy::RaytracingBVH> myBottomLevelBVH;
-  Fancy::SharedPtr<Fancy::RaytracingBVH> myTopLevelBVH;
+  SharedPtr<RaytracingBVH> myBottomLevelBVH;
+  SharedPtr<RaytracingBVH> myTopLevelBVH;
 
-  Fancy::SharedPtr<Fancy::Shader> myRayGenShader;
+  SharedPtr<RaytracingPipelineState> myRtPso;
+  SharedPtr<RaytracingShaderTable> myRayGenTable;
+  SharedPtr<RaytracingShaderTable> myMissTable;
+  SharedPtr<RaytracingShaderTable> myHitTable;
 }; 
+
 

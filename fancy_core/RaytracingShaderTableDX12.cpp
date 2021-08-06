@@ -1,11 +1,11 @@
 #include "fancy_core_precompile.h"
 #include "RaytracingShaderTableDX12.h"
 
+#include "GpuBuffer.h"
 #include "RaytracingPipelineStateDX12.h"
 #include "RenderCore_PlatformDX12.h"
 
 using namespace Fancy;
-
 
 RaytracingShaderTableDX12::RaytracingShaderTableDX12(RaytracingShaderTableType aType, uint aMaxNumShaderRecords, const SharedPtr<RaytracingPipelineState>& anRtPso)
   : RaytracingShaderTable(aType, aMaxNumShaderRecords, anRtPso)
@@ -15,31 +15,23 @@ RaytracingShaderTableDX12::RaytracingShaderTableDX12(RaytracingShaderTableType a
   ASSERT_HRESULT(rtPsoDx12->myStateObject.As(&myRtPsoProperties));
 }
 
-uint RaytracingShaderTableDX12::AddShaderRecord(uint aShaderIndexInRtPso)
+void RaytracingShaderTableDX12::AddShaderRecordInternal(uint /*aShaderIndexInRtPso*/, const RaytracingPipelineStateProperties::HitGroup& aHitGroup)
 {
-  const RaytracingPipelineStateProperties& psoProps = myRtPso->myProperties;
+  WriteShaderIdentifier(aHitGroup.myName.c_str());
+}
 
-  const wchar_t* shaderName = nullptr;
-  if (myType == RT_SHADER_TABLE_TYPE_RAYGEN)
-  {
-    ASSERT(aShaderIndexInRtPso < (uint) psoProps.myRaygenShaders.size());
-    shaderName = psoProps.myRaygenShaders[aShaderIndexInRtPso].myUniqueMainFunctionName.c_str();
-  }
-  else if (myType == RT_SHADER_TABLE_TYPE_MISS)
-  {
-    ASSERT(aShaderIndexInRtPso < (uint)psoProps.myMissShaders.size());
-    shaderName = psoProps.myMissShaders[aShaderIndexInRtPso].myUniqueMainFunctionName.c_str();
-  }
-  else
-  {
-    ASSERT(aShaderIndexInRtPso < (uint)psoProps.myHitGroups.size());
-    shaderName = psoProps.myHitGroups[aShaderIndexInRtPso].myName.c_str();
-  }
+void RaytracingShaderTableDX12::AddShaderRecordInternal(uint /*aShaderIndexInRtPso*/, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry)
+{
+  WriteShaderIdentifier(aShaderEntry.myUniqueMainFunctionName.c_str());
+}
 
-  void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(shaderName);
+void RaytracingShaderTableDX12::WriteShaderIdentifier(const wchar_t* aUniqueName)
+{
+  void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aUniqueName);
   ASSERT(shaderIdentifier);
+  ASSERT(myWriteOffset + myShaderRecordSizeBytes <= myBuffer->GetByteSize());
 
-
-
-
+  uint8* dstPtr = myMappedData + myWriteOffset;
+  memcpy(dstPtr, shaderIdentifier, myShaderRecordSizeBytes);
+  myWriteOffset += myShaderRecordSizeBytes;
 }

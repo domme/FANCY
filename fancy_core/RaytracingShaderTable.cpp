@@ -14,6 +14,7 @@ RaytracingShaderTable::RaytracingShaderTable(RaytracingShaderTableType aType, ui
   , myWriteOffset(0u)
 {
   myShaderRecordSizeBytes = RenderCore::GetPlatformCaps().myRaytracingShaderIdentifierSizeBytes;
+  ASSERT(myShaderRecordSizeBytes > 0);
 
   GpuBufferProperties bufferProps;
   bufferProps.myBindFlags = (uint) GpuBufferBindFlags::RAYTRACING_SHADER_BINDING_TABLE;
@@ -23,6 +24,36 @@ RaytracingShaderTable::RaytracingShaderTable(RaytracingShaderTableType aType, ui
   myBuffer = RenderCore::CreateBuffer(bufferProps, "RT SBT Buffer");
   ASSERT(myBuffer != nullptr);
 
-  myMappedData = myBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
+  myMappedData = (uint8*) myBuffer->Map(GpuResourceMapMode::WRITE_UNSYNCHRONIZED);
   ASSERT(myMappedData != nullptr);
+}
+
+uint RaytracingShaderTable::AddShaderRecord(uint aShaderIndexInRtPso)
+{
+  const RaytracingPipelineStateProperties& psoProps = myRtPso->myProperties;
+
+  if (myType == RT_SHADER_TABLE_TYPE_HIT)
+  {
+    ASSERT(aShaderIndexInRtPso < (uint)psoProps.myHitGroups.size());
+    AddShaderRecordInternal(aShaderIndexInRtPso, psoProps.myHitGroups[aShaderIndexInRtPso]);
+  }
+  else
+  {
+    if (myType == RT_SHADER_TABLE_TYPE_RAYGEN)
+    {
+      ASSERT(aShaderIndexInRtPso < (uint)psoProps.myRaygenShaders.size());
+      AddShaderRecordInternal(aShaderIndexInRtPso, psoProps.myRaygenShaders[aShaderIndexInRtPso]);
+    }
+    else
+    {
+      ASSERT(aShaderIndexInRtPso < (uint)psoProps.myMissShaders.size());
+      AddShaderRecordInternal(aShaderIndexInRtPso, psoProps.myMissShaders[aShaderIndexInRtPso]);
+    }
+  }
+
+#if FANCY_HEAVY_DEBUG
+  myShaders.push_back(aShaderIndexInRtPso);
+#endif
+
+  return (myWriteOffset - myShaderRecordSizeBytes) / myShaderRecordSizeBytes;
 }

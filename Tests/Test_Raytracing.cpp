@@ -6,6 +6,8 @@
 #include <EASTL/vector.h>
 
 #include "fancy_core/RaytracingBVH.h"
+#include "fancy_core/RaytracingPipelineState.h"
+#include "fancy_core/RaytracingShaderTable.h"
 #include "fancy_core/ShaderDesc.h"
 #include "fancy_core/RenderEnums.h"
 
@@ -15,12 +17,6 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
     : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Raytracing")
 {
-  ShaderDesc shaderDesc;
-  shaderDesc.myShaderStage = SHADERSTAGE_RAYGEN;
-  shaderDesc.myMainFunction = "RayGen";
-  shaderDesc.myPath = "RayTracing/RayGen.hlsl";
-  myRayGenShader = RenderCore::CreateShader(shaderDesc);
-  
   // Create bottom level BVH
   {
     struct Vertex {
@@ -73,8 +69,23 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
     RaytracingBVHProps bvhProps;
     bvhProps.myFlags = (uint)RaytracingBVHFlags::ALLOW_UPDATE;
     bvhProps.myType = RaytracingBVHType::BOTTOM_LEVEL;
-
     myBottomLevelBVH = RenderCore::CreateRtAccelerationStructure(bvhProps, { &rtAsGeometry, 1u }, "Test_Raytracing Bottom-level BVH");
+
+    RaytracingPipelineStateProperties rtPipelineProps;
+    const uint raygenIdx = rtPipelineProps.AddRayGenShader("RayTracing/RayGen.hlsl", "RayGen");
+    const uint missIdx = rtPipelineProps.AddMissShader("RayTracing/Miss.hlsl", "Miss");
+    const uint hitIdx = rtPipelineProps.AddHitGroup(L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr, "RayTracing/Hit.hlsl", "ClosestHit");
+    myRtPso = RenderCore::CreateRtPipelineState(rtPipelineProps);
+
+    const uint maxNumShaderRecords = 5;
+    myRayGenTable = RenderCore::CreateRtShaderTable(RT_SHADER_TABLE_TYPE_RAYGEN, maxNumShaderRecords, myRtPso);
+    myRayGenTable->AddShaderRecord(raygenIdx);
+
+    myMissTable = RenderCore::CreateRtShaderTable(RT_SHADER_TABLE_TYPE_MISS, maxNumShaderRecords, myRtPso);
+    myMissTable->AddShaderRecord(missIdx);
+
+    myHitTable = RenderCore::CreateRtShaderTable(RT_SHADER_TABLE_TYPE_HIT, maxNumShaderRecords, myRtPso);
+    myHitTable->AddShaderRecord(hitIdx);
   }
 }
 
