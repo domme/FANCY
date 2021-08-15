@@ -6,6 +6,9 @@
 #include <cinttypes>
 #include <EASTL/fixed_string.h>
 
+#pragma warning(disable : 26812) // Disable "Prefer enum class over enum"
+
+
 using FixedShortString = eastl::fixed_string<char, 32>;
 
 //Common MACRO defines

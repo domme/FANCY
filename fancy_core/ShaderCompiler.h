@@ -26,7 +26,7 @@ namespace Fancy {
     public:
       static const char* GetShaderRootFolderRelative() { return "resources/shader"; }
       static const char* ShaderStageToDefineString(ShaderStage aShaderStage);
-      static StaticShortString GetHLSLprofileString(ShaderStage aShaderStage, ShaderModel aShaderModel = SM_LATEST);
+      static FixedShortString GetHLSLprofileString(ShaderStage aShaderStage, ShaderModel aShaderModel = SM_LATEST);
       static VertexAttributeSemantic GetVertexAttributeSemantic(const char* aSemanticName);
 
       virtual ~ShaderCompiler() = default;

@@ -686,6 +686,9 @@
     <ClCompile Include="RaytracingPipelineStateDX12.cpp" />
     <ClCompile Include="RaytracingShaderTable.cpp" />
     <ClCompile Include="RaytracingShaderTableDX12.cpp" />
+    <ClCompile Include="EASTLVsnprintf.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="fancy_core.rc" />

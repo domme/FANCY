@@ -16,11 +16,12 @@ namespace Fancy
     template<class VectorT>
     void Tokenize(const char* aString, const char* someDelimiters, VectorT& someTokensOut)
     {
-      uint len = strlen(aString);
+      uint len = aString == nullptr ? 0 : (uint) strlen(aString);
       if (len == 0)
         return;
 
-      char* tempStr = new char[len + 1];
+      eastl::fixed_vector<char, 512> tempStrBuf(len + 1);
+      char* tempStr = tempStrBuf.data();
       memcpy(tempStr, aString, len);
       tempStr[len] = '\0';
 

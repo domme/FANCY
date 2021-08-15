@@ -2,8 +2,9 @@
 
 namespace Fancy
 {
-  struct RaytracingPipelineStateProperties
+  class RaytracingPipelineStateProperties
   {
+  public:
     uint AddRayGenShader(const char* aPath, const char* aMainFunction, const char* someDefines = nullptr);
     uint AddRayGenShader(const SharedPtr<Shader>& aShader);
     uint AddMissShader(const char* aPath, const char* aMainFunction, const char* someDefines = nullptr);
@@ -51,7 +52,7 @@ namespace Fancy
     RaytracingPipelineState(const RaytracingPipelineStateProperties& someProps)
       : myProperties(someProps) { }
 
-    virtual ~RaytracingPipelineState();
+    virtual ~RaytracingPipelineState() {};
     virtual bool Recompile() = 0;
 
     RaytracingPipelineStateProperties myProperties;

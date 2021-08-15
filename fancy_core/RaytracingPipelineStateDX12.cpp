@@ -11,6 +11,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     struct RtPsoBuilder
     {
+      RtPsoBuilder(uint aNumShaders, uint aNumHitGroups);
+
       void AddShaderLibrarySubobject(Shader* aShader, const wchar_t* aMainFunctionRename = nullptr);
       void AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::ShaderEntry>& someHitShaders);
       void AddShaderConfig(uint aMaxPayloadSizeBytes, uint aMaxAttributeSizeBytes);
@@ -28,9 +30,17 @@ namespace Fancy
       eastl::vector<D3D12_HIT_GROUP_DESC> myHitGroups;
       eastl::vector<D3D12_RAYTRACING_SHADER_CONFIG> myShaderConfigs;
       eastl::vector<D3D12_GLOBAL_ROOT_SIGNATURE> myGlobalRootSigs;
-      
       eastl::vector<eastl::wstring> myWideStrings;
     };
+
+    RtPsoBuilder::RtPsoBuilder(uint aNumShaders, uint aNumHitGroups)
+    {
+      myLibraryDescs.reserve(aNumShaders);
+      myExportDescs.reserve(aNumShaders);
+      myHitGroups.reserve(aNumHitGroups);
+      myWideStrings.reserve(aNumShaders);
+    }
+
 //---------------------------------------------------------------------------//
     void RtPsoBuilder::AddShaderLibrarySubobject(Shader* aShader, const wchar_t* aMainFunctionRename)
     {
@@ -48,6 +58,7 @@ namespace Fancy
         exportDesc.Name = AddWideString(shaderDx12->myDesc.myMainFunction);
       }
 
+      ASSERT(myLibraryDescs.capacity() > myLibraryDescs.size(), "Vector-grow not allowed. Individual members are being referenced as pointers.");
       D3D12_DXIL_LIBRARY_DESC& libDesc = myLibraryDescs.push_back();
       libDesc.DXILLibrary = shaderDx12->getNativeByteCode();
       libDesc.NumExports = 1;
@@ -58,6 +69,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     void RtPsoBuilder::AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::ShaderEntry>& someHitShaders)
     {
+      ASSERT(myHitGroups.capacity() > myHitGroups.size(), "Vector-grow not allowed. Individual members are being referenced as pointers.");
       D3D12_HIT_GROUP_DESC& hitGroupDesc = myHitGroups.push_back();
       hitGroupDesc = {};
       hitGroupDesc.Type = RenderCore_PlatformDX12::GetRaytracingHitGroupType(aHitGroup.myType);
@@ -109,6 +121,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     const wchar_t* RtPsoBuilder::AddWideString(const char* aString)
     {
+      ASSERT(myWideStrings.capacity() > myWideStrings.size(), "Vector-grow not allowed. Individual members are being referenced as pointers.");
       myWideStrings.push_back(StringUtil::ToWideString(aString));
       return myWideStrings.back().c_str();
     }
@@ -141,8 +154,11 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool RaytracingPipelineStateDX12::Recompile()
   {
-    RtPsoBuilder builder;
     ASSERT(!myProperties.myRaygenShaders.empty(), "Raygen shader is required to build an RT PSO");
+
+    const uint numShaders = static_cast<uint>(myProperties.myHitShaders.size() + myProperties.myRaygenShaders.size() + myProperties.myMissShaders.size());
+    const uint numHitGroups = static_cast<uint>(myProperties.myHitGroups.size());
+    RtPsoBuilder builder(numShaders, numHitGroups);
 
     for (const RaytracingPipelineStateProperties::ShaderEntry& shader : myProperties.myRaygenShaders)
       builder.AddShaderLibrarySubobject(shader.myShader.get(), shader.myUniqueMainFunctionName.c_str());

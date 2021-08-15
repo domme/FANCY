@@ -271,6 +271,7 @@
     <ClCompile Include="DebugUtilsVk.cpp" />
     <ClCompile Include="DescriptorPoolAllocatorVk.cpp" />
     <ClCompile Include="DxcShaderCompiler.cpp" />
+    <ClCompile Include="EASTLVsnprintf.cpp" />
     <ClCompile Include="GlobalDescriptorSetVk.cpp" />
     <ClCompile Include="RaytracingPipelineStateDX12.cpp" />
     <ClCompile Include="RaytracingPipelineState.cpp" />

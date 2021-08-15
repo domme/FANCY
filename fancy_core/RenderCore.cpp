@@ -27,6 +27,7 @@
 #include "TextureSampler.h"
 #include "RaytracingBVH.h"
 #include "RaytracingPipelineState.h"
+#include "RaytracingShaderTable.h"
 
 using namespace Fancy;
 
@@ -984,9 +985,9 @@ SharedPtr<RaytracingPipelineState> RenderCore::CreateRtPipelineState(const Raytr
   return state;
 }
 //---------------------------------------------------------------------------//
-SharedPtr<RaytracingShaderTable> RenderCore::CreateRtShaderTable(RaytracingShaderTableType aType, uint aMaxNumRecords, const SharedPtr<RaytracingPipelineState>& anRtPso)
+SharedPtr<RaytracingShaderTable> RenderCore::CreateRtShaderTable(const RaytracingShaderTableProperties& someProps, const SharedPtr<RaytracingPipelineState>& anRtPso)
 {
-
+  return SharedPtr<RaytracingShaderTable>(ourPlatformImpl->CreateRtShaderTable(someProps, anRtPso));
 }
 //---------------------------------------------------------------------------//
 uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)
@@ -1207,7 +1208,3 @@ void RenderCore::OnShaderFileDeletedMoved(const eastl::string& aShaderFile)
 {
 }
 //---------------------------------------------------------------------------//
-}
-
-
-

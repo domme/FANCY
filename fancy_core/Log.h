@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <cstdarg>
+#include <EASTL/fixed_vector.h>
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -15,7 +16,8 @@ namespace Fancy {
     const int messageBufferSize = vsnprintf(nullptr, 0u, aMessageFormat, args) + 1;
     const int logBufferSizeBytes = messageBufferSize + 2u; // \n \0
 
-    char* logBuffer = (char*)alloca(logBufferSizeBytes);
+    eastl::fixed_vector<char, 64> logBufferVec(logBufferSizeBytes);
+    char* logBuffer = logBufferVec.data();
 
     int offset = 0;
     offset += vsnprintf(logBuffer + offset, messageBufferSize, aMessageFormat, args);
@@ -41,7 +43,8 @@ namespace Fancy {
       severityBufferSize + messageBufferSize
       + fileBufferSize + 1u + 1u + 1u + 1u + 1u;  // (...) \0 \n 
 
-    char* logBuffer = (char*)alloca(logBufferSizeBytes);
+    eastl::fixed_vector<char, 64> logBufferVec(logBufferSizeBytes);
+    char* logBuffer = logBufferVec.data();
 
     int offset = 0;
     offset += snprintf(logBuffer + offset, severityBufferSize, "%s: ", aSeverity);

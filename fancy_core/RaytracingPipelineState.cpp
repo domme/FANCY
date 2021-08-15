@@ -18,13 +18,15 @@ namespace Fancy
         eastl::find_if(someShaders.begin(), someShaders.end(), [aShader](const RaytracingPipelineStateProperties::ShaderEntry& anEntry) { return anEntry.myShader == aShader; });
 
       if (it != someShaders.end())
-        return it - someShaders.begin();
+        return uint(it - someShaders.begin());
 
       const uint index = (uint)someShaders.size();
       RaytracingPipelineStateProperties::ShaderEntry& entry = someShaders.push_back();
       entry.myShader = aShader;
       entry.myUniqueMainFunctionName = StringUtil::ToWideString(aShader->GetDescription().myMainFunction.c_str());
-      entry.myUniqueMainFunctionName.sprintf(L"%s_%d_%d", entry.myUniqueMainFunctionName.c_str(), (uint)aType, index);
+
+      eastl::wstring wType = StringUtil::ToWideString(aType);
+      entry.myUniqueMainFunctionName.append_sprintf(L"_%ls_%d", wType.c_str(), index);
       return index;
     }
 

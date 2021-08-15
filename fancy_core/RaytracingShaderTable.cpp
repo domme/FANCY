@@ -5,22 +5,31 @@
 
 using namespace Fancy;
 
-RaytracingShaderTable::RaytracingShaderTable(RaytracingShaderTableType aType, uint aMaxNumShaderRecords, const SharedPtr<RaytracingPipelineState>& anRtPso)
-  : myType(aType)
-  , myMaxNumShaderRecords(aMaxNumShaderRecords)
-  , myShaderRecordSizeBytes(0u)
+RaytracingShaderTable::RaytracingShaderTable(const RaytracingShaderTableProperties& someProps, const SharedPtr<RaytracingPipelineState>& anRtPso)
+  : myProperties(someProps)
   , myRtPso(anRtPso)
   , myMappedData(nullptr)
-  , myWriteOffset(0u)
+  , myShaderRecordSizeBytes(0u)
+  , myTypeRangeOffsets{}
+  , myTypeRangeSizes{}
+  , myTypeRangeMaxSizes{}
 {
   myShaderRecordSizeBytes = RenderCore::GetPlatformCaps().myRaytracingShaderIdentifierSizeBytes;
   ASSERT(myShaderRecordSizeBytes > 0);
+
+  myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_RAYGEN] = 0ull;
+  myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_MISS] = myProperties.myNumRaygenShaderRecords * myShaderRecordSizeBytes;
+  myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_HIT] = (myProperties.myNumRaygenShaderRecords + myProperties.myNumMissShaderRecords) * myShaderRecordSizeBytes;
+
+  myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_RAYGEN] = myProperties.myNumRaygenShaderRecords * myShaderRecordSizeBytes;
+  myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_MISS] = myProperties.myNumMissShaderRecords * myShaderRecordSizeBytes;
+  myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_HIT] = myProperties.myNumHitShaderRecords * myShaderRecordSizeBytes;
 
   GpuBufferProperties bufferProps;
   bufferProps.myBindFlags = (uint) GpuBufferBindFlags::RAYTRACING_SHADER_BINDING_TABLE;
   bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_WRITE;
   bufferProps.myElementSizeBytes = myShaderRecordSizeBytes;
-  bufferProps.myNumElements = myMaxNumShaderRecords;
+  bufferProps.myNumElements = myProperties.myNumRaygenShaderRecords + myProperties.myNumMissShaderRecords + myProperties.myNumHitShaderRecords;
   myBuffer = RenderCore::CreateBuffer(bufferProps, "RT SBT Buffer");
   ASSERT(myBuffer != nullptr);
 
@@ -28,32 +37,42 @@ RaytracingShaderTable::RaytracingShaderTable(RaytracingShaderTableType aType, ui
   ASSERT(myMappedData != nullptr);
 }
 
-uint RaytracingShaderTable::AddShaderRecord(uint aShaderIndexInRtPso)
+uint RaytracingShaderTable::AddShaderRecord(RaytracingShaderRecordType aType, uint aShaderIndexInRtPso)
 {
   const RaytracingPipelineStateProperties& psoProps = myRtPso->myProperties;
 
-  if (myType == RT_SHADER_TABLE_TYPE_HIT)
+  eastl::fixed_vector<uint8, 64> shaderRecordData;
+  if (aType == RT_SHADER_RECORD_TYPE_HIT)
   {
     ASSERT(aShaderIndexInRtPso < (uint)psoProps.myHitGroups.size());
-    AddShaderRecordInternal(aShaderIndexInRtPso, psoProps.myHitGroups[aShaderIndexInRtPso]);
+    GetShaderRecordDataInternal(aShaderIndexInRtPso, psoProps.myHitGroups[aShaderIndexInRtPso], shaderRecordData);
   }
   else
   {
-    if (myType == RT_SHADER_TABLE_TYPE_RAYGEN)
+    if (aType == RT_SHADER_RECORD_TYPE_RAYGEN)
     {
       ASSERT(aShaderIndexInRtPso < (uint)psoProps.myRaygenShaders.size());
-      AddShaderRecordInternal(aShaderIndexInRtPso, psoProps.myRaygenShaders[aShaderIndexInRtPso]);
+      GetShaderRecordDataInternal(aShaderIndexInRtPso, psoProps.myRaygenShaders[aShaderIndexInRtPso], shaderRecordData);
     }
     else
     {
       ASSERT(aShaderIndexInRtPso < (uint)psoProps.myMissShaders.size());
-      AddShaderRecordInternal(aShaderIndexInRtPso, psoProps.myMissShaders[aShaderIndexInRtPso]);
+      GetShaderRecordDataInternal(aShaderIndexInRtPso, psoProps.myMissShaders[aShaderIndexInRtPso], shaderRecordData);
     }
   }
 
+  ASSERT(shaderRecordData.size() == myShaderRecordSizeBytes);
+  ASSERT(myTypeRangeSizes[aType] + myShaderRecordSizeBytes <= myTypeRangeMaxSizes[aType]);
+
+  uint8* dst = myMappedData + myTypeRangeOffsets[aType] + myTypeRangeSizes[aType];
+  memcpy(dst, shaderRecordData.data(), myShaderRecordSizeBytes);
+
+  const uint idx = myTypeRangeSizes[aType] / myShaderRecordSizeBytes;
+  myTypeRangeSizes[aType] += myShaderRecordSizeBytes;
+
 #if FANCY_HEAVY_DEBUG
-  myShaders.push_back(aShaderIndexInRtPso);
+  myShaders.push_back({ aType, aShaderIndexInRtPso });
 #endif
 
-  return (myWriteOffset - myShaderRecordSizeBytes) / myShaderRecordSizeBytes;
+  return idx;
 }

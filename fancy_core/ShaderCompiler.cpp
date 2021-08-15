@@ -75,10 +75,10 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  StaticShortString ShaderCompiler::GetHLSLprofileString(ShaderStage aShaderStage, ShaderModel aShaderModel)
+  FixedShortString ShaderCompiler::GetHLSLprofileString(ShaderStage aShaderStage, ShaderModel aShaderModel)
   {
-    StaticShortString str;
-    str.Format("%s%s", locGetShaderStagePrefix(aShaderStage), locGetShaderModelSuffix(aShaderModel));
+    FixedShortString str;
+    str.sprintf("%s%s", locGetShaderStagePrefix(aShaderStage), locGetShaderModelSuffix(aShaderModel));
     return str;
   }
 //---------------------------------------------------------------------------//

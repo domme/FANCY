@@ -7,7 +7,7 @@ using namespace Fancy;
 namespace Fancy
 {
   class RaytracingShaderTable;
-  struct RaytracingPipelineState;
+  class RaytracingPipelineState;
   class GpuBuffer;
   class RaytracingBVH;
   class Shader;
@@ -31,9 +31,7 @@ public:
   SharedPtr<RaytracingBVH> myTopLevelBVH;
 
   SharedPtr<RaytracingPipelineState> myRtPso;
-  SharedPtr<RaytracingShaderTable> myRayGenTable;
-  SharedPtr<RaytracingShaderTable> myMissTable;
-  SharedPtr<RaytracingShaderTable> myHitTable;
+  SharedPtr<RaytracingShaderTable> myShaderTable;
 }; 
 
 

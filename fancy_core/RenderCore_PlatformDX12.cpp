@@ -560,7 +560,7 @@ D3D12_HIT_GROUP_TYPE RenderCore_PlatformDX12::GetRaytracingHitGroupType(Raytraci
     D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE,
   };
 
-  ASSERT(aType < ARRAY_LENGTH(toNativeType));
+  ASSERT((uint) aType < (uint) ARRAY_LENGTH(toNativeType));
   return toNativeType[aType];
 }
 //---------------------------------------------------------------------------//
@@ -962,9 +962,9 @@ RaytracingPipelineState* RenderCore_PlatformDX12::CreateRtPipelineState(const Ra
   return new RaytracingPipelineStateDX12(someProps);
 }
 //---------------------------------------------------------------------------//
-RaytracingShaderTable* RenderCore_PlatformDX12::CreateRtShaderTable(RaytracingShaderTableType aType, uint aMaxNumRecords, const SharedPtr<RaytracingPipelineState>& anRtPso)
+RaytracingShaderTable* RenderCore_PlatformDX12::CreateRtShaderTable(const RaytracingShaderTableProperties& someProps, const SharedPtr<RaytracingPipelineState>& anRtPso)
 {
-  return new RaytracingShaderTableDX12(aType, aMaxNumRecords, anRtPso);
+  return new RaytracingShaderTableDX12(someProps, anRtPso);
 }
 //---------------------------------------------------------------------------//
 GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

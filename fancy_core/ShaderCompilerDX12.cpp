@@ -210,7 +210,7 @@ namespace Fancy {
     {
       true,
       false,
-      GetHLSLprofileString((ShaderStage)aDesc.myShaderStage)
+      GetHLSLprofileString((ShaderStage)aDesc.myShaderStage).c_str()
     };
 
     Microsoft::WRL::ComPtr<IDxcBlob> compiledShaderBytecode;

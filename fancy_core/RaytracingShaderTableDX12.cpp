@@ -7,31 +7,28 @@
 
 using namespace Fancy;
 
-RaytracingShaderTableDX12::RaytracingShaderTableDX12(RaytracingShaderTableType aType, uint aMaxNumShaderRecords, const SharedPtr<RaytracingPipelineState>& anRtPso)
-  : RaytracingShaderTable(aType, aMaxNumShaderRecords, anRtPso)
+RaytracingShaderTableDX12::RaytracingShaderTableDX12(const RaytracingShaderTableProperties& someProps, const SharedPtr<RaytracingPipelineState>& anRtPso)
+  : RaytracingShaderTable(someProps, anRtPso)
 {
   auto device = RenderCore::GetPlatformDX12()->GetDevice();
-  RaytracingPipelineStateDX12* rtPsoDx12 = (RaytracingPipelineStateDX12*)anRtPso.get();
+  const RaytracingPipelineStateDX12* rtPsoDx12 = (RaytracingPipelineStateDX12*)anRtPso.get();
   ASSERT_HRESULT(rtPsoDx12->myStateObject.As(&myRtPsoProperties));
 }
 
-void RaytracingShaderTableDX12::AddShaderRecordInternal(uint /*aShaderIndexInRtPso*/, const RaytracingPipelineStateProperties::HitGroup& aHitGroup)
+void RaytracingShaderTableDX12::GetShaderRecordDataInternal(uint /*aShaderIndexInRtPso*/, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, eastl::fixed_vector<uint8, 64>& someDataOut)
 {
-  WriteShaderIdentifier(aHitGroup.myName.c_str());
-}
-
-void RaytracingShaderTableDX12::AddShaderRecordInternal(uint /*aShaderIndexInRtPso*/, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry)
-{
-  WriteShaderIdentifier(aShaderEntry.myUniqueMainFunctionName.c_str());
-}
-
-void RaytracingShaderTableDX12::WriteShaderIdentifier(const wchar_t* aUniqueName)
-{
-  void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aUniqueName);
+  void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aShaderEntry.myUniqueMainFunctionName.c_str());
   ASSERT(shaderIdentifier);
-  ASSERT(myWriteOffset + myShaderRecordSizeBytes <= myBuffer->GetByteSize());
 
-  uint8* dstPtr = myMappedData + myWriteOffset;
-  memcpy(dstPtr, shaderIdentifier, myShaderRecordSizeBytes);
-  myWriteOffset += myShaderRecordSizeBytes;
+  someDataOut.resize(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+  memcpy(someDataOut.data(), shaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+}
+
+void RaytracingShaderTableDX12::GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, eastl::fixed_vector<uint8, 64>& someDataOut)
+{
+  void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aShaderEntry.myName.c_str());
+  ASSERT(shaderIdentifier);
+
+  someDataOut.resize(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+  memcpy(someDataOut.data(), shaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 }

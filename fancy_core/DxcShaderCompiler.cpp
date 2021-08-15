@@ -196,7 +196,7 @@ namespace Fancy
       sourceBlob,
       StringUtil::ToWideString(aDesc.myPath).c_str(),
       StringUtil::ToWideString(aDesc.myMainFunction).c_str(),
-      StringUtil::ToWideString(ShaderCompiler::GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage))).c_str(),
+      StringUtil::ToWideString(ShaderCompiler::GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)).c_str()).c_str(),
       args,
       numArgs,
       defines.data(),

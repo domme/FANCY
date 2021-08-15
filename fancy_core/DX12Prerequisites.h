@@ -2,6 +2,8 @@
 
 #if FANCY_ENABLE_DX12
 
+#pragma warning(disable : 26812) // Disable "Prefer enum class over enum"
+
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <d3dcompiler.h>
