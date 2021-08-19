@@ -57,6 +57,7 @@ namespace Fancy {
 
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     void Dispatch(const glm::int3& aNumThreads) override;
+    void DispatchRays(const DispatchRaysDesc& aDesc) override;
 
     void TrackResourceTransition(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState, bool aIsSharedReadState = false);
     void TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, D3D12_RESOURCE_STATES aNewState, bool aToSharedReadState = false);
@@ -72,6 +73,7 @@ namespace Fancy {
     void ApplyViewportAndClipRect();
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
+    void ApplyRaytracingPipelineState();
     void ApplyRenderTargets();
     void ApplyTopologyType();
     void ApplyResourceBindings();

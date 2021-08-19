@@ -5,7 +5,10 @@
 #include "MathIncludes.h"
 #include "RenderEnums.h"
 #include "DataFormat.h"
+#include "GpuBuffer.h"
 #include "GpuResource.h"
+#include "RaytracingShaderRecord.h"
+#include "RaytracingShaderTable.h"
 #include "VertexInputLayoutProperties.h"
 #include "eastl/vector.h"
 
@@ -49,6 +52,17 @@ namespace Fancy {
     bool myIsDirty;
   };
 //---------------------------------------------------------------------------//
+  struct DispatchRaysDesc
+  {
+    RaytracingShaderTableRange myRayGenShaderRecord;
+    RaytracingShaderTableRange myMissShaderTableRange;
+    RaytracingShaderTableRange myHitGroupTableRange;
+    RaytracingShaderTableRange myCallableShaderTableRange;
+    uint myWidth;
+    uint myHeight;
+    uint myDepth;
+  };
+//---------------------------------------------------------------------------//
   class CommandList
   {
     friend class CommandQueue;
@@ -75,6 +89,7 @@ namespace Fancy {
     virtual void CopyBufferToTexture(const Texture* aDstTexture, const SubresourceLocation& aDstSubresource, const TextureRegion& aDstRegion, const GpuBuffer* aSrcBuffer, uint64 aSrcOffset) = 0;
 
     virtual void Dispatch(const glm::int3& aNumThreads) = 0;
+    virtual void DispatchRays(const DispatchRaysDesc& aDesc) = 0;
 
     virtual void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) = 0;
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
@@ -123,6 +138,7 @@ namespace Fancy {
     void SetVertexInputLayout(const VertexInputLayout* anInputLayout);
     void SetRenderTarget(TextureView* aColorTarget, TextureView* aDepthStencil);
     void SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil);
+    void SetRaytracingPipelineState(RaytracingPipelineState* aPipelineState);
     void RemoveAllRenderTargets();
     void UpdateBufferData(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const void* aDataPtr, uint64 aByteSize);
         
@@ -159,6 +175,8 @@ namespace Fancy {
 
     GraphicsPipelineState myGraphicsPipelineState;
     ComputePipelineState myComputePipelineState;
+    RaytracingPipelineState* myRaytracingPipelineState;
+    bool myRaytracingPipelineStateDirty;
     
     eastl::vector<GpuRingBuffer*> myUploadRingBuffers;
     eastl::vector<GpuRingBuffer*> myConstantRingBuffers;

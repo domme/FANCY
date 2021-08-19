@@ -109,7 +109,7 @@ namespace Fancy {
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, GpuBufferViewProperties someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
     static SharedPtr<RaytracingBVH> CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr);
     static SharedPtr<RaytracingPipelineState> CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps);
-    static SharedPtr<RaytracingShaderTable> CreateRtShaderTable(const RaytracingShaderTableProperties& someProps, const SharedPtr<RaytracingPipelineState>& anRtPso);
+    static SharedPtr<RaytracingShaderTable> CreateRtShaderTable(const RaytracingShaderTableProperties& someProps);
     static uint GetQueryTypeDataSize(GpuQueryType aType);
     
     static SharedPtr<BlendState> CreateBlendState(const BlendStateProperties& aProperties);

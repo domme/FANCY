@@ -962,11 +962,6 @@ RaytracingPipelineState* RenderCore_PlatformDX12::CreateRtPipelineState(const Ra
   return new RaytracingPipelineStateDX12(someProps);
 }
 //---------------------------------------------------------------------------//
-RaytracingShaderTable* RenderCore_PlatformDX12::CreateRtShaderTable(const RaytracingShaderTableProperties& someProps, const SharedPtr<RaytracingPipelineState>& anRtPso)
-{
-  return new RaytracingShaderTableDX12(someProps, anRtPso);
-}
-//---------------------------------------------------------------------------//
 GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)
 {
   return new GpuQueryHeapDX12(aType, aNumQueries);

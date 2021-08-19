@@ -100,6 +100,8 @@ namespace Fancy {
     , myRenderTargetsDirty(true)
     , myRenderTargets{ nullptr }
     , myDepthStencilTarget(nullptr)
+    , myRaytracingPipelineState(nullptr)
+    , myRaytracingPipelineStateDirty(false)
   {
   }
 //---------------------------------------------------------------------------//
@@ -469,6 +471,15 @@ namespace Fancy {
 
     myGraphicsPipelineState.myIsDirty |= pipelineStateDirty;
     myRenderTargetsDirty |= renderTargetsDirty;
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::SetRaytracingPipelineState(RaytracingPipelineState* aPipelineState)
+  {
+    if (myRaytracingPipelineState != aPipelineState)
+    {
+      myRaytracingPipelineState = aPipelineState;
+      myRaytracingPipelineStateDirty = true;
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandList::RemoveAllRenderTargets()

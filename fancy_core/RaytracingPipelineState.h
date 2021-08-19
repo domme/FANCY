@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RaytracingShaderRecord.h"
+
 namespace Fancy
 {
   class RaytracingPipelineStateProperties
@@ -20,6 +22,7 @@ namespace Fancy
     void SetMaxRecursionDepth(uint aMaxDepth) { myMaxRecursionDepth = aMaxDepth; }
     void AddPipelineFlag(RaytracingPipelineFlags aFlag) { myPipelineFlags = RaytracingPipelineFlags(myPipelineFlags | aFlag); }
     uint64 GetHash() const;
+
 
     struct ShaderEntry
     {
@@ -55,7 +58,15 @@ namespace Fancy
     virtual ~RaytracingPipelineState() {};
     virtual bool Recompile() = 0;
 
+    RaytracingShaderRecord GetRayGenShaderRecord(uint anIndex);
+    RaytracingShaderRecord GetMissShaderRecord(uint anIndex);
+    RaytracingShaderRecord GetHitShaderRecord(uint anIndex);
+
     RaytracingPipelineStateProperties myProperties;
+
+  protected:
+    virtual void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, RaytracingShaderRecord& someDataOut) = 0;
+    virtual void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, RaytracingShaderRecord& someDataOut) = 0;
   };
 }
 

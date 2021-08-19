@@ -15,6 +15,11 @@ namespace Fancy
     bool Recompile() override;
 
     Microsoft::WRL::ComPtr<ID3D12StateObject> myStateObject;
+    Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> myRtPsoProperties;
+
+  protected:
+    void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, RaytracingShaderRecord& someDataOut) override;
+    void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, RaytracingShaderRecord& someDataOut) override;
   };
 }
 

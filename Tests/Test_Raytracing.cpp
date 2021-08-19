@@ -81,11 +81,11 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
     sbtProps.myNumMissShaderRecords = 5;
     sbtProps.myNumHitShaderRecords = 5;
     sbtProps.myNumRaygenShaderRecords = 5;
+    myShaderTable = RenderCore::CreateRtShaderTable(sbtProps);
 
-    myShaderTable = RenderCore::CreateRtShaderTable(sbtProps, myRtPso);
-    myShaderTable->AddShaderRecord(RT_SHADER_RECORD_TYPE_RAYGEN, raygenIdx);
-    myShaderTable->AddShaderRecord(RT_SHADER_RECORD_TYPE_MISS, missIdx);
-    myShaderTable->AddShaderRecord(RT_SHADER_RECORD_TYPE_HIT, hitIdx);
+    myShaderTable->AddShaderRecord(myRtPso->GetRayGenShaderRecord(raygenIdx));
+    myShaderTable->AddShaderRecord(myRtPso->GetMissShaderRecord(missIdx));
+    myShaderTable->AddShaderRecord(myRtPso->GetHitShaderRecord(hitIdx));
   }
 }
 

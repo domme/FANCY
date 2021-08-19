@@ -1,4 +1,5 @@
 #pragma once
+#include "GpuBuffer.h"
 #include "RaytracingPipelineState.h"
 
 namespace Fancy
@@ -10,34 +11,35 @@ namespace Fancy
     uint myNumHitShaderRecords = 0;
   };
 
+  struct RaytracingShaderTableRange
+  {
+    GpuBuffer* myBuffer = nullptr;
+    uint64 myOffset = 0ull;
+    uint64 mySize = 0ull;
+    uint myStride = 0u;
+  };
+
   class RaytracingShaderTable
   {
   public:
-    RaytracingShaderTable(const RaytracingShaderTableProperties& someProps, const SharedPtr<RaytracingPipelineState>& anRtPso);
-    uint AddShaderRecord(RaytracingShaderRecordType aType, uint aShaderIndexInRtPso);
+    RaytracingShaderTable(const RaytracingShaderTableProperties& someProps);
+    uint AddShaderRecord(const RaytracingShaderRecord& aShaderRecord);
     
-    GpuBuffer* GetBufferRange(RaytracingShaderRecordType aType, uint64& anOffsetOut, uint64& aSizeOut) const
-    {
-      anOffsetOut = myTypeRangeOffsets[aType];
-      aSizeOut = myTypeRangeSizes[aType];
-      return myBuffer.get();
-    }
+    RaytracingShaderTableRange GetRayGenRange() const { ASSERT(myProperties.myNumRaygenShaderRecords > 0); return GetRange(RT_SHADER_RECORD_TYPE_RAYGEN); }
+    RaytracingShaderTableRange GetMissRange() const { ASSERT(myProperties.myNumMissShaderRecords > 0); return GetRange(RT_SHADER_RECORD_TYPE_MISS); }
+    RaytracingShaderTableRange GetHitRange() const { ASSERT(myProperties.myNumHitShaderRecords > 0); return GetRange(RT_SHADER_RECORD_TYPE_HIT); }
 
   protected:
-    virtual void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, eastl::fixed_vector<uint8, 64>& someDataOut) = 0;
-    virtual void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, eastl::fixed_vector<uint8, 64>& someDataOut) = 0;
+    RaytracingShaderTableRange GetRange(RaytracingShaderRecordType aType) const {
+      return { myBuffer.get(), myTypeRangeOffsets[aType], myTypeRangeSizes[aType], myShaderRecordSizeBytes };
+    }
 
     RaytracingShaderTableProperties myProperties;
-    const SharedPtr<RaytracingPipelineState> myRtPso;
     SharedPtr<GpuBuffer> myBuffer;
     uint8* myMappedData;
     uint myShaderRecordSizeBytes;
     uint myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_NUM];
     uint myTypeRangeSizes[RT_SHADER_RECORD_TYPE_NUM];
     uint myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_NUM];
-
-#if FANCY_HEAVY_DEBUG
-    eastl::vector<eastl::pair<RaytracingShaderRecordType, uint>> myShaders;
-#endif
   };
 }

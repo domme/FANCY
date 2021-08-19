@@ -5,9 +5,8 @@
 
 using namespace Fancy;
 
-RaytracingShaderTable::RaytracingShaderTable(const RaytracingShaderTableProperties& someProps, const SharedPtr<RaytracingPipelineState>& anRtPso)
+RaytracingShaderTable::RaytracingShaderTable(const RaytracingShaderTableProperties& someProps)
   : myProperties(someProps)
-  , myRtPso(anRtPso)
   , myMappedData(nullptr)
   , myShaderRecordSizeBytes(0u)
   , myTypeRangeOffsets{}
@@ -37,42 +36,17 @@ RaytracingShaderTable::RaytracingShaderTable(const RaytracingShaderTableProperti
   ASSERT(myMappedData != nullptr);
 }
 
-uint RaytracingShaderTable::AddShaderRecord(RaytracingShaderRecordType aType, uint aShaderIndexInRtPso)
+uint RaytracingShaderTable::AddShaderRecord(const RaytracingShaderRecord& aShaderRecord)
 {
-  const RaytracingPipelineStateProperties& psoProps = myRtPso->myProperties;
+  const RaytracingShaderRecordType type = aShaderRecord.myType;
+  ASSERT(aShaderRecord.myData.size() == myShaderRecordSizeBytes);
+  ASSERT(myTypeRangeSizes[type] + myShaderRecordSizeBytes <= myTypeRangeMaxSizes[type]);
 
-  eastl::fixed_vector<uint8, 64> shaderRecordData;
-  if (aType == RT_SHADER_RECORD_TYPE_HIT)
-  {
-    ASSERT(aShaderIndexInRtPso < (uint)psoProps.myHitGroups.size());
-    GetShaderRecordDataInternal(aShaderIndexInRtPso, psoProps.myHitGroups[aShaderIndexInRtPso], shaderRecordData);
-  }
-  else
-  {
-    if (aType == RT_SHADER_RECORD_TYPE_RAYGEN)
-    {
-      ASSERT(aShaderIndexInRtPso < (uint)psoProps.myRaygenShaders.size());
-      GetShaderRecordDataInternal(aShaderIndexInRtPso, psoProps.myRaygenShaders[aShaderIndexInRtPso], shaderRecordData);
-    }
-    else
-    {
-      ASSERT(aShaderIndexInRtPso < (uint)psoProps.myMissShaders.size());
-      GetShaderRecordDataInternal(aShaderIndexInRtPso, psoProps.myMissShaders[aShaderIndexInRtPso], shaderRecordData);
-    }
-  }
+  uint8* dst = myMappedData + myTypeRangeOffsets[type] + myTypeRangeSizes[type];
+  memcpy(dst, aShaderRecord.myData.data(), myShaderRecordSizeBytes);
 
-  ASSERT(shaderRecordData.size() == myShaderRecordSizeBytes);
-  ASSERT(myTypeRangeSizes[aType] + myShaderRecordSizeBytes <= myTypeRangeMaxSizes[aType]);
-
-  uint8* dst = myMappedData + myTypeRangeOffsets[aType] + myTypeRangeSizes[aType];
-  memcpy(dst, shaderRecordData.data(), myShaderRecordSizeBytes);
-
-  const uint idx = myTypeRangeSizes[aType] / myShaderRecordSizeBytes;
-  myTypeRangeSizes[aType] += myShaderRecordSizeBytes;
-
-#if FANCY_HEAVY_DEBUG
-  myShaders.push_back({ aType, aShaderIndexInRtPso });
-#endif
+  const uint idx = myTypeRangeSizes[type] / myShaderRecordSizeBytes;
+  myTypeRangeSizes[type] += myShaderRecordSizeBytes;
 
   return idx;
 }

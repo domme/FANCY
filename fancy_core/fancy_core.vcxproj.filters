@@ -410,21 +410,33 @@
     <ClInclude Include="RaytracingBVH.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="RaytracingBvhDX12.h" />
     <ClInclude Include="ShaderVisibleDescriptorHeapDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="RootSignatureDX12.h" />
     <ClInclude Include="GlobalDescriptorSetVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="GlobalDescriptorAllocation.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="RaytracingPipelineState.h" />
-    <ClInclude Include="RaytracingPipelineStateDX12.h" />
-    <ClInclude Include="RaytracingShaderTable.h" />
-    <ClInclude Include="RaytracingShaderTableDX12.h" />
+    <ClInclude Include="RaytracingPipelineState.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RaytracingShaderTable.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RaytracingBvhDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="RaytracingPipelineStateDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="RootSignatureDX12.h">
+      <Filter>Rendering\DX12</Filter>
+    </ClInclude>
+    <ClInclude Include="RaytracingShaderRecord.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -674,20 +686,29 @@
     <ClCompile Include="RaytracingBVH.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="RaytracingBvhDX12.cpp" />
     <ClCompile Include="ShaderVisibleDescriptorHeapDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="RootSignatureDX12.cpp" />
     <ClCompile Include="GlobalDescriptorSetVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="RaytracingPipelineState.cpp" />
-    <ClCompile Include="RaytracingPipelineStateDX12.cpp" />
-    <ClCompile Include="RaytracingShaderTable.cpp" />
-    <ClCompile Include="RaytracingShaderTableDX12.cpp" />
     <ClCompile Include="EASTLVsnprintf.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="RaytracingPipelineState.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="RaytracingShaderTable.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="RaytracingBvhDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="RaytracingPipelineStateDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="RootSignatureDX12.cpp">
+      <Filter>Rendering\DX12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

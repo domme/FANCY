@@ -16,6 +16,7 @@
 #include "TimeManager.h"
 #include "GpuQueryHeapDX12.h"
 #include "DebugUtilsDX12.h"
+#include "RaytracingPipelineStateDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -924,6 +925,9 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, D3D12_RESOURCE_STATES aNewState, bool aToSharedReadState /* = false */)
   {
+    if (aResource == nullptr)
+      return;
+
     const bool canEarlyOut = !aToSharedReadState;
 
     if (!aResource->GetDX12Data()->myHazardData.myCanChangeStates && canEarlyOut)
@@ -1136,6 +1140,17 @@ namespace Fancy {
     myCommandList->SetPipelineState(pso);
   }
 //---------------------------------------------------------------------------//
+  void CommandListDX12::ApplyRaytracingPipelineState()
+  {
+    if (!myRaytracingPipelineStateDirty)
+      return;
+
+    myRaytracingPipelineStateDirty = false;
+
+    RaytracingPipelineStateDX12* rtPsoDx12 = static_cast<RaytracingPipelineStateDX12*>(myRaytracingPipelineState);
+    myCommandList->SetPipelineState1(rtPsoDx12->myStateObject.Get());
+  }
+//---------------------------------------------------------------------------//
   void CommandListDX12::Dispatch(const glm::int3& aNumThreads)
   {
     ApplyComputePipelineState();
@@ -1149,6 +1164,53 @@ namespace Fancy {
     const glm::int3& numGroupThreads = shader->GetProperties().myNumGroupThreads;
     const glm::int3 numGroups = glm::max(glm::int3(1), aNumThreads / numGroupThreads);
     myCommandList->Dispatch(static_cast<uint>(numGroups.x), static_cast<uint>(numGroups.y), static_cast<uint>(numGroups.z));
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::DispatchRays(const DispatchRaysDesc& aDesc)
+  {
+    ASSERT(aDesc.myRayGenShaderRecord.myBuffer != nullptr);
+
+    ApplyRaytracingPipelineState();
+    ASSERT(myRaytracingPipelineState != nullptr);
+
+    TrackResourceTransition(aDesc.myRayGenShaderRecord.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myCallableShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myMissShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myHitGroupTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    FlushBarriers();
+
+    ApplyResourceBindings();
+
+    D3D12_DISPATCH_RAYS_DESC desc = {};
+    desc.Width = aDesc.myWidth;
+    desc.Height = aDesc.myHeight;
+    desc.Depth = aDesc.myDepth;
+
+    desc.RayGenerationShaderRecord.StartAddress = aDesc.myRayGenShaderRecord.myBuffer->GetDeviceAddress() + aDesc.myRayGenShaderRecord.myOffset;
+    desc.RayGenerationShaderRecord.SizeInBytes = aDesc.myRayGenShaderRecord.mySize;
+
+    if (aDesc.myCallableShaderTableRange.myBuffer != nullptr)
+    {
+      desc.CallableShaderTable.StartAddress = aDesc.myCallableShaderTableRange.myBuffer->GetDeviceAddress() + aDesc.myCallableShaderTableRange.myOffset;
+      desc.CallableShaderTable.SizeInBytes = aDesc.myCallableShaderTableRange.mySize;
+      desc.CallableShaderTable.StrideInBytes = aDesc.myCallableShaderTableRange.myStride;
+    }
+
+    if (aDesc.myMissShaderTableRange.myBuffer != nullptr)
+    {
+      desc.MissShaderTable.StartAddress = aDesc.myMissShaderTableRange.myBuffer->GetDeviceAddress() + aDesc.myMissShaderTableRange.myOffset;
+      desc.MissShaderTable.SizeInBytes = aDesc.myMissShaderTableRange.mySize;
+      desc.MissShaderTable.StrideInBytes = aDesc.myMissShaderTableRange.myStride;
+    }
+
+    if (aDesc.myHitGroupTableRange.myBuffer != nullptr)
+    {
+      desc.HitGroupTable.StartAddress = aDesc.myHitGroupTableRange.myBuffer->GetDeviceAddress() + aDesc.myHitGroupTableRange.myOffset;
+      desc.HitGroupTable.SizeInBytes = aDesc.myHitGroupTableRange.mySize;
+      desc.HitGroupTable.StrideInBytes = aDesc.myHitGroupTableRange.myStride;
+    }
+
+    myCommandList->DispatchRays(&desc);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::Close()

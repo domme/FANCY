@@ -182,6 +182,8 @@ namespace Fancy
     Microsoft::WRL::ComPtr<ID3D12StateObject> rtPso;
     if (builder.BuildRtPso(rtPso))
     {
+      ASSERT_HRESULT(rtPso.As(&myRtPsoProperties));
+
       myStateObject = rtPso;
       return true;
     }
@@ -190,7 +192,22 @@ namespace Fancy
     return false;
   }
 //---------------------------------------------------------------------------//
+  void RaytracingPipelineStateDX12::GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, RaytracingShaderRecord& someDataOut)
+  {
+    void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aShaderEntry.myName.c_str());
+    ASSERT(shaderIdentifier);
+
+    someDataOut.myData.resize(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+    memcpy(someDataOut.myData.data(), shaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+  }
+//---------------------------------------------------------------------------//
+  void RaytracingPipelineStateDX12::GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, RaytracingShaderRecord& someDataOut)
+  {
+    void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aShaderEntry.myUniqueMainFunctionName.c_str());
+    ASSERT(shaderIdentifier);
+
+    someDataOut.myData.resize(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+    memcpy(someDataOut.myData.data(), shaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+  }
+//---------------------------------------------------------------------------//
 }
-
-
-

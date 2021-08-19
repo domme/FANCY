@@ -985,9 +985,9 @@ SharedPtr<RaytracingPipelineState> RenderCore::CreateRtPipelineState(const Raytr
   return state;
 }
 //---------------------------------------------------------------------------//
-SharedPtr<RaytracingShaderTable> RenderCore::CreateRtShaderTable(const RaytracingShaderTableProperties& someProps, const SharedPtr<RaytracingPipelineState>& anRtPso)
+SharedPtr<RaytracingShaderTable> RenderCore::CreateRtShaderTable(const RaytracingShaderTableProperties& someProps)
 {
-  return SharedPtr<RaytracingShaderTable>(ourPlatformImpl->CreateRtShaderTable(someProps, anRtPso));
+  return SharedPtr<RaytracingShaderTable>(new RaytracingShaderTable(someProps));
 }
 //---------------------------------------------------------------------------//
 uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)

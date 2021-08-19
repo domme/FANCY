@@ -127,6 +127,33 @@ namespace Fancy
         
     return hasher.GetHashValue();
   }
+
+  RaytracingShaderRecord RaytracingPipelineState::GetRayGenShaderRecord(uint anIndex)
+  {
+    ASSERT((uint)myProperties.myRaygenShaders.size() > anIndex);
+    RaytracingShaderRecord record;
+    record.myType = RaytracingShaderRecordType::RT_SHADER_RECORD_TYPE_RAYGEN;
+    GetShaderRecordDataInternal(anIndex, myProperties.myRaygenShaders[anIndex], record);
+    return record;
+  }
+
+  RaytracingShaderRecord RaytracingPipelineState::GetMissShaderRecord(uint anIndex)
+  {
+    ASSERT((uint)myProperties.myMissShaders.size() > anIndex);
+    RaytracingShaderRecord record;
+    record.myType = RaytracingShaderRecordType::RT_SHADER_RECORD_TYPE_MISS;
+    GetShaderRecordDataInternal(anIndex, myProperties.myMissShaders[anIndex], record);
+    return record;
+  }
+
+  RaytracingShaderRecord RaytracingPipelineState::GetHitShaderRecord(uint anIndex)
+  {
+    ASSERT((uint)myProperties.myHitGroups.size() > anIndex);
+    RaytracingShaderRecord record;
+    record.myType = RaytracingShaderRecordType::RT_SHADER_RECORD_TYPE_HIT;
+    GetShaderRecordDataInternal(anIndex, myProperties.myHitGroups[anIndex], record);
+    return record;
+  }
 }
 
 
