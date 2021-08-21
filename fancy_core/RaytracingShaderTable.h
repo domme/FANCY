@@ -9,6 +9,7 @@ namespace Fancy
     uint myNumRaygenShaderRecords = 0;
     uint myNumMissShaderRecords = 0;
     uint myNumHitShaderRecords = 0;
+    uint myMaxShaderDescriptorDataSize = 0;
   };
 
   struct RaytracingShaderTableRange
@@ -23,21 +24,21 @@ namespace Fancy
   {
   public:
     RaytracingShaderTable(const RaytracingShaderTableProperties& someProps);
-    uint AddShaderRecord(const RaytracingShaderRecord& aShaderRecord);
+    void AddShaderRecord(const RaytracingShaderRecord& aShaderRecord);
     
     RaytracingShaderTableRange GetRayGenRange() const { ASSERT(myProperties.myNumRaygenShaderRecords > 0); return GetRange(RT_SHADER_RECORD_TYPE_RAYGEN); }
     RaytracingShaderTableRange GetMissRange() const { ASSERT(myProperties.myNumMissShaderRecords > 0); return GetRange(RT_SHADER_RECORD_TYPE_MISS); }
     RaytracingShaderTableRange GetHitRange() const { ASSERT(myProperties.myNumHitShaderRecords > 0); return GetRange(RT_SHADER_RECORD_TYPE_HIT); }
 
   protected:
-    RaytracingShaderTableRange GetRange(RaytracingShaderRecordType aType) const {
-      return { myBuffer.get(), myTypeRangeOffsets[aType], myTypeRangeSizes[aType], myShaderRecordSizeBytes };
-    }
+    RaytracingShaderTableRange GetRange(RaytracingShaderRecordType aType) const;
 
     RaytracingShaderTableProperties myProperties;
     SharedPtr<GpuBuffer> myBuffer;
     uint8* myMappedData;
-    uint myShaderRecordSizeBytes;
+    uint myShaderIdentifierSizeBytes;
+    uint myAlignedShaderRecordSizeBytes;
+
     uint myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_NUM];
     uint myTypeRangeSizes[RT_SHADER_RECORD_TYPE_NUM];
     uint myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_NUM];

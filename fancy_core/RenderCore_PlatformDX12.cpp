@@ -21,7 +21,6 @@
 #include "CommandLine.h"
 #include "RaytracingBVHDX12.h"
 #include "RaytracingPipelineStateDX12.h"
-#include "RaytracingShaderTableDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -635,6 +634,9 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12(const RenderPlatformProperties&
   myCaps.myTextureSubresourceBufferAlignment = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
   myCaps.myMaxTextureAnisotropy = D3D12_DEFAULT_MAX_ANISOTROPY;
   myCaps.myRaytracingShaderIdentifierSizeBytes = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
+  myCaps.myRaytracingShaderRecordAlignment = D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT;
+  myCaps.myRaytracingShaderTableAddressAlignment = D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT;
+  myCaps.myRaytracingMaxShaderRecordSize = D3D12_RAYTRACING_MAX_SHADER_RECORD_STRIDE;
   // DX12 always supports async compute and copy on the API-level, even though there might not
   // be hardware-support for it.
   // TODO: Check if there's a way to detect missing HW-support and disable the missing queues

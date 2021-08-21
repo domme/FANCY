@@ -930,7 +930,8 @@ namespace Fancy {
 
     const bool canEarlyOut = !aToSharedReadState;
 
-    if (!aResource->GetDX12Data()->myHazardData.myCanChangeStates && canEarlyOut)
+    GpuResourceHazardDataDX12& hazardData = aResource->GetDX12Data()->myHazardData;
+    if (!hazardData.myCanChangeStates && canEarlyOut)
       return;
 
     D3D12_RESOURCE_STATES dstStates = ResolveValidateDstStates(aResource, aNewState);

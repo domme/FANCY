@@ -30,6 +30,8 @@ namespace Fancy
   public:
     RaytracingBVH(const RaytracingBVHProps& someProps);
     virtual ~RaytracingBVH() = default;
+
+    
     
     virtual void Destroy() = 0;
 

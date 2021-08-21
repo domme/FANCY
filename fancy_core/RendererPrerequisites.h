@@ -45,6 +45,9 @@ namespace Fancy {
     unsigned int myTextureSubresourceBufferAlignment = 10;
     unsigned int myMaxTextureAnisotropy = 16u;
     unsigned int myRaytracingShaderIdentifierSizeBytes = 0u;
+    unsigned int myRaytracingShaderTableAddressAlignment = 0u;
+    unsigned int myRaytracingShaderRecordAlignment = 0u;
+    unsigned int myRaytracingMaxShaderRecordSize = 0u;
     bool myHasAsyncCompute = false;
     bool myHasAsyncCopy = false;
   };

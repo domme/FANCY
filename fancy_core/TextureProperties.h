@@ -19,7 +19,7 @@ namespace Fancy {
       , myDepthOrArraySize(1u)
       , myFormat(DataFormat::NONE)
       , myAccessType(CpuMemoryAccessType::NO_CPU_ACCESS)
-      , myNumMipLevels(UINT_MAX)
+      , myNumMipLevels(1u)
       , bIsDepthStencil(false)
       , myIsShaderWritable(false)
       , myIsRenderTarget(false)

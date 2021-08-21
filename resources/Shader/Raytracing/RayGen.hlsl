@@ -4,7 +4,7 @@
 cbuffer Constants : register(b0, Space_LocalCBuffer)
 {
   uint myOutTexIndex;
-  uint myBvhIndex;
+  //uint myBvhIndex;
 };
 
 [shader("raygeneration")] 

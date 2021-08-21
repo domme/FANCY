@@ -8,27 +8,31 @@ using namespace Fancy;
 RaytracingShaderTable::RaytracingShaderTable(const RaytracingShaderTableProperties& someProps)
   : myProperties(someProps)
   , myMappedData(nullptr)
-  , myShaderRecordSizeBytes(0u)
+  , myShaderIdentifierSizeBytes(0u)
+  , myAlignedShaderRecordSizeBytes(0u)
   , myTypeRangeOffsets{}
   , myTypeRangeSizes{}
   , myTypeRangeMaxSizes{}
 {
-  myShaderRecordSizeBytes = RenderCore::GetPlatformCaps().myRaytracingShaderIdentifierSizeBytes;
-  ASSERT(myShaderRecordSizeBytes > 0);
+  const RenderPlatformCaps& caps = RenderCore::GetPlatformCaps();
+  myShaderIdentifierSizeBytes = caps.myRaytracingShaderIdentifierSizeBytes;
+
+  myAlignedShaderRecordSizeBytes = (uint) MathUtil::Align(myShaderIdentifierSizeBytes + myProperties.myMaxShaderDescriptorDataSize, caps.myRaytracingShaderRecordAlignment);
+  ASSERT(myAlignedShaderRecordSizeBytes > 0 && myAlignedShaderRecordSizeBytes < caps.myRaytracingMaxShaderRecordSize);
+
+  myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_RAYGEN] = (uint) MathUtil::Align(myProperties.myNumRaygenShaderRecords * myAlignedShaderRecordSizeBytes, caps.myRaytracingShaderTableAddressAlignment);
+  myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_MISS] = (uint) MathUtil::Align(myProperties.myNumMissShaderRecords * myAlignedShaderRecordSizeBytes, caps.myRaytracingShaderTableAddressAlignment);
+  myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_HIT] = (uint) MathUtil::Align(myProperties.myNumHitShaderRecords * myAlignedShaderRecordSizeBytes, caps.myRaytracingShaderTableAddressAlignment);
 
   myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_RAYGEN] = 0ull;
-  myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_MISS] = myProperties.myNumRaygenShaderRecords * myShaderRecordSizeBytes;
-  myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_HIT] = (myProperties.myNumRaygenShaderRecords + myProperties.myNumMissShaderRecords) * myShaderRecordSizeBytes;
-
-  myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_RAYGEN] = myProperties.myNumRaygenShaderRecords * myShaderRecordSizeBytes;
-  myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_MISS] = myProperties.myNumMissShaderRecords * myShaderRecordSizeBytes;
-  myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_HIT] = myProperties.myNumHitShaderRecords * myShaderRecordSizeBytes;
+  myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_MISS] = myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_RAYGEN];
+  myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_HIT] = myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_RAYGEN] + myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_MISS];
 
   GpuBufferProperties bufferProps;
   bufferProps.myBindFlags = (uint) GpuBufferBindFlags::RAYTRACING_SHADER_BINDING_TABLE;
   bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_WRITE;
-  bufferProps.myElementSizeBytes = myShaderRecordSizeBytes;
-  bufferProps.myNumElements = myProperties.myNumRaygenShaderRecords + myProperties.myNumMissShaderRecords + myProperties.myNumHitShaderRecords;
+  bufferProps.myElementSizeBytes = myTypeRangeOffsets[RT_SHADER_RECORD_TYPE_HIT] + myTypeRangeMaxSizes[RT_SHADER_RECORD_TYPE_HIT];
+  bufferProps.myNumElements = 1u;
   myBuffer = RenderCore::CreateBuffer(bufferProps, "RT SBT Buffer");
   ASSERT(myBuffer != nullptr);
 
@@ -36,17 +40,19 @@ RaytracingShaderTable::RaytracingShaderTable(const RaytracingShaderTableProperti
   ASSERT(myMappedData != nullptr);
 }
 
-uint RaytracingShaderTable::AddShaderRecord(const RaytracingShaderRecord& aShaderRecord)
+void RaytracingShaderTable::AddShaderRecord(const RaytracingShaderRecord& aShaderRecord)
 {
   const RaytracingShaderRecordType type = aShaderRecord.myType;
-  ASSERT(aShaderRecord.myData.size() == myShaderRecordSizeBytes);
-  ASSERT(myTypeRangeSizes[type] + myShaderRecordSizeBytes <= myTypeRangeMaxSizes[type]);
+  ASSERT(aShaderRecord.myData.size() <= myAlignedShaderRecordSizeBytes);
+  ASSERT(myTypeRangeSizes[type] + myAlignedShaderRecordSizeBytes <= myTypeRangeMaxSizes[type]);
 
   uint8* dst = myMappedData + myTypeRangeOffsets[type] + myTypeRangeSizes[type];
-  memcpy(dst, aShaderRecord.myData.data(), myShaderRecordSizeBytes);
+  memcpy(dst, aShaderRecord.myData.data(), aShaderRecord.myData.size());
+  
+  myTypeRangeSizes[type] += myAlignedShaderRecordSizeBytes;
+}
 
-  const uint idx = myTypeRangeSizes[type] / myShaderRecordSizeBytes;
-  myTypeRangeSizes[type] += myShaderRecordSizeBytes;
-
-  return idx;
+RaytracingShaderTableRange RaytracingShaderTable::GetRange(RaytracingShaderRecordType aType) const
+{
+  return { myBuffer.get(), myTypeRangeOffsets[aType], myTypeRangeSizes[aType], myAlignedShaderRecordSizeBytes };
 }
