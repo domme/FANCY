@@ -10,6 +10,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   RootSignatureDX12::RootSignatureDX12(const RenderPlatformProperties& someProperties)
   {
+    CreateGlobalRootSignature(someProperties);
+    CreateLocalRootSignature();
+  }
+//---------------------------------------------------------------------------//
+  void RootSignatureDX12::CreateGlobalRootSignature(const RenderPlatformProperties& someProperties)
+  {
     // Keep in sync with resources/Shader/RootSignature.h
     const uint numGlobalResourceArrays = GLOBAL_RESOURCE_NUM;
 
@@ -154,7 +160,40 @@ namespace Fancy
     ASSERT(success == S_OK);
   }
 //---------------------------------------------------------------------------//
+  void RootSignatureDX12::CreateLocalRootSignature()
+  {
+    D3D12_ROOT_PARAMETER1 rootParam = {};
+    rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+    rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+    rootParam.Descriptor.ShaderRegister = 0;
+    rootParam.Descriptor.RegisterSpace = 100;
 
+    D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc;
+    rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
+    rootSigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
+    rootSigDesc.Desc_1_1.NumParameters = 1;
+    rootSigDesc.Desc_1_1.NumStaticSamplers = 0;
+    rootSigDesc.Desc_1_1.pStaticSamplers = nullptr;
+    rootSigDesc.Desc_1_1.pParameters = &rootParam;
+
+    Microsoft::WRL::ComPtr<ID3DBlob> serializedRootSig;
+    Microsoft::WRL::ComPtr<ID3DBlob> error;
+    HRESULT success = D3D12SerializeVersionedRootSignature(&rootSigDesc, &serializedRootSig, &error);
+    if (success != S_OK)
+    {
+      if (error)
+      {
+        const char* errorMsg = static_cast<const char*>(error->GetBufferPointer());
+        LOG_ERROR("Failed creating root signature: %s", errorMsg);
+      }
+
+      ASSERT(false);
+    }
+
+    success = RenderCore::GetPlatformDX12()->GetDevice()->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&myLocalRootSignature));
+    ASSERT(success == S_OK);
+  }
+//---------------------------------------------------------------------------//
 }
 
 #endif

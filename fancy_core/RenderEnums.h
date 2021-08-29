@@ -405,12 +405,12 @@ namespace Fancy
     RT_PIPELINE_FLAG_SKIP_PROCEDURAL = 1 << 1u,
   };
 //---------------------------------------------------------------------------//
-  enum RaytracingShaderRecordType
+  enum RaytracingShaderIdentifierType
   {
-    RT_SHADER_RECORD_TYPE_RAYGEN = 0,
-    RT_SHADER_RECORD_TYPE_MISS,
-    RT_SHADER_RECORD_TYPE_HIT,
-    RT_SHADER_RECORD_TYPE_NUM
+    RT_SHADER_IDENTIFIER_TYPE_RAYGEN = 0,
+    RT_SHADER_IDENTIFIER_TYPE_MISS,
+    RT_SHADER_IDENTIFIER_TYPE_HIT,
+    RT_SHADER_IDENTIFIER_TYPE_NUM
   };
 //---------------------------------------------------------------------------//
   enum GlobalResourceType

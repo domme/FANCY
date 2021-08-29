@@ -12,6 +12,8 @@
 #define Space_LocalRWBuffer space1
 #define Space_LocalCBuffer space2
 
+#define Space_LocalRootSig_LocalCbuffer space100
+
 // Global resources. Will be placed in descriptor set 3 in vulkan
 // SRVs (t-register)
 VK_BINDING_SET(0, 3)	Texture1D<float4>				theTextures1D[] 				: register(t0, space3);

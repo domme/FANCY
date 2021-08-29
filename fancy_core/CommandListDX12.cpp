@@ -145,6 +145,7 @@ namespace Fancy {
     if (aResetCommandList)
       ASSERT_HRESULT(myCommandList->Reset(myCommandAllocator, nullptr));
 
+    myRaytracingPipelineState = nullptr;
     myTopologyDirty = true;
     myPendingBarriers.clear();
     myLocalHazardData.clear();
@@ -1155,8 +1156,8 @@ namespace Fancy {
   void CommandListDX12::Dispatch(const glm::int3& aNumThreads)
   {
     ApplyComputePipelineState();
-    FlushBarriers();
     ApplyResourceBindings();
+    FlushBarriers();
     ASSERT(myComputePipelineState.myShaderPipeline != nullptr);
 
     const Shader* shader = myComputePipelineState.myShaderPipeline->GetShader(ShaderStage::SHADERSTAGE_COMPUTE);
@@ -1169,26 +1170,34 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::DispatchRays(const DispatchRaysDesc& aDesc)
   {
-    ASSERT(aDesc.myRayGenShaderRecord.myBuffer != nullptr);
+    ASSERT(aDesc.myRayGenShaderTableRange.myBuffer != nullptr);
 
     ApplyRaytracingPipelineState();
     ASSERT(myRaytracingPipelineState != nullptr);
 
-    TrackResourceTransition(aDesc.myRayGenShaderRecord.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-    TrackResourceTransition(aDesc.myCallableShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-    TrackResourceTransition(aDesc.myMissShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-    TrackResourceTransition(aDesc.myHitGroupTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-    FlushBarriers();
-
     ApplyResourceBindings();
 
+    TrackResourceTransition(aDesc.myRayGenShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myRayGenShaderTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+
+    TrackResourceTransition(aDesc.myCallableShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myCallableShaderTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+
+    TrackResourceTransition(aDesc.myMissShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myMissShaderTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+
+    TrackResourceTransition(aDesc.myHitGroupTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myHitGroupTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+
+    FlushBarriers();
+    
     D3D12_DISPATCH_RAYS_DESC desc = {};
     desc.Width = aDesc.myWidth;
     desc.Height = aDesc.myHeight;
     desc.Depth = aDesc.myDepth;
 
-    desc.RayGenerationShaderRecord.StartAddress = aDesc.myRayGenShaderRecord.myBuffer->GetDeviceAddress() + aDesc.myRayGenShaderRecord.myOffset;
-    desc.RayGenerationShaderRecord.SizeInBytes = aDesc.myRayGenShaderRecord.mySize;
+    desc.RayGenerationShaderRecord.StartAddress = aDesc.myRayGenShaderTableRange.myBuffer->GetDeviceAddress() + aDesc.myRayGenShaderTableRange.myOffset;
+    desc.RayGenerationShaderRecord.SizeInBytes = aDesc.myRayGenShaderTableRange.mySize;
 
     if (aDesc.myCallableShaderTableRange.myBuffer != nullptr)
     {

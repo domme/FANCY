@@ -128,30 +128,55 @@ namespace Fancy
     return hasher.GetHashValue();
   }
 
-  RaytracingShaderRecord RaytracingPipelineState::GetRayGenShaderRecord(uint anIndex)
+  bool RaytracingPipelineState::HasShader(const Shader* aShader) const
+  {
+    if (!IsRaytracingStage(aShader->myProperties.myShaderStage))
+      return false;
+
+    if (aShader->myProperties.myShaderStage == SHADERSTAGE_RAYGEN)
+    {
+      for (const auto& shader : myProperties.myRaygenShaders)
+        if (shader.myShader.get() == aShader)
+          return true;
+    }
+    else if (aShader->myProperties.myShaderStage == SHADERSTAGE_MISS)
+    {
+      for (const auto& shader : myProperties.myMissShaders)
+        if (shader.myShader.get() == aShader)
+          return true;
+    }
+
+    for (const auto& shader : myProperties.myHitShaders)
+      if (shader.myShader.get() == aShader)
+        return true;
+
+    return false;
+  }
+
+  RaytracingShaderIdentifier RaytracingPipelineState::GetRayGenShaderIdentifier(uint anIndex)
   {
     ASSERT((uint)myProperties.myRaygenShaders.size() > anIndex);
-    RaytracingShaderRecord record;
-    record.myType = RaytracingShaderRecordType::RT_SHADER_RECORD_TYPE_RAYGEN;
-    GetShaderRecordDataInternal(anIndex, myProperties.myRaygenShaders[anIndex], record);
+    RaytracingShaderIdentifier record;
+    record.myType = RaytracingShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_RAYGEN;
+    GetShaderIdentifierDataInternal(anIndex, myProperties.myRaygenShaders[anIndex], record);
     return record;
   }
 
-  RaytracingShaderRecord RaytracingPipelineState::GetMissShaderRecord(uint anIndex)
+  RaytracingShaderIdentifier RaytracingPipelineState::GetMissShaderIdentifier(uint anIndex)
   {
     ASSERT((uint)myProperties.myMissShaders.size() > anIndex);
-    RaytracingShaderRecord record;
-    record.myType = RaytracingShaderRecordType::RT_SHADER_RECORD_TYPE_MISS;
-    GetShaderRecordDataInternal(anIndex, myProperties.myMissShaders[anIndex], record);
+    RaytracingShaderIdentifier record;
+    record.myType = RaytracingShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_MISS;
+    GetShaderIdentifierDataInternal(anIndex, myProperties.myMissShaders[anIndex], record);
     return record;
   }
 
-  RaytracingShaderRecord RaytracingPipelineState::GetHitShaderRecord(uint anIndex)
+  RaytracingShaderIdentifier RaytracingPipelineState::GetHitShaderIdentifier(uint anIndex)
   {
     ASSERT((uint)myProperties.myHitGroups.size() > anIndex);
-    RaytracingShaderRecord record;
-    record.myType = RaytracingShaderRecordType::RT_SHADER_RECORD_TYPE_HIT;
-    GetShaderRecordDataInternal(anIndex, myProperties.myHitGroups[anIndex], record);
+    RaytracingShaderIdentifier record;
+    record.myType = RaytracingShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_HIT;
+    GetShaderIdentifierDataInternal(anIndex, myProperties.myHitGroups[anIndex], record);
     return record;
   }
 }

@@ -18,8 +18,8 @@ namespace Fancy
     Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> myRtPsoProperties;
 
   protected:
-    void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, RaytracingShaderRecord& someDataOut) override;
-    void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, RaytracingShaderRecord& someDataOut) override;
+    void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, RaytracingShaderIdentifier& someDataOut) override;
+    void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, RaytracingShaderIdentifier& someDataOut) override;
   };
 }
 

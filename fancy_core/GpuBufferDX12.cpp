@@ -80,7 +80,12 @@ namespace Fancy {
     if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::INDEX_BUFFER))
       readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_INDEX_BUFFER;
     if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::SHADER_BUFFER))
-      readStateMask = readStateMask & ~(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    {
+      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+      if ((someProperties.myBindFlags & (uint) GpuBufferBindFlags::RAYTRACING_SHADER_BINDING_TABLE) == 0)
+        readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    }
 
     // In most cases, UAV resources will directly be used as such so start with that as an initial state
     D3D12_RESOURCE_STATES initialStates = someProperties.myIsShaderWritable ? D3D12_RESOURCE_STATE_UNORDERED_ACCESS : (D3D12_RESOURCE_STATE_GENERIC_READ & readStateMask) & writeStateMask;

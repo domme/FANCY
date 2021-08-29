@@ -63,7 +63,7 @@ void Init(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArgum
   windowParams.myHeight = 720;
   windowParams.myTitle = "Fancy Engine Tests";
 
-  Fancy::RenderPlatformProperties renderProperties;  // keep defaults
+  Fancy::RenderPlatformProperties renderProperties;
   myRuntime = FancyRuntime::Init(anInstanceHandle, someArguments, aNumArguments, windowParams, renderProperties);
 
   myRenderOutput = myRuntime->GetRenderOutput();

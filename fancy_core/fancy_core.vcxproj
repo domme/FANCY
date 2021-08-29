@@ -149,7 +149,7 @@
     <ClInclude Include="GlobalDescriptorSetVk.h" />
     <ClInclude Include="RaytracingPipelineStateDX12.h" />
     <ClInclude Include="RaytracingPipelineState.h" />
-    <ClInclude Include="RaytracingShaderRecord.h" />
+    <ClInclude Include="RaytracingShaderIdentifier.h" />
     <ClInclude Include="RaytracingShaderTable.h" />
     <ClInclude Include="RootSignatureDX12.h" />
     <ClInclude Include="ShaderVisibleDescriptorHeapDX12.h" />

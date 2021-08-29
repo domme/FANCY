@@ -191,12 +191,16 @@ namespace Fancy
     Microsoft::WRL::ComPtr<Priv_DxcShaderCompiler::IncludeHandler> includeHandler =
       new Priv_DxcShaderCompiler::IncludeHandler(myDxcLibrary.Get(), includePaths, ARRAY_LENGTH(includePaths));
 
+    eastl::wstring sourceName = StringUtil::ToWideString(aDesc.myPath);
+    eastl::wstring mainFunction = StringUtil::ToWideString(aDesc.myMainFunction);
+    eastl::wstring hlslProfileString = StringUtil::ToWideString(ShaderCompiler::GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)).c_str());
+
     IDxcOperationResult* compiledResult;
     HRESULT result = myDxcCompiler->Compile(
       sourceBlob,
-      StringUtil::ToWideString(aDesc.myPath).c_str(),
-      StringUtil::ToWideString(aDesc.myMainFunction).c_str(),
-      StringUtil::ToWideString(ShaderCompiler::GetHLSLprofileString(static_cast<ShaderStage>(aDesc.myShaderStage)).c_str()).c_str(),
+      sourceName.c_str(),
+      mainFunction.c_str(),
+      hlslProfileString.c_str(),
       args,
       numArgs,
       defines.data(),
@@ -223,17 +227,15 @@ namespace Fancy
     result = compiledResult->GetResult(&resultBlob);
     if (result != S_OK)
     {
+      resultBlob->Release();
+      compiledResult->Release();
       LOG_ERROR("Failed getting compiled binary result of shader %s", aDesc.myPath.c_str());
       return false;
     }
 
-    // Not sure if copying is really necessary here but it looks like compiledResult->GetResult() would still own the memory. Othwerwise it will leak here.
-    IDxcBlob* returnBlob;
-    myDxcLibrary->CreateBlobFromBlob(resultBlob, 0u, (uint) resultBlob->GetBufferSize(), &returnBlob);
-    aCompiledBytecodeOut = returnBlob;
+    aCompiledBytecodeOut = resultBlob;
 
     return true;
-
   }
 }
 

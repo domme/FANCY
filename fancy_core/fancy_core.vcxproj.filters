@@ -434,7 +434,7 @@
     <ClInclude Include="RootSignatureDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="RaytracingShaderRecord.h">
+    <ClInclude Include="RaytracingShaderIdentifier.h">
       <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>

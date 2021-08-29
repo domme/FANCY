@@ -743,6 +743,21 @@ void RenderCore::UpdateChangedShaders()
     pipeline->Recreate();
     ourOnShaderPipelineRecompiled(pipeline);
   }
+  
+  // Check RTPSOs
+  eastl::fixed_vector<RaytracingPipelineState*, 8> changedRtPsos;
+  for (const Shader* shader : shadersToRecompile)
+  {
+    if (!IsRaytracingStage(shader->myProperties.myShaderStage))
+      continue;
+
+    for (const auto& rtPso : ourRtPipelineStateCache)
+      if (rtPso.second->HasShader(shader))
+        changedRtPsos.push_back(rtPso.second.get());
+  }
+
+  for (RaytracingPipelineState* rtPso : changedRtPsos)
+    rtPso->Recompile();
 }
 //---------------------------------------------------------------------------//
 SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)

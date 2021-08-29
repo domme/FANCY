@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RaytracingShaderRecord.h"
+#include "RaytracingShaderIdentifier.h"
 
 namespace Fancy
 {
@@ -58,15 +58,17 @@ namespace Fancy
     virtual ~RaytracingPipelineState() {};
     virtual bool Recompile() = 0;
 
-    RaytracingShaderRecord GetRayGenShaderRecord(uint anIndex);
-    RaytracingShaderRecord GetMissShaderRecord(uint anIndex);
-    RaytracingShaderRecord GetHitShaderRecord(uint anIndex);
+    bool HasShader(const Shader* aShader) const;
+
+    RaytracingShaderIdentifier GetRayGenShaderIdentifier(uint anIndex);
+    RaytracingShaderIdentifier GetMissShaderIdentifier(uint anIndex);
+    RaytracingShaderIdentifier GetHitShaderIdentifier(uint anIndex);
 
     RaytracingPipelineStateProperties myProperties;
 
   protected:
-    virtual void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, RaytracingShaderRecord& someDataOut) = 0;
-    virtual void GetShaderRecordDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, RaytracingShaderRecord& someDataOut) = 0;
+    virtual void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, RaytracingShaderIdentifier& someDataOut) = 0;
+    virtual void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, RaytracingShaderIdentifier& someDataOut) = 0;
   };
 }
 

@@ -7,7 +7,7 @@
 #include "DataFormat.h"
 #include "GpuBuffer.h"
 #include "GpuResource.h"
-#include "RaytracingShaderRecord.h"
+#include "RaytracingShaderIdentifier.h"
 #include "RaytracingShaderTable.h"
 #include "VertexInputLayoutProperties.h"
 #include "eastl/vector.h"
@@ -54,7 +54,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct DispatchRaysDesc
   {
-    RaytracingShaderTableRange myRayGenShaderRecord;
+    RaytracingShaderTableRange myRayGenShaderTableRange;
     RaytracingShaderTableRange myMissShaderTableRange;
     RaytracingShaderTableRange myHitGroupTableRange;
     RaytracingShaderTableRange myCallableShaderTableRange;

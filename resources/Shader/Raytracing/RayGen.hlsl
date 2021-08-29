@@ -1,10 +1,9 @@
 #include "Common.hlsl"
 #include "GlobalResources.h"
 
-cbuffer Constants : register(b0, Space_LocalCBuffer)
+cbuffer Constants : register(b0, Space_LocalRootSig_LocalCbuffer)
 {
   uint myOutTexIndex;
-  //uint myBvhIndex;
 };
 
 [shader("raygeneration")] 
