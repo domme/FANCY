@@ -1170,23 +1170,23 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::DispatchRays(const DispatchRaysDesc& aDesc)
   {
-    ASSERT(aDesc.myRayGenShaderTableRange.myBuffer != nullptr);
+    ASSERT(aDesc.myRayGenShaderTableRange.mySbtBuffer != nullptr);
 
     ApplyRaytracingPipelineState();
     ASSERT(myRaytracingPipelineState != nullptr);
 
     ApplyResourceBindings();
 
-    TrackResourceTransition(aDesc.myRayGenShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myRayGenShaderTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     TrackResourceTransition(aDesc.myRayGenShaderTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
-    TrackResourceTransition(aDesc.myCallableShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myCallableShaderTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     TrackResourceTransition(aDesc.myCallableShaderTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
-    TrackResourceTransition(aDesc.myMissShaderTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myMissShaderTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     TrackResourceTransition(aDesc.myMissShaderTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
-    TrackResourceTransition(aDesc.myHitGroupTableRange.myBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    TrackResourceTransition(aDesc.myHitGroupTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     TrackResourceTransition(aDesc.myHitGroupTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
     FlushBarriers();
@@ -1196,26 +1196,26 @@ namespace Fancy {
     desc.Height = aDesc.myHeight;
     desc.Depth = aDesc.myDepth;
 
-    desc.RayGenerationShaderRecord.StartAddress = aDesc.myRayGenShaderTableRange.myBuffer->GetDeviceAddress() + aDesc.myRayGenShaderTableRange.myOffset;
+    desc.RayGenerationShaderRecord.StartAddress = aDesc.myRayGenShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myRayGenShaderTableRange.myOffset;
     desc.RayGenerationShaderRecord.SizeInBytes = aDesc.myRayGenShaderTableRange.mySize;
 
-    if (aDesc.myCallableShaderTableRange.myBuffer != nullptr)
+    if (aDesc.myCallableShaderTableRange.mySbtBuffer != nullptr)
     {
-      desc.CallableShaderTable.StartAddress = aDesc.myCallableShaderTableRange.myBuffer->GetDeviceAddress() + aDesc.myCallableShaderTableRange.myOffset;
+      desc.CallableShaderTable.StartAddress = aDesc.myCallableShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myCallableShaderTableRange.myOffset;
       desc.CallableShaderTable.SizeInBytes = aDesc.myCallableShaderTableRange.mySize;
       desc.CallableShaderTable.StrideInBytes = aDesc.myCallableShaderTableRange.myStride;
     }
 
-    if (aDesc.myMissShaderTableRange.myBuffer != nullptr)
+    if (aDesc.myMissShaderTableRange.mySbtBuffer != nullptr)
     {
-      desc.MissShaderTable.StartAddress = aDesc.myMissShaderTableRange.myBuffer->GetDeviceAddress() + aDesc.myMissShaderTableRange.myOffset;
+      desc.MissShaderTable.StartAddress = aDesc.myMissShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myMissShaderTableRange.myOffset;
       desc.MissShaderTable.SizeInBytes = aDesc.myMissShaderTableRange.mySize;
       desc.MissShaderTable.StrideInBytes = aDesc.myMissShaderTableRange.myStride;
     }
 
-    if (aDesc.myHitGroupTableRange.myBuffer != nullptr)
+    if (aDesc.myHitGroupTableRange.mySbtBuffer != nullptr)
     {
-      desc.HitGroupTable.StartAddress = aDesc.myHitGroupTableRange.myBuffer->GetDeviceAddress() + aDesc.myHitGroupTableRange.myOffset;
+      desc.HitGroupTable.StartAddress = aDesc.myHitGroupTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myHitGroupTableRange.myOffset;
       desc.HitGroupTable.SizeInBytes = aDesc.myHitGroupTableRange.mySize;
       desc.HitGroupTable.StrideInBytes = aDesc.myHitGroupTableRange.myStride;
     }
