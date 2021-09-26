@@ -163,7 +163,6 @@ namespace Fancy {
     GpuQuery AllocateQuery(GpuQueryType aType);
     
     CommandListType myCommandListType;
-    CommandListType myCurrentContext;
 
     glm::uvec4 myViewportParams;
     glm::uvec4 myClipRect;

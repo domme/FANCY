@@ -12,8 +12,6 @@
 #define Space_LocalRWBuffer space1
 #define Space_LocalCBuffer space2
 
-#define Space_LocalRootSig_LocalCbuffer space100
-
 // Global resources. Will be placed in descriptor set 3 in vulkan
 // SRVs (t-register)
 VK_BINDING_SET(0, 3)	Texture1D<float4>				theTextures1D[] 				: register(t0, space3);
@@ -32,18 +30,18 @@ VK_BINDING_SET(12, 3)	ByteAddressBuffer 				theBuffers[] 					: register(t0, spa
 VK_BINDING_SET(13, 3)	RaytracingAccelerationStructure theRtAccelerationStructures[] 	: register(t0, space16);
 
 // UAVs (u-register)
-VK_BINDING_SET(13, 3)	RWTexture1D<float4> theRwTextures1D[] 		: register(u0, space3);
-VK_BINDING_SET(14, 3)	RWTexture1D<uint4> 	theRwUintTextures1D[] 	: register(u0, space4);
-VK_BINDING_SET(15, 3)	RWTexture1D<int4> 	theRwIntTextures1D[] 	: register(u0, space5);
-VK_BINDING_SET(16, 3)	RWTexture2D<float4> theRwTextures2D[] 		: register(u0, space6);
-VK_BINDING_SET(17, 3)	RWTexture2D<uint4>	theRwUintTextures2D[] 	: register(u0, space7);
-VK_BINDING_SET(18, 3)	RWTexture2D<int4> 	theRwIntTextures2D[] 	: register(u0, space8);
-VK_BINDING_SET(19, 3)	RWTexture3D<float4> theRwTextures3D[] 		: register(u0, space9);
-VK_BINDING_SET(20, 3)	RWTexture3D<uint4>	theRwUintTextures3D[] 	: register(u0, space10);
-VK_BINDING_SET(21, 3)	RWTexture3D<int4> 	theRwIntTextures3D[] 	: register(u0, space11);
-VK_BINDING_SET(22, 3)	RWByteAddressBuffer	theRwBuffers[] 			: register(u0, space12);
+VK_BINDING_SET(13, 3)	RWTexture1D<float4> theRwTextures1D[] 		: register(u0, space17);
+VK_BINDING_SET(14, 3)	RWTexture1D<uint4> 	theRwUintTextures1D[] 	: register(u0, space18);
+VK_BINDING_SET(15, 3)	RWTexture1D<int4> 	theRwIntTextures1D[] 	: register(u0, space19);
+VK_BINDING_SET(16, 3)	RWTexture2D<float4> theRwTextures2D[] 		: register(u0, space20);
+VK_BINDING_SET(17, 3)	RWTexture2D<uint4>	theRwUintTextures2D[] 	: register(u0, space21);
+VK_BINDING_SET(18, 3)	RWTexture2D<int4> 	theRwIntTextures2D[] 	: register(u0, space22);
+VK_BINDING_SET(19, 3)	RWTexture3D<float4> theRwTextures3D[] 		: register(u0, space23);
+VK_BINDING_SET(20, 3)	RWTexture3D<uint4>	theRwUintTextures3D[] 	: register(u0, space24);
+VK_BINDING_SET(21, 3)	RWTexture3D<int4> 	theRwIntTextures3D[] 	: register(u0, space25);
+VK_BINDING_SET(22, 3)	RWByteAddressBuffer	theRwBuffers[] 			: register(u0, space26);
 
 // Sampler (s-register)
-VK_BINDING_SET(23, 3) SamplerState theSamplers[] : register(s0, space3);
+VK_BINDING_SET(23, 3) SamplerState theSamplers[] : register(s0, space27);
 
 #endif  // INC_GLOBAL_RESOURCES_H

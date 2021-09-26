@@ -3,6 +3,7 @@
 #include "CommandList.h"
 #include "DX12Prerequisites.h"
 #include "RenderEnums.h"
+#include "eastl/fixed_hash_map.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -26,7 +27,7 @@ namespace Fancy {
     ~CommandListDX12() override;
 
     void UpdateSubresources(ID3D12Resource* aDstResource, ID3D12Resource* aStagingResource, uint aFirstSubresourceIndex, uint aNumSubresources, D3D12_SUBRESOURCE_DATA* someSubresourceDatas);
-    
+
     void ClearRenderTarget(TextureView* aTextureView, const float* aColor) override;
     void ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags) override;
     void CopyResource(GpuResource* aDstResource, GpuResource* aSrcResource) override;

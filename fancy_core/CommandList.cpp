@@ -90,7 +90,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   CommandList::CommandList(CommandListType aType)
     : myCommandListType(aType)
-    , myCurrentContext(aType)
     , myViewportParams(0, 0, 1, 1)
     , myClipRect(0, 0, 1, 1)
     , myIsOpen(true)
@@ -269,7 +268,6 @@ namespace Fancy {
 
     if (aShaderPipeline->IsComputePipeline())
     {
-      myCurrentContext = CommandListType::Compute;
       if (myComputePipelineState.myShaderPipeline != aShaderPipeline)
       {
         myComputePipelineState.myShaderPipeline = aShaderPipeline;
@@ -279,7 +277,6 @@ namespace Fancy {
     else
     {
       ASSERT(myCommandListType == CommandListType::Graphics);
-      myCurrentContext = CommandListType::Graphics;
 
       if (myGraphicsPipelineState.myShaderPipeline != aShaderPipeline)
       {

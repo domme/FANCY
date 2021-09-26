@@ -29,16 +29,14 @@ public:
   SharedPtr<GpuBuffer> myRTvertexBuffer;
   SharedPtr<GpuBuffer> myRTindexBuffer;
   SharedPtr<GpuBuffer> myRTtransformBuffer;
-  SharedPtr<GpuBuffer> myLocalCbuffer;
 
   SharedPtr<RaytracingBVH> myBottomLevelBVH;
   SharedPtr<RaytracingBVH> myTopLevelBVH;
 
-  SharedPtr<TextureView> myOutputTextureRW;
-
   SharedPtr<RaytracingPipelineState> myRtPso;
-  SharedPtr<RaytracingShaderTable> myShaderTable;
-
+  SharedPtr<RaytracingShaderTable> myRaygenShaderTable;
+  SharedPtr<RaytracingShaderTable> myMissShaderTable;
+  SharedPtr<RaytracingShaderTable> myHitShaderTable;
 }; 
 
 

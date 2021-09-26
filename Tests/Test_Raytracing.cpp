@@ -6,6 +6,7 @@
 #include <EASTL/vector.h>
 
 #include "fancy_core/CommandList.h"
+#include "fancy_core/CommandListDX12.h"
 #include "fancy_core/RaytracingBVH.h"
 #include "fancy_core/RaytracingPipelineState.h"
 #include "fancy_core/RaytracingShaderTable.h"
@@ -21,14 +22,6 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
     : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Raytracing")
 {
-  TextureProperties texProps;
-  texProps.myIsShaderWritable = true;
-  texProps.myIsRenderTarget = false;
-  texProps.myFormat = DataFormat::RGBA_8;
-  texProps.myWidth = myWindow->GetWidth();
-  texProps.myHeight = myWindow->GetHeight();
-  TempTextureResource rtOutputTex = RenderCore::AllocateTempTexture(texProps, 0u, "RT Test Result Texture");
-
   /*// Create bottom level BVH
   struct Vertex {
     float pos[3];
@@ -82,8 +75,6 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   bvhProps.myType = RaytracingBVHType::BOTTOM_LEVEL;
   myBottomLevelBVH = RenderCore::CreateRtAccelerationStructure(bvhProps, { &rtAsGeometry, 1u }, "Test_Raytracing Bottom-level BVH");*/
 
-  
-
   RaytracingPipelineStateProperties rtPipelineProps;
   const uint raygenIdx = rtPipelineProps.AddRayGenShader("RayTracing/RayGen.hlsl", "RayGen");
   rtPipelineProps.SetMaxAttributeSize(32u);
@@ -93,23 +84,31 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   // const uint hitIdx = rtPipelineProps.AddHitGroup(L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr, "RayTracing/Hit.hlsl", "ClosestHit");
   myRtPso = RenderCore::CreateRtPipelineState(rtPipelineProps);
 
-  RaytracingShaderTableProperties sbtProps;
-  // sbtProps.myNumMissShaderRecords = 5;
-  // sbtProps.myNumHitShaderRecords = 5;
-  sbtProps.myNumRaygenShaderRecords = 1;
-  myShaderTable = RenderCore::CreateRtShaderTable(sbtProps);
-
-  struct Constants
   {
-    uint myOutTexIndex;
-  } consts;
-  consts.myOutTexIndex = 0;
+    RaytracingShaderTableProperties sbtProps;
+    sbtProps.myMaxNumRecords = 5;
+    sbtProps.myType = RT_SHADER_IDENTIFIER_TYPE_RAYGEN;
+    myRaygenShaderTable = RenderCore::CreateRtShaderTable(sbtProps);
+  }
 
-  myShaderTable->AddShaderRecord(myRtPso->GetRayGenShaderIdentifier(raygenIdx), &consts, sizeof(consts));
+  {
+    RaytracingShaderTableProperties sbtProps;
+    sbtProps.myMaxNumRecords = 5;
+    sbtProps.myType = RT_SHADER_IDENTIFIER_TYPE_HIT;
+    myHitShaderTable = RenderCore::CreateRtShaderTable(sbtProps);
+  }
+
+  {
+    RaytracingShaderTableProperties sbtProps;
+    sbtProps.myMaxNumRecords = 5;
+    sbtProps.myType = RT_SHADER_IDENTIFIER_TYPE_MISS;
+    myMissShaderTable = RenderCore::CreateRtShaderTable(sbtProps);
+  }
+
+  myRaygenShaderTable->AddShaderRecord(myRtPso->GetRayGenShaderIdentifier(raygenIdx));
   // myShaderTable->AddShaderRecord(myRtPso->GetMissShaderIdentifier(missIdx));
   // myShaderTable->AddShaderRecord(myRtPso->GetHitShaderIdentifier(hitIdx));
-
-
+  
 }
 
 void Test_Raytracing::OnWindowResized(uint aWidth, uint aHeight)
@@ -123,25 +122,38 @@ void Test_Raytracing::OnUpdate(bool aDrawProperties)
 
 void Test_Raytracing::OnRender()
 {
-  
+  TextureResourceProperties texProps;
+  texProps.myIsShaderWritable = true;
+  texProps.myIsRenderTarget = false;
+  texProps.myTextureProperties.myFormat = DataFormat::RGBA_8;
+  texProps.myTextureProperties.myWidth = myWindow->GetWidth();
+  texProps.myTextureProperties.myHeight = myWindow->GetHeight();
+  TempTextureResource rtOutputTex = RenderCore::AllocateTempTexture(texProps, 0u, "RT Test Result Texture");
 
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
   ctx->SetRaytracingPipelineState(myRtPso.get());
 
   ctx->TransitionShaderResource(rtOutputTex.myWriteView, ShaderResourceTransition::TO_SHADER_WRITE);
-  
+
+  struct Consts
+  {
+    glm::uvec4 myOutTexIndex;
+  } consts;
+  consts.myOutTexIndex = glm::uvec4(0, 0, 0, 0);
+  ctx->BindConstantBuffer(&consts, sizeof(consts), 0);
+    
   DispatchRaysDesc desc;
-  desc.myRayGenShaderTableRange = myShaderTable->GetRayGenRange();
+  desc.myRayGenShaderTableRange = myRaygenShaderTable->GetRange();
   // desc.myMissShaderTableRange = myShaderTable->GetMissRange();
   // desc.myHitGroupTableRange = myShaderTable->GetHitRange();
-  desc.myWidth = props.myTextureProperties.myWidth;
-  desc.myHeight = props.myTextureProperties.myHeight;
+  desc.myWidth = texProps.myTextureProperties.myWidth;
+  desc.myHeight = texProps.myTextureProperties.myHeight;
   desc.myDepth = 1;
   ctx->DispatchRays(desc);
 
   ctx->ResourceUAVbarrier(rtOutputTex.myTexture);
   SubresourceLocation subresourceLoc;
-  TextureRegion region = { glm::uvec3(0), glm::uvec3(props.myTextureProperties.myWidth, props.myTextureProperties.myHeight, 1u) };
+  TextureRegion region = { glm::uvec3(0), glm::uvec3(texProps.myTextureProperties.myWidth, texProps.myTextureProperties.myHeight, 1u) };
 
   Texture* backbuffer = myOutput->GetBackbuffer();
   ctx->CopyTexture(backbuffer, subresourceLoc, region, rtOutputTex.myTexture, subresourceLoc, region);

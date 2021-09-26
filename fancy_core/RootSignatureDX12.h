@@ -11,10 +11,8 @@ namespace Fancy
   {
     RootSignatureDX12(const RenderPlatformProperties& someProperties);
     ID3D12RootSignature* GetRootSignature() const { return myRootSignature.Get(); }
-    ID3D12RootSignature* GetLocalRootSignature() const { return myLocalRootSignature.Get(); }
 
     Microsoft::WRL::ComPtr<ID3D12RootSignature> myRootSignature;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> myLocalRootSignature;
 
     uint myRootParamIndex_GlobalResources = 0;
     uint myRootParamIndex_GlobalSamplers = 0;
@@ -27,7 +25,6 @@ namespace Fancy
 
   private:
     void CreateGlobalRootSignature(const RenderPlatformProperties& someProperties);
-    void CreateLocalRootSignature();
   };
 //---------------------------------------------------------------------------//
 }

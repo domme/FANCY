@@ -9,20 +9,6 @@ namespace Fancy
   namespace
   {
  //---------------------------------------------------------------------------//
-    bool SubobjectTypeNeedsAssociation(D3D12_STATE_SUBOBJECT_TYPE aType)
-    {
-      switch (aType)
-      {
-      case D3D12_STATE_SUBOBJECT_TYPE_STATE_OBJECT_CONFIG: return true;
-      case D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE: return true;
-      case D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE:return true;
-      case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG: return true;
-      case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG: return true;
-      case D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG1: return true;
-      default: return false;
-      }
-    }
-//---------------------------------------------------------------------------//
     struct RtPsoBuilder
     {
       RtPsoBuilder(uint aNumShaders, uint aNumHitGroups);
@@ -31,7 +17,6 @@ namespace Fancy
       void AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::ShaderEntry>& someHitShaders);
       void AddShaderConfig(uint aMaxPayloadSizeBytes, uint aMaxAttributeSizeBytes);
       void AddGlobalRootSignature(ID3D12RootSignature* aRootSignature);
-      void AddLocalRootSignature(ID3D12RootSignature* aRootSignature);
       void SetPipelineConfig(uint aMaxRecursionDepth, RaytracingPipelineFlags someFlags);
       void AddSubobject(D3D12_STATE_SUBOBJECT_TYPE aType, void* aSubobject);
       const wchar_t* AddWideString(const char* aString);
@@ -45,11 +30,8 @@ namespace Fancy
       eastl::vector<D3D12_HIT_GROUP_DESC> myHitGroups;
       eastl::vector<D3D12_RAYTRACING_SHADER_CONFIG> myShaderConfigs;
       eastl::vector<D3D12_GLOBAL_ROOT_SIGNATURE> myGlobalRootSigs;
-      eastl::vector<D3D12_LOCAL_ROOT_SIGNATURE> myLocalRootSigs;
       eastl::vector<eastl::wstring> myWideStrings;
       eastl::vector<const wchar_t*> myAllExportNames;
-
-      uint myNumAssociationsNeeded = 0u;
     };
 
     RtPsoBuilder::RtPsoBuilder(uint aNumShaders, uint aNumHitGroups)
@@ -121,13 +103,6 @@ namespace Fancy
       AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE, &rootSig);
     }
 //---------------------------------------------------------------------------//
-   void RtPsoBuilder::AddLocalRootSignature(ID3D12RootSignature* aRootSignature)
-   {
-      D3D12_LOCAL_ROOT_SIGNATURE& rootSig = myLocalRootSigs.push_back();
-      rootSig.pLocalRootSignature = aRootSignature;
-      AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE, &rootSig);
-   }
- //---------------------------------------------------------------------------//
     void RtPsoBuilder::SetPipelineConfig(uint aMaxRecursionDepth, RaytracingPipelineFlags someFlags)
     {
       ASSERT(myPipelineConfig.MaxTraceRecursionDepth == UINT_MAX, "Pipeline config already added");
@@ -139,9 +114,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     void RtPsoBuilder::AddSubobject(D3D12_STATE_SUBOBJECT_TYPE aType, void* aSubobject)
     {
-      if (SubobjectTypeNeedsAssociation(aType))
-        ++myNumAssociationsNeeded;
-
       D3D12_STATE_SUBOBJECT& subobject = mySubObjects.push_back();
       subobject.Type = aType;
       subobject.pDesc = aSubobject;
@@ -161,27 +133,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
     bool RtPsoBuilder::BuildRtPso(Microsoft::WRL::ComPtr<ID3D12StateObject>& aStateObjectOut)
     {
-      // Need to reserve memory beforehand because we're going to use raw pointers into this array from here on
-      mySubObjects.reserve(mySubObjects.size() + myNumAssociationsNeeded);
-
-      // Add association subobjects. Just associate all subobjects that need associations with all shader exports for now.
-      eastl::vector<D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION> associations(myNumAssociationsNeeded);
-      uint numAssociationsUsed = 0;
-      for (uint i = 0, e = (uint) mySubObjects.size(); i < e; ++i)
-      {
-        D3D12_STATE_SUBOBJECT& subobject = mySubObjects[i];
-        if (subobject.Type == D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG || 
-            subobject.Type == D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG ||
-            subobject.Type == D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE)
-        {
-          D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION& association = associations[numAssociationsUsed++];
-          association.pSubobjectToAssociate = &subobject;
-          association.NumExports = (uint) myAllExportNames.size();
-          association.pExports = myAllExportNames.data();
-          AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION, &association);
-        }
-      }
-
       D3D12_STATE_OBJECT_DESC aDesc = {};
       aDesc.Type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
       aDesc.NumSubobjects = (uint) mySubObjects.size();
@@ -234,7 +185,6 @@ namespace Fancy
 
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
     builder.AddGlobalRootSignature(platformDx12->GetRootSignature()->GetRootSignature());
-    builder.AddLocalRootSignature(platformDx12->GetRootSignature()->GetLocalRootSignature());
 
     builder.SetPipelineConfig(myProperties.myMaxRecursionDepth, myProperties.myPipelineFlags);
 

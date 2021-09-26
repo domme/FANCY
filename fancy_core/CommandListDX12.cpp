@@ -870,10 +870,10 @@ namespace Fancy {
       if (myLocalBuffersToBind[i] == UINT64_MAX)
         continue;
 
-      if (myCurrentContext == CommandListType::Graphics)
-        myCommandList->SetGraphicsRootShaderResourceView(rootParamIdx + i, myLocalBuffersToBind[i]);
-      else
+      if (myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute)
         myCommandList->SetComputeRootShaderResourceView(rootParamIdx + i, myLocalBuffersToBind[i]);
+      if (myCommandListType == CommandListType::Graphics)
+        myCommandList->SetGraphicsRootShaderResourceView(rootParamIdx + i, myLocalBuffersToBind[i]);
     }
     myLocalBuffersToBind.clear();
 
@@ -883,10 +883,10 @@ namespace Fancy {
       if (myLocalRWBuffersToBind[i] == UINT64_MAX)
         continue;
 
-      if (myCurrentContext == CommandListType::Graphics)
-        myCommandList->SetGraphicsRootUnorderedAccessView(rootParamIdx + i, myLocalRWBuffersToBind[i]);
-      else
+      if (myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute)
         myCommandList->SetComputeRootUnorderedAccessView(rootParamIdx + i, myLocalRWBuffersToBind[i]);
+      if (myCommandListType == CommandListType::Graphics)
+        myCommandList->SetGraphicsRootUnorderedAccessView(rootParamIdx + i, myLocalRWBuffersToBind[i]);
     }
     myLocalRWBuffersToBind.clear();
 
@@ -896,10 +896,10 @@ namespace Fancy {
       if (myLocalCBuffersToBind[i] == UINT64_MAX)
         continue;
 
-      if (myCurrentContext == CommandListType::Graphics)
-        myCommandList->SetGraphicsRootConstantBufferView(rootParamIdx + i, myLocalCBuffersToBind[i]);
-      else
+      if (myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute)
         myCommandList->SetComputeRootConstantBufferView(rootParamIdx + i, myLocalCBuffersToBind[i]);
+      if (myCommandListType == CommandListType::Graphics)
+        myCommandList->SetGraphicsRootConstantBufferView(rootParamIdx + i, myLocalCBuffersToBind[i]);
     }
     myLocalCBuffersToBind.clear();
   }
@@ -1175,20 +1175,12 @@ namespace Fancy {
     ApplyRaytracingPipelineState();
     ASSERT(myRaytracingPipelineState != nullptr);
 
-    ApplyResourceBindings();
-
     TrackResourceTransition(aDesc.myRayGenShaderTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-    TrackResourceTransition(aDesc.myRayGenShaderTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-
     TrackResourceTransition(aDesc.myCallableShaderTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-    TrackResourceTransition(aDesc.myCallableShaderTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-
     TrackResourceTransition(aDesc.myMissShaderTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-    TrackResourceTransition(aDesc.myMissShaderTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
-
     TrackResourceTransition(aDesc.myHitGroupTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-    TrackResourceTransition(aDesc.myHitGroupTableRange.myLocalCbuffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
+    ApplyResourceBindings();
     FlushBarriers();
     
     D3D12_DISPATCH_RAYS_DESC desc = {};

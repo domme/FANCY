@@ -1,9 +1,18 @@
 #include "Common.hlsl"
 #include "GlobalResources.h"
 
-cbuffer Constants : register(b0, Space_LocalRootSig_LocalCbuffer)
+/*
+cbuffer Constants : register(b0, space0)
 {
-  uint myOutTexIndex;
+  uint4 myOutTexIndex;
+};
+
+RWTexture2D<float4> theRwTextures2D[] : register(u0, space1);
+*/
+
+cbuffer Constants : register(b0, Space_LocalCBuffer)
+{
+  uint4 myOutTexIndex;
 };
 
 [shader("raygeneration")] 
@@ -16,5 +25,10 @@ void RayGen() {
   // (often maps to pixels, so this could represent a pixel coordinate).
   uint2 launchIndex = DispatchRaysIndex().xy;
 
-  theRwTextures2D[myOutTexIndex][launchIndex] = float4(payload.colorAndDistance.rgb, 1.f);
+  // This works
+  // uint4 texIdxData = theBuffers[0].Load<uint4>(0);
+  // theRwTextures2D[NonUniformResourceIndex(texIdxData.x)][launchIndex] = float4(payload.colorAndDistance.rgb, 1.f);
+
+  // Doesn't work
+  theRwTextures2D[myOutTexIndex.x][launchIndex] = float4(payload.colorAndDistance.rgb, 1.f);
 }

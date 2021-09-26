@@ -623,7 +623,7 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12(const RenderPlatformProperties&
       infoQueue->PushStorageFilter(&filter);
 
       if (CommandLine::GetInstance()->HasArgument("DebugLayerBreak"))
-        infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, false);
+        infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
     }
   }
 
