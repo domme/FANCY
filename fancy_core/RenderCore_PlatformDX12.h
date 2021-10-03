@@ -86,7 +86,7 @@ namespace Fancy {
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
-    RaytracingBVH* CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr) override;
+    RaytracingAS* CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName = nullptr) override;
     RaytracingPipelineState* CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps) override;
 
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;

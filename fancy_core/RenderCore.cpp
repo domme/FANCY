@@ -25,7 +25,7 @@
 #include "TextureReadbackTask.h"
 #include "CommandLine.h"
 #include "TextureSampler.h"
-#include "RaytracingBVH.h"
+#include "RaytracingAS.h"
 #include "RaytracingPipelineState.h"
 #include "RaytracingShaderTable.h"
 
@@ -983,9 +983,9 @@ SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const GpuBufferProperties&
   return CreateBufferView(buffer, someViewProperties, aName);
 }
 //---------------------------------------------------------------------------//
-SharedPtr<RaytracingBVH> RenderCore::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)
+SharedPtr<RaytracingAS> RenderCore::CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName)
 {
-  return SharedPtr<RaytracingBVH>(ourPlatformImpl->CreateRtAccelerationStructure(someProps, someGeometries, aName));
+  return SharedPtr<RaytracingAS>(ourPlatformImpl->CreateRtAccelerationStructure(someProps, someGeometries, aName));
 }
 //---------------------------------------------------------------------------//
 SharedPtr<RaytracingPipelineState> RenderCore::CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps)

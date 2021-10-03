@@ -7,7 +7,7 @@
 
 #include "fancy_core/CommandList.h"
 #include "fancy_core/CommandListDX12.h"
-#include "fancy_core/RaytracingBVH.h"
+#include "fancy_core/RaytracingAS.h"
 #include "fancy_core/RaytracingPipelineState.h"
 #include "fancy_core/RaytracingShaderTable.h"
 #include "fancy_core/ShaderDesc.h"
@@ -59,7 +59,7 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   props.myNumElements = 1;
   myRTtransformBuffer = RenderCore::CreateBuffer(props, "RT transform buffer", &transformMatrix);
 
-  RaytracingBVHGeometry rtAsGeometry;
+  RaytracingAsGeometryInfo rtAsGeometry;
   rtAsGeometry.myVertexBuffer = myRTvertexBuffer.get();
   rtAsGeometry.myNumVertices = (uint) vertices.size();
   rtAsGeometry.myVertexFormat = DataFormat::RGB_32F;
@@ -70,45 +70,26 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   rtAsGeometry.myType = RaytracingBVHGeometryType::TRIANGLES;
   rtAsGeometry.myFlags = (uint)RaytracingBVHGeometryFlags::OPAQUE_GEOMETRY;
 
-  RaytracingBVHProps bvhProps;
+  RaytracingAsProps bvhProps;
   bvhProps.myFlags = (uint)RaytracingBVHFlags::ALLOW_UPDATE;
   bvhProps.myType = RaytracingBVHType::BOTTOM_LEVEL;
   myBottomLevelBVH = RenderCore::CreateRtAccelerationStructure(bvhProps, { &rtAsGeometry, 1u }, "Test_Raytracing Bottom-level BVH");*/
 
   RaytracingPipelineStateProperties rtPipelineProps;
   const uint raygenIdx = rtPipelineProps.AddRayGenShader("RayTracing/RayGen.hlsl", "RayGen");
+  const uint missIdx = rtPipelineProps.AddMissShader("RayTracing/Miss.hlsl", "Miss");
+  const uint hitIdx = rtPipelineProps.AddHitGroup(L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr, "RayTracing/Hit.hlsl", "ClosestHit");
   rtPipelineProps.SetMaxAttributeSize(32u);
   rtPipelineProps.SetMaxPayloadSize(128u);
   rtPipelineProps.SetMaxRecursionDepth(2u);
-  // const uint missIdx = rtPipelineProps.AddMissShader("RayTracing/Miss.hlsl", "Miss");
-  // const uint hitIdx = rtPipelineProps.AddHitGroup(L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr, "RayTracing/Hit.hlsl", "ClosestHit");
   myRtPso = RenderCore::CreateRtPipelineState(rtPipelineProps);
 
-  {
-    RaytracingShaderTableProperties sbtProps;
-    sbtProps.myMaxNumRecords = 5;
-    sbtProps.myType = RT_SHADER_IDENTIFIER_TYPE_RAYGEN;
-    myRaygenShaderTable = RenderCore::CreateRtShaderTable(sbtProps);
-  }
-
-  {
-    RaytracingShaderTableProperties sbtProps;
-    sbtProps.myMaxNumRecords = 5;
-    sbtProps.myType = RT_SHADER_IDENTIFIER_TYPE_HIT;
-    myHitShaderTable = RenderCore::CreateRtShaderTable(sbtProps);
-  }
-
-  {
-    RaytracingShaderTableProperties sbtProps;
-    sbtProps.myMaxNumRecords = 5;
-    sbtProps.myType = RT_SHADER_IDENTIFIER_TYPE_MISS;
-    myMissShaderTable = RenderCore::CreateRtShaderTable(sbtProps);
-  }
-
-  myRaygenShaderTable->AddShaderRecord(myRtPso->GetRayGenShaderIdentifier(raygenIdx));
-  // myShaderTable->AddShaderRecord(myRtPso->GetMissShaderIdentifier(missIdx));
-  // myShaderTable->AddShaderRecord(myRtPso->GetHitShaderIdentifier(hitIdx));
-  
+  RaytracingShaderTableProperties sbtProps;
+  sbtProps.myNumRaygenShaderRecords = 1;
+  sbtProps.myNumMissShaderRecords = 5;
+  sbtProps.myNumHitShaderRecords = 5;
+  mySBT = RenderCore::CreateRtShaderTable(sbtProps);
+  mySBT->AddShaderRecord(myRtPso->GetRayGenShaderIdentifier(raygenIdx));
 }
 
 void Test_Raytracing::OnWindowResized(uint aWidth, uint aHeight)
@@ -137,15 +118,15 @@ void Test_Raytracing::OnRender()
 
   struct Consts
   {
-    glm::uvec4 myOutTexIndex;
+    uint myOutTexIndex;
   } consts;
-  consts.myOutTexIndex = glm::uvec4(0, 0, 0, 0);
+  consts.myOutTexIndex = rtOutputTex.myWriteView->GetGlobalDescriptorIndex();
   ctx->BindConstantBuffer(&consts, sizeof(consts), 0);
     
   DispatchRaysDesc desc;
-  desc.myRayGenShaderTableRange = myRaygenShaderTable->GetRange();
-  // desc.myMissShaderTableRange = myShaderTable->GetMissRange();
-  // desc.myHitGroupTableRange = myShaderTable->GetHitRange();
+  desc.myRayGenShaderTableRange = mySBT->GetRayGenRange();
+  desc.myMissShaderTableRange = mySBT->GetMissRange();
+  desc.myHitGroupTableRange = mySBT->GetHitRange();
   desc.myWidth = texProps.myTextureProperties.myWidth;
   desc.myHeight = texProps.myTextureProperties.myHeight;
   desc.myDepth = 1;

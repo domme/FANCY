@@ -19,7 +19,7 @@
 #include "GpuQueryHeapDX12.h"
 #include "TextureSamplerDX12.h"
 #include "CommandLine.h"
-#include "RaytracingBVHDX12.h"
+#include "RaytracingAsDX12.h"
 #include "RaytracingPipelineStateDX12.h"
 
 #if FANCY_ENABLE_DX12
@@ -954,9 +954,9 @@ GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuff
   return new GpuBufferViewDX12(aBuffer, someProperties);
 }
 //---------------------------------------------------------------------------//
-RaytracingBVH* RenderCore_PlatformDX12::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)
+RaytracingAS* RenderCore_PlatformDX12::CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName)
 {
-  return new RaytracingBVHDX12(someProps, someGeometries, aName);
+  return new RaytracingAsDX12(someProps, someGeometries, aName);
 }
 //---------------------------------------------------------------------------//
 RaytracingPipelineState* RenderCore_PlatformDX12::CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps)

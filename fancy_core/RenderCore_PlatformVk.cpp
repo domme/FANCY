@@ -1113,7 +1113,7 @@ namespace Fancy
     return new GpuBufferViewVk(aBuffer, someProperties);
   }
 //---------------------------------------------------------------------------//
-  RaytracingBVH* RenderCore_PlatformVk::CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName)
+  RaytracingBVH* RenderCore_PlatformVk::CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName)
   {
     return new RaytracingBVHVk(someProps, someGeometries, aName);
   }

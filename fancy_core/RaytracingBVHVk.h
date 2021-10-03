@@ -1,5 +1,5 @@
 #pragma once
-#include "RaytracingBVH.h"
+#include "RaytracingAS.h"
 #include "VkPrerequisites.h"
 
 #if FANCY_ENABLE_VK
@@ -9,7 +9,7 @@ namespace Fancy
   class RaytracingBVHVk final : public RaytracingBVH
   {
   public:
-    RaytracingBVHVk(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr);
+    RaytracingBVHVk(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName = nullptr);
     ~RaytracingBVHVk() override;
     void Destroy() override;
 

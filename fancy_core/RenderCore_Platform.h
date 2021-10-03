@@ -31,9 +31,9 @@ namespace Fancy {
   struct TextureSamplerProperties;
   struct GpuResourceViewRange;
   class GpuResourceView;
-  struct RaytracingBVHGeometry;
-  class RaytracingBVH;
-  struct RaytracingBVHProps;
+  struct RaytracingAsGeometryInfo;
+  class RaytracingAS;
+  struct RaytracingAsProps;
 //---------------------------------------------------------------------------//
   
   class RenderCore_Platform
@@ -65,7 +65,7 @@ namespace Fancy {
     virtual CommandQueue* CreateCommandQueue(CommandListType aType) = 0;
     virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
     virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
-    virtual RaytracingBVH* CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr) = 0;
+    virtual RaytracingAS* CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName = nullptr) = 0;
     virtual GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) = 0;
     virtual uint GetQueryTypeDataSize(GpuQueryType aType) = 0;
     virtual float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) = 0;

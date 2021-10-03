@@ -43,7 +43,7 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  RaytracingBVHVk::RaytracingBVHVk(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName /*= nullptr*/)
+  RaytracingBVHVk::RaytracingBVHVk(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName /*= nullptr*/)
     : RaytracingBVH(someProps)
   {
     ASSERT(!someGeometries.empty());
@@ -55,7 +55,7 @@ namespace Fancy
 
     for (uint i = 0u; i < (uint)someGeometries.size(); ++i)
     {
-      const RaytracingBVHGeometry& geo = someGeometries[i];
+      const RaytracingAsGeometryInfo& geo = someGeometries[i];
       const uint vertexStride = DataFormatInfo::GetFormatInfo(geo.myVertexFormat).mySizeBytes;
       const uint indexStride = DataFormatInfo::GetFormatInfo(geo.myIndexFormat).mySizeBytes;
 

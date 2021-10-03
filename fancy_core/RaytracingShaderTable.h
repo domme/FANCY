@@ -7,8 +7,9 @@ namespace Fancy
 {
   struct RaytracingShaderTableProperties
   {
-    RaytracingShaderIdentifierType myType = RT_SHADER_IDENTIFIER_TYPE_NUM;
-    uint myMaxNumRecords = 0;
+    uint myNumRaygenShaderRecords = 0;
+    uint myNumMissShaderRecords = 0;
+    uint myNumHitShaderRecords = 0;
   };
 
   struct RaytracingShaderTableRange
@@ -25,14 +26,21 @@ namespace Fancy
     RaytracingShaderTable(const RaytracingShaderTableProperties& someProps);
     uint AddShaderRecord(const RaytracingShaderIdentifier& aShaderIdentifier);
     
-    RaytracingShaderTableRange GetRange() const;
+    RaytracingShaderTableRange GetRayGenRange() const { ASSERT(myProperties.myNumRaygenShaderRecords > 0); return GetRange(RT_SHADER_IDENTIFIER_TYPE_RAYGEN); }
+    RaytracingShaderTableRange GetMissRange() const { ASSERT(myProperties.myNumMissShaderRecords > 0); return GetRange(RT_SHADER_IDENTIFIER_TYPE_MISS); }
+    RaytracingShaderTableRange GetHitRange() const { ASSERT(myProperties.myNumHitShaderRecords > 0); return GetRange(RT_SHADER_IDENTIFIER_TYPE_HIT); }
     
   protected:
+    RaytracingShaderTableRange GetRange(RaytracingShaderIdentifierType aType) const;
+
     RaytracingShaderTableProperties myProperties;
     SharedPtr<GpuBuffer> mySbtBuffer;
 
     uint8* myMappedSbtData;
     uint myAlignedShaderRecordSizeBytes;
-    uint64 mySbtOffset;
+
+    uint myRecordTypeOffset[RT_SHADER_IDENTIFIER_TYPE_NUM];
+    uint myNumUsedRecords[RT_SHADER_IDENTIFIER_TYPE_NUM];
+    uint myMaxNumRecords[RT_SHADER_IDENTIFIER_TYPE_NUM];
   };
 }

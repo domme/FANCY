@@ -60,9 +60,9 @@ namespace Fancy {
   class GpuResourceViewSet;
   class GpuResourceView;
   struct GpuResourceViewRange;
-  struct RaytracingBVHProps;
-  struct RaytracingBVHGeometry;
-  class RaytracingBVH;
+  struct RaytracingAsProps;
+  struct RaytracingAsGeometryInfo;
+  class RaytracingAS;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -107,7 +107,7 @@ namespace Fancy {
     static SharedPtr<TextureView> CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, GpuBufferViewProperties someProperties, const char* aName = nullptr);
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, GpuBufferViewProperties someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
-    static SharedPtr<RaytracingBVH> CreateRtAccelerationStructure(const RaytracingBVHProps& someProps, const eastl::span<RaytracingBVHGeometry>& someGeometries, const char* aName = nullptr);
+    static SharedPtr<RaytracingAS> CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName = nullptr);
     static SharedPtr<RaytracingPipelineState> CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps);
     static SharedPtr<RaytracingShaderTable> CreateRtShaderTable(const RaytracingShaderTableProperties& someProps);
     static uint GetQueryTypeDataSize(GpuQueryType aType);
