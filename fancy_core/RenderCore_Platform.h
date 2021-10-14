@@ -5,6 +5,7 @@
 #include "EASTL/span.h"
 
 namespace Fancy {
+  struct RtAccelerationStructureInstanceData;
   //---------------------------------------------------------------------------//
   class RaytracingShaderTable;
   struct RaytracingShaderTableProperties;
@@ -31,9 +32,9 @@ namespace Fancy {
   struct TextureSamplerProperties;
   struct GpuResourceViewRange;
   class GpuResourceView;
-  struct RaytracingAsGeometryInfo;
-  class RaytracingAS;
-  struct RaytracingAsProps;
+  struct RtAccelerationStructureGeometryData;
+  class RtAccelerationStructure;
+  struct RtAccelerationStructureProps;
 //---------------------------------------------------------------------------//
   
   class RenderCore_Platform
@@ -65,11 +66,13 @@ namespace Fancy {
     virtual CommandQueue* CreateCommandQueue(CommandListType aType) = 0;
     virtual TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
     virtual GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) = 0;
-    virtual RaytracingAS* CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName = nullptr) = 0;
+    virtual RtAccelerationStructure* CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags = 0, const char* aName = nullptr) = 0;
+    virtual RtAccelerationStructure* CreateRtTopLevelAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags = 0, const char* aName = nullptr);
     virtual GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) = 0;
     virtual uint GetQueryTypeDataSize(GpuQueryType aType) = 0;
     virtual float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) = 0;
     virtual RaytracingPipelineState* CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps) = 0;
+
 
   protected:
     RenderPlatformCaps myCaps;

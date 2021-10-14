@@ -681,23 +681,23 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  VkAccelerationStructureTypeKHR RenderCore_PlatformVk::GetRaytracingBVHType(RaytracingBVHType aType)
+  VkAccelerationStructureTypeKHR RenderCore_PlatformVk::GetRaytracingBVHType(RtAccelerationStructureType aType)
   {
     switch(aType)
     {
-    case RaytracingBVHType::BOTTOM_LEVEL: return VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-    case RaytracingBVHType::TOP_LEVEL: return VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+    case RtAccelerationStructureType::BOTTOM_LEVEL: return VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+    case RtAccelerationStructureType::TOP_LEVEL: return VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
     default: ASSERT(false); return VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
     }
   }
 //---------------------------------------------------------------------------//
-  VkGeometryTypeKHR RenderCore_PlatformVk::GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aType)
+  VkGeometryTypeKHR RenderCore_PlatformVk::GetRaytracingBVHGeometryType(RtAccelerationStructureGeometryType aType)
   {
     switch(aType)
     {
-    case RaytracingBVHGeometryType::TRIANGLES: return VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-    case RaytracingBVHGeometryType::AABBS: return VK_GEOMETRY_TYPE_AABBS_KHR;
-    // case RaytracingBVHGeometryType::INSTANCES: return VK_GEOMETRY_TYPE_INSTANCES_KHR;  // Not available in DX12
+    case RtAccelerationStructureGeometryType::TRIANGLES: return VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+    case RtAccelerationStructureGeometryType::AABBS: return VK_GEOMETRY_TYPE_AABBS_KHR;
+    // case RtAccelerationStructureGeometryType::INSTANCES: return VK_GEOMETRY_TYPE_INSTANCES_KHR;  // Not available in DX12
     default: ASSERT(false); return VK_GEOMETRY_TYPE_TRIANGLES_KHR;
     }
   }

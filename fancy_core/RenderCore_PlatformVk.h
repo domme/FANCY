@@ -60,8 +60,8 @@ namespace Fancy
     static VkImageLayout ResolveImageLayout(VkImageLayout aLayout, const GpuResource* aResource, const SubresourceRange& aSubresourceRange);
     static VkDescriptorType GetDescriptorType(const GpuResourceView* aView);
     static VkDescriptorType GetDescriptorType(GlobalResourceType aResourceType);
-    static VkAccelerationStructureTypeKHR GetRaytracingBVHType(RaytracingBVHType aType);
-    static VkGeometryTypeKHR GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aType);
+    static VkAccelerationStructureTypeKHR GetRtAccelerationStructureType(RtAccelerationStructureType aType);
+    static VkGeometryTypeKHR GetRaytracingBVHGeometryType(RtAccelerationStructureGeometryType aType);
 
     RenderCore_PlatformVk(const RenderPlatformProperties& someProperties);
     ~RenderCore_PlatformVk() override;

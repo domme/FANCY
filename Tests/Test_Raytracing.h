@@ -12,7 +12,7 @@ namespace Fancy
   class RaytracingShaderTable;
   class RaytracingPipelineState;
   class GpuBuffer;
-  class RaytracingAS;
+  class RtAccelerationStructure;
   class Shader;
 }
 
@@ -30,8 +30,8 @@ public:
   SharedPtr<GpuBuffer> myRTindexBuffer;
   SharedPtr<GpuBuffer> myRTtransformBuffer;
 
-  SharedPtr<RaytracingAS> myBottomLevelBVH;
-  SharedPtr<RaytracingAS> myTopLevelBVH;
+  SharedPtr<RtAccelerationStructure> myBottomLevelBVH;
+  SharedPtr<RtAccelerationStructure> myTopLevelBVH;
 
   SharedPtr<RaytracingPipelineState> myRtPso;
   SharedPtr<RaytracingShaderTable> mySBT;

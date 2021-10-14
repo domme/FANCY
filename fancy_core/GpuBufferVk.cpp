@@ -88,11 +88,11 @@ namespace Fancy
           | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;  // Buffer<Format>
         readMask |= VK_ACCESS_SHADER_READ_BIT;
     }
-    if (someProperties.myBindFlags & (uint) GpuBufferBindFlags::RAYTRACING_BVH_BUILD_INPUT)
+    if (someProperties.myBindFlags & (uint) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT)
     {
       bufferInfo.usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
     }
-    if (someProperties.myBindFlags & (uint) GpuBufferBindFlags::RAYTRACING_BVH_STORAGE)
+    if (someProperties.myBindFlags & (uint) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE)
     {
       bufferInfo.usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
     }

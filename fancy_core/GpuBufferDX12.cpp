@@ -101,7 +101,7 @@ namespace Fancy {
       initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
     }
 
-    if (someProperties.myBindFlags & (uint)GpuBufferBindFlags::RAYTRACING_BVH_STORAGE)
+    if (someProperties.myBindFlags & (uint)GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE)
     {
       initialStates = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
       writeStateMask |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;

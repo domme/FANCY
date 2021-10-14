@@ -115,7 +115,7 @@ namespace Fancy
 
     // Create the internal buffer to hold the acceleration structure
     GpuBufferProperties bufferProps;
-    bufferProps.myBindFlags = (uint)GpuBufferBindFlags::RAYTRACING_BVH_STORAGE;
+    bufferProps.myBindFlags = (uint)GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE;
     bufferProps.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
     bufferProps.myElementSizeBytes = asBuildSizesInfo.accelerationStructureSize;
     bufferProps.myNumElements = 1ull;

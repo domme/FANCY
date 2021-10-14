@@ -18,7 +18,8 @@
 #include "EASTL/span.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  struct RtAccelerationStructureInstanceData;
+  //---------------------------------------------------------------------------//
   class RaytracingShaderTable;
   struct RaytracingShaderTableProperties;
   class RaytracingPipelineState;
@@ -60,9 +61,9 @@ namespace Fancy {
   class GpuResourceViewSet;
   class GpuResourceView;
   struct GpuResourceViewRange;
-  struct RaytracingAsProps;
-  struct RaytracingAsGeometryInfo;
-  class RaytracingAS;
+  struct RtAccelerationStructureProps;
+  struct RtAccelerationStructureGeometryData;
+  class RtAccelerationStructure;
 //---------------------------------------------------------------------------//
   class RenderCore
   {
@@ -107,7 +108,8 @@ namespace Fancy {
     static SharedPtr<TextureView> CreateTextureView(const TextureProperties& someProperties, const TextureViewProperties& someViewProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, GpuBufferViewProperties someProperties, const char* aName = nullptr);
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, GpuBufferViewProperties someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
-    static SharedPtr<RaytracingAS> CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName = nullptr);
+    static SharedPtr<RtAccelerationStructure> CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags = 0, const char* aName = nullptr);
+    static SharedPtr<RtAccelerationStructure> CreateRtTopLevelAccelerationStructure(RtAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags = 0, const char* aName = nullptr);
     static SharedPtr<RaytracingPipelineState> CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps);
     static SharedPtr<RaytracingShaderTable> CreateRtShaderTable(const RaytracingShaderTableProperties& someProps);
     static uint GetQueryTypeDataSize(GpuQueryType aType);

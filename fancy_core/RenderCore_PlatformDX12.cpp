@@ -19,7 +19,7 @@
 #include "GpuQueryHeapDX12.h"
 #include "TextureSamplerDX12.h"
 #include "CommandLine.h"
-#include "RaytracingAsDX12.h"
+#include "RtAccelerationStructureDX12.h"
 #include "RaytracingPipelineStateDX12.h"
 
 #if FANCY_ENABLE_DX12
@@ -531,22 +531,22 @@ D3D12_DESCRIPTOR_RANGE_TYPE RenderCore_PlatformDX12::GetDescriptorRangeType(cons
   }
 }
 //---------------------------------------------------------------------------//
-D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE RenderCore_PlatformDX12::GetRaytracingBVHType(RaytracingBVHType aType)
+D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE RenderCore_PlatformDX12::GetRtAccelerationStructureType(RtAccelerationStructureType aType)
 {
   switch (aType)
   {
-  case RaytracingBVHType::BOTTOM_LEVEL: return D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-  case RaytracingBVHType::TOP_LEVEL: return D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+  case RtAccelerationStructureType::BOTTOM_LEVEL: return D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
+  case RtAccelerationStructureType::TOP_LEVEL: return D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
   default: ASSERT(false); return D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
   }
 }
 //---------------------------------------------------------------------------//
-D3D12_RAYTRACING_GEOMETRY_TYPE RenderCore_PlatformDX12::GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aGeoType)
+D3D12_RAYTRACING_GEOMETRY_TYPE RenderCore_PlatformDX12::GetRaytracingBVHGeometryType(RtAccelerationStructureGeometryType aGeoType)
 {
   switch (aGeoType)
   {
-  case RaytracingBVHGeometryType::TRIANGLES: return D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-  case RaytracingBVHGeometryType::AABBS: return D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS;
+  case RtAccelerationStructureGeometryType::TRIANGLES: return D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+  case RtAccelerationStructureGeometryType::AABBS: return D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS;
   default: ASSERT(false, "Not implemented") return D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
   }
 }
@@ -954,9 +954,14 @@ GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuff
   return new GpuBufferViewDX12(aBuffer, someProperties);
 }
 //---------------------------------------------------------------------------//
-RaytracingAS* RenderCore_PlatformDX12::CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName)
+RtAccelerationStructure* RenderCore_PlatformDX12::CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags, const char* aName)
 {
-  return new RaytracingAsDX12(someProps, someGeometries, aName);
+  return new RtAccelerationStructureDX12(someGeometries, aNumGeometries, aSomeFlags, aName);
+}
+//---------------------------------------------------------------------------//
+RtAccelerationStructure* RenderCore_PlatformDX12::CreateRtTopLevelAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags, const char* aName)
+{
+  return new RtAccelerationStructureDX12(someInstances, aNumInstances, someFlags, aName);
 }
 //---------------------------------------------------------------------------//
 RaytracingPipelineState* RenderCore_PlatformDX12::CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps)

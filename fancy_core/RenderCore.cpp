@@ -25,7 +25,7 @@
 #include "TextureReadbackTask.h"
 #include "CommandLine.h"
 #include "TextureSampler.h"
-#include "RaytracingAS.h"
+#include "RtAccelerationStructure.h"
 #include "RaytracingPipelineState.h"
 #include "RaytracingShaderTable.h"
 
@@ -983,9 +983,14 @@ SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const GpuBufferProperties&
   return CreateBufferView(buffer, someViewProperties, aName);
 }
 //---------------------------------------------------------------------------//
-SharedPtr<RaytracingAS> RenderCore::CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName)
+SharedPtr<RtAccelerationStructure> RenderCore::CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags, const char* aName)
 {
-  return SharedPtr<RaytracingAS>(ourPlatformImpl->CreateRtAccelerationStructure(someProps, someGeometries, aName));
+  return SharedPtr<RtAccelerationStructure>(ourPlatformImpl->CreateRtBottomLevelAccelerationStructure(someGeometries, aNumGeometries, aSomeFlags, aName));
+}
+//---------------------------------------------------------------------------//
+SharedPtr<RtAccelerationStructure> RenderCore::CreateRtTopLevelAccelerationStructure(RtAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags, const char* aName))
+{
+  return SharedPtr<RtAccelerationStructure>(ourPlatformImpl->CreateRtTopLevelAccelerationStructure(someInstances, aNumInstances, someFlags, aName));
 }
 //---------------------------------------------------------------------------//
 SharedPtr<RaytracingPipelineState> RenderCore::CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps)

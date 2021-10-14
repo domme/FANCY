@@ -44,8 +44,8 @@ namespace Fancy {
     static D3D12_HEAP_TYPE ResolveHeapType(CpuMemoryAccessType anAccessType);
     static D3D12_DESCRIPTOR_HEAP_TYPE GetDescriptorHeapType(const GpuResourceViewType& aViewType);
     static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(const GpuResourceViewType& aViewType);
-    static D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE GetRaytracingBVHType(RaytracingBVHType aType);
-    static D3D12_RAYTRACING_GEOMETRY_TYPE GetRaytracingBVHGeometryType(RaytracingBVHGeometryType aGeoType);
+    static D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE GetRtAccelerationStructureType(RtAccelerationStructureType aType);
+    static D3D12_RAYTRACING_GEOMETRY_TYPE GetRaytracingBVHGeometryType(RtAccelerationStructureGeometryType aGeoType);
     static D3D12_HIT_GROUP_TYPE GetRaytracingHitGroupType(RaytracingHitGroupType aType);
     static D3D12_RAYTRACING_PIPELINE_FLAGS GetRaytracingPipelineFlags(RaytracingPipelineFlags someFlags);
 
@@ -86,7 +86,8 @@ namespace Fancy {
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName = nullptr) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
-    RaytracingAS* CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName = nullptr) override;
+    RtAccelerationStructure* CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags = 0, const char* aName = nullptr) override;
+    RtAccelerationStructure* CreateRtTopLevelAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags = 0, const char* aName = nullptr);
     RaytracingPipelineState* CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps) override;
 
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;

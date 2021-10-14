@@ -191,8 +191,8 @@ namespace Fancy
     VERTEX_BUFFER = 1 << 1,
     INDEX_BUFFER = 1 << 2,
     SHADER_BUFFER = 1 << 3,
-    RAYTRACING_BVH_BUILD_INPUT = 1 << 4,
-    RAYTRACING_BVH_STORAGE = 1 << 5,
+    RT_ACCELERATION_STRUCTURE_BUILD_INPUT = 1 << 4,
+    RT_ACCELERATION_STRUCTURE_STORAGE = 1 << 5,
     RAYTRACING_SHADER_BINDING_TABLE = 1 << 6,
 
     ALL = ~0
@@ -357,7 +357,7 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class RaytracingBVHType
+  enum class RtAccelerationStructureType
   {
     BOTTOM_LEVEL = 0,
     TOP_LEVEL,
@@ -365,7 +365,7 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class RaytracingBVHGeometryType
+  enum class RtAccelerationStructureGeometryType
   {
     TRIANGLES = 0,
     AABBS,

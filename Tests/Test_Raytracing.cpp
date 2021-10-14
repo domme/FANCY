@@ -7,7 +7,7 @@
 
 #include "fancy_core/CommandList.h"
 #include "fancy_core/CommandListDX12.h"
-#include "fancy_core/RaytracingAS.h"
+#include "fancy_core/RtAccelerationStructure.h"
 #include "fancy_core/RaytracingPipelineState.h"
 #include "fancy_core/RaytracingShaderTable.h"
 #include "fancy_core/ShaderDesc.h"
@@ -44,7 +44,7 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   uint indexCount = static_cast<uint32_t>(indices.size());
 
   GpuBufferProperties props;
-  props.myBindFlags = (uint)GpuBufferBindFlags::RAYTRACING_BVH_BUILD_INPUT;
+  props.myBindFlags = (uint)GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT;
   props.myCpuAccess = CpuMemoryAccessType::CPU_WRITE;
   props.myElementSizeBytes = sizeof(Vertex);
   props.myNumElements = (uint)vertices.size();
@@ -67,12 +67,12 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   rtAsGeometry.myIndexFormat = DataFormat::R_32UI;
   rtAsGeometry.myNumIndices = indexCount;
   rtAsGeometry.myTransformBuffer = myRTtransformBuffer.get();
-  rtAsGeometry.myType = RaytracingBVHGeometryType::TRIANGLES;
+  rtAsGeometry.myType = RtAccelerationStructureGeometryType::TRIANGLES;
   rtAsGeometry.myFlags = (uint)RaytracingBVHGeometryFlags::OPAQUE_GEOMETRY;
 
   RaytracingAsProps bvhProps;
   bvhProps.myFlags = (uint)RaytracingBVHFlags::ALLOW_UPDATE;
-  bvhProps.myType = RaytracingBVHType::BOTTOM_LEVEL;
+  bvhProps.myType = RtAccelerationStructureType::BOTTOM_LEVEL;
   myBottomLevelBVH = RenderCore::CreateRtAccelerationStructure(bvhProps, { &rtAsGeometry, 1u }, "Test_Raytracing Bottom-level BVH");*/
 
   RaytracingPipelineStateProperties rtPipelineProps;

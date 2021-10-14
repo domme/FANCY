@@ -168,10 +168,10 @@
     <ClInclude Include="PipelineLayoutVk.h" />
     <ClInclude Include="PipelineStateCacheDX12.h" />
     <ClInclude Include="PipelineStateCacheVk.h" />
-    <ClInclude Include="RaytracingAsDX12.h" />
+    <ClInclude Include="RtAccelerationStructureDX12.h" />
     <ClInclude Include="RenderPassCacheVk.h" />
     <ClInclude Include="RenderPlatformObjectCache.h" />
-    <ClInclude Include="RaytracingAS.h" />
+    <ClInclude Include="RtAccelerationStructure.h" />
     <ClInclude Include="RaytracingBVHVk.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ShaderCompilerVk.h" />
@@ -299,9 +299,9 @@
     <ClCompile Include="PipelineLayoutVk.cpp" />
     <ClCompile Include="PipelineStateCacheDX12.cpp" />
     <ClCompile Include="PipelineStateCacheVk.cpp" />
-    <ClCompile Include="RaytracingAsDX12.cpp" />
+    <ClCompile Include="RtAccelerationStructureDX12.cpp" />
     <ClCompile Include="RenderPassCacheVk.cpp" />
-    <ClCompile Include="RaytracingAS.cpp" />
+    <ClCompile Include="RtAccelerationStructure.cpp" />
     <ClCompile Include="RaytracingBVHVk.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
