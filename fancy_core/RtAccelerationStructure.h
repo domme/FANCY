@@ -43,24 +43,33 @@ namespace Fancy
     DataFormat myIndexFormat = DataFormat::R_32UI;
     uint myNumVertices = 0;
     uint myNumIndices = 0;
-    uint myFlags = 0; // RaytracingBVHGeometryFlags
+    uint myFlags = 0; // RtAccelerationStructureGeometryFlags
     uint myProcedural_NumAABBs = 0;
     RtAccelerationStructureGeometryType myType = RtAccelerationStructureGeometryType::TRIANGLES;
   };
 //---------------------------------------------------------------------------//
   struct RtAccelerationStructureInstanceData
   {
-    
+    glm::mat3x4 myTransform;
+    uint myInstanceId : 24;
+    uint8 myInstanceMask;
+    uint mySbtHitGroupOffset : 24;
+    uint8 myFlags;
+    SharedPtr<RtAccelerationStructure> myInstanceBLAS;
   };
 //---------------------------------------------------------------------------//
   class RtAccelerationStructure
   {
   public:
-    RtAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags = 0, const char* aName = nullptr);
-    RtAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags = 0, const char* aName = nullptr);
+    RtAccelerationStructure(RtAccelerationStructureType aType, const char* aName);
     virtual ~RtAccelerationStructure() = default;
+
+    RtAccelerationStructureType GetType() const { return myType; }
+    GpuBuffer* GetBuffer() const { return myBuffer.get(); }
+    GpuBufferView* GetBufferRead() const { myBufferRead.get(); }
     
   protected:
+    eastl::fixed_string<char, 32> myName;
     SharedPtr<GpuBuffer> myBuffer;
     SharedPtr<GpuBufferView> myBufferRead;
     RtAccelerationStructureType myType;

@@ -51,12 +51,12 @@ namespace Fancy { namespace MathUtil {
 //---------------------------------------------------------------------------//
   constexpr uint64 Align(uint64 aVal, uint64 anAlignment)
   {
-    return (aVal + (anAlignment - 1u)) & (~(anAlignment - 1u));
+    return (anAlignment == 0 || anAlignment == 1) ? aVal : (aVal + (anAlignment - 1u)) & (~(anAlignment - 1u));
   }
 //---------------------------------------------------------------------------//
   constexpr bool IsAligned(uint64 aVal, uint64 anAlignment)
   {
-    return (aVal & (anAlignment - 1u)) == 0u;
+    return (anAlignment == 0 || anAlignment == 1) ? true : (aVal & (anAlignment - 1u)) == 0u;
   }
 //---------------------------------------------------------------------------//
   inline glm::mat4 perspectiveFov(float const & fov,

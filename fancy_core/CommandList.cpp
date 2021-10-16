@@ -157,7 +157,7 @@ namespace Fancy {
     return GpuQuery(aType, queryIndex, Time::ourFrameIdx, myCommandListType);
   }
 //---------------------------------------------------------------------------//
-  GpuRingBuffer* CommandList::GetUploadBuffer_Internal(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
+  GpuRingBuffer* CommandList::GetUploadBuffer_Internal(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize, uint64 anAlignment /* = 0 */)
   {
     eastl::vector<GpuRingBuffer*>* ringBufferList = nullptr;
     uint64 sizeStep = 2 * SIZE_MB;
@@ -200,32 +200,32 @@ namespace Fancy {
     }
     }
 
-    if (ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize() < aDataSize)
+    if (ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize(anAlignment) < aDataSize)
       ringBufferList->push_back(RenderCore::AllocateRingBuffer(CpuMemoryAccessType::CPU_WRITE, bindFlags, (uint)MathUtil::Align(aDataSize, sizeStep), name.c_str()));
 
     GpuRingBuffer* ringBuffer = ringBufferList->back();
     uint64 offset = 0;
     bool success = true;
     if (someData != nullptr)
-      success = ringBuffer->AllocateAndWrite(someData, aDataSize, offset);
+      success = ringBuffer->AllocateAndWrite(someData, aDataSize, offset, anAlignment);
     else
-      success = ringBuffer->Allocate(aDataSize, offset);
+      success = ringBuffer->Allocate(aDataSize, offset, anAlignment);
     ASSERT(success);
 
     anOffsetOut = offset;
     return ringBuffer;
   }
 //---------------------------------------------------------------------------//
-  const GpuBuffer* CommandList::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize)
+  const GpuBuffer* CommandList::GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize, uint64 anAlignment /*= 0*/)
   {
-    GpuRingBuffer* ringBuffer = GetUploadBuffer_Internal(anOffsetOut, aType, someData, aDataSize);
+    GpuRingBuffer* ringBuffer = GetUploadBuffer_Internal(anOffsetOut, aType, someData, aDataSize, anAlignment);
     ASSERT(ringBuffer != nullptr);
     return ringBuffer->GetBuffer();
   }
 //---------------------------------------------------------------------------//
-  const GpuBuffer* CommandList::GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize)
+  const GpuBuffer* CommandList::GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize, uint64 anAlignment /*= 0*/)
   {
-    GpuRingBuffer* ringBuffer = GetUploadBuffer_Internal(anOffsetOut, aType, nullptr, aDataSize);
+    GpuRingBuffer* ringBuffer = GetUploadBuffer_Internal(anOffsetOut, aType, nullptr, aDataSize, anAlignment);
     ASSERT(ringBuffer != nullptr);
     *someDataPtrOut = ringBuffer->GetData() + anOffsetOut;
     return ringBuffer->GetBuffer();
@@ -470,7 +470,7 @@ namespace Fancy {
     myRenderTargetsDirty |= renderTargetsDirty;
   }
 //---------------------------------------------------------------------------//
-  void CommandList::SetRaytracingPipelineState(RaytracingPipelineState* aPipelineState)
+  void CommandList::SetRaytracingPipelineState(RtPipelineState* aPipelineState)
   {
     if (myRaytracingPipelineState != aPipelineState)
     {

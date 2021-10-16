@@ -374,14 +374,14 @@ namespace Fancy
     NUM
   };
 //---------------------------------------------------------------------------//
-  enum class RaytracingBVHGeometryFlags
+  enum class RtAccelerationStructureGeometryFlags
   {
     NONE = 0u,
     OPAQUE_GEOMETRY = 1 << 0u,
     NO_DUPLICATE_ANYHIT_INVOCATION = 1 << 1u
   };
 //---------------------------------------------------------------------------//
-  enum class RaytracingBVHFlags
+  enum class RtAccelerationStructureFlags
   {
     NONE = 0u,
     ALLOW_UPDATE = 1 << 0u,
@@ -391,26 +391,35 @@ namespace Fancy
     MINIMIZE_MEMORY = 1 << 4u
   };
 //---------------------------------------------------------------------------//
-  enum RaytracingHitGroupType
+  enum RtHitGroupType
   {
     RT_HIT_GROUP_TYPE_TRIANGLES = 0,
     RT_HIT_GROUP_TYPE_PROCEDURAL_GEOMETRY,
     RT_HIT_GROUP_TYPE_NUM,
   };
 //---------------------------------------------------------------------------//
-  enum RaytracingPipelineFlags
+  enum RtPipelineFlags
   {
     RT_PIPELINE_FLAG_NONE = 0,
     RT_PIPELINE_FLAG_SKIP_TRIANGLES = 1 << 0u,
     RT_PIPELINE_FLAG_SKIP_PROCEDURAL = 1 << 1u,
   };
 //---------------------------------------------------------------------------//
-  enum RaytracingShaderIdentifierType
+  enum RtShaderIdentifierType
   {
     RT_SHADER_IDENTIFIER_TYPE_RAYGEN = 0,
     RT_SHADER_IDENTIFIER_TYPE_MISS,
     RT_SHADER_IDENTIFIER_TYPE_HIT,
     RT_SHADER_IDENTIFIER_TYPE_NUM
+  };
+//---------------------------------------------------------------------------//
+  enum RtAccelerationStructureInstanceFlags
+  {
+    RT_INSTANCE_FLAG_NONE = 0,
+    RT_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE = 1 << 0,
+    RT_INSTANCE_FLAG_TRIANGLE_FRONT_COUNTERCLOCKWISE = 1 << 1,
+    RT_INSTANCE_FLAG_FORCE_OPAQUE = 1 << 2,
+    RT_INSTANCE_FLAG_FORCE_NONE_OPAQUE = 1 << 3
   };
 //---------------------------------------------------------------------------//
   enum GlobalResourceType

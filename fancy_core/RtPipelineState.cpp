@@ -1,5 +1,5 @@
 #include "fancy_core_precompile.h"
-#include "RaytracingPipelineState.h"
+#include "RtPipelineState.h"
 
 #include "Shader.h"
 #include <EASTL/string.h>
@@ -9,19 +9,19 @@ namespace Fancy
 {
   namespace
   {
-    uint locAddUniqueShaderGetIndex(const SharedPtr<Shader>& aShader, const char* aType, eastl::vector<RaytracingPipelineStateProperties::ShaderEntry>& someShaders)
+    uint locAddUniqueShaderGetIndex(const SharedPtr<Shader>& aShader, const char* aType, eastl::vector<RtPipelineStateProperties::ShaderEntry>& someShaders)
     {
       if (!aShader)
         return UINT_MAX;
 
-      RaytracingPipelineStateProperties::ShaderEntry* it = 
-        eastl::find_if(someShaders.begin(), someShaders.end(), [aShader](const RaytracingPipelineStateProperties::ShaderEntry& anEntry) { return anEntry.myShader == aShader; });
+      RtPipelineStateProperties::ShaderEntry* it = 
+        eastl::find_if(someShaders.begin(), someShaders.end(), [aShader](const RtPipelineStateProperties::ShaderEntry& anEntry) { return anEntry.myShader == aShader; });
 
       if (it != someShaders.end())
         return uint(it - someShaders.begin());
 
       const uint index = (uint)someShaders.size();
-      RaytracingPipelineStateProperties::ShaderEntry& entry = someShaders.push_back();
+      RtPipelineStateProperties::ShaderEntry& entry = someShaders.push_back();
       entry.myShader = aShader;
       entry.myUniqueMainFunctionName = StringUtil::ToWideString(aShader->GetDescription().myMainFunction.c_str());
 
@@ -44,27 +44,27 @@ namespace Fancy
     }
   }
 
-  uint RaytracingPipelineStateProperties::AddRayGenShader(const char* aPath, const char* aMainFunction, const char* someDefines)
+  uint RtPipelineStateProperties::AddRayGenShader(const char* aPath, const char* aMainFunction, const char* someDefines)
   {
     return AddRayGenShader(locLoadShader(aPath, aMainFunction, someDefines, SHADERSTAGE_RAYGEN));
   }
 
-  uint RaytracingPipelineStateProperties::AddRayGenShader(const SharedPtr<Shader>& aShader)
+  uint RtPipelineStateProperties::AddRayGenShader(const SharedPtr<Shader>& aShader)
   {
     return locAddUniqueShaderGetIndex(aShader, "RayGen", myRaygenShaders);
   }
 
-  uint RaytracingPipelineStateProperties::AddMissShader(const char* aPath, const char* aMainFunction, const char* someDefines)
+  uint RtPipelineStateProperties::AddMissShader(const char* aPath, const char* aMainFunction, const char* someDefines)
   {
     return AddMissShader(locLoadShader(aPath, aMainFunction, someDefines, SHADERSTAGE_MISS));
   }
 
-  uint RaytracingPipelineStateProperties::AddMissShader(const SharedPtr<Shader>& aShader)
+  uint RtPipelineStateProperties::AddMissShader(const SharedPtr<Shader>& aShader)
   {
     return locAddUniqueShaderGetIndex(aShader, "Miss", myMissShaders);
   }
 
-  uint RaytracingPipelineStateProperties::AddHitGroup(const wchar_t* aName, RaytracingHitGroupType aType, const SharedPtr<Shader>& anIntersectionShader, const SharedPtr<Shader>& anAnyHitShader, const SharedPtr<Shader>& aClosestHitShader)
+  uint RtPipelineStateProperties::AddHitGroup(const wchar_t* aName, RtHitGroupType aType, const SharedPtr<Shader>& anIntersectionShader, const SharedPtr<Shader>& anAnyHitShader, const SharedPtr<Shader>& aClosestHitShader)
   {
     ASSERT(anIntersectionShader || anAnyHitShader || aClosestHitShader, "At least one hit shader needs to be non-null");
     ASSERT(eastl::find_if(myHitGroups.begin(), myHitGroups.end(), [aName](const HitGroup& aHitGroup) { return aHitGroup.myName == aName; }) == myHitGroups.end(), "Hit group named %s already added", aName);
@@ -79,7 +79,7 @@ namespace Fancy
     return (uint) myHitGroups.size() - 1;
   }
 
-  uint RaytracingPipelineStateProperties::AddHitGroup(const wchar_t* aName, RaytracingHitGroupType aType, 
+  uint RtPipelineStateProperties::AddHitGroup(const wchar_t* aName, RtHitGroupType aType, 
     const char* anIntersectionPath, const char* anIntersectionMainFunction, 
     const char* anAnyHitPath, const char* anAnyHitMainFunction,
     const char* aClosestHitPath, const char* aClosestHitMainFunction, 
@@ -91,7 +91,7 @@ namespace Fancy
       locLoadShader(aClosestHitPath, aClosestHitMainFunction, someDefines, SHADERSTAGE_CLOSEST_HIT));
   }
 
-  uint64 RaytracingPipelineStateProperties::GetHash() const
+  uint64 RtPipelineStateProperties::GetHash() const
   {
     MathUtil::Hasher hasher;
     for (const HitGroup& hit : myHitGroups)
@@ -128,7 +128,7 @@ namespace Fancy
     return hasher.GetHashValue();
   }
 
-  bool RaytracingPipelineState::HasShader(const Shader* aShader) const
+  bool RtPipelineState::HasShader(const Shader* aShader) const
   {
     if (!IsRaytracingStage(aShader->myProperties.myShaderStage))
       return false;
@@ -153,29 +153,29 @@ namespace Fancy
     return false;
   }
 
-  RaytracingShaderIdentifier RaytracingPipelineState::GetRayGenShaderIdentifier(uint anIndex)
+  RtShaderIdentifier RtPipelineState::GetRayGenShaderIdentifier(uint anIndex)
   {
     ASSERT((uint)myProperties.myRaygenShaders.size() > anIndex);
-    RaytracingShaderIdentifier record;
-    record.myType = RaytracingShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_RAYGEN;
+    RtShaderIdentifier record;
+    record.myType = RtShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_RAYGEN;
     GetShaderIdentifierDataInternal(anIndex, myProperties.myRaygenShaders[anIndex], record);
     return record;
   }
 
-  RaytracingShaderIdentifier RaytracingPipelineState::GetMissShaderIdentifier(uint anIndex)
+  RtShaderIdentifier RtPipelineState::GetMissShaderIdentifier(uint anIndex)
   {
     ASSERT((uint)myProperties.myMissShaders.size() > anIndex);
-    RaytracingShaderIdentifier record;
-    record.myType = RaytracingShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_MISS;
+    RtShaderIdentifier record;
+    record.myType = RtShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_MISS;
     GetShaderIdentifierDataInternal(anIndex, myProperties.myMissShaders[anIndex], record);
     return record;
   }
 
-  RaytracingShaderIdentifier RaytracingPipelineState::GetHitShaderIdentifier(uint anIndex)
+  RtShaderIdentifier RtPipelineState::GetHitShaderIdentifier(uint anIndex)
   {
     ASSERT((uint)myProperties.myHitGroups.size() > anIndex);
-    RaytracingShaderIdentifier record;
-    record.myType = RaytracingShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_HIT;
+    RtShaderIdentifier record;
+    record.myType = RtShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_HIT;
     GetShaderIdentifierDataInternal(anIndex, myProperties.myHitGroups[anIndex], record);
     return record;
   }

@@ -36,30 +36,37 @@ namespace Fancy
     ASSERT(myData != nullptr);
   }
 //---------------------------------------------------------------------------//
-  uint64 GpuRingBuffer::GetFreeDataSize() const
+  uint64 GpuRingBuffer::GetFreeDataSize(uint64 anAlignment /*= 0*/) const
   {
-    return myBuffer->GetByteSize() - myOffset;
+    const uint64 alignedOffset = MathUtil::Align(myOffset, anAlignment);
+    const uint64 bufferSize = myBuffer->GetByteSize();
+    if (alignedOffset >= bufferSize)
+      return 0;
+
+    return bufferSize - alignedOffset;
   }
 //---------------------------------------------------------------------------//
-  bool GpuRingBuffer::AllocateAndWrite(const void* someData, uint64 aDataSize, uint64& anOffsetOut)
+  bool GpuRingBuffer::AllocateAndWrite(const void* someData, uint64 aDataSize, uint64& anOffsetOut, uint64 anAlignment /*= 0*/)
   {
     ASSERT(myData != nullptr);
 
-    if (GetFreeDataSize() < aDataSize)
+    if (GetFreeDataSize(anAlignment) < aDataSize)
       return false;
 
-    anOffsetOut = myOffset;
-    memcpy(myData + myOffset, someData, aDataSize);
+    const uint64 alignedOffset = MathUtil::Align(myOffset, anAlignment);
+    anOffsetOut = alignedOffset;
+    memcpy(myData + alignedOffset, someData, aDataSize);
     myOffset += MathUtil::Align(aDataSize, myBuffer->GetAlignment());
     return true;
   }
 //---------------------------------------------------------------------------//
-  bool GpuRingBuffer::Allocate(uint64 aDataSize, uint64& anOffsetOut)
+  bool GpuRingBuffer::Allocate(uint64 aDataSize, uint64& anOffsetOut, uint64 anAlignment /*= 0*/)
   {
-    if (GetFreeDataSize() < aDataSize)
+    if (GetFreeDataSize(anAlignment) < aDataSize)
       return false;
 
-    anOffsetOut = myOffset;
+    const uint64 alignedOffset = MathUtil::Align(myOffset, anAlignment);
+    anOffsetOut = alignedOffset;
     myOffset += MathUtil::Align(aDataSize, myBuffer->GetAlignment());
     return true;
   }

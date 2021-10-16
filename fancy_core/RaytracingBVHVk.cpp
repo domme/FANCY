@@ -28,15 +28,15 @@ namespace Fancy
     {
       uint flags = 0u;
 
-      if (aSomeRaytracingBVHFlags & (uint)RaytracingBVHFlags::ALLOW_UPDATE)
+      if (aSomeRaytracingBVHFlags & (uint)RtAccelerationStructureFlags::ALLOW_UPDATE)
         flags |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
-      if (aSomeRaytracingBVHFlags & (uint)RaytracingBVHFlags::ALLOW_COMPACTION)
+      if (aSomeRaytracingBVHFlags & (uint)RtAccelerationStructureFlags::ALLOW_COMPACTION)
         flags |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR;
-      if (aSomeRaytracingBVHFlags & (uint)RaytracingBVHFlags::MINIMIZE_MEMORY)
+      if (aSomeRaytracingBVHFlags & (uint)RtAccelerationStructureFlags::MINIMIZE_MEMORY)
         flags |= VK_BUILD_ACCELERATION_STRUCTURE_LOW_MEMORY_BIT_KHR;
-      if (aSomeRaytracingBVHFlags & (uint)RaytracingBVHFlags::PREFER_FAST_BUILD)
+      if (aSomeRaytracingBVHFlags & (uint)RtAccelerationStructureFlags::PREFER_FAST_BUILD)
         flags |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;
-      if (aSomeRaytracingBVHFlags & (uint)RaytracingBVHFlags::PREFER_FAST_TRACE)
+      if (aSomeRaytracingBVHFlags & (uint)RtAccelerationStructureFlags::PREFER_FAST_TRACE)
         flags |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
 
       return flags;
@@ -62,9 +62,9 @@ namespace Fancy
       VkAccelerationStructureGeometryKHR& geoVk = geometriesVk[i];
       geoVk.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
 
-      if (geo.myFlags & (uint)RaytracingBVHGeometryFlags::OPAQUE_GEOMETRY)
+      if (geo.myFlags & (uint)RtAccelerationStructureGeometryFlags::OPAQUE_GEOMETRY)
         geoVk.flags |= VK_GEOMETRY_OPAQUE_BIT_KHR;
-      if (geo.myFlags & (uint)RaytracingBVHGeometryFlags::NO_DUPLICATE_ANYHIT_INVOCATION)
+      if (geo.myFlags & (uint)RtAccelerationStructureGeometryFlags::NO_DUPLICATE_ANYHIT_INVOCATION)
         geoVk.flags |= VK_GEOMETRY_NO_DUPLICATE_ANY_HIT_INVOCATION_BIT_KHR;
 
       geoVk.geometryType = RenderCore_PlatformVk::GetRaytracingBVHGeometryType(geo.myType);

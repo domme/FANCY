@@ -26,8 +26,8 @@
 #include "CommandLine.h"
 #include "TextureSampler.h"
 #include "RtAccelerationStructure.h"
-#include "RaytracingPipelineState.h"
-#include "RaytracingShaderTable.h"
+#include "RtPipelineState.h"
+#include "RtShaderBindingTable.h"
 
 using namespace Fancy;
 
@@ -68,7 +68,7 @@ eastl::hash_map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
 eastl::hash_map<uint64, SharedPtr<DepthStencilState>> RenderCore::ourDepthStencilStateCache;
 eastl::hash_map<uint64, SharedPtr<TextureSampler>> RenderCore::ourSamplerCache;
 eastl::hash_map<uint64, SharedPtr<VertexInputLayout>> RenderCore::ourVertexInputLayoutCache;
-eastl::hash_map<uint64, SharedPtr<RaytracingPipelineState>> RenderCore::ourRtPipelineStateCache;
+eastl::hash_map<uint64, SharedPtr<RtPipelineState>> RenderCore::ourRtPipelineStateCache;
 
 eastl::vector<UniquePtr<GpuRingBuffer>> RenderCore::ourRingBufferPool;
 eastl::fixed_list<GpuRingBuffer*, 128> RenderCore::ourAvailableRingBuffers;
@@ -745,7 +745,7 @@ void RenderCore::UpdateChangedShaders()
   }
   
   // Check RTPSOs
-  eastl::fixed_vector<RaytracingPipelineState*, 8> changedRtPsos;
+  eastl::fixed_vector<RtPipelineState*, 8> changedRtPsos;
   for (const Shader* shader : shadersToRecompile)
   {
     if (!IsRaytracingStage(shader->myProperties.myShaderStage))
@@ -756,7 +756,7 @@ void RenderCore::UpdateChangedShaders()
         changedRtPsos.push_back(rtPso.second.get());
   }
 
-  for (RaytracingPipelineState* rtPso : changedRtPsos)
+  for (RtPipelineState* rtPso : changedRtPsos)
     rtPso->Recompile();
 }
 //---------------------------------------------------------------------------//
@@ -993,21 +993,21 @@ SharedPtr<RtAccelerationStructure> RenderCore::CreateRtTopLevelAccelerationStruc
   return SharedPtr<RtAccelerationStructure>(ourPlatformImpl->CreateRtTopLevelAccelerationStructure(someInstances, aNumInstances, someFlags, aName));
 }
 //---------------------------------------------------------------------------//
-SharedPtr<RaytracingPipelineState> RenderCore::CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps)
+SharedPtr<RtPipelineState> RenderCore::CreateRtPipelineState(const RtPipelineStateProperties& someProps)
 {
   const uint64 hash = someProps.GetHash();
   auto it = ourRtPipelineStateCache.find(hash);
   if (it != ourRtPipelineStateCache.end())
     return it->second;
 
-  SharedPtr<RaytracingPipelineState> state(ourPlatformImpl->CreateRtPipelineState(someProps));
+  SharedPtr<RtPipelineState> state(ourPlatformImpl->CreateRtPipelineState(someProps));
   ourRtPipelineStateCache[hash] = state;
   return state;
 }
 //---------------------------------------------------------------------------//
-SharedPtr<RaytracingShaderTable> RenderCore::CreateRtShaderTable(const RaytracingShaderTableProperties& someProps)
+SharedPtr<RtShaderBindingTable> RenderCore::CreateRtShaderTable(const RtShaderBindingTableProperties& someProps)
 {
-  return SharedPtr<RaytracingShaderTable>(new RaytracingShaderTable(someProps));
+  return SharedPtr<RtShaderBindingTable>(new RtShaderBindingTable(someProps));
 }
 //---------------------------------------------------------------------------//
 uint RenderCore::GetQueryTypeDataSize(GpuQueryType aType)

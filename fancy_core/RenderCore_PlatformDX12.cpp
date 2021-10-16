@@ -551,7 +551,7 @@ D3D12_RAYTRACING_GEOMETRY_TYPE RenderCore_PlatformDX12::GetRaytracingBVHGeometry
   }
 }
 //---------------------------------------------------------------------------//
-D3D12_HIT_GROUP_TYPE RenderCore_PlatformDX12::GetRaytracingHitGroupType(RaytracingHitGroupType aType)
+D3D12_HIT_GROUP_TYPE RenderCore_PlatformDX12::GetRaytracingHitGroupType(RtHitGroupType aType)
 {
   static D3D12_HIT_GROUP_TYPE toNativeType[RT_HIT_GROUP_TYPE_NUM] =
   {
@@ -563,7 +563,7 @@ D3D12_HIT_GROUP_TYPE RenderCore_PlatformDX12::GetRaytracingHitGroupType(Raytraci
   return toNativeType[aType];
 }
 //---------------------------------------------------------------------------//
-D3D12_RAYTRACING_PIPELINE_FLAGS RenderCore_PlatformDX12::GetRaytracingPipelineFlags(RaytracingPipelineFlags someFlags)
+D3D12_RAYTRACING_PIPELINE_FLAGS RenderCore_PlatformDX12::GetRaytracingPipelineFlags(RtPipelineFlags someFlags)
 {
   D3D12_RAYTRACING_PIPELINE_FLAGS dstFlags = (D3D12_RAYTRACING_PIPELINE_FLAGS)0u;
   if (someFlags & RT_PIPELINE_FLAG_SKIP_TRIANGLES)
@@ -964,7 +964,7 @@ RtAccelerationStructure* RenderCore_PlatformDX12::CreateRtTopLevelAccelerationSt
   return new RtAccelerationStructureDX12(someInstances, aNumInstances, someFlags, aName);
 }
 //---------------------------------------------------------------------------//
-RaytracingPipelineState* RenderCore_PlatformDX12::CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps)
+RtPipelineState* RenderCore_PlatformDX12::CreateRtPipelineState(const RtPipelineStateProperties& someProps)
 {
   return new RaytracingPipelineStateDX12(someProps);
 }

@@ -1,18 +1,18 @@
 #pragma once
 
-#include "RaytracingShaderIdentifier.h"
+#include "RtShaderIdentifier.h"
 
 namespace Fancy
 {
-  class RaytracingPipelineStateProperties
+  class RtPipelineStateProperties
   {
   public:
     uint AddRayGenShader(const char* aPath, const char* aMainFunction, const char* someDefines = nullptr);
     uint AddRayGenShader(const SharedPtr<Shader>& aShader);
     uint AddMissShader(const char* aPath, const char* aMainFunction, const char* someDefines = nullptr);
     uint AddMissShader(const SharedPtr<Shader>& aShader);
-    uint AddHitGroup(const wchar_t* aName, RaytracingHitGroupType aType, const SharedPtr<Shader>& anIntersectionShader, const SharedPtr<Shader>& anAnyHitShader, const SharedPtr<Shader>& aClosestHitShader);
-    uint AddHitGroup(const wchar_t* aName, RaytracingHitGroupType aType,
+    uint AddHitGroup(const wchar_t* aName, RtHitGroupType aType, const SharedPtr<Shader>& anIntersectionShader, const SharedPtr<Shader>& anAnyHitShader, const SharedPtr<Shader>& aClosestHitShader);
+    uint AddHitGroup(const wchar_t* aName, RtHitGroupType aType,
       const char* anIntersectionPath, const char* anIntersectionMainFunction,
       const char* anAnyHitPath, const char* anAnyHitMainFunction,
       const char* aClosestHitPath, const char* aClosestHitMainFunction,
@@ -20,7 +20,7 @@ namespace Fancy
     void SetMaxPayloadSize(uint aSizeBytes) { myMaxPayloadSizeBytes = aSizeBytes; }
     void SetMaxAttributeSize(uint aSizeBytes) { myMaxAttributeSizeBytes = aSizeBytes; }
     void SetMaxRecursionDepth(uint aMaxDepth) { myMaxRecursionDepth = aMaxDepth; }
-    void AddPipelineFlag(RaytracingPipelineFlags aFlag) { myPipelineFlags = RaytracingPipelineFlags(myPipelineFlags | aFlag); }
+    void AddPipelineFlag(RtPipelineFlags aFlag) { myPipelineFlags = RtPipelineFlags(myPipelineFlags | aFlag); }
     uint64 GetHash() const;
 
 
@@ -32,7 +32,7 @@ namespace Fancy
 
     struct HitGroup
     {
-      RaytracingHitGroupType myType;
+      RtHitGroupType myType;
       eastl::wstring myName;
       uint myIntersectionShaderIdx;
       uint myAnyHitShaderIdx;
@@ -46,29 +46,29 @@ namespace Fancy
     uint myMaxPayloadSizeBytes = sizeof(glm::float4);
     uint myMaxAttributeSizeBytes = 32;
     uint myMaxRecursionDepth = 1;
-    RaytracingPipelineFlags myPipelineFlags = RT_PIPELINE_FLAG_NONE;
+    RtPipelineFlags myPipelineFlags = RT_PIPELINE_FLAG_NONE;
   };
 
-  class RaytracingPipelineState
+  class RtPipelineState
   {
   public:
-    RaytracingPipelineState(const RaytracingPipelineStateProperties& someProps)
+    RtPipelineState(const RtPipelineStateProperties& someProps)
       : myProperties(someProps) { }
 
-    virtual ~RaytracingPipelineState() {};
+    virtual ~RtPipelineState() {};
     virtual bool Recompile() = 0;
 
     bool HasShader(const Shader* aShader) const;
 
-    RaytracingShaderIdentifier GetRayGenShaderIdentifier(uint anIndex);
-    RaytracingShaderIdentifier GetMissShaderIdentifier(uint anIndex);
-    RaytracingShaderIdentifier GetHitShaderIdentifier(uint anIndex);
+    RtShaderIdentifier GetRayGenShaderIdentifier(uint anIndex);
+    RtShaderIdentifier GetMissShaderIdentifier(uint anIndex);
+    RtShaderIdentifier GetHitShaderIdentifier(uint anIndex);
 
-    RaytracingPipelineStateProperties myProperties;
+    RtPipelineStateProperties myProperties;
 
   protected:
-    virtual void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, RaytracingShaderIdentifier& someDataOut) = 0;
-    virtual void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, RaytracingShaderIdentifier& someDataOut) = 0;
+    virtual void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RtPipelineStateProperties::ShaderEntry& aShaderEntry, RtShaderIdentifier& someDataOut) = 0;
+    virtual void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RtPipelineStateProperties::HitGroup& aShaderEntry, RtShaderIdentifier& someDataOut) = 0;
   };
 }
 

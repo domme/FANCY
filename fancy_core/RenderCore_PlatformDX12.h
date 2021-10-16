@@ -46,8 +46,8 @@ namespace Fancy {
     static D3D12_DESCRIPTOR_RANGE_TYPE GetDescriptorRangeType(const GpuResourceViewType& aViewType);
     static D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE GetRtAccelerationStructureType(RtAccelerationStructureType aType);
     static D3D12_RAYTRACING_GEOMETRY_TYPE GetRaytracingBVHGeometryType(RtAccelerationStructureGeometryType aGeoType);
-    static D3D12_HIT_GROUP_TYPE GetRaytracingHitGroupType(RaytracingHitGroupType aType);
-    static D3D12_RAYTRACING_PIPELINE_FLAGS GetRaytracingPipelineFlags(RaytracingPipelineFlags someFlags);
+    static D3D12_HIT_GROUP_TYPE GetRaytracingHitGroupType(RtHitGroupType aType);
+    static D3D12_RAYTRACING_PIPELINE_FLAGS GetRaytracingPipelineFlags(RtPipelineFlags someFlags);
 
     RenderCore_PlatformDX12(const RenderPlatformProperties& someProperties);
     ~RenderCore_PlatformDX12() override;
@@ -88,7 +88,7 @@ namespace Fancy {
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName = nullptr) override;
     RtAccelerationStructure* CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags = 0, const char* aName = nullptr) override;
     RtAccelerationStructure* CreateRtTopLevelAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags = 0, const char* aName = nullptr);
-    RaytracingPipelineState* CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps) override;
+    RtPipelineState* CreateRtPipelineState(const RtPipelineStateProperties& someProps) override;
 
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;

@@ -7,10 +7,10 @@
 namespace Fancy {
   struct RtAccelerationStructureInstanceData;
   //---------------------------------------------------------------------------//
-  class RaytracingShaderTable;
-  struct RaytracingShaderTableProperties;
-  class RaytracingPipelineState;
-  class RaytracingPipelineStateProperties;
+  class RtShaderBindingTable;
+  struct RtShaderBindingTableProperties;
+  class RtPipelineState;
+  class RtPipelineStateProperties;
   class RenderOutput;
   class ShaderCompiler;
   class CommandList;
@@ -71,7 +71,7 @@ namespace Fancy {
     virtual GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) = 0;
     virtual uint GetQueryTypeDataSize(GpuQueryType aType) = 0;
     virtual float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) = 0;
-    virtual RaytracingPipelineState* CreateRtPipelineState(const RaytracingPipelineStateProperties& someProps) = 0;
+    virtual RtPipelineState* CreateRtPipelineState(const RtPipelineStateProperties& someProps) = 0;
 
 
   protected:

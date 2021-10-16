@@ -14,10 +14,10 @@ namespace Fancy
       RtPsoBuilder(uint aNumShaders, uint aNumHitGroups);
 
       void AddShaderLibrarySubobject(Shader* aShader, const wchar_t* aMainFunctionRename = nullptr);
-      void AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::ShaderEntry>& someHitShaders);
+      void AddHitGroupSubobject(const RtPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RtPipelineStateProperties::ShaderEntry>& someHitShaders);
       void AddShaderConfig(uint aMaxPayloadSizeBytes, uint aMaxAttributeSizeBytes);
       void AddGlobalRootSignature(ID3D12RootSignature* aRootSignature);
-      void SetPipelineConfig(uint aMaxRecursionDepth, RaytracingPipelineFlags someFlags);
+      void SetPipelineConfig(uint aMaxRecursionDepth, RtPipelineFlags someFlags);
       void AddSubobject(D3D12_STATE_SUBOBJECT_TYPE aType, void* aSubobject);
       const wchar_t* AddWideString(const char* aString);
       const wchar_t* AddWideString(const eastl::string& aString);
@@ -70,7 +70,7 @@ namespace Fancy
       AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &libDesc);
     }
 //---------------------------------------------------------------------------//
-    void RtPsoBuilder::AddHitGroupSubobject(const RaytracingPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RaytracingPipelineStateProperties::ShaderEntry>& someHitShaders)
+    void RtPsoBuilder::AddHitGroupSubobject(const RtPipelineStateProperties::HitGroup& aHitGroup, const eastl::vector<RtPipelineStateProperties::ShaderEntry>& someHitShaders)
     {
       ASSERT(myHitGroups.capacity() > myHitGroups.size(), "Vector-grow not allowed. Individual members are being referenced as pointers.");
       D3D12_HIT_GROUP_DESC& hitGroupDesc = myHitGroups.push_back();
@@ -103,7 +103,7 @@ namespace Fancy
       AddSubobject(D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE, &rootSig);
     }
 //---------------------------------------------------------------------------//
-    void RtPsoBuilder::SetPipelineConfig(uint aMaxRecursionDepth, RaytracingPipelineFlags someFlags)
+    void RtPsoBuilder::SetPipelineConfig(uint aMaxRecursionDepth, RtPipelineFlags someFlags)
     {
       ASSERT(myPipelineConfig.MaxTraceRecursionDepth == UINT_MAX, "Pipeline config already added");
 
@@ -146,8 +146,8 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  RaytracingPipelineStateDX12::RaytracingPipelineStateDX12(const RaytracingPipelineStateProperties& someProps)
-    : RaytracingPipelineState(someProps)
+  RaytracingPipelineStateDX12::RaytracingPipelineStateDX12(const RtPipelineStateProperties& someProps)
+    : RtPipelineState(someProps)
   {
     Recompile();
   }
@@ -169,16 +169,16 @@ namespace Fancy
     const uint numHitGroups = static_cast<uint>(myProperties.myHitGroups.size());
     RtPsoBuilder builder(numShaders, numHitGroups);
 
-    for (const RaytracingPipelineStateProperties::ShaderEntry& shader : myProperties.myRaygenShaders)
+    for (const RtPipelineStateProperties::ShaderEntry& shader : myProperties.myRaygenShaders)
       builder.AddShaderLibrarySubobject(shader.myShader.get(), shader.myUniqueMainFunctionName.c_str());
 
-    for (const RaytracingPipelineStateProperties::ShaderEntry& shader : myProperties.myMissShaders)
+    for (const RtPipelineStateProperties::ShaderEntry& shader : myProperties.myMissShaders)
       builder.AddShaderLibrarySubobject(shader.myShader.get(), shader.myUniqueMainFunctionName.c_str());
 
-    for (const RaytracingPipelineStateProperties::ShaderEntry& it : myProperties.myHitShaders)
+    for (const RtPipelineStateProperties::ShaderEntry& it : myProperties.myHitShaders)
       builder.AddShaderLibrarySubobject(it.myShader.get(), it.myUniqueMainFunctionName.c_str());
 
-    for (const RaytracingPipelineStateProperties::HitGroup& hitGroup : myProperties.myHitGroups)
+    for (const RtPipelineStateProperties::HitGroup& hitGroup : myProperties.myHitGroups)
       builder.AddHitGroupSubobject(hitGroup, myProperties.myHitShaders);
 
     builder.AddShaderConfig(myProperties.myMaxPayloadSizeBytes, myProperties.myMaxAttributeSizeBytes);
@@ -201,7 +201,7 @@ namespace Fancy
     return false;
   }
 //---------------------------------------------------------------------------//
-  void RaytracingPipelineStateDX12::GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::HitGroup& aShaderEntry, RaytracingShaderIdentifier& someDataOut)
+  void RaytracingPipelineStateDX12::GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RtPipelineStateProperties::HitGroup& aShaderEntry, RtShaderIdentifier& someDataOut)
   {
     void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aShaderEntry.myName.c_str());
     ASSERT(shaderIdentifier);
@@ -210,7 +210,7 @@ namespace Fancy
     memcpy(someDataOut.myData.data(), shaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
   }
 //---------------------------------------------------------------------------//
-  void RaytracingPipelineStateDX12::GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RaytracingPipelineStateProperties::ShaderEntry& aShaderEntry, RaytracingShaderIdentifier& someDataOut)
+  void RaytracingPipelineStateDX12::GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RtPipelineStateProperties::ShaderEntry& aShaderEntry, RtShaderIdentifier& someDataOut)
   {
     void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aShaderEntry.myUniqueMainFunctionName.c_str());
     ASSERT(shaderIdentifier);

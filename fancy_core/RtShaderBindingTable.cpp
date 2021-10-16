@@ -1,12 +1,12 @@
 #include "fancy_core_precompile.h"
-#include "RaytracingShaderTable.h"
+#include "RtShaderBindingTable.h"
 
 #include "CommandList.h"
 #include "GpuBuffer.h"
 
 using namespace Fancy;
 
-RaytracingShaderTable::RaytracingShaderTable(const RaytracingShaderTableProperties& someProps)
+RtShaderBindingTable::RtShaderBindingTable(const RtShaderBindingTableProperties& someProps)
   : myProperties(someProps)
   , myMappedSbtData(nullptr)
   , myAlignedShaderRecordSizeBytes(0u)
@@ -51,9 +51,9 @@ RaytracingShaderTable::RaytracingShaderTable(const RaytracingShaderTableProperti
   ASSERT(myMappedSbtData != nullptr);
 }
 
-uint RaytracingShaderTable::AddShaderRecord(const RaytracingShaderIdentifier& aShaderIdentifier)
+uint RtShaderBindingTable::AddShaderRecord(const RtShaderIdentifier& aShaderIdentifier)
 {
-  RaytracingShaderIdentifierType type = aShaderIdentifier.myType;
+  RtShaderIdentifierType type = aShaderIdentifier.myType;
 
   ASSERT(myMaxNumRecords[type] > 0);
   ASSERT(myNumUsedRecords[type] < myMaxNumRecords[type]);
@@ -67,7 +67,7 @@ uint RaytracingShaderTable::AddShaderRecord(const RaytracingShaderIdentifier& aS
   return recordIdx;
 }
 
-RaytracingShaderTableRange RaytracingShaderTable::GetRange(RaytracingShaderIdentifierType aType) const
+RtShaderBindingTableRange RtShaderBindingTable::GetRange(RtShaderIdentifierType aType) const
 {
   uint64 offsetBytes = myRecordTypeOffset[aType] * myAlignedShaderRecordSizeBytes;
   uint64 sizeBytes = myNumUsedRecords[aType] * myAlignedShaderRecordSizeBytes;

@@ -3,13 +3,9 @@
 
 namespace Fancy
 {
-  RtAccelerationStructure::RtAccelerationStructure(const RtAccelerationStructureGeometryData* /*someGeometries*/, uint /*aNumGeometries*/, uint /*aSomeFlags*/, const char* /*aName*/)
-      : myType(RtAccelerationStructureType::BOTTOM_LEVEL)
-  {
-  }
-
-  RtAccelerationStructure::RtAccelerationStructure(const RtAccelerationStructureInstanceData* /*someInstances*/, uint /*aNumInstances*/, uint /*someFlags*/, const char* /*aName*/)
-    : myType(RtAccelerationStructureType::TOP_LEVEL)
+  RtAccelerationStructure::RtAccelerationStructure(RtAccelerationStructureType aType, const char* aName)
+    : myType(aType)
+    , myName(aName)
   {
   }
 }

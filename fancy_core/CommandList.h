@@ -7,8 +7,8 @@
 #include "DataFormat.h"
 #include "GpuBuffer.h"
 #include "GpuResource.h"
-#include "RaytracingShaderIdentifier.h"
-#include "RaytracingShaderTable.h"
+#include "RtShaderIdentifier.h"
+#include "RtShaderBindingTable.h"
 #include "VertexInputLayoutProperties.h"
 #include "eastl/vector.h"
 
@@ -54,10 +54,10 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   struct DispatchRaysDesc
   {
-    RaytracingShaderTableRange myRayGenShaderTableRange;
-    RaytracingShaderTableRange myMissShaderTableRange;
-    RaytracingShaderTableRange myHitGroupTableRange;
-    RaytracingShaderTableRange myCallableShaderTableRange;
+    RtShaderBindingTableRange myRayGenShaderTableRange;
+    RtShaderBindingTableRange myMissShaderTableRange;
+    RtShaderBindingTableRange myHitGroupTableRange;
+    RtShaderBindingTableRange myCallableShaderTableRange;
     uint myWidth;
     uint myHeight;
     uint myDepth;
@@ -123,8 +123,8 @@ namespace Fancy {
 
     bool IsOpen() const { return myIsOpen; }
     void SetClipRect(const glm::uvec4& aRectangle); /// x, y, width, height
-    const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
-    const GpuBuffer* GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize);
+    const GpuBuffer* GetBuffer(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize, uint64 anAlignment = 0);
+    const GpuBuffer* GetMappedBuffer(uint64& anOffsetOut, GpuBufferUsage aType, uint8** someDataPtrOut, uint64 aDataSize, uint64 anAlignment = 0);
     void BindVertexBuffer(void* someData, uint64 aDataSize);
     void BindIndexBuffer(void* someData, uint64 aDataSize, uint anIndexSize);
     void BindConstantBuffer(void* someData, uint64 aDataSize, uint aRegisterIndex);
@@ -140,7 +140,7 @@ namespace Fancy {
     void SetVertexInputLayout(const VertexInputLayout* anInputLayout);
     void SetRenderTarget(TextureView* aColorTarget, TextureView* aDepthStencil);
     void SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil);
-    void SetRaytracingPipelineState(RaytracingPipelineState* aPipelineState);
+    void SetRaytracingPipelineState(RtPipelineState* aPipelineState);
     void RemoveAllRenderTargets();
     void UpdateBufferData(const GpuBuffer* aDstBuffer, uint64 aDstOffset, const void* aDataPtr, uint64 aByteSize);
         
@@ -153,7 +153,7 @@ namespace Fancy {
                                      const TextureRegion& aDstRegion, const GpuBufferProperties& aSrcBufferProps, uint64 aSrcBufferOffset) const;
     void ValidateBufferCopy(const GpuBufferProperties& aDstProps, uint64 aDstOffset, const GpuBufferProperties& aSrcProps, uint64 aSrcOffset, uint64 aSize) const;
 
-    GpuRingBuffer* GetUploadBuffer_Internal(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize);
+    GpuRingBuffer* GetUploadBuffer_Internal(uint64& anOffsetOut, GpuBufferUsage aType, const void* someData, uint64 aDataSize, uint64 anAlignment = 0);
 
     enum Consts {
       kNumCachedBarriers = 256,
@@ -176,7 +176,7 @@ namespace Fancy {
 
     GraphicsPipelineState myGraphicsPipelineState;
     ComputePipelineState myComputePipelineState;
-    RaytracingPipelineState* myRaytracingPipelineState;
+    RtPipelineState* myRaytracingPipelineState;
     bool myRaytracingPipelineStateDirty;
     
     eastl::vector<GpuRingBuffer*> myUploadRingBuffers;

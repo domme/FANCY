@@ -6,9 +6,9 @@
 
 namespace Fancy
 {
-  struct RaytracingShaderIdentifier
+  struct RtShaderIdentifier
   {
-    RaytracingShaderIdentifierType myType;
+    RtShaderIdentifierType myType;
     eastl::fixed_vector<uint8, 64> myData;
   };
 }
