@@ -964,12 +964,15 @@ SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const SharedPtr<GpuBuffer>
   const DataFormat format = someProperties.myFormat;
   const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
 
-  ASSERT(aBuffer->GetByteSize() >= someProperties.myOffset + someProperties.mySize, "Invalid buffer range");
+  ASSERT(aBuffer->GetByteSize() >= someProperties.myOffset + someProperties.mySize || someProperties.myIsRtAccelerationStructure, "Invalid buffer range");
   ASSERT(!someProperties.myIsStructured || someProperties.myStructureSize > 0u, "Structured buffer views need a valid structure size");
   ASSERT(!someProperties.myIsStructured || !someProperties.myIsRaw, "Raw and structured buffer views are mutually exclusive");
   ASSERT(!someProperties.myIsShaderWritable || aBuffer->GetProperties().myIsShaderWritable, "A shader-writable buffer view requires a shader-writable buffer");
   ASSERT(!someProperties.myIsStructured || format == DataFormat::UNKNOWN, "Structured buffer views can't have a format");
   ASSERT(!someProperties.myIsRaw || format == DataFormat::UNKNOWN || format == DataFormat::R_32UI, "Raw buffer views can't have a format other than R32");
+  ASSERT(!someProperties.myIsShaderWritable || !someProperties.myIsRtAccelerationStructure, "Rt acceleration structures can only be SRVs");
+  ASSERT(!someProperties.myIsStructured || !someProperties.myIsRtAccelerationStructure, "Rt acceleration structures can't be structured");
+  ASSERT(!someProperties.myIsRtAccelerationStructure || format == DataFormat::UNKNOWN, "Rt acceleration structures can't have formats");
 
   return SharedPtr<GpuBufferView>(ourPlatformImpl->CreateBufferView(aBuffer, someProperties, aName));
 }
@@ -988,7 +991,7 @@ SharedPtr<RtAccelerationStructure> RenderCore::CreateRtBottomLevelAccelerationSt
   return SharedPtr<RtAccelerationStructure>(ourPlatformImpl->CreateRtBottomLevelAccelerationStructure(someGeometries, aNumGeometries, aSomeFlags, aName));
 }
 //---------------------------------------------------------------------------//
-SharedPtr<RtAccelerationStructure> RenderCore::CreateRtTopLevelAccelerationStructure(RtAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags, const char* aName))
+SharedPtr<RtAccelerationStructure> RenderCore::CreateRtTopLevelAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags, const char* aName)
 {
   return SharedPtr<RtAccelerationStructure>(ourPlatformImpl->CreateRtTopLevelAccelerationStructure(someInstances, aNumInstances, someFlags, aName));
 }

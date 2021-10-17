@@ -179,8 +179,15 @@ namespace Fancy
     bufferProps.myElementSizeBytes = asPrebuildInfo.ResultDataMaxSizeInBytes;
     bufferProps.myNumElements = 1;
     bufferProps.myIsShaderWritable = true;
-    myBuffer = RenderCore::CreateBuffer(bufferProps, StaticString<128>("%s_%s_buffer", aName, isBLAS ? "BLAS" : "TLAS"));
+    myBuffer = RenderCore::CreateBuffer(bufferProps, StaticString<128>("%s_%s_buffer", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS"));
     ASSERT(myBuffer != nullptr);
+
+    GpuBufferViewProperties viewProps;
+    viewProps.myFormat = DataFormat::UNKNOWN;
+    viewProps.myIsRtAccelerationStructure = true;
+    viewProps.myIsShaderWritable = false;
+    myBufferRead = RenderCore::CreateBufferView(myBuffer, viewProps, StaticString<128>("%s_%s_bufferView", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS"));
+    ASSERT(myBufferRead != nullptr);
 
     // Actually build the BVH
     GpuBufferProperties tempBufferProps;
@@ -189,7 +196,7 @@ namespace Fancy
     tempBufferProps.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
     tempBufferProps.myNumElements = 1;
     tempBufferProps.myElementSizeBytes = asPrebuildInfo.ScratchDataSizeInBytes;
-    SharedPtr<GpuBuffer> buildTempBuffer = RenderCore::CreateBuffer(tempBufferProps, StaticString<128>("%s_%s_tempBuffer", aName, isBLAS ? "BLAS" : "TLAS"));
+    SharedPtr<GpuBuffer> buildTempBuffer = RenderCore::CreateBuffer(tempBufferProps, StaticString<128>("%s_%s_tempBuffer", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS"));
     ASSERT(buildTempBuffer != nullptr);
 
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC asBuildDesc = {};
@@ -202,6 +209,8 @@ namespace Fancy
     const GpuResource* res = myBuffer.get();
     cmdList->ResourceUAVbarrier(&res, 1);
     RenderCore::ExecuteAndFreeCommandList(cmdList, SyncMode::BLOCKING);
+
+
   }
 //---------------------------------------------------------------------------//
   RtAccelerationStructureDX12::~RtAccelerationStructureDX12()

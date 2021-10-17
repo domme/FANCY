@@ -109,7 +109,7 @@ namespace Fancy {
     static SharedPtr<GpuBufferView> CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, GpuBufferViewProperties someProperties, const char* aName = nullptr);
     static SharedPtr<GpuBufferView> CreateBufferView(const GpuBufferProperties& someProperties, GpuBufferViewProperties someViewProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
     static SharedPtr<RtAccelerationStructure> CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags = 0, const char* aName = nullptr);
-    static SharedPtr<RtAccelerationStructure> CreateRtTopLevelAccelerationStructure(RtAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags = 0, const char* aName = nullptr);
+    static SharedPtr<RtAccelerationStructure> CreateRtTopLevelAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags = 0, const char* aName = nullptr);
     static SharedPtr<RtPipelineState> CreateRtPipelineState(const RtPipelineStateProperties& someProps);
     static SharedPtr<RtShaderBindingTable> CreateRtShaderTable(const RtShaderBindingTableProperties& someProps);
     static uint GetQueryTypeDataSize(GpuQueryType aType);

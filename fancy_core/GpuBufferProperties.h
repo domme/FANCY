@@ -33,6 +33,7 @@ namespace Fancy {
       , myIsShaderWritable(false)
       , myIsStructured(false)
       , myIsRaw(false)
+      , myIsRtAccelerationStructure(false)
       , myOffset(0u)
       , mySize(UINT64_MAX)
     {}
@@ -43,6 +44,7 @@ namespace Fancy {
     bool myIsShaderWritable;
     bool myIsStructured;
     bool myIsRaw;
+    bool myIsRtAccelerationStructure;
     uint64 myOffset;
     uint64 mySize;
   };

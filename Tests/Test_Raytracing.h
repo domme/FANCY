@@ -26,12 +26,8 @@ public:
   void OnUpdate(bool aDrawProperties) override;
   void OnRender() override;
 
-  SharedPtr<GpuBuffer> myRTvertexBuffer;
-  SharedPtr<GpuBuffer> myRTindexBuffer;
-  SharedPtr<GpuBuffer> myRTtransformBuffer;
-
-  SharedPtr<RtAccelerationStructure> myBottomLevelBVH;
-  SharedPtr<RtAccelerationStructure> myTopLevelBVH;
+  SharedPtr<RtAccelerationStructure> myBLAS;
+  SharedPtr<RtAccelerationStructure> myTLAS;
 
   SharedPtr<RtPipelineState> myRtPso;
   SharedPtr<RtShaderBindingTable> mySBT;

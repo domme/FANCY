@@ -22,14 +22,11 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
     : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Raytracing")
 {
-  /*// Create bottom level BVH
-  struct Vertex {
-    float pos[3];
-  };
-  eastl::vector<Vertex> vertices = {
-    { {  1.0f,  1.0f, 0.0f } },
-    { { -1.0f,  1.0f, 0.0f } },
-    { {  0.0f, -1.0f, 0.0f } }
+  // Create bottom level BVH
+  eastl::vector<glm::float3> vertices = {
+    {  1.0f,  1.0f, 0.0f },
+    { -1.0f,  1.0f, 0.0f },
+    {  0.0f, -1.0f, 0.0f }
   };
 
   // Setup identity transform matrix
@@ -43,37 +40,29 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   eastl::vector<uint32_t> indices = { 0, 1, 2 };
   uint indexCount = static_cast<uint32_t>(indices.size());
 
-  GpuBufferProperties props;
-  props.myBindFlags = (uint)GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT;
-  props.myCpuAccess = CpuMemoryAccessType::CPU_WRITE;
-  props.myElementSizeBytes = sizeof(Vertex);
-  props.myNumElements = (uint)vertices.size();
-  props.myIsShaderWritable = false;
-  myRTvertexBuffer = RenderCore::CreateBuffer(props, "RT vertex buffer", vertices.data());
+  RtAccelerationStructureGeometryData geometryData;
+  geometryData.myType = RtAccelerationStructureGeometryType::TRIANGLES;
+  geometryData.myFlags = (uint)RtAccelerationStructureGeometryFlags::OPAQUE_GEOMETRY;
+  geometryData.myVertexFormat = DataFormat::RGB_32F;
+  geometryData.myNumVertices = (uint)vertices.size();
+  geometryData.myVertexData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
+  geometryData.myVertexData.myCpuData.myData = vertices.data();
+  geometryData.myVertexData.myCpuData.myDataSize = VECTOR_BYTESIZE(vertices);
+  geometryData.myIndexFormat = DataFormat::R_32UI;
+  geometryData.myNumIndices = (uint)indices.size();
+  geometryData.myIndexData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
+  geometryData.myIndexData.myCpuData.myData = indices.data();
+  geometryData.myIndexData.myCpuData.myDataSize = VECTOR_BYTESIZE(indices);
+  geometryData.myTransformData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
+  geometryData.myTransformData.myCpuData.myData = &transformMatrix;
+  geometryData.myTransformData.myCpuData.myDataSize = sizeof(transformMatrix);
+  myBLAS = RenderCore::CreateRtBottomLevelAccelerationStructure(&geometryData, 1u, (uint)RtAccelerationStructureFlags::ALLOW_UPDATE);
 
-  props.myElementSizeBytes = sizeof(uint32_t);
-  props.myNumElements = (uint)indices.size();
-  myRTindexBuffer = RenderCore::CreateBuffer(props, "RT index buffer", indices.data());
-
-  props.myElementSizeBytes = sizeof(glm::mat3x4);
-  props.myNumElements = 1;
-  myRTtransformBuffer = RenderCore::CreateBuffer(props, "RT transform buffer", &transformMatrix);
-
-  RaytracingAsGeometryInfo rtAsGeometry;
-  rtAsGeometry.myVertexBuffer = myRTvertexBuffer.get();
-  rtAsGeometry.myNumVertices = (uint) vertices.size();
-  rtAsGeometry.myVertexFormat = DataFormat::RGB_32F;
-  rtAsGeometry.myIndexBuffer = myRTindexBuffer.get();
-  rtAsGeometry.myIndexFormat = DataFormat::R_32UI;
-  rtAsGeometry.myNumIndices = indexCount;
-  rtAsGeometry.myTransformBuffer = myRTtransformBuffer.get();
-  rtAsGeometry.myType = RtAccelerationStructureGeometryType::TRIANGLES;
-  rtAsGeometry.myFlags = (uint)RtAccelerationStructureGeometryFlags::OPAQUE_GEOMETRY;
-
-  RaytracingAsProps bvhProps;
-  bvhProps.myFlags = (uint)RtAccelerationStructureFlags::ALLOW_UPDATE;
-  bvhProps.myType = RtAccelerationStructureType::BOTTOM_LEVEL;
-  myBottomLevelBVH = RenderCore::CreateRtAccelerationStructure(bvhProps, { &rtAsGeometry, 1u }, "Test_Raytracing Bottom-level BVH");*/
+  RtAccelerationStructureInstanceData instanceData;
+  instanceData.myInstanceId = 0;
+  instanceData.mySbtHitGroupOffset = 0;
+  instanceData.myInstanceBLAS = myBLAS;
+  myTLAS = RenderCore::CreateRtTopLevelAccelerationStructure(&instanceData, 1u, (uint)RtAccelerationStructureFlags::ALLOW_UPDATE);
 
   RtPipelineStateProperties rtPipelineProps;
   const uint raygenIdx = rtPipelineProps.AddRayGenShader("RayTracing/RayGen.hlsl", "RayGen");

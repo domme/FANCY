@@ -63,7 +63,7 @@ namespace Fancy
       const uint64 overallVertexSize = vertexLayoutProperties.GetOverallVertexSize();
 
       const uint8* ptrToVertexData = partData.myVertexData.data();
-      const uint64 numVertices = DYN_ARRAY_BYTESIZE(partData.myVertexData) / overallVertexSize;;
+      const uint64 numVertices = VECTOR_BYTESIZE(partData.myVertexData) / overallVertexSize;;
 
       GpuBufferProperties bufferParams;
       bufferParams.myBindFlags = (uint)GpuBufferBindFlags::VERTEX_BUFFER;
@@ -99,7 +99,7 @@ namespace Fancy
     MathUtil::BeginMultiHash();
 
     for (uint i = 0u; i < aNumParts; ++i)
-      MathUtil::AddToMultiHash(someMeshPartDatas[i].myVertexData.data(), DYN_ARRAY_BYTESIZE(someMeshPartDatas[i].myVertexData));
+      MathUtil::AddToMultiHash(someMeshPartDatas[i].myVertexData.data(), VECTOR_BYTESIZE(someMeshPartDatas[i].myVertexData));
 
     return MathUtil::EndMultiHash();
   }

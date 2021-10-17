@@ -207,7 +207,12 @@ namespace Fancy {
       else
       {
         ASSERT(myType == GpuResourceViewType::SRV);
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_BUFFER, "GpuBufferView");
+
+        if (someProperties.myIsRtAccelerationStructure)
+          nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE, "RtAsGpuBufferView");
+        else
+          nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_BUFFER, "GpuBufferView");
+        
         success = CreateSRVdescriptor(aBuffer.get(), rawProperties, nativeData.myDescriptor);
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
       }
@@ -229,15 +234,15 @@ namespace Fancy {
   bool GpuBufferViewDX12::CreateSRVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
     GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
-
+    
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
     memset(&srvDesc, 0u, sizeof(srvDesc));
-
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
     if (someProperties.myIsRaw)
     {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
       srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
       srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
       srvDesc.Buffer.FirstElement = someProperties.myOffset / 4;
@@ -246,15 +251,23 @@ namespace Fancy {
     }
     else if (someProperties.myIsStructured)
     {
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
       srvDesc.Format = DXGI_FORMAT_UNKNOWN;
       srvDesc.Buffer.StructureByteStride = someProperties.myStructureSize;
       srvDesc.Buffer.FirstElement = someProperties.myOffset / someProperties.myStructureSize;
       ASSERT(someProperties.mySize / someProperties.myStructureSize <= UINT_MAX);
       srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / someProperties.myStructureSize);
     }
+    else if (someProperties.myIsRtAccelerationStructure)
+    {
+      srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+      srvDesc.RaytracingAccelerationStructure.Location = aBuffer->GetDeviceAddress();
+    }
     else
     {
       ASSERT(someProperties.myFormat != DataFormat::UNKNOWN, "Typed buffer-SRV needs a proper format");
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
       const DataFormat format = someProperties.myFormat;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
       srvDesc.Format = RenderCore_PlatformDX12::ResolveFormat(format);
@@ -263,7 +276,8 @@ namespace Fancy {
       srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
     }
 
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView(dataDx12->myResource.Get(), &srvDesc, aDescriptor.myCpuHandle);
+    // Resource must be nullptr in case of Rt acceleration structure according to the docs. The buffer-address is already included in the srvDesc
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView(someProperties.myIsRtAccelerationStructure ? nullptr : dataDx12->myResource.Get(), &srvDesc, aDescriptor.myCpuHandle);
     return true;
   }
 //---------------------------------------------------------------------------//

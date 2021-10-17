@@ -20,7 +20,7 @@ namespace Fancy
     };
     struct CpuData
     {
-      const uint8* myData;
+      const void* myData;
       uint64 myDataSize;
     };
 
@@ -50,6 +50,14 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct RtAccelerationStructureInstanceData
   {
+    RtAccelerationStructureInstanceData()
+      : myTransform(glm::mat3x4()) // Initialized to identity in default ctor
+      , myInstanceId(0)
+      , myInstanceMask(UINT8_MAX)
+      , mySbtHitGroupOffset(0)
+      , myFlags(0)
+    {}
+
     glm::mat3x4 myTransform;
     uint myInstanceId : 24;
     uint8 myInstanceMask;
