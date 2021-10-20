@@ -300,9 +300,24 @@ namespace Fancy {
     TransitionResource(aResource, aResource->GetSubresources(), aTransition, someUsageFlags);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::TransitionShaderResource(const GpuResourceView* aView, ShaderResourceTransition aTransition)
+  void CommandList::PrepareResourceShaderAccess(const GpuResourceView* aView)
   {
-    TransitionShaderResource(aView->GetResource(), aView->GetSubresourceRange(), aTransition);
+    ShaderResourceAccess access = SHADER_RESOURCE_ACCESS_SRV;;
+    switch(aView->myType)
+    {
+    case GpuResourceViewType::SRV: 
+      access = SHADER_RESOURCE_ACCESS_SRV;
+      break;
+    case GpuResourceViewType::SRV_RT_AS: 
+      access = SHADER_RESOURCE_ACCESS_RTAS;
+      break;
+    case GpuResourceViewType::UAV: 
+      access = SHADER_RESOURCE_ACCESS_UAV;
+      break;
+    default: ASSERT(false, "Incompatible of unsupported resource view type");
+    }
+
+    PrepareResourceShaderAccess(aView->GetResource(), aView->GetSubresourceRange(), access);
   }
 //---------------------------------------------------------------------------//
   void CommandList::PostExecute(uint64 aFenceVal)

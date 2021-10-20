@@ -193,7 +193,7 @@ namespace Fancy
     SHADER_BUFFER = 1 << 3,
     RT_ACCELERATION_STRUCTURE_BUILD_INPUT = 1 << 4,
     RT_ACCELERATION_STRUCTURE_STORAGE = 1 << 5,
-    RAYTRACING_SHADER_BINDING_TABLE = 1 << 6,
+    RT_SHADER_BINDING_TABLE = 1 << 6,
 
     ALL = ~0
   };
@@ -343,10 +343,11 @@ namespace Fancy
     DEPTH_STENCIL_READ = 1 << 2
   };
 //---------------------------------------------------------------------------//
-  enum class ShaderResourceTransition
+  enum ShaderResourceAccess
   {
-    TO_SHADER_READ,
-    TO_SHADER_WRITE
+    SHADER_RESOURCE_ACCESS_SRV,
+    SHADER_RESOURCE_ACCESS_UAV,
+    SHADER_RESOURCE_ACCESS_RTAS
   };
 //---------------------------------------------------------------------------//
   enum class VertexInputRate

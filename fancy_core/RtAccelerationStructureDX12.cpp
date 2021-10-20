@@ -209,8 +209,6 @@ namespace Fancy
     const GpuResource* res = myBuffer.get();
     cmdList->ResourceUAVbarrier(&res, 1);
     RenderCore::ExecuteAndFreeCommandList(cmdList, SyncMode::BLOCKING);
-
-
   }
 //---------------------------------------------------------------------------//
   RtAccelerationStructureDX12::~RtAccelerationStructureDX12()

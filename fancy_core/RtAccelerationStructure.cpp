@@ -5,7 +5,7 @@ namespace Fancy
 {
   RtAccelerationStructure::RtAccelerationStructure(RtAccelerationStructureType aType, const char* aName)
     : myType(aType)
-    , myName(aName)
+    , myName(aName ? aName : "")
   {
   }
 }

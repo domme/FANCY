@@ -109,8 +109,8 @@ void Test_HazardTracking::OnUpdate(bool aDrawProperties)
     };
     ctx->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
 
-    ctx->TransitionShaderResource(myBufferRead[i].get(), ShaderResourceTransition::TO_SHADER_READ);
-    ctx->TransitionShaderResource(myTexMipWrite[i].get(), ShaderResourceTransition::TO_SHADER_WRITE);
+    ctx->PrepareResourceShaderAccess(myBufferRead[i].get());
+    ctx->PrepareResourceShaderAccess(myTexMipWrite[i].get());
     ctx->Dispatch(dispatchSizes[i]);
   }
 
@@ -126,8 +126,8 @@ void Test_HazardTracking::OnUpdate(bool aDrawProperties)
       myTexMipRead[i]->GetGlobalDescriptorIndex()
     };
     ctx->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
-    ctx->TransitionShaderResource(myTexMipRead[i].get(), ShaderResourceTransition::TO_SHADER_READ);
-    ctx->TransitionShaderResource(myBufferWrite[i].get(), ShaderResourceTransition::TO_SHADER_WRITE);
+    ctx->PrepareResourceShaderAccess(myTexMipRead[i].get());
+    ctx->PrepareResourceShaderAccess(myBufferWrite[i].get());
     ctx->Dispatch(dispatchSizes[i]);
   }
 

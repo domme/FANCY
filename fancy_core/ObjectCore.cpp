@@ -348,8 +348,8 @@ namespace Fancy
       cBuffer.myDstTextureIdx = writeViews[mip]->GetGlobalDescriptorIndex();
       cBuffer.mySrcTextureSize = glm::int2((int)srcSize.x, (int)srcSize.y);
       ctx->BindConstantBuffer(&cBuffer, sizeof(cBuffer), 0);
-      ctx->TransitionShaderResource(readViews[mip - 1].get(), ShaderResourceTransition::TO_SHADER_READ);
-      ctx->TransitionShaderResource(writeViews[mip].get(), ShaderResourceTransition::TO_SHADER_WRITE);
+      ctx->PrepareResourceShaderAccess(readViews[mip - 1].get());
+      ctx->PrepareResourceShaderAccess(writeViews[mip].get());
       ctx->Dispatch(glm::int3(dstSize.x, dstSize.y, 1));
       ctx->ResourceUAVbarrier();
     }

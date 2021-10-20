@@ -66,7 +66,7 @@ void Test_SharedQueueResourceUsage::OnUpdate(bool aDrawProperties)
 
   cbuf.myDstBufferIndex = myBufferWrite->GetGlobalDescriptorIndex();
   graphicsContext->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
-  graphicsContext->TransitionShaderResource(myBufferWrite.get(), ShaderResourceTransition::TO_SHADER_WRITE);
+  graphicsContext->PrepareResourceShaderAccess(myBufferWrite.get());
   graphicsContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
   graphicsContext->TransitionResource(myBuffer.get(), ResourceTransition::TO_SHARED_CONTEXT_READ);
   const uint64 setValueFence = RenderCore::ExecuteAndFreeCommandList(graphicsContext);
@@ -85,8 +85,8 @@ void Test_SharedQueueResourceUsage::OnUpdate(bool aDrawProperties)
   cbuf.mySrcBufferIndex = myBufferRead->GetGlobalDescriptorIndex();
   cbuf.myDstBufferIndex = tempBuffer.myWriteView->GetGlobalDescriptorIndex();
   computeContext->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
-  computeContext->TransitionShaderResource(myBufferRead.get(), ShaderResourceTransition::TO_SHADER_READ);
-  computeContext->TransitionShaderResource(tempBuffer.myWriteView, ShaderResourceTransition::TO_SHADER_WRITE);
+  computeContext->PrepareResourceShaderAccess(myBufferRead.get());
+  computeContext->PrepareResourceShaderAccess(tempBuffer.myWriteView);
   computeContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));
   
   computeContext->ResourceUAVbarrier();

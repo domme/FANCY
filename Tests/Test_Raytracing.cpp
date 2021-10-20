@@ -24,20 +24,13 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
 {
   // Create bottom level BVH
   eastl::vector<glm::float3> vertices = {
-    {  1.0f,  1.0f, 0.0f },
-    { -1.0f,  1.0f, 0.0f },
-    {  0.0f, -1.0f, 0.0f }
-  };
-
-  // Setup identity transform matrix
-  glm::mat3x4 transformMatrix = {
-    1.0f, 0.0f, 0.0f, 0.0f,
-    0.0f, 1.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 1.0f, 0.0f
+    {  1.0f,  -1.0f, 0.0f },
+    { -1.0f,  -1.0f, 0.0f },
+    {  0.0f, 1.0f, 0.0f }
   };
 
   // Setup indices
-  eastl::vector<uint32_t> indices = { 0, 1, 2 };
+  eastl::vector<uint32_t> indices = { 1, 2, 0 };
   uint indexCount = static_cast<uint32_t>(indices.size());
 
   RtAccelerationStructureGeometryData geometryData;
@@ -53,16 +46,17 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   geometryData.myIndexData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
   geometryData.myIndexData.myCpuData.myData = indices.data();
   geometryData.myIndexData.myCpuData.myDataSize = VECTOR_BYTESIZE(indices);
-  geometryData.myTransformData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
-  geometryData.myTransformData.myCpuData.myData = &transformMatrix;
-  geometryData.myTransformData.myCpuData.myDataSize = sizeof(transformMatrix);
-  myBLAS = RenderCore::CreateRtBottomLevelAccelerationStructure(&geometryData, 1u, (uint)RtAccelerationStructureFlags::ALLOW_UPDATE);
+  // geometryData.myTransformData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
+  //geometryData.myTransformData.myCpuData.myData = &transformMatrix;
+  //geometryData.myTransformData.myCpuData.myDataSize = sizeof(transformMatrix);
+  myBLAS = RenderCore::CreateRtBottomLevelAccelerationStructure(&geometryData, 1u);
 
   RtAccelerationStructureInstanceData instanceData;
   instanceData.myInstanceId = 0;
   instanceData.mySbtHitGroupOffset = 0;
   instanceData.myInstanceBLAS = myBLAS;
-  myTLAS = RenderCore::CreateRtTopLevelAccelerationStructure(&instanceData, 1u, (uint)RtAccelerationStructureFlags::ALLOW_UPDATE);
+  instanceData.myFlags = RT_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE;
+  myTLAS = RenderCore::CreateRtTopLevelAccelerationStructure(&instanceData, 1u);
 
   RtPipelineStateProperties rtPipelineProps;
   const uint raygenIdx = rtPipelineProps.AddRayGenShader("RayTracing/RayGen.hlsl", "RayGen");
@@ -79,6 +73,8 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   sbtProps.myNumHitShaderRecords = 5;
   mySBT = RenderCore::CreateRtShaderTable(sbtProps);
   mySBT->AddShaderRecord(myRtPso->GetRayGenShaderIdentifier(raygenIdx));
+  mySBT->AddShaderRecord(myRtPso->GetMissShaderIdentifier(missIdx));
+  mySBT->AddShaderRecord(myRtPso->GetHitShaderIdentifier(hitIdx));
 }
 
 void Test_Raytracing::OnWindowResized(uint aWidth, uint aHeight)
@@ -103,13 +99,30 @@ void Test_Raytracing::OnRender()
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
   ctx->SetRaytracingPipelineState(myRtPso.get());
 
-  ctx->TransitionShaderResource(rtOutputTex.myWriteView, ShaderResourceTransition::TO_SHADER_WRITE);
+  ctx->PrepareResourceShaderAccess(rtOutputTex.myWriteView);
+  ctx->PrepareResourceShaderAccess(myTLAS->GetBufferRead());
 
   struct Consts
   {
+    glm::float3 myCamCenter;
+    float _pad;
+
+    glm::float4 myPixelToWorldScaleOffset;
+
     uint myOutTexIndex;
+    uint myAsIndex;
   } consts;
+
+
+  float viewportSize = 2.0f;
+  consts.myCamCenter = glm::float3(0.0f, 0.0f, -1.0f);
+  consts.myPixelToWorldScaleOffset.x = viewportSize / texProps.myTextureProperties.myWidth;
+  consts.myPixelToWorldScaleOffset.y = viewportSize / texProps.myTextureProperties.myHeight;
+  consts.myPixelToWorldScaleOffset.z = -viewportSize * 0.5f;
+  consts.myPixelToWorldScaleOffset.w = -viewportSize * 0.5f;
   consts.myOutTexIndex = rtOutputTex.myWriteView->GetGlobalDescriptorIndex();
+  consts.myAsIndex = myTLAS->GetBufferRead()->GetGlobalDescriptorIndex();
+  
   ctx->BindConstantBuffer(&consts, sizeof(consts), 0);
     
   DispatchRaysDesc desc;

@@ -317,7 +317,7 @@ namespace Fancy { namespace ImGuiRendering {
           if (textureId != nullptr)
             textureView = static_cast<const GpuResourceView*>(textureId);
 
-          ctx->TransitionShaderResource(textureView, ShaderResourceTransition::TO_SHADER_READ);
+          ctx->PrepareResourceShaderAccess(textureView);
 
           cbuffer.myTextureIndex = textureView->GetGlobalDescriptorIndex();
           ctx->BindConstantBuffer(&cbuffer, sizeof(cbuffer), 0);

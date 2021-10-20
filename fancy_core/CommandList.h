@@ -106,8 +106,8 @@ namespace Fancy {
     void TransitionResource(const GpuResource* aResource, ResourceTransition aTransition, uint someUsageFlags = 0u);
     virtual void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint someUsageFlags = 0u) = 0;
 
-    void TransitionShaderResource(const GpuResourceView* aView, ShaderResourceTransition aTransition);
-    virtual void TransitionShaderResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceTransition aTransition) = 0;
+    void PrepareResourceShaderAccess(const GpuResourceView* aView);
+    virtual void PrepareResourceShaderAccess(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceAccess aTransition) = 0;
 
     void ResourceUAVbarrier(const GpuResource* aResource) { ResourceUAVbarrier(&aResource, 1u); }
     

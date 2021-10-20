@@ -40,7 +40,7 @@ RtShaderBindingTable::RtShaderBindingTable(const RtShaderBindingTableProperties&
   }
   
   GpuBufferProperties bufferProps;
-  bufferProps.myBindFlags = (uint) GpuBufferBindFlags::RAYTRACING_SHADER_BINDING_TABLE;
+  bufferProps.myBindFlags = (uint) GpuBufferBindFlags::RT_SHADER_BINDING_TABLE;
   bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_WRITE;
   bufferProps.myElementSizeBytes = myAlignedShaderRecordSizeBytes;
   bufferProps.myNumElements = overallNumRecords;

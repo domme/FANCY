@@ -85,7 +85,7 @@ namespace Fancy {
         case CommandListType::Graphics: 
           return (D3D12_RESOURCE_STATES)UINT_MAX;
         case CommandListType::Compute:
-          return D3D12_RESOURCE_STATE_COMMON | D3D12_RESOURCE_STATE_UNORDERED_ACCESS | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT | D3D12_RESOURCE_STATE_COPY_DEST | D3D12_RESOURCE_STATE_COPY_SOURCE;
+          return D3D12_RESOURCE_STATE_COMMON | D3D12_RESOURCE_STATE_UNORDERED_ACCESS | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT | D3D12_RESOURCE_STATE_COPY_DEST | D3D12_RESOURCE_STATE_COPY_SOURCE | D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
         case CommandListType::DMA: 
           return D3D12_RESOURCE_STATE_COMMON | D3D12_RESOURCE_STATE_COPY_DEST | D3D12_RESOURCE_STATE_COPY_SOURCE;
         default: return (D3D12_RESOURCE_STATES) 0u;
@@ -672,14 +672,17 @@ namespace Fancy {
     TrackSubresourceTransition(aResource, aSubresourceRange, newStates, toSharedRead);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::TransitionShaderResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange,  ShaderResourceTransition aTransition)
+  void CommandListDX12::PrepareResourceShaderAccess(const GpuResource* aResource, const SubresourceRange& aSubresourceRange,  ShaderResourceAccess aTransition)
   {
     switch(aTransition)
     {
-      case ShaderResourceTransition::TO_SHADER_READ:
+      case SHADER_RESOURCE_ACCESS_SRV:
         TrackSubresourceTransition(aResource, aSubresourceRange, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
         break;
-      case ShaderResourceTransition::TO_SHADER_WRITE:
+      case SHADER_RESOURCE_ACCESS_RTAS:
+        TrackSubresourceTransition(aResource, aSubresourceRange, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
+        break;
+      case SHADER_RESOURCE_ACCESS_UAV:
         TrackSubresourceTransition(aResource, aSubresourceRange, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
         break;
       default: ASSERT(false, "Missing implementation!");

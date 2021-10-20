@@ -64,7 +64,7 @@ namespace Fancy
     void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
 
     void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint someUsageFlags = 0u) override;
-    void TransitionShaderResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceTransition aTransition) override;
+    void PrepareResourceShaderAccess(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceAccess aTransition) override;
     void ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources) override;
 
     void Close() override;

@@ -69,7 +69,7 @@ namespace Fancy {
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
     resourceDesc.Flags = someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-    D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_GENERIC_READ;
+    D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_GENERIC_READ | D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
     D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
     if (someProperties.myIsShaderWritable)
       writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
@@ -83,9 +83,11 @@ namespace Fancy {
     {
       readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-      if ((someProperties.myBindFlags & (uint) GpuBufferBindFlags::RAYTRACING_SHADER_BINDING_TABLE) == 0)
+      if (!(someProperties.myBindFlags & (uint) GpuBufferBindFlags::RT_SHADER_BINDING_TABLE))
         readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
     }
+    if (!(someProperties.myBindFlags & (uint)GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE))
+      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
 
     // In most cases, UAV resources will directly be used as such so start with that as an initial state
     D3D12_RESOURCE_STATES initialStates = someProperties.myIsShaderWritable ? D3D12_RESOURCE_STATE_UNORDERED_ACCESS : (D3D12_RESOURCE_STATE_GENERIC_READ & readStateMask) & writeStateMask;
@@ -206,12 +208,16 @@ namespace Fancy {
       }
       else
       {
-        ASSERT(myType == GpuResourceViewType::SRV);
-
         if (someProperties.myIsRtAccelerationStructure)
+        {
+          ASSERT(myType == GpuResourceViewType::SRV_RT_AS);
           nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE, "RtAsGpuBufferView");
+        }
         else
+        {
+          ASSERT(myType == GpuResourceViewType::SRV);
           nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_BUFFER, "GpuBufferView");
+        }
         
         success = CreateSRVdescriptor(aBuffer.get(), rawProperties, nativeData.myDescriptor);
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;

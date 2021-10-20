@@ -794,17 +794,17 @@ namespace Fancy
     TrackSubresourceTransition(aResource, aSubresourceRange, newAccessFlags, newLayout, newPipelineStageFlags, toSharedRead);
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::TransitionShaderResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceTransition aTransition)
+  void CommandListVk::PrepareResourceShaderAccess(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceAccess aTransition)
   {
     const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     const bool isBuffer = aResource->GetType() == GpuResourceType::BUFFER;
 
     switch (aTransition)
     {
-    case ShaderResourceTransition::TO_SHADER_READ:
+    case ShaderResourceAccess::SHADER_RESOURCE_ACCESS_SRV:
       TrackSubresourceTransition(aResource, aSubresourceRange, VK_ACCESS_SHADER_READ_BIT, isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pipelineStage);
       break;
-    case ShaderResourceTransition::TO_SHADER_WRITE:
+    case ShaderResourceAccess::SHADER_RESOURCE_ACCESS_UAV:
       TrackSubresourceTransition(aResource, aSubresourceRange, VK_ACCESS_SHADER_WRITE_BIT, isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_GENERAL, pipelineStage);
       break;
     default: ASSERT(false, "Missing implementation!");

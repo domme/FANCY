@@ -11,7 +11,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class GpuResourceViewType {
     NONE = 0,
-    CBV, SRV, UAV, DSV, RTV
+    CBV, SRV, SRV_RT_AS, UAV, DSV, RTV
   };
 //---------------------------------------------------------------------------//
   class GpuResourceView

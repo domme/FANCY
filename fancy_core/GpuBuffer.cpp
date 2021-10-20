@@ -54,11 +54,21 @@ namespace Fancy {
     , myProperties(someProperties)
   {
     if (someProperties.myIsConstantBuffer)
+    {
       myType = GpuResourceViewType::CBV;
+    }
     else if (someProperties.myIsShaderWritable)
+    {
       myType = GpuResourceViewType::UAV;
+    }
     else
-      myType = GpuResourceViewType::SRV;
+    {
+      if (someProperties.myIsRtAccelerationStructure)
+        myType = GpuResourceViewType::SRV_RT_AS;
+      else
+        myType = GpuResourceViewType::SRV;
+    }
+      
   }
 //---------------------------------------------------------------------------//
 }
