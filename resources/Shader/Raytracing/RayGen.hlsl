@@ -16,11 +16,11 @@ cbuffer Constants : register(b0, Space_LocalCBuffer)
 void RayGen() 
 {
   uint2 pixel = DispatchRaysIndex().xy;
-  float2 normPixel = (float2(pixel) / DispatchRaysDimensions().xy) * 2 - 1; // -0.5 .. 0.5
-  float2 p = normPixel * 2;
-
+  float2 p = (float2(pixel) / DispatchRaysDimensions().xy) * 2 - 1; // -0.5 .. 0.5
+  p *= 2;
+  
   RayDesc rayDesc;
-  rayDesc.Origin = myCamCenter + float3(p.x, p.y, 0);
+  rayDesc.Origin = float3(p.x, p.y, -5);
   rayDesc.TMin = 0.0;
   rayDesc.Direction = float3(0, 0, 1);
   rayDesc.TMax = 10.0;  
@@ -28,7 +28,7 @@ void RayGen()
   HitInfo payload;
   payload.colorAndDistance = float4(0, 0, 0, 0);
 
-  TraceRay( theRtAccelerationStructures[myAsIndex], 
+  TraceRay( theRtAccelerationStructures[myAsIndex],
             0,
             0xFF,
             0,

@@ -246,7 +246,13 @@ namespace Fancy {
     
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    if (someProperties.myIsRaw)
+    if (someProperties.myIsRtAccelerationStructure)
+    {
+      srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+      srvDesc.RaytracingAccelerationStructure.Location = aBuffer->GetDeviceAddress();
+    }
+    else if (someProperties.myIsRaw)
     {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
       srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
@@ -263,12 +269,6 @@ namespace Fancy {
       srvDesc.Buffer.FirstElement = someProperties.myOffset / someProperties.myStructureSize;
       ASSERT(someProperties.mySize / someProperties.myStructureSize <= UINT_MAX);
       srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / someProperties.myStructureSize);
-    }
-    else if (someProperties.myIsRtAccelerationStructure)
-    {
-      srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-      srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
-      srvDesc.RaytracingAccelerationStructure.Location = aBuffer->GetDeviceAddress();
     }
     else
     {

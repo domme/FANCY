@@ -29,18 +29,22 @@ namespace Fancy
       return flags;
     }
 
-    static D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE GetBufferData(const RtBufferData& aBufferData, CommandList* aCommandList)
+    static D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE GetBufferData(const RtBufferData& aBufferData, uint aStrideBytes, CommandList* aCommandList, uint anAlingment = 0)
     {
       if (aBufferData.myType == RT_BUFFER_DATA_TYPE_NONE)
         return { 0, 0 };
 
       if (aBufferData.myType == RT_BUFFER_DATA_TYPE_GPU_BUFFER)
-        return { aBufferData.myBuffer.myBuffer->GetDeviceAddress() + aBufferData.myBuffer.myOffsetBytes, aBufferData.myBuffer.mySizeBytes };
-
+      {
+        uint64 startAddress = aBufferData.myBuffer.myBuffer->GetDeviceAddress() + aBufferData.myBuffer.myOffsetBytes;
+        ASSERT(MathUtil::IsAligned(startAddress, anAlingment));
+        return {startAddress, aStrideBytes };
+      }
+        
       uint64 offset;
-      const GpuBuffer* buffer = aCommandList->GetBuffer(offset, GpuBufferUsage::STAGING_UPLOAD, aBufferData.myCpuData.myData, aBufferData.myCpuData.myDataSize);
+      const GpuBuffer* buffer = aCommandList->GetBuffer(offset, GpuBufferUsage::STAGING_UPLOAD, aBufferData.myCpuData.myData, aBufferData.myCpuData.myDataSize, anAlingment);
       ASSERT(buffer != nullptr);
-      return { buffer->GetDeviceAddress() + offset, aBufferData.myCpuData.myDataSize };
+      return { buffer->GetDeviceAddress() + offset, aStrideBytes };
     }
 
     static void GetBLASGeometryDescs(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, CommandList* cmdList, eastl::vector<D3D12_RAYTRACING_GEOMETRY_DESC>& geometryDescs)
@@ -49,13 +53,10 @@ namespace Fancy
 
       for (uint i = 0u; i < aNumGeometries; ++i)
       {
-        const RtAccelerationStructureGeometryData& geoInfo = someGeometries[i];
-        const uint vertexStride = DataFormatInfo::GetFormatInfo(geoInfo.myVertexFormat).mySizeBytes;
-        const uint indexStride = DataFormatInfo::GetFormatInfo(geoInfo.myIndexFormat).mySizeBytes;
-
         D3D12_RAYTRACING_GEOMETRY_DESC& geoDescDx12 = geometryDescs.push_back();
         memset(&geoDescDx12, 0, sizeof(geoDescDx12));
 
+        const RtAccelerationStructureGeometryData& geoInfo = someGeometries[i];
         if (geoInfo.myFlags & (uint)RtAccelerationStructureGeometryFlags::OPAQUE_GEOMETRY)
           geoDescDx12.Flags |= D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
         if (geoInfo.myFlags & (uint)RtAccelerationStructureGeometryFlags::NO_DUPLICATE_ANYHIT_INVOCATION)
@@ -64,13 +65,18 @@ namespace Fancy
         geoDescDx12.Type = RenderCore_PlatformDX12::GetRaytracingBVHGeometryType(geoInfo.myType);
         if (geoDescDx12.Type == D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES)
         {
-          D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE vertexBuffer = Private::GetBufferData(geoInfo.myVertexData, cmdList);
-          D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE indexBuffer = Private::GetBufferData(geoInfo.myIndexData, cmdList);
-          D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE transformBuffer = Private::GetBufferData(geoInfo.myTransformData, cmdList);
+          const DataFormatInfo& vertexFormatInfo = DataFormatInfo::GetFormatInfo(geoInfo.myVertexFormat);
+          const uint vertexStride = vertexFormatInfo.mySizeBytes;
+          const uint vertexBufferAlignment = vertexStride / vertexFormatInfo.myNumComponents;
+          const uint indexStride = DataFormatInfo::GetFormatInfo(geoInfo.myIndexFormat).mySizeBytes;
+          const uint transformStride = sizeof(glm::float3x4);
+          
+          D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE vertexBuffer = Private::GetBufferData(geoInfo.myVertexData, vertexStride, cmdList, vertexBufferAlignment);
+          D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE indexBuffer = Private::GetBufferData(geoInfo.myIndexData, indexStride, cmdList, indexStride);
+          D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE transformBuffer = Private::GetBufferData(geoInfo.myTransformData, transformStride, cmdList, D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT);
 
           geoDescDx12.Triangles.VertexFormat = RenderCore_PlatformDX12::ResolveFormat(geoInfo.myVertexFormat);
-          geoDescDx12.Triangles.VertexBuffer.StartAddress = vertexBuffer.StartAddress;
-          geoDescDx12.Triangles.VertexBuffer.StrideInBytes = vertexBuffer.StrideInBytes;
+          geoDescDx12.Triangles.VertexBuffer = vertexBuffer;
           geoDescDx12.Triangles.VertexCount = geoInfo.myNumVertices;
           geoDescDx12.Triangles.IndexFormat = RenderCore_PlatformDX12::ResolveFormat(geoInfo.myIndexFormat);
           geoDescDx12.Triangles.IndexBuffer = indexBuffer.StartAddress;
@@ -79,7 +85,7 @@ namespace Fancy
         }
         else
         {
-          D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE aabbBuffer = Private::GetBufferData(geoInfo.myProcedural_AABBData, cmdList);
+          D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE aabbBuffer = Private::GetBufferData(geoInfo.myProcedural_AABBData, sizeof(D3D12_RAYTRACING_AABB), cmdList);
           geoDescDx12.AABBs.AABBs = aabbBuffer;
           geoDescDx12.AABBs.AABBCount = geoInfo.myProcedural_NumAABBs;
         }

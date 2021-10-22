@@ -24,38 +24,36 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
 {
   // Create bottom level BVH
   eastl::vector<glm::float3> vertices = {
-    {  1.0f,  -1.0f, 0.0f },
-    { -1.0f,  -1.0f, 0.0f },
-    {  0.0f, 1.0f, 0.0f }
+    {  1.0f, -1.0f, 0.0f },
+    { -1.0f, -1.0f, 0.0f},
+    { 0.0f, 1.0f, 0.0f }
   };
 
   // Setup indices
-  eastl::vector<uint32_t> indices = { 1, 2, 0 };
-  uint indexCount = static_cast<uint32_t>(indices.size());
-
+  eastl::vector<unsigned short> indices = { 1, 2, 0 };
+  
   RtAccelerationStructureGeometryData geometryData;
   geometryData.myType = RtAccelerationStructureGeometryType::TRIANGLES;
   geometryData.myFlags = (uint)RtAccelerationStructureGeometryFlags::OPAQUE_GEOMETRY;
   geometryData.myVertexFormat = DataFormat::RGB_32F;
   geometryData.myNumVertices = (uint)vertices.size();
+  geometryData.myIndexFormat = DataFormat::R_16UI;
+  geometryData.myNumIndices = (uint)indices.size();
   geometryData.myVertexData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
   geometryData.myVertexData.myCpuData.myData = vertices.data();
   geometryData.myVertexData.myCpuData.myDataSize = VECTOR_BYTESIZE(vertices);
-  geometryData.myIndexFormat = DataFormat::R_32UI;
-  geometryData.myNumIndices = (uint)indices.size();
   geometryData.myIndexData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
   geometryData.myIndexData.myCpuData.myData = indices.data();
   geometryData.myIndexData.myCpuData.myDataSize = VECTOR_BYTESIZE(indices);
-  // geometryData.myTransformData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
-  //geometryData.myTransformData.myCpuData.myData = &transformMatrix;
-  //geometryData.myTransformData.myCpuData.myDataSize = sizeof(transformMatrix);
+
   myBLAS = RenderCore::CreateRtBottomLevelAccelerationStructure(&geometryData, 1u);
 
   RtAccelerationStructureInstanceData instanceData;
   instanceData.myInstanceId = 0;
   instanceData.mySbtHitGroupOffset = 0;
   instanceData.myInstanceBLAS = myBLAS;
-  instanceData.myFlags = RT_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE;
+  instanceData.myInstanceMask = UINT8_MAX;
+  instanceData.myFlags = RT_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE | RT_INSTANCE_FLAG_FORCE_OPAQUE;
   myTLAS = RenderCore::CreateRtTopLevelAccelerationStructure(&instanceData, 1u);
 
   RtPipelineStateProperties rtPipelineProps;
