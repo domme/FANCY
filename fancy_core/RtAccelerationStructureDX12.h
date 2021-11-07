@@ -15,7 +15,6 @@ namespace Fancy
   public:
     RtAccelerationStructureDX12(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint someFlags = 0, const char* aName = nullptr);
     RtAccelerationStructureDX12(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags = 0, const char* aName = nullptr);
-    ~RtAccelerationStructureDX12() override;
 
   private:
     void BuildInternal(eastl::vector<D3D12_RAYTRACING_GEOMETRY_DESC>* someGeometryDescs, eastl::vector<D3D12_RAYTRACING_INSTANCE_DESC>* someInstanceDescs, uint someFlags, const char* aName, CommandList* cmdList);

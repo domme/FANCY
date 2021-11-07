@@ -172,7 +172,7 @@
     <ClInclude Include="RenderPassCacheVk.h" />
     <ClInclude Include="RenderPlatformObjectCache.h" />
     <ClInclude Include="RtAccelerationStructure.h" />
-    <ClInclude Include="RaytracingBVHVk.h" />
+    <ClInclude Include="RtAccelerationStructureVk.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ShaderCompilerVk.h" />
     <ClInclude Include="ShaderPipelineDX12.h" />
@@ -302,7 +302,7 @@
     <ClCompile Include="RtAccelerationStructureDX12.cpp" />
     <ClCompile Include="RenderPassCacheVk.cpp" />
     <ClCompile Include="RtAccelerationStructure.cpp" />
-    <ClCompile Include="RaytracingBVHVk.cpp" />
+    <ClCompile Include="RtAccelerationStructureVk.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />

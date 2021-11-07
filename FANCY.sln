@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2047
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31321.278
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fancy_core", "fancy_core\fancy_core.vcxproj", "{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}"
 EndProject
@@ -14,6 +14,32 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "Tests\Tests.vcxproj", "{30329206-DA4B-4E1E-82B3-92900430E04E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FF76404D-47A9-485A-92B8-3373CEBF2CCA} = {FF76404D-47A9-485A-92B8-3373CEBF2CCA}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shaders", "Shaders", "{8B33B407-D5DB-492F-A5B3-B983104CCC19}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Shader\Raytracing\Common.hlsl = resources\Shader\Raytracing\Common.hlsl
+		resources\Shader\DebugGeo_Colored.hlsl = resources\Shader\DebugGeo_Colored.hlsl
+		resources\Shader\Downsample.hlsl = resources\Shader\Downsample.hlsl
+		resources\Shader\GlobalResources.h = resources\Shader\GlobalResources.h
+		resources\Shader\Tests\HazardTracking.hlsl = resources\Shader\Tests\HazardTracking.hlsl
+		resources\Shader\Raytracing\Hit.hlsl = resources\Shader\Raytracing\Hit.hlsl
+		resources\Shader\Imgui.hlsl = resources\Shader\Imgui.hlsl
+		resources\Shader\Raytracing\Miss.hlsl = resources\Shader\Raytracing\Miss.hlsl
+		resources\Shader\Tests\ModifyBuffer.hlsl = resources\Shader\Tests\ModifyBuffer.hlsl
+		resources\Shader\Raytracing\RayGen.hlsl = resources\Shader\Raytracing\RayGen.hlsl
+		resources\Shader\Unlit_Colored.hlsl = resources\Shader\Unlit_Colored.hlsl
+		resources\Shader\Unlit_Quad.hlsl = resources\Shader\Unlit_Quad.hlsl
+		resources\Shader\Unlit_Textured.hlsl = resources\Shader\Unlit_Textured.hlsl
+		resources\Shader\Vulkan_Support.h = resources\Shader\Vulkan_Support.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Raytracing", "Raytracing", "{FACEA12D-7960-4506-9AB9-3C6CA4EE0A20}"
+	ProjectSection(SolutionItems) = preProject
+		resources\Shader\Raytracing\Common.hlsl = resources\Shader\Raytracing\Common.hlsl
+		resources\Shader\Raytracing\Hit.hlsl = resources\Shader\Raytracing\Hit.hlsl
+		resources\Shader\Raytracing\Miss.hlsl = resources\Shader\Raytracing\Miss.hlsl
+		resources\Shader\Raytracing\RayGen.hlsl = resources\Shader\Raytracing\RayGen.hlsl
 	EndProjectSection
 EndProject
 Global
@@ -64,6 +90,7 @@ Global
 		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD} = {2225417A-5977-4F16-BD58-4EEB4148C5C4}
 		{FF76404D-47A9-485A-92B8-3373CEBF2CCA} = {2225417A-5977-4F16-BD58-4EEB4148C5C4}
 		{30329206-DA4B-4E1E-82B3-92900430E04E} = {16A64A43-402F-4FDE-ACF1-C4BA6C61E206}
+		{FACEA12D-7960-4506-9AB9-3C6CA4EE0A20} = {8B33B407-D5DB-492F-A5B3-B983104CCC19}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0EBD04EB-3D2D-4C87-B6CB-5CC6D8FF0148}

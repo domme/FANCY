@@ -17,6 +17,12 @@ struct VkExt
   static PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR;
   static PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR;
   static PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR;
+  static PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR;
+  static PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR;
+  static PFN_vkBuildAccelerationStructuresKHR vkBuildAccelerationStructuresKHR;
+  static PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR;
+  static PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR;
+  static PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR;
 };
 
 namespace Fancy
@@ -85,7 +91,10 @@ namespace Fancy
     CommandQueue* CreateCommandQueue(CommandListType aType) override;
     TextureView* CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName) override;
     GpuBufferView* CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName) override;
-    RaytracingBVH* CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName = nullptr) override;
+    RtAccelerationStructure* CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags = 0, const char* aName = nullptr) override;
+    RtAccelerationStructure* CreateRtTopLevelAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags = 0, const char* aName = nullptr) override;
+    RtPipelineState* CreateRtPipelineState(const RtPipelineStateProperties& someProps) override;
+    
     GpuQueryHeap* CreateQueryHeap(GpuQueryType aType, uint aNumQueries) override;
     uint GetQueryTypeDataSize(GpuQueryType aType) override;
     float64 GetGpuTicksToMsFactor(CommandListType aCommandListType) override;

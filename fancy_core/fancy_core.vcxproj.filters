@@ -404,7 +404,7 @@
     <ClInclude Include="PipelineLayoutVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="RaytracingBVHVk.h">
+    <ClInclude Include="RtAccelerationStructureVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="RtAccelerationStructure.h">
@@ -680,7 +680,7 @@
     <ClCompile Include="PipelineLayoutVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="RaytracingBVHVk.cpp">
+    <ClCompile Include="RtAccelerationStructureVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="RtAccelerationStructure.cpp">

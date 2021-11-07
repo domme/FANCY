@@ -16,13 +16,19 @@
 #include "GlobalDescriptorSetVk.h"
 #include "GpuResourceViewDataVk.h"
 #include "PipelineLayoutVk.h"
-#include "RaytracingBVHVk.h"
+#include "RtAccelerationStructureVk.h"
 
 #if FANCY_ENABLE_VK
 
 PFN_vkCreateAccelerationStructureKHR VkExt::vkCreateAccelerationStructureKHR;
 PFN_vkDestroyAccelerationStructureKHR VkExt::vkDestroyAccelerationStructureKHR;
 PFN_vkGetAccelerationStructureBuildSizesKHR VkExt::vkGetAccelerationStructureBuildSizesKHR;
+PFN_vkCmdBuildAccelerationStructuresKHR VkExt::vkCmdBuildAccelerationStructuresKHR;
+PFN_vkGetAccelerationStructureDeviceAddressKHR VkExt::vkGetAccelerationStructureDeviceAddressKHR;
+PFN_vkBuildAccelerationStructuresKHR VkExt::vkBuildAccelerationStructuresKHR;
+PFN_vkCmdTraceRaysKHR VkExt::vkCmdTraceRaysKHR;
+PFN_vkGetRayTracingShaderGroupHandlesKHR VkExt::vkGetRayTracingShaderGroupHandlesKHR;
+PFN_vkCreateRayTracingPipelinesKHR VkExt::vkCreateRayTracingPipelinesKHR;
 
 namespace Fancy
 {
@@ -697,7 +703,6 @@ namespace Fancy
     {
     case RtAccelerationStructureGeometryType::TRIANGLES: return VK_GEOMETRY_TYPE_TRIANGLES_KHR;
     case RtAccelerationStructureGeometryType::AABBS: return VK_GEOMETRY_TYPE_AABBS_KHR;
-    // case RtAccelerationStructureGeometryType::INSTANCES: return VK_GEOMETRY_TYPE_INSTANCES_KHR;  // Not available in DX12
     default: ASSERT(false); return VK_GEOMETRY_TYPE_TRIANGLES_KHR;
     }
   }
@@ -1004,6 +1009,12 @@ namespace Fancy
     VkExt::vkCreateAccelerationStructureKHR = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(vkGetDeviceProcAddr(myDevice, "vkCreateAccelerationStructureKHR"));
     VkExt::vkDestroyAccelerationStructureKHR = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(vkGetDeviceProcAddr(myDevice, "vkDestroyAccelerationStructureKHR"));
     VkExt::vkGetAccelerationStructureBuildSizesKHR = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(vkGetDeviceProcAddr(myDevice, "vkGetAccelerationStructureBuildSizesKHR"));
+    VkExt::vkCmdBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(vkGetDeviceProcAddr(myDevice, "vkCmdBuildAccelerationStructuresKHR"));
+    VkExt::vkGetAccelerationStructureDeviceAddressKHR = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(vkGetDeviceProcAddr(myDevice, "vkGetAccelerationStructureDeviceAddressKHR"));
+    VkExt::vkBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkBuildAccelerationStructuresKHR>(vkGetDeviceProcAddr(myDevice, "vkBuildAccelerationStructuresKHR"));
+    VkExt::vkCmdTraceRaysKHR = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(vkGetDeviceProcAddr(myDevice, "vkCmdTraceRaysKHR"));
+    VkExt::vkGetRayTracingShaderGroupHandlesKHR = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(vkGetDeviceProcAddr(myDevice, "vkGetRayTracingShaderGroupHandlesKHR"));
+    VkExt::vkCreateRayTracingPipelinesKHR = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(vkGetDeviceProcAddr(myDevice, "vkCreateRayTracingPipelinesKHR"));
   }
   
   RenderCore_PlatformVk::~RenderCore_PlatformVk()
@@ -1113,9 +1124,19 @@ namespace Fancy
     return new GpuBufferViewVk(aBuffer, someProperties);
   }
 //---------------------------------------------------------------------------//
-  RaytracingBVH* RenderCore_PlatformVk::CreateRtAccelerationStructure(const RaytracingAsProps& someProps, const eastl::span<RaytracingAsGeometryInfo>& someGeometries, const char* aName)
+  RtAccelerationStructure* RenderCore_PlatformVk::CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags, const char* aName)
   {
-    return new RaytracingBVHVk(someProps, someGeometries, aName);
+    return new RtAccelerationStructureVk(someGeometries, aNumGeometries, aSomeFlags, aName);
+  }
+  //---------------------------------------------------------------------------//
+  RtAccelerationStructure* RenderCore_PlatformVk::CreateRtTopLevelAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags, const char* aName)
+  {
+    return new RtAccelerationStructureVk(someInstances, aNumInstances, someFlags, aName);
+  }
+  //---------------------------------------------------------------------------//
+  RtPipelineState* RenderCore_PlatformVk::CreateRtPipelineState(const RtPipelineStateProperties& someProps)
+  {
+    return new RaytracingPipelineStateVk(someProps);
   }
 //---------------------------------------------------------------------------//
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

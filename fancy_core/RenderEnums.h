@@ -370,7 +370,6 @@ namespace Fancy
   {
     TRIANGLES = 0,
     AABBS,
-    INSTANCES,
 
     NUM
   };

@@ -31,6 +31,8 @@ namespace Fancy
       BufferData myBuffer;
       CpuData myCpuData;
     };
+
+    uint64 GetGpuBufferAddress(CommandList* aCommandList, uint anAlingment = 0) const;
   };
 //---------------------------------------------------------------------------//
   struct RtAccelerationStructureGeometryData
@@ -42,6 +44,7 @@ namespace Fancy
     DataFormat myVertexFormat = DataFormat::RGB_32F;
     DataFormat myIndexFormat = DataFormat::R_32UI;
     uint myNumVertices = 0;
+    uint myVertexStride = 0; // Byte size between to consecutive position-elements in the vertex-data. Useful for interleaved vertex data. Can be left 0, in which case it defaults to the format size
     uint myNumIndices = 0;
     uint myFlags = 0; // RtAccelerationStructureGeometryFlags
     uint myProcedural_NumAABBs = 0;
