@@ -17,7 +17,7 @@ namespace Fancy
     ~DescriptorPoolAllocatorVk();
 
     static VkDescriptorPool CreateDescriptorPool(uint aMaxNumDescriptors, uint aMaxNumSets);
-    static VkDescriptorPool CreateDescriptorPool(uint aNumImages, uint aNumBuffers, uint aNumUniformBuffers, uint aNumSamplers, uint aMaxNumSets);
+    static VkDescriptorPool CreateDescriptorPool(uint aNumImages, uint aNumBuffers, uint aNumAccelerationStructures, uint aNumUniformBuffers, uint aNumSamplers, uint aMaxNumSets);
 
     VkDescriptorPool AllocateDescriptorPool();
     void FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence);

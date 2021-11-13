@@ -141,7 +141,8 @@ namespace Fancy
           for (int col = 0; col < 4; ++col)
             instanceVk.transform.matrix[row][col] = instanceData.myTransform[row][col];
 
-        instanceVk.accelerationStructureReference = instanceData.myInstanceBLAS->GetBuffer()->GetDeviceAddress();
+        const GpuBufferVk* blasBuffer = static_cast<const GpuBufferVk*>(instanceData.myInstanceBLAS->GetBuffer());
+        instanceVk.accelerationStructureReference = blasBuffer->GetAccelerationStructureAddress();
       }
     }
   }
@@ -234,13 +235,6 @@ namespace Fancy
     bufferProps.myIsShaderWritable = true;
     myBuffer = RenderCore::CreateBuffer(bufferProps, StaticString<128>("%s_%s_buffer", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS"));
     ASSERT(myBuffer != nullptr);
-
-    GpuBufferViewProperties viewProps;
-    viewProps.myFormat = DataFormat::UNKNOWN;
-    viewProps.myIsRtAccelerationStructure = true;
-    viewProps.myIsShaderWritable = false;
-    myBufferRead = RenderCore::CreateBufferView(myBuffer, viewProps, StaticString<128>("%s_%s_bufferView", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS"));
-    ASSERT(myBufferRead != nullptr);
     
     VkAccelerationStructureCreateInfoKHR asCreateInfo{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR };
     asCreateInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
@@ -292,9 +286,18 @@ namespace Fancy
     VkCommandBuffer cmdBuffer = static_cast<CommandListVk*>(cmdList)->GetCommandBuffer();
     VkExt::vkCmdBuildAccelerationStructuresKHR(cmdBuffer, 1u, &asBuildInfo, &buldRangeInfosBuffer);
     RenderCore::ExecuteAndFreeCommandList(cmdList, SyncMode::BLOCKING);
+    
+    VkAccelerationStructureDeviceAddressInfoKHR accelerationDeviceAddressInfo {VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR};
+    accelerationDeviceAddressInfo.accelerationStructure = myAccelerationStructure;
+    myBuffer->GetVkData()->myBufferData.myAccelerationStructureAddress = VkExt::vkGetAccelerationStructureDeviceAddressKHR(device, &accelerationDeviceAddressInfo);
+    myBuffer->GetVkData()->myBufferData.myAccelerationStructure = myAccelerationStructure;
 
-    // TODO VKRT: It could be needed to use the device address retrieved by vkGetAccelerationStructureDeviceAddressKHR instead of relying on the buffer-address.
-    // It feels like those two *should* be the same address but the docs are inconclusive about that.
+    GpuBufferViewProperties viewProps;
+    viewProps.myFormat = DataFormat::UNKNOWN;
+    viewProps.myIsRtAccelerationStructure = true;
+    viewProps.myIsShaderWritable = false;
+    myBufferRead = RenderCore::CreateBufferView(myBuffer, viewProps, StaticString<128>("%s_%s_bufferView", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS"));
+    ASSERT(myBufferRead != nullptr);
   }
 //---------------------------------------------------------------------------//
   RtAccelerationStructureVk::~RtAccelerationStructureVk()

@@ -510,14 +510,6 @@ namespace Fancy
     myPendingBarrierDstStageMask = 0u;
   }
 //---------------------------------------------------------------------------//
-  const ShaderPipelineVk* CommandListVk::GetShaderPipeline() const
-  {
-    if (myCurrentContext == CommandListType::Graphics)
-      return static_cast<const ShaderPipelineVk*>(myGraphicsPipelineState.myShaderPipeline);
-
-    return static_cast<const ShaderPipelineVk*>(myComputePipelineState.myShaderPipeline);
-  }
-//---------------------------------------------------------------------------//
   void CommandListVk::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* /*someSizes*/, uint aNumBuffers)
   {
     const Shader* vertexShader = myGraphicsPipelineState.myShaderPipeline ? myGraphicsPipelineState.myShaderPipeline->GetShader(ShaderStage::SHADERSTAGE_VERTEX) : nullptr;
@@ -673,13 +665,12 @@ namespace Fancy
     descriptorInfo.offset = someViewProperties.myOffset;
     descriptorInfo.range = someViewProperties.mySize;
 
-    const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     const RenderPlatformProperties& renderProps = RenderCore::GetPlatform()->GetProperties();
 
     if (someViewProperties.myIsConstantBuffer)
     {
       ASSERT(aRegisterIndex < renderProps.myNumLocalCBuffers);
-      TrackResourceTransition(aBuffer, VK_ACCESS_UNIFORM_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
+      TrackResourceTransition(aBuffer, VK_ACCESS_UNIFORM_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
       
       if (aRegisterIndex >= myLocalCBuffersToBind.size())
         myLocalCBuffersToBind.resize(aRegisterIndex + 1, invalidDescriptorInfo);
@@ -693,7 +684,7 @@ namespace Fancy
 
       if (someViewProperties.myIsShaderWritable)
       {
-        TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
+        TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
 
         if (aRegisterIndex >= myLocalRWBuffersToBind.size())
           myLocalRWBuffersToBind.resize(aRegisterIndex + 1, invalidDescriptorInfo);
@@ -702,7 +693,7 @@ namespace Fancy
       }
       else
       {
-        TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, pipelineStage);
+        TrackResourceTransition(aBuffer, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
 
         if (aRegisterIndex >= myLocalBuffersToBind.size())
           myLocalBuffersToBind.resize(aRegisterIndex + 1, invalidDescriptorInfo);
@@ -763,7 +754,7 @@ namespace Fancy
     const GpuQueryHeapVk* queryHeapVk = static_cast<const GpuQueryHeapVk*>(aQueryHeap);
     GpuResourceDataVk* bufferDataVk = aBuffer->GetVkData();
 
-    TrackResourceTransition(aBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT, false);
+    TrackResourceTransition(aBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, false);
     FlushBarriers();
 
     const uint64 stride = RenderCore::GetPlatformVk()->GetQueryTypeDataSize(aQueryHeap->myType);
@@ -775,14 +766,12 @@ namespace Fancy
   {
     VkImageLayout newLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     VkAccessFlags newAccessFlags = 0u;
-    VkPipelineStageFlags newPipelineStageFlags = 0u;
     bool toSharedRead = false;
 
     switch (aTransition)
     {
     case ResourceTransition::TO_SHARED_CONTEXT_READ:
       newAccessFlags = aResource->GetVkData()->myHazardData.myReadAccessMask;
-      newPipelineStageFlags = Priv_CommandListVk::locPipelineMaskGraphics;
       if (aResource->IsTexture())
         newLayout = VK_IMAGE_LAYOUT_GENERAL;
 
@@ -791,21 +780,30 @@ namespace Fancy
     default: ASSERT(false);
     }
 
-    TrackSubresourceTransition(aResource, aSubresourceRange, newAccessFlags, newLayout, newPipelineStageFlags, toSharedRead);
+    TrackSubresourceTransition(aResource, aSubresourceRange, newAccessFlags, newLayout, toSharedRead);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::PrepareResourceShaderAccess(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceAccess aTransition)
   {
-    const VkPipelineStageFlags pipelineStage = myCurrentContext == CommandListType::Compute ? VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT : VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     const bool isBuffer = aResource->GetType() == GpuResourceType::BUFFER;
 
     switch (aTransition)
     {
-    case ShaderResourceAccess::SHADER_RESOURCE_ACCESS_SRV:
-      TrackSubresourceTransition(aResource, aSubresourceRange, VK_ACCESS_SHADER_READ_BIT, isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, pipelineStage);
+    case SHADER_RESOURCE_ACCESS_SRV:
+      {
+        TrackSubresourceTransition(aResource, aSubresourceRange, VK_ACCESS_SHADER_READ_BIT, isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+      }
       break;
-    case ShaderResourceAccess::SHADER_RESOURCE_ACCESS_UAV:
-      TrackSubresourceTransition(aResource, aSubresourceRange, VK_ACCESS_SHADER_WRITE_BIT, isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_GENERAL, pipelineStage);
+    case SHADER_RESOURCE_ACCESS_RTAS:
+      {
+        ASSERT(isBuffer);
+        TrackSubresourceTransition(aResource, aSubresourceRange, VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR, VK_IMAGE_LAYOUT_UNDEFINED);
+      }
+      break;
+    case SHADER_RESOURCE_ACCESS_UAV:
+      {
+        TrackSubresourceTransition(aResource, aSubresourceRange, VK_ACCESS_SHADER_WRITE_BIT, isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_GENERAL);
+      }
       break;
     default: ASSERT(false, "Missing implementation!");
     }
@@ -840,9 +838,9 @@ namespace Fancy
     vkCmdDispatch(myCommandBuffer, (uint)numGroups.x, (uint)numGroups.y, (uint)numGroups.z);
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, VkPipelineStageFlags aNewPipelineStageFlags, bool aToSharedReadState)
+  void CommandListVk::TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, bool aToSharedReadState)
   {
-    TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewAccessFlags, aNewImageLayout, aNewPipelineStageFlags, aToSharedReadState);
+    TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewAccessFlags, aNewImageLayout, aToSharedReadState);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::TrackSubresourceTransition(
@@ -850,7 +848,6 @@ namespace Fancy
     const SubresourceRange& aSubresourceRange, 
     VkAccessFlags aNewAccessFlags, 
     VkImageLayout aNewImageLayout, 
-    VkPipelineStageFlags aNewPipelineStageFlags, 
     bool aToSharedReadState)
   {
     if (aResource->IsBuffer())
@@ -1097,11 +1094,16 @@ namespace Fancy
     GlobalDescriptorSetVk* globalDescriptorSet = platformVk->GetGlobalDescriptorSet();
     VkDescriptorSet globalSet = globalDescriptorSet->GetDescriptorSet();
 
-    if (myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute)
-      vkCmdBindDescriptorSets(myCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_GlobalResourcesSamplers, 1, &globalSet, 0, nullptr);
+    const bool graphics = myCommandListType == CommandListType::Graphics;
+    const bool compute = graphics || myCommandListType == CommandListType::Compute;
+    const bool raytracing = RenderCore::GetPlatformCaps().mySupportsRaytracing;
 
-    if (myCommandListType == CommandListType::Graphics)
+    if (graphics)
       vkCmdBindDescriptorSets(myCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_GlobalResourcesSamplers, 1, &globalSet, 0, nullptr);
+    if (compute)
+      vkCmdBindDescriptorSets(myCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_GlobalResourcesSamplers, 1, &globalSet, 0, nullptr);
+    if (raytracing)
+      vkCmdBindDescriptorSets(myCommandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_GlobalResourcesSamplers, 1, &globalSet, 0, nullptr);
   }
 //---------------------------------------------------------------------------//
   bool CommandListVk::ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout)
@@ -1190,8 +1192,6 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyRenderTargets()
   {
-    ASSERT(myCurrentContext == CommandListType::Graphics);
-
     if (!myRenderTargetsDirty)
     {
       ASSERT(myRenderPass != nullptr);
@@ -1372,14 +1372,39 @@ namespace Fancy
     if (!writeInfos.empty())
       vkUpdateDescriptorSets(RenderCore::GetPlatformVk()->myDevice, (uint)writeInfos.size(), writeInfos.data(), 0u, nullptr);
 
-    const VkPipelineBindPoint bindPoint = myCurrentContext == CommandListType::Graphics ? VK_PIPELINE_BIND_POINT_GRAPHICS : VK_PIPELINE_BIND_POINT_COMPUTE;
-
+    const bool graphics = myCommandListType == CommandListType::Graphics;
+    const bool compute = graphics || myCommandListType == CommandListType::Compute;
+    const bool raytracing = RenderCore::GetPlatformCaps().mySupportsRaytracing;
+    
     if (localBufferSet)
-        vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalBuffers, 1, &localBufferSet, 0, nullptr);
+    {
+      if (graphics)
+        vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalBuffers, 1, &localBufferSet, 0, nullptr);
+      if (compute)
+        vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalBuffers, 1, &localBufferSet, 0, nullptr);
+      if (raytracing)
+        vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalBuffers, 1, &localBufferSet, 0, nullptr);
+    }
+        
     if (localRwBufferSet)
-      vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalRwBuffers, 1, &localRwBufferSet, 0, nullptr);
+    {
+      if (graphics)
+        vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalRwBuffers, 1, &localRwBufferSet, 0, nullptr);
+      if (compute)
+        vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalRwBuffers, 1, &localRwBufferSet, 0, nullptr);
+      if (raytracing)
+        vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalRwBuffers, 1, &localRwBufferSet, 0, nullptr);
+    }
+      
     if (localCBufferSet)
-      vkCmdBindDescriptorSets(GetCommandBuffer(), bindPoint, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalCbuffers, 1, &localCBufferSet, 0, nullptr);
+    {
+      if (graphics)
+        vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalCbuffers, 1, &localCBufferSet, 0, nullptr);
+      if (compute)
+        vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalCbuffers, 1, &localCBufferSet, 0, nullptr);
+      if (raytracing)
+        vkCmdBindDescriptorSets(GetCommandBuffer(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, pipelineLayout->myPipelineLayout, pipelineLayout->myDescriptorSetIndex_LocalCbuffers, 1, &localCBufferSet, 0, nullptr);
+    }
 
     myLocalBuffersToBind.clear();
     myLocalRWBuffersToBind.clear();

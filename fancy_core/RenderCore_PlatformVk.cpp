@@ -669,6 +669,9 @@ namespace Fancy
     case GLOBAL_RESOURCE_RWBUFFER:
       return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
+    case GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE:
+      return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+
     case GLOBAL_RESOURCE_RWTEXTURE_1D:
     case GLOBAL_RESOURCE_RWTEXTURE_1D_UINT:
     case GLOBAL_RESOURCE_RWTEXTURE_1D_INT:
@@ -800,6 +803,23 @@ namespace Fancy
       vkGetPhysicalDeviceFeatures(myPhysicalDevice, &myPhysicalDeviceFeatures);
       vkGetPhysicalDeviceProperties(myPhysicalDevice, &myPhysicalDeviceProperties);
       vkGetPhysicalDeviceMemoryProperties(myPhysicalDevice, &myPhysicalDeviceMemoryProperties);
+
+      uint numDeviceExtensions = 0;
+      vkEnumerateDeviceExtensionProperties(myPhysicalDevice, nullptr, &numDeviceExtensions, nullptr);
+
+      eastl::vector<VkExtensionProperties> extensionProperties(numDeviceExtensions);
+      vkEnumerateDeviceExtensionProperties(myPhysicalDevice, nullptr, &numDeviceExtensions, extensionProperties.data());
+
+      mySupportedDeviceExtensions.resize(numDeviceExtensions);
+      for (uint i = 0; i < numDeviceExtensions; ++i)
+        mySupportedDeviceExtensions[i] = extensionProperties[i].extensionName;
+      
+      myCaps.mySupportsRaytracing =
+        eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME) != mySupportedDeviceExtensions.end()
+        && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME) != mySupportedDeviceExtensions.end()
+        && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_RAY_QUERY_EXTENSION_NAME) != mySupportedDeviceExtensions.end()
+        && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME) != mySupportedDeviceExtensions.end()
+        && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME) != mySupportedDeviceExtensions.end();
     }
 
     // Create queues and logical device
@@ -816,7 +836,7 @@ namespace Fancy
       // If that doesn't work, try to use different queues from the same family. Most likely these will be synchronous on hardware-level though.
       // Else disable certain queue-types that can't be filled in.
 
-      int numUsedQueues[(uint)CommandListType::SHADERSTAGE_NUM] = { 0u };
+      int numUsedQueues[(uint)CommandListType::NUM] = { 0u };
       for (uint i = 0u, e = (uint) queueFamilyProps.size(); i < e; ++i)
       {
         const VkQueueFamilyProperties& props = queueFamilyProps[i];
@@ -846,7 +866,7 @@ namespace Fancy
       ASSERT(myQueueInfos[(uint)CommandListType::Graphics].myQueueFamilyIndex != VK_QUEUE_FAMILY_IGNORED, "Could not find a graphics-capable Vulkan queue");
 
       // If the graphics device has multiple queues on a higher-level queue family, try to use those for lower-level queues on API-level
-      for (int queueType = (int)CommandListType::Compute; queueType < (int)CommandListType::SHADERSTAGE_NUM; ++queueType)
+      for (int queueType = (int)CommandListType::Compute; queueType < (int)CommandListType::NUM; ++queueType)
       {
         if (myQueueInfos[queueType].myQueueFamilyIndex == VK_QUEUE_FAMILY_IGNORED)
         {
@@ -892,8 +912,8 @@ namespace Fancy
 
       const float queuePriority = 1.0f;
       uint numQueuesToCreate = 0u;
-      VkDeviceQueueCreateInfo queueCreateInfos[(uint) CommandListType::SHADERSTAGE_NUM] = {};
-      for (uint queueType = 0u; queueType < (uint)CommandListType::SHADERSTAGE_NUM; ++queueType)
+      VkDeviceQueueCreateInfo queueCreateInfos[(uint) CommandListType::NUM] = {};
+      for (uint queueType = 0u; queueType < (uint)CommandListType::NUM; ++queueType)
       {
         if (numUsedQueues[queueType] > 0)
         {
@@ -905,9 +925,13 @@ namespace Fancy
         }
       }
 
-      VkPhysicalDeviceVulkan12Features vk12Features;
-      vk12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
-      vk12Features.pNext = nullptr;
+      VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+      deviceCreateInfo.pQueueCreateInfos = queueCreateInfos;
+      deviceCreateInfo.queueCreateInfoCount = numQueuesToCreate;
+      deviceCreateInfo.pEnabledFeatures = &myPhysicalDeviceFeatures;
+      void** ppNext = const_cast<void**>(&deviceCreateInfo.pNext);
+
+      VkPhysicalDeviceVulkan12Features vk12Features = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
       vk12Features.samplerMirrorClampToEdge = true;
       vk12Features.drawIndirectCount = true;
       vk12Features.storageBuffer8BitAccess = true;
@@ -955,49 +979,52 @@ namespace Fancy
       vk12Features.shaderOutputViewportIndex = true;
       vk12Features.shaderOutputLayer = true;
       vk12Features.subgroupBroadcastDynamicId = true;
+      *ppNext = &vk12Features;
+      ppNext = &vk12Features.pNext;
 
-      VkPhysicalDeviceRobustness2FeaturesEXT robustnessFeatures = {};
-      robustnessFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
-      robustnessFeatures.pNext = &vk12Features;
+      VkPhysicalDeviceRobustness2FeaturesEXT robustnessFeatures = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT };
       robustnessFeatures.nullDescriptor = true;
       robustnessFeatures.robustBufferAccess2 = true;
       robustnessFeatures.robustImageAccess2 = true;
+      *ppNext = &robustnessFeatures;
+      ppNext = &robustnessFeatures.pNext;
       
-      VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeatures{};
-      rtPipelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
-      rtPipelineFeatures.pNext = &robustnessFeatures;
-      rtPipelineFeatures.rayTracingPipeline = true;
-      // rtPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplay = true;
-      // rtPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplayMixed = true;
-      rtPipelineFeatures.rayTracingPipelineTraceRaysIndirect = true;
+      VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeatures{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR };
+      VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
+      if (myCaps.mySupportsRaytracing)
+      {
+        rtPipelineFeatures.rayTracingPipeline = true;
+        // rtPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplay = true;
+        // rtPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplayMixed = true;
+        rtPipelineFeatures.rayTracingPipelineTraceRaysIndirect = true;
+        *ppNext = &rtPipelineFeatures;
+        ppNext = &rtPipelineFeatures.pNext;
 
-      VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures{};
-      asFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
-      asFeatures.pNext = &rtPipelineFeatures;
-      asFeatures.accelerationStructure = true;
-      asFeatures.accelerationStructureCaptureReplay = true;
-      //asFeatures.accelerationStructureHostCommands = true;
-      //asFeatures.accelerationStructureIndirectBuild = true;
-      asFeatures.descriptorBindingAccelerationStructureUpdateAfterBind = true;
-      
-      VkDeviceCreateInfo deviceCreateInfo = {};
-      deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-      deviceCreateInfo.pNext = &asFeatures;
-      deviceCreateInfo.pQueueCreateInfos = queueCreateInfos;
-      deviceCreateInfo.queueCreateInfoCount = numQueuesToCreate;
-      deviceCreateInfo.pEnabledFeatures = &myPhysicalDeviceFeatures;
+        asFeatures.accelerationStructure = true;
+        asFeatures.accelerationStructureCaptureReplay = true;
+        //asFeatures.accelerationStructureHostCommands = true;
+        //asFeatures.accelerationStructureIndirectBuild = true;
+        asFeatures.descriptorBindingAccelerationStructureUpdateAfterBind = true;
+        *ppNext = &asFeatures;
+        ppNext = &asFeatures.pNext;
+      }
 
-      const char* const extensions[] = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-        VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
-        VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME };
-      deviceCreateInfo.ppEnabledExtensionNames = extensions;
-      deviceCreateInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
+      eastl::vector<const char*> extensions;
+      extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+      if (myCaps.mySupportsRaytracing)
+      {
+        extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+        extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+        extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+      }
+
+      deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
+      deviceCreateInfo.enabledExtensionCount = (uint)extensions.size();
 
       ASSERT_VK_RESULT(vkCreateDevice(myPhysicalDevice, &deviceCreateInfo, nullptr, &myDevice));
     }
-
+    
     myCaps.myMaxNumVertexAttributes = myPhysicalDeviceProperties.limits.maxVertexInputAttributes;
     myCaps.myCbufferPlacementAlignment = (uint) myPhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
     myCaps.myMaxTextureAnisotropy = (uint) myPhysicalDeviceProperties.limits.maxSamplerAnisotropy;
@@ -1177,6 +1204,11 @@ namespace Fancy
   void RenderCore_PlatformVk::FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence)
   {
     myDescriptorPoolAllocator->FreeDescriptorPool(aDescriptorPool, aFence);
+  }
+//---------------------------------------------------------------------------//
+  GlobalDescriptorAllocation RenderCore_PlatformVk::AllocateAndWriteGlobalRTASDescriptor(VkAccelerationStructureKHR anAccelerationStructure, const char* aDebugName)
+  {
+    return myGlobalDescriptorSet->AllocateAndWriteRTASDescriptor(anAccelerationStructure, aDebugName);
   }
 //---------------------------------------------------------------------------//
   GlobalDescriptorAllocation RenderCore_PlatformVk::AllocateAndWriteGlobalResourceDescriptor(GlobalResourceType aType, const VkDescriptorImageInfo& anImageInfo, const char* aDebugName)

@@ -105,6 +105,7 @@ namespace Fancy
     VkDescriptorPool AllocateDescriptorPool();
     void FreeDescriptorPool(VkDescriptorPool aDescriptorPool, uint64 aFence);
 
+    GlobalDescriptorAllocation AllocateAndWriteGlobalRTASDescriptor(VkAccelerationStructureKHR anAccelerationStructure, const char* aDebugName = nullptr);
     GlobalDescriptorAllocation AllocateAndWriteGlobalResourceDescriptor(GlobalResourceType aType, const VkDescriptorImageInfo& anImageInfo, const char* aDebugName = nullptr);
     GlobalDescriptorAllocation AllocateAndWriteGlobalResourceDescriptor(GlobalResourceType aType, const VkDescriptorBufferInfo& aBufferInfo, const char* aDebugName = nullptr);
     void FreeGlobalResourceDescriptor(const GlobalDescriptorAllocation& aDescriptor);
@@ -135,15 +136,17 @@ namespace Fancy
 
     PFN_vkSetDebugUtilsObjectNameEXT VkSetDebugUtilsObjectNameEXT = nullptr;
 
-    QueueInfo myQueueInfos[(uint)CommandListType::SHADERSTAGE_NUM];
+    QueueInfo myQueueInfos[(uint)CommandListType::NUM];
 
     VkPhysicalDeviceFeatures myPhysicalDeviceFeatures;
     VkPhysicalDeviceProperties myPhysicalDeviceProperties;
 
   protected:
+    eastl::vector<eastl::string> mySupportedDeviceExtensions;
+
     VkPhysicalDeviceMemoryProperties myPhysicalDeviceMemoryProperties;
 
-    UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::SHADERSTAGE_NUM];
+    UniquePtr<CommandBufferAllocatorVk> myCommandBufferAllocators[(uint)CommandListType::NUM];
     UniquePtr<DescriptorPoolAllocatorVk> myDescriptorPoolAllocator;
     UniquePtr<PipelineLayoutVk> myPipelineLayout;
     UniquePtr<GlobalDescriptorSetVk> myGlobalDescriptorSet;

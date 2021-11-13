@@ -21,6 +21,7 @@ namespace Fancy
     GlobalDescriptorSetVk(const RenderPlatformProperties& someProperties);
     ~GlobalDescriptorSetVk();
 
+    GlobalDescriptorAllocation AllocateAndWriteRTASDescriptor(VkAccelerationStructureKHR anAccelerationStructure, const char* aDebugName = nullptr);
     GlobalDescriptorAllocation AllocateAndWriteDescriptor(GlobalResourceType aType, const VkDescriptorImageInfo& anImageInfo, const char* aDebugName = nullptr);
     GlobalDescriptorAllocation AllocateAndWriteDescriptor(GlobalResourceType aType, const VkDescriptorBufferInfo& aBufferInfo, const char* aDebugName = nullptr);
     void FreeDescriptorAfterFrameDone(const GlobalDescriptorAllocation& aDescriptor);
@@ -30,7 +31,12 @@ namespace Fancy
     VkDescriptorSet GetDescriptorSet() const { return myDescriptorSet; }
 
   private:
-    GlobalDescriptorAllocation AllocateAndWriteDescriptor(GlobalResourceType aType, const VkDescriptorImageInfo* anImageInfo, const VkDescriptorBufferInfo* aBufferInfo, const char* aDebugName = nullptr);
+    GlobalDescriptorAllocation AllocateAndWriteDescriptor(
+      GlobalResourceType aType, 
+      const VkDescriptorImageInfo* anImageInfo, 
+      const VkDescriptorBufferInfo* aBufferInfo,
+      VkAccelerationStructureKHR anAccelerationStructure,
+      const char* aDebugName = nullptr);
   
     // Dedicated descriptor pool that is used just for this global descriptor set
     VkDescriptorPool myDescriptorPool;

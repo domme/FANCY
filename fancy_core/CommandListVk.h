@@ -74,15 +74,13 @@ namespace Fancy
 
     VkCommandBuffer GetCommandBuffer() const { return myCommandBuffer; }
 
-    void TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, VkPipelineStageFlags aNewPipelineStageFlags, bool aToSharedReadState = false);
-    void TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, VkPipelineStageFlags aNewPipelineStageFlags, bool aToSharedReadState = false);
+    void TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, bool aToSharedReadState = false);
+    void TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, bool aToSharedReadState = false);
     void AddBarrier(const BufferMemoryBarrierData& aBarrier);
     void AddBarrier(const ImageMemoryBarrierData& aBarrier);
     
   protected:
     void PrepareForRecord(bool aResetCommandList);
-
-    const ShaderPipelineVk* GetShaderPipeline() const;
 
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout);
 

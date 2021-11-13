@@ -36,6 +36,8 @@ namespace Fancy
     {
       VkBuffer myBuffer;
       VkDeviceAddress myAddress;
+      VkAccelerationStructureKHR myAccelerationStructure;
+      VkDeviceAddress myAccelerationStructureAddress;
     };
 
     union {

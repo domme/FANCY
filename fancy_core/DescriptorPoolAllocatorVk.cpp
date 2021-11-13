@@ -27,11 +27,11 @@ namespace Fancy
  //---------------------------------------------------------------------------//
   VkDescriptorPool DescriptorPoolAllocatorVk::CreateDescriptorPool(uint aMaxNumDescriptors, uint aMaxNumSets)
   {
-    return CreateDescriptorPool(aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumSets);
+    return CreateDescriptorPool(aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumDescriptors, aMaxNumSets);
   }
 //---------------------------------------------------------------------------//
   VkDescriptorPool DescriptorPoolAllocatorVk::CreateDescriptorPool(
-    uint aNumImages, uint aNumBuffers, uint aNumUniformBuffers, uint aNumSamplers, uint aMaxNumSets)
+    uint aNumImages, uint aNumBuffers, uint aNumAccelerationStructures, uint aNumUniformBuffers, uint aNumSamplers, uint aMaxNumSets)
   {
     ASSERT(aNumImages > 0 && aNumBuffers > 0 && aNumUniformBuffers > 0 && aNumSamplers > 0, "Vk requires at least one descriptor per type when creating a descriptor pool");
 
@@ -47,6 +47,7 @@ namespace Fancy
       { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, aNumBuffers },
       { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, aNumUniformBuffers},
       { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, aNumBuffers },
+      { VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, aNumAccelerationStructures }
     };
 
     VkDescriptorPoolCreateInfo poolCreateInfo = {};

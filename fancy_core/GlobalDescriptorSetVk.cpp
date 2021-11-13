@@ -49,9 +49,12 @@ namespace Fancy
 
     const uint numSamplerDescriptors = myNumGlobalDescriptors[GLOBAL_RESOURCE_SAMPLER];
 
+    const uint numAccelerationStructures = myNumGlobalDescriptors[GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE];
+
     myDescriptorPool = DescriptorPoolAllocatorVk::CreateDescriptorPool(
       glm::max(1u, numImageDescriptors), 
-      glm::max(1u, numBufferDescriptors), 
+      glm::max(1u, numBufferDescriptors),
+      glm::max(1u, numAccelerationStructures),
       1u, 
       glm::max(1u, numSamplerDescriptors), 1);
     ASSERT(myDescriptorPool);
@@ -84,17 +87,20 @@ namespace Fancy
     eastl::vector<VkDescriptorImageInfo> nullImages(maxNumDescriptors, nullImageDescriptor);
     eastl::vector<VkDescriptorBufferInfo> nullBuffers(maxNumDescriptors, nullBufferDescriptor);
     eastl::vector<VkBufferView> nullBufferViews(maxNumDescriptors, VK_NULL_HANDLE);
+    eastl::vector<VkAccelerationStructureKHR> nullAsViews(maxNumDescriptors, VK_NULL_HANDLE);
 
     eastl::fixed_vector<VkWriteDescriptorSet, GLOBAL_RESOURCE_NUM> descSetWrites;
+    VkWriteDescriptorSetAccelerationStructureKHR asWriteInfo{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR };
+    asWriteInfo.accelerationStructureCount = myNumGlobalDescriptors[GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE];
+    asWriteInfo.pAccelerationStructures = nullAsViews.data();
     
     for (uint i = 0; i < GLOBAL_RESOURCE_NUM; ++i)
     {
       if (i == GLOBAL_RESOURCE_SAMPLER)
         continue; // Apparently there is no such thing as a null-descriptor for samplers. The debug-layer complains
 
-      VkWriteDescriptorSet writeInfo;
-      writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-      writeInfo.pNext = nullptr;
+      VkWriteDescriptorSet writeInfo{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+      writeInfo.pNext = i == GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE ? &asWriteInfo : nullptr;
       writeInfo.descriptorType = RenderCore_PlatformVk::GetDescriptorType(static_cast<GlobalResourceType>(i));
       writeInfo.descriptorCount = myNumGlobalDescriptors[i];
       writeInfo.dstSet = myDescriptorSet;
@@ -119,27 +125,33 @@ namespace Fancy
     vkDestroyDescriptorPool(platformVk->GetDevice(), myDescriptorPool, nullptr);
   }
 //---------------------------------------------------------------------------//
+  GlobalDescriptorAllocation GlobalDescriptorSetVk::AllocateAndWriteRTASDescriptor(VkAccelerationStructureKHR anAccelerationStructure, const char* aDebugName)
+  {
+    return AllocateAndWriteDescriptor(GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE, nullptr, nullptr, anAccelerationStructure, aDebugName);
+  }
+//---------------------------------------------------------------------------//
   GlobalDescriptorAllocation GlobalDescriptorSetVk::AllocateAndWriteDescriptor(GlobalResourceType aType, const VkDescriptorImageInfo& anImageInfo, const char* aDebugName)
   {
-    return AllocateAndWriteDescriptor(aType, &anImageInfo, nullptr, aDebugName);
+    ASSERT(aType != GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE);
+    return AllocateAndWriteDescriptor(aType, &anImageInfo, nullptr, nullptr, aDebugName);
   }
 //---------------------------------------------------------------------------//
   GlobalDescriptorAllocation GlobalDescriptorSetVk::AllocateAndWriteDescriptor(GlobalResourceType aType, const VkDescriptorBufferInfo& aBufferInfo, const char* aDebugName)
   {
-    return AllocateAndWriteDescriptor(aType, nullptr, &aBufferInfo, aDebugName);
+    ASSERT(aType != GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE);
+    return AllocateAndWriteDescriptor(aType, nullptr, &aBufferInfo, nullptr, aDebugName);
   }
 //---------------------------------------------------------------------------//
   GlobalDescriptorAllocation GlobalDescriptorSetVk::AllocateAndWriteDescriptor(GlobalResourceType aType,     
-    const VkDescriptorImageInfo* anImageInfo, const VkDescriptorBufferInfo* aBufferInfo, const char* aDebugName)
+    const VkDescriptorImageInfo* anImageInfo, const VkDescriptorBufferInfo* aBufferInfo, VkAccelerationStructureKHR anAccelerationStructure, const char* aDebugName)
   {
     ASSERT(myAllocators[aType].GetPageSize() != 0);
 
     uint64 offset;
     const PagedLinearAllocator::Page* page = myAllocators[aType].Allocate(1, 1, offset, aDebugName);
     ASSERT(page, "Failed allocating shader-visible descriptor. Consider increasing the max Global descriptor sizes");
-
-    VkWriteDescriptorSet writeInfo = {};
-    writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    
+    VkWriteDescriptorSet writeInfo = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
     writeInfo.descriptorType = RenderCore_PlatformVk::GetDescriptorType(aType);
     writeInfo.descriptorCount = 1;
     writeInfo.dstSet = myDescriptorSet;
@@ -148,6 +160,16 @@ namespace Fancy
     writeInfo.pImageInfo = anImageInfo;
     writeInfo.pBufferInfo = aBufferInfo;
     writeInfo.pTexelBufferView = nullptr;
+    
+    VkWriteDescriptorSetAccelerationStructureKHR asWriteInfo{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR };
+    if (anAccelerationStructure)
+    {
+      ASSERT(aType == GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE);
+      asWriteInfo.accelerationStructureCount = 1;
+      asWriteInfo.pAccelerationStructures = &anAccelerationStructure;
+      writeInfo.pNext = &asWriteInfo;
+    }
+    
     vkUpdateDescriptorSets(RenderCore::GetPlatformVk()->GetDevice(), 1, &writeInfo, 0, nullptr);
 
     GlobalDescriptorAllocation allocation;
@@ -188,8 +210,14 @@ namespace Fancy
 
     VkBufferView nullBufferView = VK_NULL_HANDLE;
 
+    VkAccelerationStructureKHR nullAs = VK_NULL_HANDLE;
+
     eastl::vector<VkWriteDescriptorSet> writeInfos;
     writeInfos.reserve(myDescriptorsToFree[freeListToProcess].size());
+
+    eastl::vector<VkWriteDescriptorSetAccelerationStructureKHR> asWriteInfos;
+    asWriteInfos.reserve(myDescriptorsToFree[freeListToProcess].size());
+
 #endif
 
     for (const GlobalDescriptorAllocation& descriptorToFree : myDescriptorsToFree[freeListToProcess])
@@ -214,6 +242,16 @@ namespace Fancy
         writeInfo.pBufferInfo = &nullBufferDescriptor;
         writeInfo.pImageInfo = &nullImageDescriptor;
         writeInfo.pTexelBufferView = &nullBufferView;
+        
+        if (resourceType == GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE)
+        {
+          VkWriteDescriptorSetAccelerationStructureKHR& asWriteInfo = asWriteInfos.push_back();
+          asWriteInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+          asWriteInfo.pNext = nullptr;
+          asWriteInfo.accelerationStructureCount = 1;
+          asWriteInfo.pAccelerationStructures = &nullAs;
+          writeInfo.pNext = &asWriteInfo;
+        }
       }
 #endif
     }
