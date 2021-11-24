@@ -20,7 +20,7 @@
 #include "TextureSamplerDX12.h"
 #include "CommandLine.h"
 #include "RtAccelerationStructureDX12.h"
-#include "RaytracingPipelineStateDX12.h"
+#include "RtPipelineStateDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -966,7 +966,7 @@ RtAccelerationStructure* RenderCore_PlatformDX12::CreateRtTopLevelAccelerationSt
 //---------------------------------------------------------------------------//
 RtPipelineState* RenderCore_PlatformDX12::CreateRtPipelineState(const RtPipelineStateProperties& someProps)
 {
-  return new RaytracingPipelineStateDX12(someProps);
+  return new RtPipelineStateDX12(someProps);
 }
 //---------------------------------------------------------------------------//
 GpuQueryHeap* RenderCore_PlatformDX12::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

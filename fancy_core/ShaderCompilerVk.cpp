@@ -79,7 +79,7 @@ namespace Fancy
     {
       true,
       true,
-      GetHLSLprofileString((ShaderStage) aDesc.myShaderStage)
+      GetHLSLprofileString((ShaderStage) aDesc.myShaderStage).c_str()
     };
 
     eastl::vector<uint8> spvBinaryData;

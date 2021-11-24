@@ -1,5 +1,5 @@
 #include "fancy_core_precompile.h"
-#include "RaytracingPipelineStateDX12.h"
+#include "RtPipelineStateDX12.h"
 
 #include "RenderCore_PlatformDX12.h"
 #include "ShaderDX12.h"
@@ -146,13 +146,13 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  RaytracingPipelineStateDX12::RaytracingPipelineStateDX12(const RtPipelineStateProperties& someProps)
+  RtPipelineStateDX12::RtPipelineStateDX12(const RtPipelineStateProperties& someProps)
     : RtPipelineState(someProps)
   {
     Recompile();
   }
 //---------------------------------------------------------------------------//
-  bool RaytracingPipelineStateDX12::Recompile()
+  bool RtPipelineStateDX12::Recompile()
   {
     ASSERT(!myProperties.myRaygenShaders.empty(), "Raygen shader is required to build an RT PSO");
 
@@ -201,7 +201,7 @@ namespace Fancy
     return false;
   }
 //---------------------------------------------------------------------------//
-  void RaytracingPipelineStateDX12::GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RtPipelineStateProperties::HitGroup& aShaderEntry, RtShaderIdentifier& someDataOut)
+  void RtPipelineStateDX12::GetShaderIdentifierDataInternal(uint /* aShaderIndexInRtPso */, const RtPipelineStateProperties::HitGroup& aShaderEntry, RtShaderIdentifier& someDataOut)
   {
     void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aShaderEntry.myName.c_str());
     ASSERT(shaderIdentifier);
@@ -210,7 +210,7 @@ namespace Fancy
     memcpy(someDataOut.myData.data(), shaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
   }
 //---------------------------------------------------------------------------//
-  void RaytracingPipelineStateDX12::GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RtPipelineStateProperties::ShaderEntry& aShaderEntry, RtShaderIdentifier& someDataOut)
+  void RtPipelineStateDX12::GetShaderIdentifierDataInternal(uint /* aShaderIndexInRtPso */, const RtPipelineStateProperties::ShaderEntry& aShaderEntry, RtShaderIdentifier& someDataOut)
   {
     void* shaderIdentifier = myRtPsoProperties->GetShaderIdentifier(aShaderEntry.myUniqueMainFunctionName.c_str());
     ASSERT(shaderIdentifier);

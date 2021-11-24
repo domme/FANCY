@@ -17,6 +17,7 @@
 #include "GpuResourceViewDataVk.h"
 #include "PipelineLayoutVk.h"
 #include "RtAccelerationStructureVk.h"
+#include "RtPipelineStateVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -690,16 +691,6 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  VkAccelerationStructureTypeKHR RenderCore_PlatformVk::GetRaytracingBVHType(RtAccelerationStructureType aType)
-  {
-    switch(aType)
-    {
-    case RtAccelerationStructureType::BOTTOM_LEVEL: return VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-    case RtAccelerationStructureType::TOP_LEVEL: return VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
-    default: ASSERT(false); return VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-    }
-  }
-//---------------------------------------------------------------------------//
   VkGeometryTypeKHR RenderCore_PlatformVk::GetRaytracingBVHGeometryType(RtAccelerationStructureGeometryType aType)
   {
     switch(aType)
@@ -1029,6 +1020,18 @@ namespace Fancy
     myCaps.myCbufferPlacementAlignment = (uint) myPhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
     myCaps.myMaxTextureAnisotropy = (uint) myPhysicalDeviceProperties.limits.maxSamplerAnisotropy;
 
+    if (myCaps.mySupportsRaytracing)
+    {
+      VkPhysicalDeviceRayTracingPipelinePropertiesKHR rtDeviceProperties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
+      VkPhysicalDeviceProperties2 deviceProperties2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, &rtDeviceProperties };
+      vkGetPhysicalDeviceProperties2(myPhysicalDevice, &deviceProperties2);
+
+      myCaps.myRaytracingShaderIdentifierSizeBytes = rtDeviceProperties.shaderGroupHandleSize;
+      myCaps.myRaytracingShaderRecordAlignment = rtDeviceProperties.shaderGroupHandleAlignment;
+      myCaps.myRaytracingShaderTableAddressAlignment = rtDeviceProperties.shaderGroupBaseAlignment;
+      myCaps.myRaytracingMaxShaderRecordSize = rtDeviceProperties.maxShaderGroupStride;
+    }
+
     constexpr float64 nsToMs = 1e-6;
     myTimestampTicksToMsFactor = myPhysicalDeviceProperties.limits.timestampPeriod * nsToMs;
 
@@ -1163,7 +1166,7 @@ namespace Fancy
   //---------------------------------------------------------------------------//
   RtPipelineState* RenderCore_PlatformVk::CreateRtPipelineState(const RtPipelineStateProperties& someProps)
   {
-    return new RaytracingPipelineStateVk(someProps);
+    return new RtPipelineStateVk(someProps);
   }
 //---------------------------------------------------------------------------//
   GpuQueryHeap* RenderCore_PlatformVk::CreateQueryHeap(GpuQueryType aType, uint aNumQueries)

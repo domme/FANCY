@@ -61,8 +61,8 @@ namespace Fancy
 
     // Shader state
     uint numShaderStages = 0;
-    VkPipelineShaderStageCreateInfo pipeShaderCreateInfos[(uint)ShaderStage::NUM_NO_COMPUTE] = {};
-    for (uint i = 0u; i < (uint)ShaderStage::NUM_NO_COMPUTE; ++i)
+    VkPipelineShaderStageCreateInfo pipeShaderCreateInfos[SHADERSTAGE_NUM_RASTERIZATION] = {};
+    for (uint i = 0u; i < SHADERSTAGE_NUM_RASTERIZATION; ++i)
     {
       const Shader* shader = aState.myShaderPipeline->GetShader(i);
       if (shader != nullptr)

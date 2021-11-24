@@ -147,8 +147,9 @@
     <ClInclude Include="DxcShaderCompiler.h" />
     <ClInclude Include="GlobalDescriptorAllocation.h" />
     <ClInclude Include="GlobalDescriptorSetVk.h" />
-    <ClInclude Include="RaytracingPipelineStateDX12.h" />
+    <ClInclude Include="RtPipelineStateDX12.h" />
     <ClInclude Include="RtPipelineState.h" />
+    <ClInclude Include="RtPipelineStateVk.h" />
     <ClInclude Include="RtShaderIdentifier.h" />
     <ClInclude Include="RtShaderBindingTable.h" />
     <ClInclude Include="RootSignatureDX12.h" />
@@ -273,8 +274,9 @@
     <ClCompile Include="DxcShaderCompiler.cpp" />
     <ClCompile Include="EASTLVsnprintf.cpp" />
     <ClCompile Include="GlobalDescriptorSetVk.cpp" />
-    <ClCompile Include="RaytracingPipelineStateDX12.cpp" />
+    <ClCompile Include="RtPipelineStateDX12.cpp" />
     <ClCompile Include="RtPipelineState.cpp" />
+    <ClCompile Include="RtPipelineStateVk.cpp" />
     <ClCompile Include="RtShaderBindingTable.cpp" />
     <ClCompile Include="RootSignatureDX12.cpp" />
     <ClCompile Include="ShaderVisibleDescriptorHeapDX12.cpp" />

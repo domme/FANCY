@@ -22,8 +22,7 @@ namespace Fancy
     void SetMaxRecursionDepth(uint aMaxDepth) { myMaxRecursionDepth = aMaxDepth; }
     void AddPipelineFlag(RtPipelineFlags aFlag) { myPipelineFlags = RtPipelineFlags(myPipelineFlags | aFlag); }
     uint64 GetHash() const;
-
-
+    
     struct ShaderEntry
     {
       eastl::wstring myUniqueMainFunctionName;

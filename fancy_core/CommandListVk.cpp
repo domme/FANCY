@@ -14,6 +14,7 @@
 #include "GpuQueryHeapVk.h"
 #include "TimeManager.h"
 #include "PipelineLayoutVk.h"
+#include "RtPipelineStateVk.h"
 
 #if FANCY_ENABLE_VK
 
@@ -137,7 +138,7 @@ namespace Fancy
       aTextureView->GetTexture()->GetProperties().myFormat);
 
     const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    TrackSubresourceTransition(aTextureView->GetResource(), aTextureView->GetSubresourceRange(), VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackSubresourceTransition(aTextureView->GetResource(), aTextureView->GetSubresourceRange(), VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout);
     FlushBarriers();
 
 #if FANCY_HEAVY_DEBUG
@@ -186,7 +187,7 @@ namespace Fancy
     }
     
     const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    TrackSubresourceTransition(aTextureView->GetResource(), subresources, VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackSubresourceTransition(aTextureView->GetResource(), subresources, VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout);
     FlushBarriers();
 
 #if FANCY_HEAVY_DEBUG
@@ -245,8 +246,8 @@ namespace Fancy
       const VkImageLayout srcImageLayout = RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, srcTexture, subresourceRange);
       const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
-      TrackResourceTransition(srcTexture, VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
-      TrackResourceTransition(dstTexture, VK_ACCESS_TRANSFER_WRITE_BIT, dstImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+      TrackResourceTransition(srcTexture, VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout);
+      TrackResourceTransition(dstTexture, VK_ACCESS_TRANSFER_WRITE_BIT, dstImageLayout);
       FlushBarriers();
 
       eastl::fixed_vector<VkImageCopy, 16> copyRegions;
@@ -300,8 +301,8 @@ namespace Fancy
     ValidateBufferCopy(aDstBuffer->GetProperties(), aDstOffset, aSrcBuffer->GetProperties(), aSrcOffset, aSize);
 #endif
 
-    TrackResourceTransition(aSrcBuffer, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
-    TrackResourceTransition(aDstBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackResourceTransition(aSrcBuffer, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
+    TrackResourceTransition(aDstBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
 
     FlushBarriers();
 
@@ -344,8 +345,8 @@ namespace Fancy
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
 
     const VkImageLayout srcImageLayout = RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aSrcTexture, SubresourceRange(aSrcSubresource));
-    TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
-    TrackResourceTransition(aDstBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout);
+    TrackResourceTransition(aDstBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
     FlushBarriers();
     
     vkCmdCopyImageToBuffer(myCommandBuffer, srcImage, srcImageLayout, dstBuffer, 1u, &copyRegion);   
@@ -384,8 +385,8 @@ namespace Fancy
     const VkImageLayout srcImageLayout = RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aSrcTexture, SubresourceRange(aSrcSubresource));
     const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
-    TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
-    TrackSubresourceTransition(aDstTexture, SubresourceRange(aDstSubresource), VK_ACCESS_TRANSFER_WRITE_BIT, dstImageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout);
+    TrackSubresourceTransition(aDstTexture, SubresourceRange(aDstSubresource), VK_ACCESS_TRANSFER_WRITE_BIT, dstImageLayout);
     FlushBarriers();
 
     vkCmdCopyImage(myCommandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, 1u, &copyRegion);
@@ -420,8 +421,8 @@ namespace Fancy
     VkBuffer srcBuffer = static_cast<const GpuBufferVk*>(aSrcBuffer)->GetData()->myBufferData.myBuffer;
 
     const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;  // Texture is expected in the WRITE_COPY_DST state here
-    TrackResourceTransition(aSrcBuffer, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_TRANSFER_BIT);
-    TrackSubresourceTransition(aDstTexture, SubresourceRange(aDstSubresource), VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout, VK_PIPELINE_STAGE_TRANSFER_BIT);
+    TrackResourceTransition(aSrcBuffer, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
+    TrackSubresourceTransition(aDstTexture, SubresourceRange(aDstSubresource), VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout);
     FlushBarriers();
     
     vkCmdCopyBufferToImage(myCommandBuffer, srcBuffer, dstImage, imageLayout, 1u, &copyRegion);
@@ -521,7 +522,7 @@ namespace Fancy
     eastl::fixed_vector<VkBuffer, 4> vkBuffers;
     for (uint i = 0u; i < aNumBuffers; ++i)
     {
-      TrackResourceTransition(someBuffers[i], VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
+      TrackResourceTransition(someBuffers[i], VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
       const GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(someBuffers[i])->GetData();
       vkBuffers.push_back(resourceDataVk->myBufferData.myBuffer);
     }
@@ -534,7 +535,7 @@ namespace Fancy
     ASSERT(anIndexSize == 2u || anIndexSize == 4u);
     const VkIndexType indexType = anIndexSize == 2u ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32;
 
-    TrackResourceTransition(aBuffer, VK_ACCESS_INDEX_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT);
+    TrackResourceTransition(aBuffer, VK_ACCESS_INDEX_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
 
     const GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(aBuffer)->GetData();
     vkCmdBindIndexBuffer(myCommandBuffer, resourceDataVk->myBufferData.myBuffer, anOffset, indexType);
@@ -836,6 +837,61 @@ namespace Fancy
     const glm::int3& numGroupThreads = shader->GetProperties().myNumGroupThreads;
     const glm::int3 numGroups = glm::max(glm::int3(1), aNumThreads / numGroupThreads);
     vkCmdDispatch(myCommandBuffer, (uint)numGroups.x, (uint)numGroups.y, (uint)numGroups.z);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::DispatchRays(const DispatchRaysDesc& aDesc)
+  {
+    ASSERT(aDesc.myRayGenShaderTableRange.mySbtBuffer != nullptr);
+
+    ApplyRaytracingPipelineState();
+    ASSERT(myRaytracingPipelineState != nullptr);
+
+    // TODO: Check in which state these resources need to be on Vulkan
+    // TrackResourceTransition(aDesc.myRayGenShaderTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    // TrackResourceTransition(aDesc.myCallableShaderTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    // TrackResourceTransition(aDesc.myMissShaderTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    // TrackResourceTransition(aDesc.myHitGroupTableRange.mySbtBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+    ApplyResourceBindings();
+    FlushBarriers();
+
+    VkStridedDeviceAddressRegionKHR raygenSBT;
+    raygenSBT.deviceAddress = aDesc.myRayGenShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myRayGenShaderTableRange.myOffset;
+    raygenSBT.size = aDesc.myRayGenShaderTableRange.mySize;
+    raygenSBT.stride = aDesc.myRayGenShaderTableRange.myStride;
+
+
+    VkStridedDeviceAddressRegionKHR missSBT;
+    VkStridedDeviceAddressRegionKHR* pMissSBT = nullptr;
+    if (aDesc.myMissShaderTableRange.mySbtBuffer != nullptr)
+    {
+      pMissSBT = &missSBT;
+      missSBT.deviceAddress = aDesc.myMissShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myMissShaderTableRange.myOffset;
+      missSBT.size = aDesc.myMissShaderTableRange.mySize;
+      missSBT.stride = aDesc.myMissShaderTableRange.myStride;
+    }
+
+    VkStridedDeviceAddressRegionKHR hitSBT;
+    VkStridedDeviceAddressRegionKHR* pHitSBT = nullptr;
+    if (aDesc.myHitGroupTableRange.mySbtBuffer != nullptr)
+    {
+      pHitSBT = &hitSBT;
+      hitSBT.deviceAddress = aDesc.myHitGroupTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myHitGroupTableRange.myOffset;
+      hitSBT.size = aDesc.myHitGroupTableRange.mySize;
+      hitSBT.stride = aDesc.myHitGroupTableRange.myStride;
+    }
+
+    VkStridedDeviceAddressRegionKHR callableSBT;
+    VkStridedDeviceAddressRegionKHR* pCallableSBT = nullptr;
+    if (aDesc.myCallableShaderTableRange.mySbtBuffer != nullptr)
+    {
+      pCallableSBT = &callableSBT;
+      callableSBT.deviceAddress = aDesc.myCallableShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myCallableShaderTableRange.myOffset;
+      callableSBT.size = aDesc.myCallableShaderTableRange.mySize;
+      callableSBT.stride = aDesc.myCallableShaderTableRange.myStride;
+    }
+    
+    VkExt::vkCmdTraceRaysKHR(myCommandBuffer, &raygenSBT, pMissSBT, pHitSBT, pCallableSBT, aDesc.myWidth, aDesc.myHeight, aDesc.myDepth);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, bool aToSharedReadState)
@@ -1210,7 +1266,7 @@ namespace Fancy
       ASSERT(renderTarget != nullptr);
 
       TrackSubresourceTransition(renderTarget->GetResource(), renderTarget->GetSubresourceRange(), 
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     }
 
     const bool hasDepthStencilTarget = myDepthStencilTarget != nullptr;
@@ -1223,8 +1279,7 @@ namespace Fancy
         layout = RenderCore_PlatformVk::ResolveImageLayout(layout, myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange());
 
         TrackSubresourceTransition(myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange(),
-          dsvProps.myIsDepthReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, 
-          layout, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+          dsvProps.myIsDepthReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, layout);
       }
       else
       {
@@ -1236,8 +1291,7 @@ namespace Fancy
         layout = RenderCore_PlatformVk::ResolveImageLayout(layout, myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange());
 
         TrackSubresourceTransition(myDepthStencilTarget->GetResource(), range,
-          dsvProps.myIsDepthReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-          layout, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+          dsvProps.myIsDepthReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, layout);
 
         range.myFirstPlane = 1u;
 
@@ -1245,8 +1299,7 @@ namespace Fancy
         layout = RenderCore_PlatformVk::ResolveImageLayout(layout, myDepthStencilTarget->GetResource(), myDepthStencilTarget->GetSubresourceRange());
 
         TrackSubresourceTransition(myDepthStencilTarget->GetResource(), range,
-          dsvProps.myIsStencilReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-          layout, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
+          dsvProps.myIsStencilReadOnly ? VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT : VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT, layout);
       }
     }
 
@@ -1292,6 +1345,17 @@ namespace Fancy
     VkPipeline pipeline = RenderCore::GetPlatformVk()->GetPipelineStateCache().GetCreateComputePipeline(myComputePipelineState);
 
     vkCmdBindPipeline(myCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::ApplyRaytracingPipelineState()
+  {
+    if (!myRaytracingPipelineStateDirty)
+      return;
+
+    myRaytracingPipelineStateDirty = false;
+
+    RtPipelineStateVk* rtPsoVk = static_cast<RtPipelineStateVk*>(myRaytracingPipelineState);
+    vkCmdBindPipeline(myCommandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, rtPsoVk->GetPipeline());
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyResourceBindings()

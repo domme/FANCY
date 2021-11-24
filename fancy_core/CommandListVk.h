@@ -71,6 +71,7 @@ namespace Fancy
 
     void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     void Dispatch(const glm::int3& aNumThreads) override;
+    void DispatchRays(const DispatchRaysDesc& aDesc) override;
 
     VkCommandBuffer GetCommandBuffer() const { return myCommandBuffer; }
 
@@ -88,6 +89,7 @@ namespace Fancy
     void ApplyRenderTargets();
     void ApplyGraphicsPipelineState();
     void ApplyComputePipelineState();
+    void ApplyRaytracingPipelineState();
     void ApplyResourceBindings();
 
     VkDescriptorSet CreateTempDescriptorSet(VkDescriptorSetLayout aLayout);

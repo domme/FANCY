@@ -7,10 +7,10 @@
 
 namespace Fancy
 {
-  class RaytracingPipelineStateDX12 final : public RtPipelineState
+  class RtPipelineStateDX12 final : public RtPipelineState
   {
   public:
-    RaytracingPipelineStateDX12(const RtPipelineStateProperties& someProps);
+    RtPipelineStateDX12(const RtPipelineStateProperties& someProps);
 
     bool Recompile() override;
 

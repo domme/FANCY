@@ -7,7 +7,7 @@
 namespace Fancy
 {
   /// <summary>
-  /// Represents the one single pipeline layout used by Fancy that is shared accross all shaders
+  /// Represents the one single pipeline layout used by Fancy that is shared across all shaders
   /// </summary>
 
   struct PipelineLayoutVk

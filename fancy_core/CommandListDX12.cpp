@@ -16,7 +16,7 @@
 #include "TimeManager.h"
 #include "GpuQueryHeapDX12.h"
 #include "DebugUtilsDX12.h"
-#include "RaytracingPipelineStateDX12.h"
+#include "RtPipelineStateDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -1152,7 +1152,7 @@ namespace Fancy {
 
     myRaytracingPipelineStateDirty = false;
 
-    RaytracingPipelineStateDX12* rtPsoDx12 = static_cast<RaytracingPipelineStateDX12*>(myRaytracingPipelineState);
+    RtPipelineStateDX12* rtPsoDx12 = static_cast<RtPipelineStateDX12*>(myRaytracingPipelineState);
     myCommandList->SetPipelineState1(rtPsoDx12->myStateObject.Get());
   }
 //---------------------------------------------------------------------------//
@@ -1194,13 +1194,6 @@ namespace Fancy {
     desc.RayGenerationShaderRecord.StartAddress = aDesc.myRayGenShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myRayGenShaderTableRange.myOffset;
     desc.RayGenerationShaderRecord.SizeInBytes = aDesc.myRayGenShaderTableRange.mySize;
 
-    if (aDesc.myCallableShaderTableRange.mySbtBuffer != nullptr)
-    {
-      desc.CallableShaderTable.StartAddress = aDesc.myCallableShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myCallableShaderTableRange.myOffset;
-      desc.CallableShaderTable.SizeInBytes = aDesc.myCallableShaderTableRange.mySize;
-      desc.CallableShaderTable.StrideInBytes = aDesc.myCallableShaderTableRange.myStride;
-    }
-
     if (aDesc.myMissShaderTableRange.mySbtBuffer != nullptr)
     {
       desc.MissShaderTable.StartAddress = aDesc.myMissShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myMissShaderTableRange.myOffset;
@@ -1213,6 +1206,13 @@ namespace Fancy {
       desc.HitGroupTable.StartAddress = aDesc.myHitGroupTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myHitGroupTableRange.myOffset;
       desc.HitGroupTable.SizeInBytes = aDesc.myHitGroupTableRange.mySize;
       desc.HitGroupTable.StrideInBytes = aDesc.myHitGroupTableRange.myStride;
+    }
+
+    if (aDesc.myCallableShaderTableRange.mySbtBuffer != nullptr)
+    {
+      desc.CallableShaderTable.StartAddress = aDesc.myCallableShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myCallableShaderTableRange.myOffset;
+      desc.CallableShaderTable.SizeInBytes = aDesc.myCallableShaderTableRange.mySize;
+      desc.CallableShaderTable.StrideInBytes = aDesc.myCallableShaderTableRange.myStride;
     }
 
     myCommandList->DispatchRays(&desc);

@@ -428,7 +428,7 @@
     <ClInclude Include="RtAccelerationStructureDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
-    <ClInclude Include="RaytracingPipelineStateDX12.h">
+    <ClInclude Include="RtPipelineStateDX12.h">
       <Filter>Rendering\DX12</Filter>
     </ClInclude>
     <ClInclude Include="RootSignatureDX12.h">
@@ -436,6 +436,9 @@
     </ClInclude>
     <ClInclude Include="RtShaderIdentifier.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RtPipelineStateVk.h">
+      <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -704,11 +707,14 @@
     <ClCompile Include="RtAccelerationStructureDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
-    <ClCompile Include="RaytracingPipelineStateDX12.cpp">
+    <ClCompile Include="RtPipelineStateDX12.cpp">
       <Filter>Rendering\DX12</Filter>
     </ClCompile>
     <ClCompile Include="RootSignatureDX12.cpp">
       <Filter>Rendering\DX12</Filter>
+    </ClCompile>
+    <ClCompile Include="RtPipelineStateVk.cpp">
+      <Filter>Rendering\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

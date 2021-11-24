@@ -26,7 +26,7 @@ namespace Fancy
     uint64 ExecuteAndResetCommandListInternal(CommandList* aCommandList, SyncMode aSyncMode) override;
     void ResolveResourceHazardData(CommandList* aCommandList);
     
-    eastl::fixed_vector<eastl::pair<VkSemaphore, uint64>, (uint)CommandListType::SHADERSTAGE_NUM, false> myPendingStallSemaphores;  // Semaphores from other queues that the next submit needs to wait on
+    eastl::fixed_vector<eastl::pair<VkSemaphore, uint64>, (uint)CommandListType::NUM, false> myPendingStallSemaphores;  // Semaphores from other queues that the next submit needs to wait on
     VkSemaphore myTimelineSemaphore;
     VkQueue myQueue;
   };

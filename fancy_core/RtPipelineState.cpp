@@ -153,12 +153,24 @@ namespace Fancy
     return false;
   }
 
+  // These functions below assume/dictate the following SBT-layout:
+  /*
+   * /-----------\
+			| raygen    |
+			|-----------|
+			| miss      |
+			|-----------|
+			| hit       |
+			\-----------/
+   */
   RtShaderIdentifier RtPipelineState::GetRayGenShaderIdentifier(uint anIndex)
   {
     ASSERT((uint)myProperties.myRaygenShaders.size() > anIndex);
     RtShaderIdentifier record;
     record.myType = RtShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_RAYGEN;
-    GetShaderIdentifierDataInternal(anIndex, myProperties.myRaygenShaders[anIndex], record);
+
+    uint shaderIndexInRtPso = anIndex;
+    GetShaderIdentifierDataInternal(shaderIndexInRtPso, myProperties.myRaygenShaders[anIndex], record);
     return record;
   }
 
@@ -167,7 +179,9 @@ namespace Fancy
     ASSERT((uint)myProperties.myMissShaders.size() > anIndex);
     RtShaderIdentifier record;
     record.myType = RtShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_MISS;
-    GetShaderIdentifierDataInternal(anIndex, myProperties.myMissShaders[anIndex], record);
+
+    uint shaderIndexInRtPso = (uint)myProperties.myRaygenShaders.size() + anIndex;
+    GetShaderIdentifierDataInternal(shaderIndexInRtPso, myProperties.myMissShaders[anIndex], record);
     return record;
   }
 
@@ -176,7 +190,9 @@ namespace Fancy
     ASSERT((uint)myProperties.myHitGroups.size() > anIndex);
     RtShaderIdentifier record;
     record.myType = RtShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_HIT;
-    GetShaderIdentifierDataInternal(anIndex, myProperties.myHitGroups[anIndex], record);
+
+    uint shaderIndexInRtPso = (uint)myProperties.myRaygenShaders.size() + (uint)myProperties.myMissShaders.size() + anIndex;
+    GetShaderIdentifierDataInternal(shaderIndexInRtPso, myProperties.myHitGroups[anIndex], record);
     return record;
   }
 }
