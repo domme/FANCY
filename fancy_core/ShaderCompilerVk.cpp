@@ -5,8 +5,7 @@
 #include "ShaderVk.h"
 #include "RenderCore.h"
 #include "RenderCore_PlatformVk.h"
-
-#include "spirv_reflect/spirv_reflect.h"
+#include "spirv_reflect.h"
 
 #if FANCY_ENABLE_VK
 
@@ -115,17 +114,17 @@ namespace Fancy
       
       for (uint i = 0u; i < reflectModule.input_variable_count; ++i)
       {
-        const SpvReflectInterfaceVariable& reflectedInput = reflectModule.input_variables[i];
+        const SpvReflectInterfaceVariable* reflectedInput = reflectModule.input_variables[i];
 
-        const DataFormat format = Priv_ShaderCompilerVk::locResolveFormat(reflectedInput.format);
+        const DataFormat format = Priv_ShaderCompilerVk::locResolveFormat(reflectedInput->format);
         ASSERT(format != DataFormat::NONE);
 
         VertexAttributeSemantic semantic;
         uint semanticIndex;
-        Priv_ShaderCompilerVk::locResolveSemantic(reflectedInput.semantic, semantic, semanticIndex);
+        Priv_ShaderCompilerVk::locResolveSemantic(reflectedInput->semantic, semantic, semanticIndex);
         
         vertexAttributes.push_back({ semantic, semanticIndex, format});
-        vertexAttributeLocations.push_back(reflectedInput.location);
+        vertexAttributeLocations.push_back(reflectedInput->location);
       }
 
       // Create a default vertex input layout that assumes that all vertex attributes come from one interleaved vertex buffer.

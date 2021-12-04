@@ -28,14 +28,14 @@
     <Filter Include="Rendering\Vulkan">
       <UniqueIdentifier>{d7d63964-440b-4f1b-9748-9dbd652194fd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Rendering\Vulkan\spirv_reflect">
-      <UniqueIdentifier>{a058e921-3fc2-4bb9-a31a-f9a3a63fac13}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Object">
       <UniqueIdentifier>{177a2a68-c25d-48be-8570-46152ebfc05f}</UniqueIdentifier>
     </Filter>
     <Filter Include="IO\stb">
       <UniqueIdentifier>{a7c9159b-9ee7-483b-a025-357f82811e0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Vulkan\SPIRV-Reflect">
+      <UniqueIdentifier>{758f67c2-0bff-4940-9620-18abfb0b004a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -275,12 +275,6 @@
     <ClInclude Include="GpuResourceDataVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="spirv_reflect\spirv_reflect.h">
-      <Filter>Rendering\Vulkan\spirv_reflect</Filter>
-    </ClInclude>
-    <ClInclude Include="spirv_reflect\spirv.h">
-      <Filter>Rendering\Vulkan\spirv_reflect</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderDesc.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -440,6 +434,9 @@
     <ClInclude Include="RtPipelineStateVk.h">
       <Filter>Rendering\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="..\external\SPIRV-Reflect\spirv_reflect.h">
+      <Filter>Rendering\Vulkan\SPIRV-Reflect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AdapterDX12.cpp">
@@ -571,9 +568,6 @@
     </ClCompile>
     <ClCompile Include="TextureVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="spirv_reflect\spirv_reflect.c">
-      <Filter>Rendering\Vulkan\spirv_reflect</Filter>
     </ClCompile>
     <ClCompile Include="Shader.cpp">
       <Filter>Rendering</Filter>
@@ -715,6 +709,9 @@
     </ClCompile>
     <ClCompile Include="RtPipelineStateVk.cpp">
       <Filter>Rendering\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\SPIRV-Reflect\spirv_reflect.c">
+      <Filter>Rendering\Vulkan\SPIRV-Reflect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

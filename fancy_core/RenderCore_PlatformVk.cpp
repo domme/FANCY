@@ -701,7 +701,11 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
-  RenderCore_PlatformVk::RenderCore_PlatformVk(const RenderPlatformProperties& someProperties) : RenderCore_Platform(RenderPlatformType::VULKAN, someProperties)
+  RenderCore_PlatformVk::RenderCore_PlatformVk(const RenderPlatformProperties& someProperties)
+    : RenderCore_Platform(RenderPlatformType::VULKAN, someProperties)
+    , myTimestampTicksToMsFactor(0.0)
+    , myVulkanMajorVersion(1)
+    , myVulkanMinorVersion(2)
   {
     LOG("Initializing Vulkan device...");
     locPrintAvailableInstanceExtensions();
@@ -713,7 +717,7 @@ namespace Fancy
       appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
       appInfo.pApplicationName = "Fancy";
       appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-      appInfo.apiVersion = VK_API_VERSION_1_2;
+      appInfo.apiVersion = VK_MAKE_VERSION(myVulkanMajorVersion, myVulkanMinorVersion, 0);
 
       const bool enableDebugLayer = CommandLine::GetInstance()->HasArgument("DebugLayer");
       const bool gpuValidation = CommandLine::GetInstance()->HasArgument("GPUValidation");

@@ -113,6 +113,12 @@ namespace Fancy
     uint FindMemoryTypeIndex(const VkMemoryRequirements& someMemoryRequirements, VkMemoryPropertyFlags someMemPropertyFlags);
     const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const { return myPhysicalDeviceMemoryProperties; }
 
+    void GetVulkanVersion(uint& aMajorVersionOut, uint& aMinorVersionOut) const
+    {
+      aMajorVersionOut = myVulkanMajorVersion;
+      aMinorVersionOut = myVulkanMinorVersion;
+    }
+
     struct QueueInfo
     {
       uint myQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -155,7 +161,9 @@ namespace Fancy
     RenderPassCacheVk myRenderPassCache;
     PipelineStateCacheVk myPipelineStateCache;
 
-    float64 myTimestampTicksToMsFactor = 0.0f;
+    float64 myTimestampTicksToMsFactor;
+    uint myVulkanMajorVersion;
+    uint myVulkanMinorVersion;
   };
 }
 

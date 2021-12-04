@@ -117,6 +117,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\external\SPIRV-Reflect\spirv_reflect.h" />
     <ClInclude Include="..\resources\Shader\GL4\FXAA\Fxaa3_11.h" />
     <ClInclude Include="AdapterDX12.h" />
     <ClInclude Include="AlignedStorage.h" />
@@ -193,8 +194,6 @@
     <ClInclude Include="RenderCore_PlatformVk.h" />
     <ClInclude Include="RenderEnums.h" />
     <ClInclude Include="RenderOutputVk.h" />
-    <ClInclude Include="spirv_reflect\spirv.h" />
-    <ClInclude Include="spirv_reflect\spirv_reflect.h" />
     <ClInclude Include="StaticString.h" />
     <ClInclude Include="stb\stb_image.h" />
     <ClInclude Include="TempResourcePool.h" />
@@ -254,6 +253,11 @@
     <ClInclude Include="WindowsIncludes.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\SPIRV-Reflect\spirv_reflect.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="AdapterDX12.cpp" />
     <ClCompile Include="Annotations.cpp" />
     <ClCompile Include="BinaryCache.cpp" />
@@ -322,10 +326,6 @@
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="RenderCore_PlatformVk.cpp" />
     <ClCompile Include="RenderOutputVk.cpp" />
-    <ClCompile Include="spirv_reflect\spirv_reflect.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="TempResourcePool.cpp" />
     <ClCompile Include="Input.cpp" />

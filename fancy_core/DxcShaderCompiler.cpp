@@ -7,6 +7,8 @@
 #include <dxc/dxcapi.h>
 #include <atomic>
 
+#include "RenderCore_PlatformVk.h"
+
 namespace Fancy 
 {
   namespace Priv_DxcShaderCompiler
@@ -95,6 +97,13 @@ namespace Fancy
 
       std::atomic<int> myRefCount = 1;
     };
+
+    StaticString<32> GetVkTargetEnvArg()
+    {
+      uint majorVersion, minorVersion;
+      RenderCore::GetPlatformVk()->GetVulkanVersion(majorVersion, minorVersion);
+      return StaticString<32>("-fspv-target-env=vulkan%d.%d", majorVersion, minorVersion);
+    }
 //---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
@@ -152,6 +161,7 @@ namespace Fancy
       AddArgument(L"/Qembed_debug");          // Silence warning about embedding PDBs into the shader container
     }
 
+    eastl::wstring vkTargetEnvArg;
     if (aConfig.mySpirv)
     {
       AddArgument(L"-spirv");                 // Generate SPIR-V code
@@ -160,6 +170,9 @@ namespace Fancy
       AddArgument(L"-fvk-use-dx-position-w"); // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
       if (aDesc.myShaderStage == (uint)ShaderStage::SHADERSTAGE_VERTEX)
         AddArgument(L"-fvk-invert-y");
+
+      vkTargetEnvArg = StringUtil::ToWideString(Priv_DxcShaderCompiler::GetVkTargetEnvArg().GetBuffer());
+      AddArgument(vkTargetEnvArg.c_str());
     }
 
     eastl::fixed_vector<eastl::wstring, 32> defineNames;
