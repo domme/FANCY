@@ -171,14 +171,7 @@ namespace Fancy
     bufferProps.myIsShaderWritable = true;
     myBuffer = RenderCore::CreateBuffer(bufferProps, StaticString<128>("%s_%s_buffer", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS"));
     ASSERT(myBuffer != nullptr);
-
-    GpuBufferViewProperties viewProps;
-    viewProps.myFormat = DataFormat::UNKNOWN;
-    viewProps.myIsRtAccelerationStructure = true;
-    viewProps.myIsShaderWritable = false;
-    myBufferRead = RenderCore::CreateBufferView(myBuffer, viewProps, StaticString<128>("%s_%s_bufferView", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS"));
-    ASSERT(myBufferRead != nullptr);
-
+    
     // Actually build the BVH
     GpuBufferProperties tempBufferProps;
     tempBufferProps.myBindFlags = (uint)GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT;
@@ -199,6 +192,16 @@ namespace Fancy
     const GpuResource* res = myBuffer.get();
     cmdList->ResourceUAVbarrier(&res, 1);
     RenderCore::ExecuteAndFreeCommandList(cmdList, SyncMode::BLOCKING);
+
+    if (!isBLAS)
+    {
+      GpuBufferViewProperties viewProps;
+      viewProps.myFormat = DataFormat::UNKNOWN;
+      viewProps.myIsRtAccelerationStructure = true;
+      viewProps.myIsShaderWritable = false;
+      myTopLevelBufferRead = RenderCore::CreateBufferView(myBuffer, viewProps, StaticString<128>("%s_TLAS_bufferView", aName ? aName : "Unnamed"));
+      ASSERT(myTopLevelBufferRead != nullptr);
+    }
   }
 //---------------------------------------------------------------------------//
 }

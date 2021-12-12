@@ -30,6 +30,8 @@ PFN_vkBuildAccelerationStructuresKHR VkExt::vkBuildAccelerationStructuresKHR;
 PFN_vkCmdTraceRaysKHR VkExt::vkCmdTraceRaysKHR;
 PFN_vkGetRayTracingShaderGroupHandlesKHR VkExt::vkGetRayTracingShaderGroupHandlesKHR;
 PFN_vkCreateRayTracingPipelinesKHR VkExt::vkCreateRayTracingPipelinesKHR;
+PFN_vkCreateDebugReportCallbackEXT VkExt::vkCreateDebugReportCallbackEXT;
+PFN_vkDestroyDebugReportCallbackEXT VkExt::vkDestroyDebugReportCallbackEXT;
 
 namespace Fancy
 {
@@ -149,6 +151,37 @@ namespace Fancy
         score += val;
 
       return score;
+    }
+
+    VkBool32 locOnDebugReport(
+      VkDebugReportFlagsEXT flags,
+      VkDebugReportObjectTypeEXT objectType,
+      uint64_t object,
+      size_t location,
+      int32_t messageCode,
+      const char* pLayerPrefix,
+      const char* pMessage,
+      void* pUserData)
+    {
+      eastl::fixed_string<char, 256> msg = "[Vk][";
+
+      if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+        msg.append("ERROR");
+      else if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
+        msg.append("WARNING");
+      else if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
+        msg.append("PERFWARN");
+      else if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+        msg.append("DEBUG");
+
+      msg.append_sprintf("]: %s", pMessage);
+
+      LOG(msg.c_str());
+
+      if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT && pUserData != nullptr)
+        DebugBreak();
+
+      return true;
     }
   }
 //---------------------------------------------------------------------------//
@@ -706,6 +739,7 @@ namespace Fancy
     , myTimestampTicksToMsFactor(0.0)
     , myVulkanMajorVersion(1)
     , myVulkanMinorVersion(2)
+    , myBreakOnErrorCallback(nullptr)
   {
     LOG("Initializing Vulkan device...");
     locPrintAvailableInstanceExtensions();
@@ -721,6 +755,7 @@ namespace Fancy
 
       const bool enableDebugLayer = CommandLine::GetInstance()->HasArgument("DebugLayer");
       const bool gpuValidation = CommandLine::GetInstance()->HasArgument("GPUValidation");
+      const bool debugLayerBreak = CommandLine::GetInstance()->HasArgument("DebugLayerBreak");
 
       eastl::fixed_vector<VkValidationFeatureEnableEXT, 2> enabledValidationFeatures;
       if (gpuValidation)
@@ -741,14 +776,15 @@ namespace Fancy
       if (enableDebugLayer)
         instanceCreateInfo.pNext = &validationFeatures;
 
-      const char* const extensions[] = { 
-        VK_KHR_SURFACE_EXTENSION_NAME, 
-        VK_KHR_WIN32_SURFACE_EXTENSION_NAME, 
-        VK_EXT_DEBUG_UTILS_EXTENSION_NAME
-      };
+      eastl::fixed_vector<const char*, 8> extensions;
+      extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+      extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+      extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+      if (debugLayerBreak)
+        extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 
-      instanceCreateInfo.enabledExtensionCount = ARRAY_LENGTH(extensions);
-      instanceCreateInfo.ppEnabledExtensionNames = extensions;
+      instanceCreateInfo.enabledExtensionCount = (uint) extensions.size();
+      instanceCreateInfo.ppEnabledExtensionNames = extensions.data();
       
       const char* const layers[] = { "VK_LAYER_KHRONOS_validation", "VK_LAYER_LUNARG_monitor"  };
       instanceCreateInfo.enabledLayerCount = enableDebugLayer ? ARRAY_LENGTH(layers) : 0;
@@ -759,6 +795,21 @@ namespace Fancy
 
       VkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT) vkGetInstanceProcAddr(myInstance, "vkSetDebugUtilsObjectNameEXT");
       ASSERT(VkSetDebugUtilsObjectNameEXT != nullptr);
+
+      if (debugLayerBreak)
+      {
+        VkExt::vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(myInstance, "vkCreateDebugReportCallbackEXT");
+        ASSERT(VkExt::vkCreateDebugReportCallbackEXT != nullptr);
+        VkExt::vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(myInstance, "vkDestroyDebugReportCallbackEXT");
+        ASSERT(VkExt::vkDestroyDebugReportCallbackEXT != nullptr);
+
+        VkDebugReportCallbackCreateInfoEXT callbackInfo = { VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT };
+        callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+        callbackInfo.pfnCallback = locOnDebugReport;
+        callbackInfo.pUserData = reinterpret_cast<void*>(debugLayerBreak ? 1ull : 0ull);
+
+        VkExt::vkCreateDebugReportCallbackEXT(myInstance, &callbackInfo, nullptr, &myBreakOnErrorCallback);
+      }
     }
 
     // Create physical device
@@ -1089,6 +1140,12 @@ namespace Fancy
     myFrameBufferCache.Clear();
     myRenderPassCache.Clear();
     myPipelineStateCache.Clear();
+
+    if (myBreakOnErrorCallback)
+    {
+      VkExt::vkDestroyDebugReportCallbackEXT(myInstance, myBreakOnErrorCallback, nullptr);
+      myBreakOnErrorCallback = nullptr;
+    }
 
     vkDestroyInstance(myInstance, nullptr);
     vkDestroyDevice(myDevice, nullptr);

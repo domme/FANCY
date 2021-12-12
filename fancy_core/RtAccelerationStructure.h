@@ -77,12 +77,12 @@ namespace Fancy
 
     RtAccelerationStructureType GetType() const { return myType; }
     GpuBuffer* GetBuffer() const { return myBuffer.get(); }
-    GpuBufferView* GetBufferRead() const { return myBufferRead.get(); }
+    GpuBufferView* GetBufferRead() const { return myTopLevelBufferRead.get(); }
     
   protected:
     eastl::string myName;
     SharedPtr<GpuBuffer> myBuffer;
-    SharedPtr<GpuBufferView> myBufferRead;
+    SharedPtr<GpuBufferView> myTopLevelBufferRead;
     RtAccelerationStructureType myType;
   };
 //---------------------------------------------------------------------------//

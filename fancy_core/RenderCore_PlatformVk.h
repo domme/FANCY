@@ -23,6 +23,9 @@ struct VkExt
   static PFN_vkCmdTraceRaysKHR vkCmdTraceRaysKHR;
   static PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandlesKHR;
   static PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelinesKHR;
+
+  static PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
+  static PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
 };
 
 namespace Fancy
@@ -164,6 +167,8 @@ namespace Fancy
     float64 myTimestampTicksToMsFactor;
     uint myVulkanMajorVersion;
     uint myVulkanMinorVersion;
+
+    VkDebugReportCallbackEXT myBreakOnErrorCallback;
   };
 }
 

@@ -184,6 +184,7 @@ namespace Fancy
     const GpuBuffer* instanceDescBuffer = nullptr;
     uint64 instanceDescBufferOffset = 0;
     VkAccelerationStructureGeometryKHR instancesGeoDesc;
+    VkAccelerationStructureGeometryInstancesDataKHR instancesData;
     uint numInstances = 0;
     if (!isBLAS)
     {
@@ -191,8 +192,8 @@ namespace Fancy
       uint sizeNeeded = (uint)glm::ceil(float(instanceDescBufferSize) / sizeof(VkAccelerationStructureInstanceKHR));
       someInstanceDescs->resize(sizeNeeded);
       instanceDescBuffer = cmdList->GetBuffer(instanceDescBufferOffset, GpuBufferUsage::STAGING_UPLOAD, someInstanceDescs->data(), instanceDescBufferSize, 16u);
-      
-      VkAccelerationStructureGeometryInstancesDataKHR instancesData = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR };
+
+      instancesData = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR };
       instancesData.data.deviceAddress = instanceDescBuffer->GetDeviceAddress() + instanceDescBufferOffset;
 
       instancesGeoDesc = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR };
@@ -292,12 +293,15 @@ namespace Fancy
     myBuffer->GetVkData()->myBufferData.myAccelerationStructureAddress = VkExt::vkGetAccelerationStructureDeviceAddressKHR(device, &accelerationDeviceAddressInfo);
     myBuffer->GetVkData()->myBufferData.myAccelerationStructure = myAccelerationStructure;
 
-    GpuBufferViewProperties viewProps;
-    viewProps.myFormat = DataFormat::UNKNOWN;
-    viewProps.myIsRtAccelerationStructure = true;
-    viewProps.myIsShaderWritable = false;
-    myBufferRead = RenderCore::CreateBufferView(myBuffer, viewProps, StaticString<128>("%s_%s_bufferView", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS"));
-    ASSERT(myBufferRead != nullptr);
+    if (!isBLAS)
+    {
+      GpuBufferViewProperties viewProps;
+      viewProps.myFormat = DataFormat::UNKNOWN;
+      viewProps.myIsRtAccelerationStructure = true;
+      viewProps.myIsShaderWritable = false;
+      myTopLevelBufferRead = RenderCore::CreateBufferView(myBuffer, viewProps, StaticString<128>("%s_TLAS_bufferView", aName ? aName : "Unnamed"));
+      ASSERT(myTopLevelBufferRead != nullptr);
+    }
   }
 //---------------------------------------------------------------------------//
   RtAccelerationStructureVk::~RtAccelerationStructureVk()
@@ -313,7 +317,7 @@ namespace Fancy
     myAccelerationStructure = nullptr;
 
     myBuffer.reset();
-    myBufferRead.reset();
+    myTopLevelBufferRead.reset();
   }
 //---------------------------------------------------------------------------//
 }
