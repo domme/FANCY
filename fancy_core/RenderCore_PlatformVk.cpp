@@ -176,6 +176,22 @@ namespace Fancy
 
       msg.append_sprintf("]: %s", pMessage);
 
+      // Escape "%" signs which often appear in SPIR-V messages with "%%"
+      uint numPercents = 0;
+      for (char c : msg)
+        if (c == '%')
+          ++numPercents;
+
+      if (numPercents > 0)
+      {
+        msg.reserve(msg.size() + numPercents);
+        for (uint i = 0, e = (uint) msg.size() + numPercents; i < e; ++i)
+        {
+          if (msg[i] == '%')
+            msg.insert(i++, "%");
+        }
+      }
+
       LOG(msg.c_str());
 
       if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT && pUserData != nullptr)

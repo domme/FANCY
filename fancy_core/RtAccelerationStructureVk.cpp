@@ -199,6 +199,7 @@ namespace Fancy
       instancesGeoDesc = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR };
       instancesGeoDesc.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
       instancesGeoDesc.geometry.instances = instancesData;
+      // instancesGeoDesc.flags = VK_GEOMETRY_OPAQUE_BIT_KHR; // DEBUG
 
       numInstances = (uint) someInstanceDescs->size();
     }

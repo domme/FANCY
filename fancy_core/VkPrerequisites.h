@@ -3,7 +3,7 @@
 #if FANCY_ENABLE_VK
 
 #define VK_USE_PLATFORM_WIN32_KHR
-#include "vulkan.h"
+#include "vulkan.hpp"
 
 #include "Log.h"  // Only for ReportMissingVkImplementation(). Remove this dependency when Vulkan is feature-complete
 
