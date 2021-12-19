@@ -119,9 +119,22 @@ namespace Fancy
         const DataFormat format = Priv_ShaderCompilerVk::locResolveFormat(reflectedInput->format);
         ASSERT(format != DataFormat::NONE);
 
+        const char* semanticStringBuf = reflectedInput->semantic;
+        eastl::string semanticString;
+        if (semanticStringBuf == nullptr)  // should be emitted by -fspv-reflect but that requires SPV_GOOGLE_HLSL_Functionality1 which is not available on NVIDIA
+        {
+          // The name should be formed like this: "in.var.POSITION", so we should be able to just use the last part of that name as the semantic (hopefully..)
+          semanticString = reflectedInput->name;
+          size_t pos = semanticString.find_last_of('.');
+          ASSERT(pos != eastl::string::npos);
+
+          semanticString.erase(0, pos + 1);
+          semanticStringBuf = semanticString.data();
+        }
+        
         VertexAttributeSemantic semantic;
         uint semanticIndex;
-        Priv_ShaderCompilerVk::locResolveSemantic(reflectedInput->semantic, semantic, semanticIndex);
+        Priv_ShaderCompilerVk::locResolveSemantic(semanticStringBuf, semantic, semanticIndex);
         
         vertexAttributes.push_back({ semantic, semanticIndex, format});
         vertexAttributeLocations.push_back(reflectedInput->location);

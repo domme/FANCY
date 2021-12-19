@@ -165,17 +165,11 @@ namespace Fancy
     if (aConfig.mySpirv)
     {
       AddArgument(L"-spirv");                 // Generate SPIR-V code
-      AddArgument(L"-fspv-reflect");          // Emit additional SPIR-V instructions to aid reflection
-      AddArgument(L"-fspv-extension=KHR");    // Allow all KHR extensions (including raytracing)
-      AddArgument(L"-fspv-extension=SPV_EXT_descriptor_indexing");
-      AddArgument(L"-fspv-extension=SPV_EXT_fragment_fully_covered");
-      AddArgument(L"-fspv-extension=SPV_EXT_fragment_invocation_density");
-      AddArgument(L"-fspv-extension=SPV_EXT_shader_stencil_export");
-      AddArgument(L"-fspv-extension=SPV_EXT_shader_viewport_index_layer");
-      AddArgument(L"-fspv-extension=SPV_AMD_gpu_shader_half_float");
-      AddArgument(L"-fspv-extension=SPV_AMD_shader_explicit_vertex_parameter");
-      AddArgument(L"-fspv-extension=SPV_GOOGLE_hlsl_functionality1");
-      AddArgument(L"-fspv-extension=SPV_GOOGLE_user_type");
+      // AddArgument(L"-fspv-reflect");          // Emit additional SPIR-V instructions to aid reflection
+      //AddArgument(L"-fspv-extension=KHR");    // Allow all KHR extensions (including raytracing)
+      //AddArgument(L"-fspv-extension=SPV_EXT_descriptor_indexing");
+      //AddArgument(L"-fspv-extension=SPV_EXT_shader_stencil_export");
+      //AddArgument(L"-fspv-extension=SPV_EXT_shader_viewport_index_layer");
       AddArgument(L"-fvk-use-dx-layout");     // Use DirectX memory layout for Vulkan resources
       AddArgument(L"-fvk-use-dx-position-w"); // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
       if (aDesc.myShaderStage == (uint)ShaderStage::SHADERSTAGE_VERTEX)

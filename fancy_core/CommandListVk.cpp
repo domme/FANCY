@@ -36,25 +36,6 @@ namespace Fancy
     constexpr VkAccessFlags locAccessMaskWrite = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT |
       VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT | VK_ACCESS_COMMAND_PREPROCESS_WRITE_BIT_NV | VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_NV;
 //---------------------------------------------------------------------------//
-    constexpr VkPipelineStageFlags locPipelineMaskGraphics =
-      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
-      | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT
-      | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT
-      | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
-      | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-      | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
-      | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT | VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT
-      | VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_NV | VK_PIPELINE_STAGE_SHADING_RATE_IMAGE_BIT_NV | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_NV
-      | VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_NV
-      | VK_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT
-#if  FANCY_RENDERER_SUPPORT_MESH_SHADERS
-      | VK_PIPELINE_STAGE_TASK_SHADER_BIT_NV | VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV
-#endif  // FANCY_RENDERER_SUPPORT_MESH_SHADERS
-      ;
-  //---------------------------------------------------------------------------//
-    constexpr VkPipelineStageFlags locPipelineMaskCompute = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT |
-      VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_HOST_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
-//---------------------------------------------------------------------------//
     constexpr VkAccessFlags locGetContextAccessMask(CommandListType aCommandListType)
     {
       switch (aCommandListType) 
@@ -62,16 +43,6 @@ namespace Fancy
         case CommandListType::Graphics: return locAccessMaskGraphics;
         case CommandListType::Compute: return locAccessMaskCompute;
         default: ASSERT(false, "Missing implementation"); return 0u;
-      }
-    }
-//---------------------------------------------------------------------------//
-    constexpr VkPipelineStageFlags locGetContextPipelineStageMask(CommandListType aCommandListType)
-    {
-      switch (aCommandListType)
-      {
-      case CommandListType::Graphics: return locPipelineMaskGraphics;
-      case CommandListType::Compute: return locPipelineMaskCompute;
-      default: ASSERT(false, "Missing implementation"); return 0u;
       }
     }
 //---------------------------------------------------------------------------//
@@ -495,8 +466,8 @@ namespace Fancy
     }
 
     // TODO: Make this more optimial. BOTTOM_OF_PIPE->TOP_OF_PIPE will stall much more than necessary in most cases. But the last writing pipeline stage needs to be tracked per subresource to correctly do this
-    VkPipelineStageFlags srcStageMask = myCommandListType == CommandListType::Graphics ? Priv_CommandListVk::locPipelineMaskGraphics : Priv_CommandListVk::locPipelineMaskCompute;
-    VkPipelineStageFlags dstStageMask = myCommandListType == CommandListType::Graphics ? Priv_CommandListVk::locPipelineMaskGraphics : Priv_CommandListVk::locPipelineMaskCompute;
+    VkPipelineStageFlags srcStageMask = RenderCore::GetPlatformVk()->GetPipelineStageMask(myCommandListType);
+    VkPipelineStageFlags dstStageMask = srcStageMask;
 
     const VkDependencyFlags dependencyFlags = 0u;
     vkCmdPipelineBarrier(myCommandBuffer, srcStageMask, dstStageMask, 

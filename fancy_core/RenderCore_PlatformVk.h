@@ -137,6 +137,9 @@ namespace Fancy
     PipelineStateCacheVk& GetPipelineStateCache() { return myPipelineStateCache; }
     PipelineLayoutVk* GetPipelineLayout() const { return myPipelineLayout.get(); }
     GlobalDescriptorSetVk* GetGlobalDescriptorSet() const { return myGlobalDescriptorSet.get(); }
+
+    VkPipelineStageFlags GetPipelineStageMask(CommandListType aContextType) const { return myPipelineStageMask[(uint)aContextType]; }
+
     // TODO: Make these members private and add getter-functions where needed
     VkInstance myInstance = nullptr;
     VkPhysicalDevice myPhysicalDevice = nullptr;
@@ -151,6 +154,8 @@ namespace Fancy
     VkPhysicalDeviceProperties myPhysicalDeviceProperties;
 
   protected:
+    void InitPipelineStageMasks();
+
     eastl::vector<eastl::string> mySupportedDeviceExtensions;
 
     VkPhysicalDeviceMemoryProperties myPhysicalDeviceMemoryProperties;
@@ -169,6 +174,8 @@ namespace Fancy
     uint myVulkanMinorVersion;
 
     VkDebugReportCallbackEXT myBreakOnErrorCallback;
+
+    VkPipelineStageFlags myPipelineStageMask[(uint) CommandListType::NUM];
   };
 }
 
