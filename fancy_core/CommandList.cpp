@@ -171,6 +171,12 @@ namespace Fancy {
       name += "STAGING_UPLOAD";
       ringBufferList = &myUploadRingBuffers;
     } break;
+    case GpuBufferUsage::STAGING_UPLOAD_RT_BUILD_INPUT:
+    {
+      name += "STAGING_UPLOAD_RT_BUILD_INPUT";
+      ringBufferList = &myRtUploadRingBuffers;
+      bindFlags |= (uint)GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT;
+    } break;
     case GpuBufferUsage::CONSTANT_BUFFER:
     {
       name += "CONSTANT_BUFFER";
@@ -353,6 +359,7 @@ namespace Fancy {
 
     myGraphicsPipelineState = GraphicsPipelineState();
     myComputePipelineState = ComputePipelineState();
+    myRaytracingPipelineState = nullptr;
     
     myViewportParams = glm::uvec4(0, 0, 1, 1);
     myClipRect = glm::uvec4(0, 0, 1, 1);

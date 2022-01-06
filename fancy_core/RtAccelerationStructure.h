@@ -32,6 +32,10 @@ namespace Fancy
       CpuData myCpuData;
     };
 
+    bool IsEmpty() const {
+      return myType == RT_BUFFER_DATA_TYPE_NONE;
+    }
+
     uint64 GetGpuBufferAddress(CommandList* aCommandList, uint anAlingment = 0) const;
   };
 //---------------------------------------------------------------------------//

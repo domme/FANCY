@@ -201,6 +201,7 @@ namespace Fancy
   enum class GpuBufferUsage
   {
     STAGING_UPLOAD = 0,
+    STAGING_UPLOAD_RT_BUILD_INPUT,
     STAGING_READBACK,
     CONSTANT_BUFFER,
     VERTEX_BUFFER,

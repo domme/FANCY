@@ -883,7 +883,8 @@ namespace Fancy
         && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME) != mySupportedDeviceExtensions.end()
         && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_RAY_QUERY_EXTENSION_NAME) != mySupportedDeviceExtensions.end()
         && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME) != mySupportedDeviceExtensions.end()
-        && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME) != mySupportedDeviceExtensions.end();
+        && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME) != mySupportedDeviceExtensions.end()
+        && eastl::find(mySupportedDeviceExtensions.begin(), mySupportedDeviceExtensions.end(), VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME) != mySupportedDeviceExtensions.end();
     }
 
     // Create queues and logical device
@@ -1082,6 +1083,7 @@ namespace Fancy
         extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
         extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
         extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+        extensions.push_back(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
       }
 
       deviceCreateInfo.ppEnabledExtensionNames = extensions.data();

@@ -103,7 +103,7 @@ void Test_Raytracing::OnRender()
   struct Consts
   {
     glm::float3 myCamCenter;
-    float _pad;
+    uint myIsBGR;
 
     glm::float4 myPixelToWorldScaleOffset;
 
@@ -114,6 +114,7 @@ void Test_Raytracing::OnRender()
 
   float viewportSize = 2.0f;
   consts.myCamCenter = glm::float3(0.0f, 0.0f, -1.0f);
+  consts.myIsBGR = myOutput->GetBackbuffer()->GetProperties().myFormat == DataFormat::BGRA_8 ? 1 : 0;
   consts.myPixelToWorldScaleOffset.x = viewportSize / texProps.myTextureProperties.myWidth;
   consts.myPixelToWorldScaleOffset.y = viewportSize / texProps.myTextureProperties.myHeight;
   consts.myPixelToWorldScaleOffset.z = -viewportSize * 0.5f;

@@ -9,7 +9,6 @@
 #include "RenderCore_PlatformDX12.h"
 
 #include <dxc/dxcapi.h>
-#include <dxc/DxilContainer/DxilContainer.h>
 
 #if FANCY_ENABLE_DX12
 
@@ -228,14 +227,14 @@ namespace Fancy {
     ShaderCompiledDataDX12 compiledNativeData;
 
     uint rootSigPartIdx;
-    ASSERT(S_OK != dxcReflection->FindFirstPartKind(hlsl::DFCC_RootSignature, &rootSigPartIdx), "Custom HLSL-specified root signatures are not supported");
+    ASSERT(S_OK != dxcReflection->FindFirstPartKind(DXC_PART_ROOT_SIGNATURE, &rootSigPartIdx), "Custom HLSL-specified root signatures are not supported");
 
     if (!IsRaytracingStage(static_cast<ShaderStage>(aDesc.myShaderStage)))  // Raytracing-shaders are always compiled as library shaders and can't be reflected
     {
       // Shader reflection
       //---------------------------------------------------------------------------//
         uint dxilPartIdx;
-        success = dxcReflection->FindFirstPartKind(hlsl::DFCC_DXIL, &dxilPartIdx);
+        success = dxcReflection->FindFirstPartKind(DXC_PART_DXIL, &dxilPartIdx);
         ASSERT(success == S_OK);
 
         Microsoft::WRL::ComPtr<ID3D12ShaderReflection> reflector;

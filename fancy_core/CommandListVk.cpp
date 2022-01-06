@@ -832,37 +832,31 @@ namespace Fancy
     raygenSBT.stride = aDesc.myRayGenShaderTableRange.myStride;
 
 
-    VkStridedDeviceAddressRegionKHR missSBT;
-    VkStridedDeviceAddressRegionKHR* pMissSBT = nullptr;
+    VkStridedDeviceAddressRegionKHR missSBT = {};
     if (aDesc.myMissShaderTableRange.mySbtBuffer != nullptr)
     {
-      pMissSBT = &missSBT;
       missSBT.deviceAddress = aDesc.myMissShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myMissShaderTableRange.myOffset;
       missSBT.size = aDesc.myMissShaderTableRange.mySize;
       missSBT.stride = aDesc.myMissShaderTableRange.myStride;
     }
 
-    VkStridedDeviceAddressRegionKHR hitSBT;
-    VkStridedDeviceAddressRegionKHR* pHitSBT = nullptr;
+    VkStridedDeviceAddressRegionKHR hitSBT = {};
     if (aDesc.myHitGroupTableRange.mySbtBuffer != nullptr)
     {
-      pHitSBT = &hitSBT;
       hitSBT.deviceAddress = aDesc.myHitGroupTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myHitGroupTableRange.myOffset;
       hitSBT.size = aDesc.myHitGroupTableRange.mySize;
       hitSBT.stride = aDesc.myHitGroupTableRange.myStride;
     }
 
-    VkStridedDeviceAddressRegionKHR callableSBT;
-    VkStridedDeviceAddressRegionKHR* pCallableSBT = nullptr;
+    VkStridedDeviceAddressRegionKHR callableSBT = {};
     if (aDesc.myCallableShaderTableRange.mySbtBuffer != nullptr)
     {
-      pCallableSBT = &callableSBT;
       callableSBT.deviceAddress = aDesc.myCallableShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myCallableShaderTableRange.myOffset;
       callableSBT.size = aDesc.myCallableShaderTableRange.mySize;
       callableSBT.stride = aDesc.myCallableShaderTableRange.myStride;
     }
     
-    VkExt::vkCmdTraceRaysKHR(myCommandBuffer, &raygenSBT, pMissSBT, pHitSBT, pCallableSBT, aDesc.myWidth, aDesc.myHeight, aDesc.myDepth);
+    VkExt::vkCmdTraceRaysKHR(myCommandBuffer, &raygenSBT, &missSBT, &hitSBT, &callableSBT, aDesc.myWidth, aDesc.myHeight, aDesc.myDepth);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::TrackResourceTransition(const GpuResource* aResource, VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, bool aToSharedReadState)

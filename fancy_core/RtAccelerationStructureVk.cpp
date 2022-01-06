@@ -92,11 +92,12 @@ namespace Fancy
           geoDescVk.geometry.triangles.pNext = nullptr;
           geoDescVk.geometry.triangles.vertexFormat = RenderCore_PlatformVk::ResolveFormat(geoInfo.myVertexFormat);
           geoDescVk.geometry.triangles.vertexData.deviceAddress = vertexBufferAddress;
+          geoDescVk.geometry.triangles.vertexStride = vertexStride;
           geoDescVk.geometry.triangles.maxVertex = geoInfo.myNumVertices - 1;
           geoDescVk.geometry.triangles.indexType = indexType;
           geoDescVk.geometry.triangles.indexData.deviceAddress = indexBufferAddress;
           geoDescVk.geometry.triangles.transformData.deviceAddress = transformBufferAddress;
-
+          
           numPrimitivesList.push_back(geoInfo.myNumIndices / 3);
         }
         else
@@ -191,7 +192,7 @@ namespace Fancy
       uint64 instanceDescBufferSize = MathUtil::Align(someInstanceDescs->size() * sizeof(VkAccelerationStructureInstanceKHR), 16u);
       uint sizeNeeded = (uint)glm::ceil(float(instanceDescBufferSize) / sizeof(VkAccelerationStructureInstanceKHR));
       someInstanceDescs->resize(sizeNeeded);
-      instanceDescBuffer = cmdList->GetBuffer(instanceDescBufferOffset, GpuBufferUsage::STAGING_UPLOAD, someInstanceDescs->data(), instanceDescBufferSize, 16u);
+      instanceDescBuffer = cmdList->GetBuffer(instanceDescBufferOffset, GpuBufferUsage::STAGING_UPLOAD_RT_BUILD_INPUT, someInstanceDescs->data(), instanceDescBufferSize, 16u);
 
       instancesData = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR };
       instancesData.data.deviceAddress = instanceDescBuffer->GetDeviceAddress() + instanceDescBufferOffset;
@@ -199,7 +200,6 @@ namespace Fancy
       instancesGeoDesc = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR };
       instancesGeoDesc.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
       instancesGeoDesc.geometry.instances = instancesData;
-      // instancesGeoDesc.flags = VK_GEOMETRY_OPAQUE_BIT_KHR; // DEBUG
 
       numInstances = (uint) someInstanceDescs->size();
     }

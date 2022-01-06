@@ -4,7 +4,7 @@
 cbuffer Constants : register(b0, Space_LocalCBuffer)
 {
   float3 myCamCenter;
-  float _pad;
+  bool myIsBGR;
 
   float4 myPixelToWorldScaleOffset;
 
@@ -37,5 +37,5 @@ void RayGen()
             rayDesc,
             payload);
 
-  theRwTextures2D[myOutTexIndex][pixel] = float4(payload.colorAndDistance.rgb, 1.f);
+  theRwTextures2D[myOutTexIndex][pixel] = float4(myIsBGR ? payload.colorAndDistance.bgr : payload.colorAndDistance.rgb, 1.f);
 }

@@ -22,6 +22,11 @@ namespace Fancy
         case ShaderStage::SHADERSTAGE_TESS_HULL: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
         case ShaderStage::SHADERSTAGE_TESS_DOMAIN: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
         case ShaderStage::SHADERSTAGE_COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
+        case ShaderStage::SHADERSTAGE_RAYGEN: return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+        case ShaderStage::SHADERSTAGE_MISS: return VK_SHADER_STAGE_MISS_BIT_KHR;
+        case ShaderStage::SHADERSTAGE_INTERSECTION: return VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+        case ShaderStage::SHADERSTAGE_ANYHIT: return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+        case ShaderStage::SHADERSTAGE_CLOSEST_HIT: return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
         default: ASSERT(false, "Missing implementation"); return VK_SHADER_STAGE_VERTEX_BIT;
       }
     }

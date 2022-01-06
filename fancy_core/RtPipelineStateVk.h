@@ -22,7 +22,7 @@ namespace Fancy
     void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RtPipelineStateProperties::ShaderEntry& /*aShaderEntry*/, RtShaderIdentifier& someDataOut) override;
     void GetShaderIdentifierDataInternal(uint aShaderIndexInRtPso, const RtPipelineStateProperties::HitGroup& /*aShaderEntry*/, RtShaderIdentifier& someDataOut) override;
 
-    VkPipeline myPipeline;
+    VkPipeline myPipeline = nullptr;
     eastl::vector<uint8> myShaderHandleStorage;
   };
 }

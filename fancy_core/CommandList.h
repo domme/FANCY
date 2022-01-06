@@ -180,6 +180,7 @@ namespace Fancy {
     bool myRaytracingPipelineStateDirty;
     
     eastl::vector<GpuRingBuffer*> myUploadRingBuffers;
+    eastl::vector<GpuRingBuffer*> myRtUploadRingBuffers;
     eastl::vector<GpuRingBuffer*> myConstantRingBuffers;
     eastl::vector<GpuRingBuffer*> myVertexRingBuffers;
     eastl::vector<GpuRingBuffer*> myIndexRingBuffers;

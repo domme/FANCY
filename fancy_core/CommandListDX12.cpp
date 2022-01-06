@@ -145,7 +145,6 @@ namespace Fancy {
     if (aResetCommandList)
       ASSERT_HRESULT(myCommandList->Reset(myCommandAllocator, nullptr));
 
-    myRaytracingPipelineState = nullptr;
     myTopologyDirty = true;
     myPendingBarriers.clear();
     myLocalHazardData.clear();

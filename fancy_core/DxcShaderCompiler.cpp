@@ -239,6 +239,11 @@ namespace Fancy
         return false;
       }
     }
+    else if(result != S_OK)
+    {
+      LOG_ERROR("Unknown error compiling shader %s", aDesc.myPath.c_str());
+      return false;
+    }
 
     IDxcBlob* resultBlob;
     result = compiledResult->GetResult(&resultBlob);

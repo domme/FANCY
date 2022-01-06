@@ -90,11 +90,12 @@ namespace Fancy
     }
     if (someProperties.myBindFlags & (uint) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT)
     {
-      bufferInfo.usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
+      bufferInfo.usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     }
     if (someProperties.myBindFlags & (uint) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE)
     {
       bufferInfo.usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
+      readMask |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
     }
 
     VkMemoryPropertyFlags memPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
