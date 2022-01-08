@@ -197,7 +197,7 @@ namespace Fancy
       if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT && pUserData != nullptr)
         DebugBreak();
 
-      return true;
+      return false;
     }
   }
 //---------------------------------------------------------------------------//
