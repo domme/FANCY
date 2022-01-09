@@ -43,8 +43,6 @@
     <Import Project="..\property_sheets\inc_lib_fancy_core_static.props" />
     <Import Project="..\property_sheets\inc_lib_fancy_imgui_static.props" />
     <Import Project="..\property_sheets\lib_dx12.props" />
-    <Import Project="..\property_sheets\lib_xxhash_static_release_x64.props" />
-    <Import Project="..\property_sheets\lib_assimp_debug_x64.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
     <Import Project="..\property_sheets\inc_lib_dxc.props" />
   </ImportGroup>
@@ -56,8 +54,6 @@
     <Import Project="..\property_sheets\inc_lib_fancy_core_static.props" />
     <Import Project="..\property_sheets\inc_lib_fancy_imgui_static.props" />
     <Import Project="..\property_sheets\lib_dx12.props" />
-    <Import Project="..\property_sheets\lib_xxhash_static_release_x64.props" />
-    <Import Project="..\property_sheets\lib_assimp_release_x64.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
     <Import Project="..\property_sheets\inc_lib_dxc.props" />
     <Import Project="..\property_sheets\release_optimizations.props" />

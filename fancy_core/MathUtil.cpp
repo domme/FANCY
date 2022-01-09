@@ -1,7 +1,7 @@
 #include "fancy_core_precompile.h"
 #include "MathUtil.h"
 
-#include <xxHash/xxhash.h>
+#include <xxhash.h>
 
 namespace Fancy { namespace MathUtil {
 //---------------------------------------------------------------------------//
