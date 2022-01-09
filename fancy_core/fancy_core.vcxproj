@@ -37,7 +37,6 @@
     <Import Project="..\property_sheets\disable_CRT_warnings.props" />
     <Import Project="..\property_sheets\inc_lib_dependencies.props" />
     <Import Project="..\property_sheets\output_lib.props" />
-    <Import Project="..\property_sheets\lib_EASTL.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
@@ -46,7 +45,6 @@
     <Import Project="..\property_sheets\inc_lib_dependencies.props" />
     <Import Project="..\property_sheets\output_lib.props" />
     <Import Project="..\property_sheets\release_optimizations.props" />
-    <Import Project="..\property_sheets\lib_EASTL.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
