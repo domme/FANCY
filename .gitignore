@@ -2,7 +2,6 @@
 *.opensdf
 *.ilk
 *.suo
-*.obj
 
 *.sdf
 ipch/*
@@ -29,11 +28,8 @@ FANCY.VC.db
 *.db-wal
 */imgui.ini
 *.stackdump
-app_framework/x64/
 fancy_assets/x64/
 fancy_imgui/x64/
-/dependencies/bin/*
-/dependencies/lib/*
 packages/**
 
 external/dxc/

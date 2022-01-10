@@ -57,9 +57,9 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   myTLAS = RenderCore::CreateRtTopLevelAccelerationStructure(&instanceData, 1u);
 
   RtPipelineStateProperties rtPipelineProps;
-  const uint raygenIdx = rtPipelineProps.AddRayGenShader("RayTracing/RayGen.hlsl", "RayGen");
-  const uint missIdx = rtPipelineProps.AddMissShader("RayTracing/Miss.hlsl", "Miss");
-  const uint hitIdx = rtPipelineProps.AddHitGroup(L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr, "RayTracing/Hit.hlsl", "ClosestHit");
+  const uint raygenIdx = rtPipelineProps.AddRayGenShader("Tests/RayTracing/RayGen.hlsl", "RayGen");
+  const uint missIdx = rtPipelineProps.AddMissShader("Tests/RayTracing/Miss.hlsl", "Miss");
+  const uint hitIdx = rtPipelineProps.AddHitGroup(L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr, "Tests/RayTracing/Hit.hlsl", "ClosestHit");
   rtPipelineProps.SetMaxAttributeSize(32u);
   rtPipelineProps.SetMaxPayloadSize(128u);
   rtPipelineProps.SetMaxRecursionDepth(2u);
