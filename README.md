@@ -24,5 +24,15 @@ Mostly created for personal learning-purposes and graphics-demos. Most areas are
 * [EASTL](https://github.com/electronicarts/EASTL)
 
 ## Building
-A Visual Studio 2019 solution is included in the sources. The required data (binaries, libs, models, textures,...) is not included in this repository and needs to be downloaded here:
-https://www.dropbox.com/s/0vh9ktvtxa8mztg/Fancy_Data.zip?dl=0
+A Visual Studio 2019 solution is included in the sources. In order to build this solution, all git submodules must be properly initialized and some external prebuilt libraries need to be provided. Fancy uses [vcpgk](https://github.com/microsoft/vcpkg) for most of these libraries (all except DirectXShaderCompiler since this is not included in vcpgk).
+
+If you don't already have vcpkg installed and set up (including the global Visual Studio integration), please checkout [vcpgk](https://github.com/microsoft/vcpkg) follow the [setup-steps fow windows](https://github.com/microsoft/vcpkg#quick-start-windows).
+With a properly set up vcpkg, please execute "get_external_libs.bat" located in the FANCY root folder using cmd or powershell and provide it with the path to the vcpgk root folder as its first argument (e.g. ".\get_external_libs.bat C:/vcpgk/"). This will download and install all required external libraries that are part of vcpkg (e.g. Assimp, EASTL and xxHash).
+
+The DirectXShaderCompiler is the only required library that's not part of vcpkg unfortunately. You can use the bat-file "get_directx_shadercompiler.bat" which downloads and unpacks the specific [release-version](https://github.com/microsoft/DirectXShaderCompiler/releases) of DXC that FANCY currently uses. Alternatively, you can also do this manually by extracting the contents of a DXC release package into external/dxc/
+
+You will also need to have the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) installed on your system (with VK_SDK_PATH environment variable pointing to the correct folder).
+
+Now you're all set to compile and start the "Tests" project.
+
+
