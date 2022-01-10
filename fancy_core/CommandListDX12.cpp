@@ -117,7 +117,7 @@ namespace Fancy {
   CommandListDX12::~CommandListDX12()
   {
     CommandListDX12::PostExecute(0ull);
-
+    
     if (myCommandList != nullptr)
       myCommandList->Release();
 

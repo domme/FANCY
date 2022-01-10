@@ -8,7 +8,7 @@
 #include "RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 
-#include <dxc/dxcapi.h>
+#include <dxc/inc/dxcapi.h>
 
 #if FANCY_ENABLE_DX12
 

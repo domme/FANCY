@@ -66,7 +66,7 @@ namespace Fancy {
   class CommandList
   {
     friend class CommandQueue;
-
+    
   public:
     CommandList(CommandListType aType);
     virtual ~CommandList() {}

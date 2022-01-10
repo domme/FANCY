@@ -4,7 +4,7 @@
 #include "PathService.h"
 #include "FileReader.h"
 
-#include <dxc/dxcapi.h>
+#include <dxc/inc/dxcapi.h>
 #include <atomic>
 
 #include "RenderCore_PlatformVk.h"

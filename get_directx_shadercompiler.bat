@@ -1,0 +1,1 @@
+powershell.exe -NoProfile -ExecutionPolicy Bypass "& {& '%~dp0get_directx_shadercompiler.ps1' %*}"

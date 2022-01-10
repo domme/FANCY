@@ -35,3 +35,5 @@ fancy_imgui/x64/
 /dependencies/bin/*
 /dependencies/lib/*
 packages/**
+
+external/dxc/

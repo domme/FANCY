@@ -35,17 +35,17 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\property_sheets\disable_CRT_warnings.props" />
-    <Import Project="..\property_sheets\inc_lib_dependencies.props" />
     <Import Project="..\property_sheets\output_lib.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
+    <Import Project="..\property_sheets\inc_lib_dependencies.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\property_sheets\disable_CRT_warnings.props" />
-    <Import Project="..\property_sheets\inc_lib_dependencies.props" />
     <Import Project="..\property_sheets\output_lib.props" />
     <Import Project="..\property_sheets\release_optimizations.props" />
     <Import Project="..\property_sheets\inc_lib_vulkan.props" />
+    <Import Project="..\property_sheets\inc_lib_dependencies.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
