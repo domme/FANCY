@@ -1,4 +1,4 @@
-#include <windows.h>
+#include <Windows.h>
 #include <fancy_imgui/imgui.h>
 #include <fancy_imgui/imgui_impl_fancy.h>
 #include <fancy_core/RenderOutput.h>

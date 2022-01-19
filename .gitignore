@@ -33,3 +33,5 @@ fancy_imgui/x64/
 packages/**
 
 external/dxc/
+
+external/sharpmake/
