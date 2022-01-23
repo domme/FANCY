@@ -42,12 +42,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Raytracing", "Raytracing", 
 		resources\Shader\Raytracing\RayGen.hlsl = resources\Shader\Raytracing\RayGen.hlsl
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PathTracer", "projects\PathTracer\PathTracer.vcxproj", "{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9}"
-	ProjectSection(ProjectDependencies) = postProject
-		{FF76404D-47A9-485A-92B8-3373CEBF2CCA} = {FF76404D-47A9-485A-92B8-3373CEBF2CCA}
-		{0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD} = {0562FEBF-6FA8-4ABD-8FF9-D7B3B8A889FD}
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -74,14 +68,6 @@ Global
 		{30329206-DA4B-4E1E-82B3-92900430E04E}.Release|x64.ActiveCfg = Release|x64
 		{30329206-DA4B-4E1E-82B3-92900430E04E}.Release|x64.Build.0 = Release|x64
 		{30329206-DA4B-4E1E-82B3-92900430E04E}.Release|x86.ActiveCfg = Release|x64
-		{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9}.Debug|x64.ActiveCfg = Debug|x64
-		{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9}.Debug|x64.Build.0 = Debug|x64
-		{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9}.Debug|x86.ActiveCfg = Debug|Win32
-		{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9}.Debug|x86.Build.0 = Debug|Win32
-		{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9}.Release|x64.ActiveCfg = Release|x64
-		{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9}.Release|x64.Build.0 = Release|x64
-		{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9}.Release|x86.ActiveCfg = Release|Win32
-		{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -91,7 +77,6 @@ Global
 		{FF76404D-47A9-485A-92B8-3373CEBF2CCA} = {2225417A-5977-4F16-BD58-4EEB4148C5C4}
 		{30329206-DA4B-4E1E-82B3-92900430E04E} = {16A64A43-402F-4FDE-ACF1-C4BA6C61E206}
 		{FACEA12D-7960-4506-9AB9-3C6CA4EE0A20} = {8B33B407-D5DB-492F-A5B3-B983104CCC19}
-		{89B6CFFA-83AA-45D0-B4BB-7F26E7BB4BB9} = {16A64A43-402F-4FDE-ACF1-C4BA6C61E206}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0EBD04EB-3D2D-4C87-B6CB-5CC6D8FF0148}
