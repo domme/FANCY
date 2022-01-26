@@ -37,3 +37,5 @@ external/dxc/
 external/sharpmake/
 
 fancy.sharpmake/obj/
+
+external/DX12_Agility_SDK/

@@ -26,4 +26,16 @@ Invoke-WebRequest -Uri $Url -OutFile $ZipFile
 Expand-Archive $ZipFile -DestinationPath $ExtractPath -Force
 Remove-Item -Path $ZipFile -Force -Confirm:$false
 
+############################################
+# DX12 Agility SDK
+############################################
+$Url = 'https://www.nuget.org/api/v2/package/Microsoft.Direct3D.D3D12/1.4.10' 
+$ZipFile = $PSScriptRoot + '/agility.zip'
 
+$ExtractPath = $PSScriptRoot + '/external/DX12_Agility_SDK/'
+New-Item -ItemType Directory -Path $ExtractPath -Force
+
+Invoke-WebRequest -Uri $Url -OutFile $ZipFile
+
+Expand-Archive $ZipFile -DestinationPath $ExtractPath -Force
+Remove-Item -Path $ZipFile -Force -Confirm:$false
