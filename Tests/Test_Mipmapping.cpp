@@ -1,10 +1,10 @@
 #include "Test_Mipmapping.h"
-#include "fancy_core/TextureProperties.h"
-#include "fancy_core/Log.h"
-#include "fancy_core/Texture.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_imgui/imgui.h"
-#include "fancy_core/ObjectCore.h"
+#include "TextureProperties.h"
+#include "Log.h"
+#include "Texture.h"
+#include "RenderCore.h"
+#include "imgui.h"
+#include "ObjectCore.h"
 
 using namespace Fancy;
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "Test.h"
-#include "fancy_core/GpuBuffer.h"
+#include "GpuBuffer.h"
 
 class Test_Synchronization : public Test
 {

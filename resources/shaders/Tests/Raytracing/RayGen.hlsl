@@ -1,5 +1,5 @@
 #include "Common.hlsl"
-#include "GlobalResources.h"
+#include "fancy/resources/shaders/GlobalResources.h"
 
 cbuffer Constants : register(b0, Space_LocalCBuffer)
 {

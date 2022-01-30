@@ -700,7 +700,7 @@ void RenderCore::UpdateChangedShaders()
 
       const ShaderDesc& desc = program->GetDescription();
       eastl::string actualShaderPath =
-        Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(desc.myPath.c_str()));
+        Path::GetAbsolutePath(desc.myPath.c_str());
 
       if (actualShaderPath == shaderFile)
         shadersToRecompile.push_back(program);
@@ -784,7 +784,7 @@ SharedPtr<Shader> RenderCore::CreateShader(const ShaderDesc& aDesc)
   ourShaderCache.insert(eastl::make_pair(hash, program));
 
   const eastl::string actualShaderPath =
-    Path::GetAbsoluteResourcePath(ourShaderCompiler->GetShaderPathRelative(aDesc.myPath.c_str()));
+    Path::GetAbsolutePath(aDesc.myPath.c_str());
 
   ourShaderFileWatcher->AddFileWatch(actualShaderPath);
 

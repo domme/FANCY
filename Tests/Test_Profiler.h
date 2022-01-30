@@ -1,7 +1,7 @@
 #pragma once
 #include "Test.h"
-#include "fancy_core/GpuBuffer.h"
-#include "fancy_imgui/ProfilerWindow.h"
+#include "GpuBuffer.h"
+#include "ProfilerWindow.h"
 
 class Test_Profiler : public Test
 {

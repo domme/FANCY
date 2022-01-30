@@ -1,13 +1,13 @@
 #include "Test_AsyncCompute.h"
 
-#include "fancy_core/GpuBuffer.h"
-#include "fancy_imgui/imgui.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_core/CommandList.h"
-#include "fancy_core/CommandQueue.h"
-#include "fancy_core/GrowingList.h"
-#include "fancy_core/TimeManager.h"
-#include "fancy_core/ShaderPipelineDesc.h"
+#include "GpuBuffer.h"
+#include "imgui.h"
+#include "RenderCore.h"
+#include "CommandList.h"
+#include "CommandQueue.h"
+#include "GrowingList.h"
+#include "TimeManager.h"
+#include "ShaderPipelineDesc.h"
 
 #include "EASTL/vector.h"
 
@@ -47,7 +47,7 @@ Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Windo
   ShaderPipelineDesc pipelineDesc;
   ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint) ShaderStage::SHADERSTAGE_COMPUTE];
   shaderDesc.myShaderStage = (uint) ShaderStage::SHADERSTAGE_COMPUTE;
-  shaderDesc.myPath = "Tests/ModifyBuffer.hlsl";
+  shaderDesc.myPath = "fancy/resources/shaders/Tests/ModifyBuffer.hlsl";
   shaderDesc.myMainFunction = "main_increment";
   myIncrementBufferShader = RenderCore::CreateShaderPipeline(pipelineDesc);
   ASSERT(myIncrementBufferShader);

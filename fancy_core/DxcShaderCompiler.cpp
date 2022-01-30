@@ -203,7 +203,7 @@ namespace Fancy
     eastl::string includePaths[] =
     {
       Path::GetContainingFolder(anHlslSrcPathAbs),
-      Path::GetAbsolutePath(ShaderCompiler::GetShaderRootFolderRelative()),
+      Path::GetRootDirectory(),
     };
     Microsoft::WRL::ComPtr<Priv_DxcShaderCompiler::IncludeHandler> includeHandler =
       new Priv_DxcShaderCompiler::IncludeHandler(myDxcLibrary.Get(), includePaths, ARRAY_LENGTH(includePaths));

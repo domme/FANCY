@@ -8,28 +8,31 @@ using Sharpmake;
 
 namespace Fancy
 {
-  [Sharpmake.Generate]
-  public class FancyExternalApplication : Project
+  public abstract class FancyApplication : Project
   {
+    public string FancyRootPath;
     public string FancyExternalBasePath;
 
-    public FancyExternalApplication()
+    public FancyApplication()
     {
       AddTargets(new Target(Platform.win64,
         DevEnv.vs2019,
         Optimization.Debug | Optimization.Release));
-      
+
       SourceRootPath = @"[project.SharpmakeCsPath]";
-      FancyExternalBasePath = Path.Combine(SourceRootPath, "/../Fancy/external/");
     }
     public virtual void ConfigureAll(Configuration conf, Target target)
     {
+      conf.Options.Add(Options.Vc.Linker.SubSystem.Windows);
+
       conf.ProjectPath = SourceRootPath;
 
+      if (target.Optimization == Optimization.Debug)
+        conf.Options.Add(Options.Vc.Compiler.RuntimeLibrary.MultiThreadedDebugDLL);
+      else
+        conf.Options.Add(Options.Vc.Compiler.RuntimeLibrary.MultiThreadedDLL);
+
       conf.Output = Configuration.OutputType.Exe;
-      conf.TargetPath = @"[conf.ProjectPath]/../bin/[target.Platform]/[target.Optimization]/[project.Name]";
-      conf.TargetCopyFilesPath = conf.TargetPath;
-      conf.IntermediatePath = @"[conf.ProjectPath]/../_build_temp/[target.Platform]/[target.Optimization]/[project.Name]";
 
       conf.IncludePaths.Add("[project.SourceRootPath]");
       conf.IncludePaths.Add(FancyExternalBasePath);
@@ -47,6 +50,13 @@ namespace Fancy
       // Vulkan
       conf.LibraryPaths.Add("%VK_SDK_PATH%/Lib/");
       conf.LibraryFiles.Add(new string[] { "vulkan-1.lib", "VkLayer_utils.lib", "shaderc_combined.lib" });
+
+      // DX12 Agility
+      conf.TargetCopyFiles.Add(FancyExternalBasePath + @"DX12_Agility_SDK/build/native/bin/" + Util.PlatformToArchitecture(target.Platform) + "/D3D12Core.dll");
+      conf.TargetCopyFiles.Add(FancyExternalBasePath + @"DX12_Agility_SDK/build/native/bin/" + Util.PlatformToArchitecture(target.Platform) + "/d3d12SDKLayers.dll");
+
+      // DX12
+      conf.LibraryFiles.Add(new string[] { "dxgi.lib", "d3d12.lib" });
 
       conf.AddPrivateDependency<FancyCoreProject>(target);
       conf.AddPrivateDependency<FancyImGuiProject>(target);

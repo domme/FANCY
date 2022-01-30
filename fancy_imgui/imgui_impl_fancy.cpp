@@ -3,22 +3,22 @@
 
 #include <functional>
 
-#include <fancy_core/ShaderPipeline.h>
-#include <fancy_core/RenderCore.h>
-#include <fancy_core/Window.h>
-#include <fancy_core/RenderOutput.h>
-#include <fancy_core/Texture.h>
-#include <fancy_core/BlendState.h>
-#include <fancy_core/DepthStencilState.h>
-#include <fancy_core/CommandList.h>
-#include <fancy_core/ShaderDesc.h>
-#include <fancy_core/ShaderPipelineDesc.h>
-#include <fancy_core/Slot.h>
-#include <fancy_core/Log.h>
-#include <fancy_core/WindowsIncludes.h>
-#include <fancy_core/CommandQueue.h>
-#include <fancy_core/Profiler.h>
-#include <fancy_core/Annotations.h>
+#include <ShaderPipeline.h>
+#include <RenderCore.h>
+#include <Window.h>
+#include <RenderOutput.h>
+#include <Texture.h>
+#include <BlendState.h>
+#include <DepthStencilState.h>
+#include <CommandList.h>
+#include <ShaderDesc.h>
+#include <ShaderPipelineDesc.h>
+#include <Slot.h>
+#include <Log.h>
+#include <WindowsIncludes.h>
+#include <CommandQueue.h>
+#include <Profiler.h>
+#include <Annotations.h>
 
 ANNOTATION_CREATE_TAG(ANNTAG_IMGUI, "ImGui", 0xFFC17700);
 
@@ -138,11 +138,11 @@ namespace Fancy { namespace ImGuiRendering {
     {
       ShaderPipelineDesc pipelineDesc;
       ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_VERTEX];
-      shaderDesc->myPath = "Imgui.hlsl";
+      shaderDesc->myPath = "fancy/resources/shaders/Imgui.hlsl";
       shaderDesc->myMainFunction = "main";
       shaderDesc->myShaderStage = (uint)ShaderStage::SHADERSTAGE_VERTEX;
       shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_FRAGMENT];
-      shaderDesc->myPath = "Imgui.hlsl";
+      shaderDesc->myPath = "fancy/resources/shaders/Imgui.hlsl";
       shaderDesc->myShaderStage = (uint)ShaderStage::SHADERSTAGE_FRAGMENT;
       shaderDesc->myMainFunction = "main";
       ourProgramPipeline = RenderCore::CreateShaderPipeline(pipelineDesc);

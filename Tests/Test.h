@@ -1,6 +1,6 @@
 #pragma once
 
-#include <fancy_core/FancyCoreDefines.h>
+#include "FancyCoreDefines.h"
 #include "EASTL/string.h"
 
 namespace Fancy {

@@ -255,10 +255,9 @@ namespace Fancy {
   {
     const eastl::string cacheFilePath = GetCacheFilePathAbs(aPath);
 
-    bool foundSourceFile = false;
-    eastl::string absSourcePath = Path::GetAbsoluteResourcePath(aPath, &foundSourceFile);
+    eastl::string absSourcePath = Path::GetAbsolutePath(aPath);
 
-    if (!foundSourceFile)
+    if (!Path::FileExists(absSourcePath.c_str()))
       return false;
 
     if (Path::GetFileWriteTime(cacheFilePath) < Path::GetFileWriteTime(absSourcePath))

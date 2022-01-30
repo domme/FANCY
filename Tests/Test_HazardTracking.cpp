@@ -1,8 +1,8 @@
 #include "Test_HazardTracking.h"
-#include "fancy_core/TextureProperties.h"
-#include "fancy_core/Texture.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_core/CommandList.h"
+#include "TextureProperties.h"
+#include "Texture.h"
+#include "RenderCore.h"
+#include "CommandList.h"
 
 using namespace Fancy;
 
@@ -67,7 +67,7 @@ Test_HazardTracking::Test_HazardTracking(Fancy::FancyRuntime* aRuntime, Fancy::W
   ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_COMPUTE];
   shaderDesc->myShaderStage = (uint) ShaderStage::SHADERSTAGE_COMPUTE;
   shaderDesc->myMainFunction = "main";
-  shaderDesc->myPath = "Tests/HazardTracking.hlsl";
+  shaderDesc->myPath = "fancy/resources/shaders/Tests/HazardTracking.hlsl";
 
   shaderDesc->myDefines.push_back("BUFFER_TO_TEXTURE_MIP");
   myBufferToMipShader = RenderCore::CreateShaderPipeline(pipelineDesc);

@@ -3,25 +3,25 @@
 #include <EASTL/fixed_vector.h>
 #include <EASTL/span.h>
 
-#include "fancy_core/Window.h"
-#include "fancy_core/ShaderPipelineDesc.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_core/CommandList.h"
-#include "fancy_core/RenderOutput.h"
-#include "fancy_core/GpuResourceView.h"
-#include "fancy_core/Mesh.h"
-#include "fancy_core/TextureSampler.h"
-#include "fancy_core/Mesh.h"
-#include "fancy_core/ShaderPipeline.h"
-#include "fancy_core/Shader.h"
-#include "fancy_core/Texture.h"
-#include "fancy_core/StringUtil.h"
-#include "fancy_imgui/imgui.h"
-#include "fancy_core/ObjectCore.h"
-#include "fancy_core/GpuBufferProperties.h"
-#include "fancy_core/GpuBuffer.h"
-#include "fancy_core/Material.h"
-#include "fancy_core/Scene.h"
+#include "Window.h"
+#include "ShaderPipelineDesc.h"
+#include "RenderCore.h"
+#include "CommandList.h"
+#include "RenderOutput.h"
+#include "GpuResourceView.h"
+#include "Mesh.h"
+#include "TextureSampler.h"
+#include "Mesh.h"
+#include "ShaderPipeline.h"
+#include "Shader.h"
+#include "Texture.h"
+#include "StringUtil.h"
+#include "imgui.h"
+#include "ObjectCore.h"
+#include "GpuBufferProperties.h"
+#include "GpuBuffer.h"
+#include "Material.h"
+#include "Scene.h"
 
 using namespace Fancy;
 
@@ -57,16 +57,16 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Model Viewer")
   , myCameraController(&myCamera)
 {
-  myUnlitTexturedShader = locLoadShader("Unlit_Textured.hlsl");
+  myUnlitTexturedShader = locLoadShader("fancy/resources/shaders/Unlit_Textured.hlsl");
   ASSERT(myUnlitTexturedShader != nullptr);
 
-  myInstancedUnlitTexturedShader = locLoadShader("Unlit_Textured.hlsl", "main", "main", "INSTANCED");
+  myInstancedUnlitTexturedShader = locLoadShader("fancy/resources/shaders/Unlit_Textured.hlsl", "main", "main", "INSTANCED");
   ASSERT(myInstancedUnlitTexturedShader != nullptr);
 
-  myUnlitVertexColorShader = locLoadShader("Unlit_Colored.hlsl");
+  myUnlitVertexColorShader = locLoadShader("fancy/resources/shaders/Unlit_Colored.hlsl");
   ASSERT(myUnlitVertexColorShader != nullptr);
 
-  myDebugGeoShader = locLoadShader("DebugGeo_Colored.hlsl");
+  myDebugGeoShader = locLoadShader("fancy/resources/shaders/DebugGeo_Colored.hlsl");
   ASSERT(myDebugGeoShader != nullptr);
 
   TextureSamplerProperties samplerProps;
@@ -98,8 +98,7 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
 
   SceneData sceneData;
   MeshImporter importer;
-  // const bool importSuccess = importer.Import("models/sponza/sponza.obj", vertexAttributes, sceneData);
-  const bool importSuccess = importer.Import("models/cube.obj", vertexAttributes, sceneData);
+  const bool importSuccess = importer.Import("fancy/resources/models/cube.obj", vertexAttributes, sceneData);
   ASSERT(importSuccess);
 
   myScene = eastl::make_shared<Scene>(sceneData);
@@ -125,9 +124,6 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   bufferProps.myElementSizeBytes = sizeof(glm::float3);
   bufferProps.myNumElements = numInstances;
   myInstancePositions = RenderCore::CreateBuffer(bufferProps, "Test_ModelViewer/InstancePositions", instancePositions.data());
-
-  myDefaultFloorTexture = ObjectCore::LoadTexture("Textures/Sibenik/kamen.png");
-  myMarmorTexture = ObjectCore::LoadTexture("Textures/Sibenik/mramor6x6.png");
 }
 
 Test_ModelViewer::~Test_ModelViewer()

@@ -39,3 +39,13 @@ external/sharpmake/
 fancy.sharpmake/obj/
 
 external/DX12_Agility_SDK/
+
+Tests/tests_runtimedependencies.txt
+
+*.vcxproj
+
+*.filters
+
+FANCY.sln
+
+FANCY.sln.DotSettings

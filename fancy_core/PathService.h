@@ -6,7 +6,7 @@ namespace Fancy {
 
   namespace Path
   {
-    void InitRootFolders();
+    void InitRootFolder(const char* aRelativeRootFolder);
 
     eastl::string GetAppName();
     eastl::string GetAppPath();
@@ -16,8 +16,6 @@ namespace Fancy {
     eastl::string GetWorkingDirectory();
     eastl::string GetAbsolutePath(const eastl::string& aRelativePath);
     eastl::string GetRelativePath(const eastl::string& anAbsolutePath);
-    eastl::string GetAbsoluteResourcePath(const eastl::string& aRelativeResourcePath, bool* aWasFound = nullptr);
-    eastl::string GetRelativeResourcePath(const eastl::string& anAbsoluteResourcePath, bool* aWasFound = nullptr);
     bool FileExists(const char* aFilePath);
     bool FileExists(const wchar_t* aFilePath);
     bool IsPathAbsolute(const char* aPath);
@@ -27,10 +25,6 @@ namespace Fancy {
     eastl::string GetPathWithoutExtension(const eastl::string& aPath);
     uint64 GetFileWriteTime(const eastl::string& aFile);
     eastl::string GetUserDataPath();
-
-    /// The following two functions add quotes around path-segments that contain spaces so the path is accepted as input to command-lines
-    eastl::string GetAsCmdParameter(const char* aPath);
-    void PrepareForCmdParameter(eastl::string& aPath);
 
     void RemoveFolderUpMarkers(eastl::string& aPath);
     void ConvertToSlash(eastl::string& aPath);

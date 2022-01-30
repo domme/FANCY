@@ -26,7 +26,7 @@ namespace Fancy
   {
     ShaderPipelineDesc pipelineDesc;
     ShaderDesc& shaderDesc = pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_COMPUTE];
-    shaderDesc.myPath = "Downsample.hlsl";
+    shaderDesc.myPath = "fancy/resources/shaders/Downsample.hlsl";
     shaderDesc.myShaderStage = (uint)ShaderStage::SHADERSTAGE_COMPUTE;
     shaderDesc.myMainFunction = "main";
     
@@ -139,9 +139,9 @@ namespace Fancy
     eastl::string texPathAbs = aPath;
     eastl::string texPathRel = aPath;
     if (!Path::IsPathAbsolute(texPathAbs))
-      texPathAbs = Path::GetAbsoluteResourcePath(texPathAbs);
+      texPathAbs = Path::GetAbsolutePath(texPathAbs);
     else
-      texPathRel = Path::GetRelativeResourcePath(texPathAbs);
+      texPathRel = Path::GetRelativePath(texPathAbs);
 
     uint64 texPathRelHash = MathUtil::Hash(texPathRel);
     MathUtil::hash_combine(texPathRelHash, ((uint64)someFlags & SHADER_WRITABLE));
@@ -161,9 +161,9 @@ namespace Fancy
     eastl::string texPathAbs = aPath;
     eastl::string texPathRel = aPath;
     if (!Path::IsPathAbsolute(texPathAbs))
-      texPathAbs = Path::GetAbsoluteResourcePath(texPathAbs);
+      texPathAbs = Path::GetAbsolutePath(texPathAbs);
     else
-      texPathRel = Path::GetRelativeResourcePath(texPathAbs);
+      texPathRel = Path::GetRelativePath(texPathAbs);
 
     if ((someLoadFlags & NO_MEM_CACHE) == 0)
       if (SharedPtr<TextureView> texFromMemCache = GetTexture(texPathRel.c_str()))

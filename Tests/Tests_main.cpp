@@ -1,13 +1,13 @@
 #include <Windows.h>
-#include <fancy_imgui/imgui.h>
-#include <fancy_imgui/imgui_impl_fancy.h>
-#include <fancy_core/RenderOutput.h>
-#include <fancy_core/RenderCore.h>
-#include "fancy_core/CommandList.h"
-#include <fancy_core/Fancy.h>
-#include <fancy_core/Window.h>
-#include <fancy_core/Profiler.h>
-#include <fancy_core/Input.h>
+#include <imgui.h>
+#include <imgui_impl_fancy.h>
+#include <RenderOutput.h>
+#include <RenderCore.h>
+#include "CommandList.h"
+#include <Fancy.h>
+#include <Window.h>
+#include <Profiler.h>
+#include <Input.h>
 
 #include <array>
 #include "Test.h"
@@ -16,16 +16,16 @@
 #include "Test_GpuMemoryAllocator.h"
 #include "Test_Synchronization.h"
 #include "Test_AsyncCompute.h"
-#include "Tests/Test_Mipmapping.h"
+#include "Test_Mipmapping.h"
 #include "Test_ModelViewer.h"
 #include "Test_Raytracing.h"
-#include "fancy_core/StringUtil.h"
-#include "Tests/Test_SharedQueueResourceUsage.h"
-#include "Tests/Test_HazardTracking.h"
+#include "StringUtil.h"
+#include "Test_SharedQueueResourceUsage.h"
+#include "Test_HazardTracking.h"
 
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 4; }
 
-extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = u8".\\D3D12\\"; }
+extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = u8".\\"; }
 
 using namespace Fancy;
 
@@ -46,11 +46,22 @@ bool test_sharedQueueResources = false;
 bool test_hazardTracking = false;
 bool test_raytracing = false;
 
-eastl::vector<UniquePtr<Test>> myTests;
+UniquePtr<Test_Profiler> myProfilerTest;
+UniquePtr<Test_ImGui> myImGuiTest;
+UniquePtr<Test_GpuMemoryAllocator> myGpuMemoryAllocatorTest;
+UniquePtr<Test_Synchronization> mySynchronizationTest;
+UniquePtr<Test_AsyncCompute> myAsyncComputeTest;
+UniquePtr<Test_Mipmapping> myMipmappingTest;
+UniquePtr<Test_ModelViewer> myModelViewerTest;
+UniquePtr<Test_SharedQueueResourceUsage> mySharedQueueResourceUsageTest;
+UniquePtr<Test_HazardTracking> myHazardTrackingTest;
+UniquePtr<Test_Raytracing> myRaytracingTest;
+
+eastl::vector<Test*> myTests;
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
-  for (UniquePtr<Test>& testItem : myTests)
+  for (Test* testItem : myTests)
   {
     testItem->OnWindowResized(aWidth, aHeight);
   }
@@ -64,7 +75,7 @@ void Init(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArgum
   windowParams.myTitle = "Fancy Engine Tests";
 
   Fancy::RenderPlatformProperties renderProperties;
-  myRuntime = FancyRuntime::Init(anInstanceHandle, someArguments, aNumArguments, windowParams, renderProperties);
+  myRuntime = FancyRuntime::Init(anInstanceHandle, someArguments, aNumArguments, windowParams, renderProperties, "../../../../../");
 
   myRenderOutput = myRuntime->GetRenderOutput();
   myWindow = myRenderOutput->GetWindow();
@@ -77,6 +88,21 @@ void Init(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArgum
   ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
 }
 
+template <class T>
+void HandleTestDestroyCreate(bool aIsActive, UniquePtr<T>& aTestPtr)
+{
+  if (!aIsActive)
+  {
+    myTests.erase_first_unsorted(aTestPtr.get());
+    aTestPtr.reset();
+  }
+  else
+  {
+    aTestPtr = eastl::make_unique<T>(myRuntime, myWindow, myRenderOutput, &myInputState);
+    myTests.push_back(aTestPtr.get());
+  }
+}
+
 void Update()
 {
   myRuntime->BeginFrame();
@@ -86,79 +112,29 @@ void Update()
   ImGui::Checkbox("Log resource barriers", &RenderCore::ourDebugLogResourceBarriers);
 
   if (ImGui::Checkbox("Test Profiler", &test_profiler))
-  {
-    if (!test_profiler)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Profiler*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_Profiler>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
+    HandleTestDestroyCreate(test_profiler, myProfilerTest);
   if (ImGui::Checkbox("Test ImGui", &test_imgui))
-  {
-    if (!test_imgui)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ImGui*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_ImGui>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
+    HandleTestDestroyCreate(test_imgui, myImGuiTest);
   if (ImGui::Checkbox("Test Gpu Memory Allocations", &test_gpuMemoryAllocs))
-  {
-    if (!test_gpuMemoryAllocs)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_GpuMemoryAllocator*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_GpuMemoryAllocator>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
+    HandleTestDestroyCreate(test_gpuMemoryAllocs, myGpuMemoryAllocatorTest);
   if (ImGui::Checkbox("Test Async Compute", &test_asyncCompute))
-  {
-    if (!test_asyncCompute)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_AsyncCompute*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_AsyncCompute>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
+    HandleTestDestroyCreate(test_asyncCompute, myAsyncComputeTest);
   if (ImGui::Checkbox("Test Hazard Tracking", &test_hazardTracking))
-  {
-    if (!test_hazardTracking)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_HazardTracking*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_HazardTracking>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
+    HandleTestDestroyCreate(test_hazardTracking, myHazardTrackingTest);
   if (ImGui::Checkbox("Test Mipmapping", &test_mipmapping))
-  {
-    if (!test_mipmapping)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Mipmapping*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_Mipmapping>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
+    HandleTestDestroyCreate(test_mipmapping, myMipmappingTest);
   if (ImGui::Checkbox("Test Model Viewer", &test_modelviewer))
-  {
-    if (!test_modelviewer)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_ModelViewer*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_ModelViewer>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
+    HandleTestDestroyCreate(test_modelviewer, myModelViewerTest);
   if (ImGui::Checkbox("Test Synchronization", &test_sychronization))
-  {
-    if (!test_sychronization)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Synchronization*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_Synchronization>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
+    HandleTestDestroyCreate(test_sychronization, mySynchronizationTest);
   if (ImGui::Checkbox("Test Shared Queue Resources", &test_sharedQueueResources))
-  {
-    if (!test_sharedQueueResources)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_SharedQueueResourceUsage*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_SharedQueueResourceUsage>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
-  if (ImGui::Checkbox("Test Raytracing", &test_raytracing))
-  {
-    if (!test_raytracing)
-      myTests.erase(eastl::find_if(myTests.begin(), myTests.end(), [](const UniquePtr<Test>& aTestItem) { return dynamic_cast<Test_Raytracing*>(aTestItem.get()) != nullptr; }));
-    else
-      myTests.push_back(eastl::make_unique<Test_Raytracing>(myRuntime, myWindow, myRenderOutput, &myInputState));
-  }
+    HandleTestDestroyCreate(test_sharedQueueResources, mySharedQueueResourceUsageTest);
+  if (RenderCore::GetPlatformCaps().mySupportsRaytracing && ImGui::Checkbox("Test Raytracing", &test_raytracing))
+    HandleTestDestroyCreate(test_raytracing, myRaytracingTest);
 
   ImGui::Separator();
 
-  for (UniquePtr<Test>& testItem : myTests)
+  for (Test* testItem : myTests)
   {
     if (ImGui::TreeNode(testItem->GetName()))
     {
@@ -182,7 +158,7 @@ void Render()
   GPU_END_PROFILE(ctx);
   RenderCore::ExecuteAndFreeCommandList(ctx);
 
-  for (UniquePtr<Test>& testItem : myTests)
+  for (Test* testItem : myTests)
     testItem->OnRender();
 
   ImGui::Render();

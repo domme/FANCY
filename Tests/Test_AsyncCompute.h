@@ -1,7 +1,7 @@
 #pragma once
 #include "Test.h"
-#include "fancy_core/GpuBuffer.h"
-#include "fancy_core/ShaderPipeline.h"
+#include "GpuBuffer.h"
+#include "ShaderPipeline.h"
 
 class Test_AsyncCompute : public Test
 {

@@ -25,6 +25,11 @@ namespace Fancy
     }
     public virtual void ConfigureAll(Configuration conf, Target target)
     {
+      if (target.Optimization == Optimization.Debug)
+        conf.Options.Add(Options.Vc.Compiler.RuntimeLibrary.MultiThreadedDebugDLL);
+      else
+        conf.Options.Add(Options.Vc.Compiler.RuntimeLibrary.MultiThreadedDLL);
+
       conf.Output = Configuration.OutputType.Lib;
       conf.ProjectPath = @"[project.SharpmakeCsPath]";
       conf.TargetLibraryPath = @"[project.SharpmakeCsPath]/../lib/[target.Platform]/[target.Optimization]/[project.Name]";
@@ -42,6 +47,13 @@ namespace Fancy
 
       // SPIRV-Reflect
       conf.IncludePaths.Add(ExternalBasePath + "SPIRV-Reflect/");
+
+      // Vulkan
+      conf.IncludePaths.Add("%VK_SDK_PATH%/Include/Vulkan/");
+      conf.IncludePaths.Add("%VK_SDK_PATH%/Include/");
+
+      // DX12 Agility
+      conf.IncludePaths.Add(ExternalBasePath + "DX12_Agility_SDK/build/native/include/");
     }
   }
 }

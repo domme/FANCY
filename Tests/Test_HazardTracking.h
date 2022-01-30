@@ -1,8 +1,8 @@
 #pragma once
 #include "Test.h"
-#include "fancy_core/GpuBuffer.h"
-#include "fancy_core/ShaderPipeline.h"
-#include "fancy_core/Texture.h"
+#include "GpuBuffer.h"
+#include "ShaderPipeline.h"
+#include "Texture.h"
 
 class Test_HazardTracking : public Test
 {

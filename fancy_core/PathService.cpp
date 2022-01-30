@@ -5,31 +5,22 @@
 #include <ShlObj.h>
 #include <codecvt>
 
-#include "eastl/vector.h"
-
 #pragma comment(lib, "comsuppw")
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
   namespace Path
   {
-    static eastl::vector<eastl::string> ourResourceFolders;
     static eastl::string ourRootFolder;
 //---------------------------------------------------------------------------//
-    void InitRootFolders()
+    /// The root folder is the folder the FANCY-folder is residing in, so that e.g. resources can be adressed with "Fancy/resources/..." for engine-resources or "resources/" for project-resources
+    /// The relativeRootFolder should identify this folder relative to the .exe
+    void InitRootFolder(const char* aRelativeRootFolder)
     {
       const eastl::string& appPath = Path::GetAppPath();
-      ourRootFolder = StaticString<260>("%s/../../../", appPath.c_str());
-      Path::RemoveFolderUpMarkers(ourRootFolder);
-      
-      const eastl::string appResourceFolder(StaticString<260>("%s%s/resources/", ourRootFolder.c_str(), Path::GetAppName().c_str()));
-      const eastl::string coreResourceFolder(StaticString<260>("%sresources/", ourRootFolder.c_str()));
 
-      // Folders are ordered in descending priority. 
-      // Resources in earlier folders can "override" resources in later folders
-      ourResourceFolders.clear();
-      ourResourceFolders.push_back(appResourceFolder);
-      ourResourceFolders.push_back(coreResourceFolder);
+      ourRootFolder = appPath + "/" + aRelativeRootFolder;
+      Path::RemoveFolderUpMarkers(ourRootFolder);
     }
 //---------------------------------------------------------------------------//
     eastl::string GetAppName()
@@ -104,7 +95,7 @@ namespace Fancy {
       if (rootDirPath == eastl::string::npos)
         return ""; // Path is absolute but not relative to our root directory
 
-      return anAbsolutePath.substr(rootDirPath + 1);
+      return anAbsolutePath.substr(rootDirPath + rootDir.length());
     }
 //---------------------------------------------------------------------------//
     bool FileExists(const char* aFilePath)
@@ -257,92 +248,5 @@ namespace Fancy {
       return "";
     }
   //---------------------------------------------------------------------------//
-    eastl::string GetAsCmdParameter(const char* aPath)
-    {
-      eastl::string path(aPath);
-      PrepareForCmdParameter(path);
-      return path;
-    }
-  //---------------------------------------------------------------------------//
-    void PrepareForCmdParameter(eastl::string& aPath)
-    {
-      int i = 0;
-
-      while (i < (int)aPath.size())
-      {
-        if (aPath[i] == ' ')
-        {
-          int iPrev = i;
-          for (; iPrev > 0; --iPrev)
-          {
-            if (aPath[iPrev-1] == '/' || aPath[iPrev-1] == '\\')
-              break;
-          }
-
-          aPath.insert(iPrev, "\"");
-          ++i;
-
-          int iNext = i;
-          for (; iNext < (int) aPath.size(); ++iNext)
-          {
-            if (aPath[iNext] == '/' || aPath[iNext] == '\\')
-              break;
-          }
-
-          aPath.insert(iNext, "\"");
-        }
-
-        ++i;
-      }
-    }
-//---------------------------------------------------------------------------//
-//---------------------------------------------------------------------------//
-    eastl::string GetAbsoluteResourcePath(const eastl::string& aRelativeResourcePath, bool* aWasFound /*=nullptr*/)
-    {
-      for (const eastl::string& resourceFolder : ourResourceFolders)
-      {
-        eastl::string resourcePath = resourceFolder + aRelativeResourcePath;
-        if (Path::FileExists(resourcePath.c_str()))
-        {
-          if (aWasFound)
-            *aWasFound = true;
-
-          return resourcePath;
-        }
-      }
-
-      // Fall back to the root dir if the resource hasn't been found in any of the registered resource folders
-      const eastl::string& absPathInRootDir = Path::GetAbsolutePath(aRelativeResourcePath);
-      const bool existsInRootDir = Path::FileExists(absPathInRootDir.c_str());
-
-      if (aWasFound)
-        *aWasFound = existsInRootDir;
-
-      return existsInRootDir ? absPathInRootDir : "";
-    }
-//---------------------------------------------------------------------------//
-    eastl::string GetRelativeResourcePath(const eastl::string& anAbsoluteResourcePath, bool* aWasFound /*=nullptr*/)
-    {
-      for (const eastl::string& resourceFolder : ourResourceFolders)
-      {
-        const size_t resourceFolderPos = anAbsoluteResourcePath.rfind(resourceFolder.c_str());
-        if (resourceFolderPos != eastl::string::npos)
-        {
-          if (aWasFound)
-            *aWasFound = true;
-
-          return anAbsoluteResourcePath.substr(resourceFolderPos + resourceFolder.size());
-        }
-      }
-
-      const eastl::string& relPathToRootDir = Path::GetRelativePath(anAbsoluteResourcePath);
-      const bool isAbsoluteRootDirPath = !relPathToRootDir.empty();
-
-      if (aWasFound)
-        *aWasFound = isAbsoluteRootDirPath;
-
-      return relPathToRootDir;
-    }
-//---------------------------------------------------------------------------//
   }
 }

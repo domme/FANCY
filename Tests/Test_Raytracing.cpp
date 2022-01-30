@@ -1,20 +1,20 @@
 #include "Test_Raytracing.h"
-#include "fancy_core/GpuBuffer.h"
-#include "fancy_core/GpuBufferProperties.h"
+#include "GpuBuffer.h"
+#include "GpuBufferProperties.h"
 
 #include <EASTL/fixed_vector.h>
 #include <EASTL/vector.h>
 
-#include "fancy_core/CommandList.h"
-#include "fancy_core/CommandListDX12.h"
-#include "fancy_core/RtAccelerationStructure.h"
-#include "fancy_core/RtPipelineState.h"
-#include "fancy_core/RtShaderBindingTable.h"
-#include "fancy_core/ShaderDesc.h"
-#include "fancy_core/RenderEnums.h"
-#include "fancy_core/RenderOutput.h"
-#include "fancy_core/TempResourcePool.h"
-#include "fancy_core/Window.h"
+#include "CommandList.h"
+#include "CommandListDX12.h"
+#include "RtAccelerationStructure.h"
+#include "RtPipelineState.h"
+#include "RtShaderBindingTable.h"
+#include "ShaderDesc.h"
+#include "RenderEnums.h"
+#include "RenderOutput.h"
+#include "TempResourcePool.h"
+#include "Window.h"
 
 using namespace Fancy;
 
@@ -57,9 +57,9 @@ Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* a
   myTLAS = RenderCore::CreateRtTopLevelAccelerationStructure(&instanceData, 1u);
 
   RtPipelineStateProperties rtPipelineProps;
-  const uint raygenIdx = rtPipelineProps.AddRayGenShader("Tests/RayTracing/RayGen.hlsl", "RayGen");
-  const uint missIdx = rtPipelineProps.AddMissShader("Tests/RayTracing/Miss.hlsl", "Miss");
-  const uint hitIdx = rtPipelineProps.AddHitGroup(L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr, "Tests/RayTracing/Hit.hlsl", "ClosestHit");
+  const uint raygenIdx = rtPipelineProps.AddRayGenShader("fancy/resources/shaders/Tests/Raytracing/RayGen.hlsl", "RayGen");
+  const uint missIdx = rtPipelineProps.AddMissShader("fancy/resources/shaders/Tests/Raytracing/Miss.hlsl", "Miss");
+  const uint hitIdx = rtPipelineProps.AddHitGroup(L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr, "fancy/resources/shaders/Tests/Raytracing/Hit.hlsl", "ClosestHit");
   rtPipelineProps.SetMaxAttributeSize(32u);
   rtPipelineProps.SetMaxPayloadSize(128u);
   rtPipelineProps.SetMaxRecursionDepth(2u);

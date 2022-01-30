@@ -1,5 +1,5 @@
 #include "Test_ImGui.h"
-#include "fancy_imgui/imgui.h"
+#include "imgui.h"
 
 Test_ImGui::Test_ImGui(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
   : Test(aRuntime, aWindow, aRenderOutput, anInputState, "ImGui")

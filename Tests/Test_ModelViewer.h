@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Test.h"
-#include "fancy_core/Ptr.h"
-#include "fancy_core/Camera.h"
-#include "fancy_core/CameraController.h"
-#include "fancy_core/MeshImporter.h"
+#include "Ptr.h"
+#include "Camera.h"
+#include "CameraController.h"
+#include "MeshImporter.h"
 
 namespace Fancy
 {
@@ -41,7 +41,5 @@ private:
   Fancy::SharedPtr<Fancy::TextureSampler> mySampler;
   Fancy::SharedPtr<Fancy::VertexInputLayout> myInstancedVertexLayout;
   Fancy::SharedPtr<Fancy::GpuBuffer> myInstancePositions;
-  Fancy::SharedPtr<Fancy::TextureView> myDefaultFloorTexture;
-  Fancy::SharedPtr<Fancy::TextureView> myMarmorTexture;
   int myNumInstances;
 };

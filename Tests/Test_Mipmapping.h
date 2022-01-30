@@ -1,6 +1,6 @@
 #pragma once
 #include "Test.h"
-#include "fancy_core/Ptr.h"
+#include "Ptr.h"
 #include "EASTL/vector.h"
 #include "EASTL/string.h"
 

@@ -1,14 +1,14 @@
 #include "Test_Profiler.h"
 
-#include "fancy_core/MathUtil.h"
-#include "fancy_core/Profiler.h"
-#include "fancy_core/Annotations.h"
-#include "fancy_core/GpuBuffer.h"
-#include "fancy_imgui/imgui.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_core/CommandList.h"
-#include "fancy_imgui/imgui_internal.h"
-#include "fancy_core/GrowingList.h"
+#include "MathUtil.h"
+#include "Profiler.h"
+#include "Annotations.h"
+#include "GpuBuffer.h"
+#include "imgui.h"
+#include "RenderCore.h"
+#include "CommandList.h"
+#include "imgui_internal.h"
+#include "GrowingList.h"
 
 using namespace Fancy;
 

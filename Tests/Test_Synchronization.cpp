@@ -1,11 +1,11 @@
 #include "Test_Synchronization.h"
 
-#include "fancy_core/MathUtil.h"
-#include "fancy_core/GpuBuffer.h"
-#include "fancy_imgui/imgui.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_core/CommandList.h"
-#include "fancy_core/TimeManager.h"
+#include "MathUtil.h"
+#include "GpuBuffer.h"
+#include "imgui.h"
+#include "RenderCore.h"
+#include "CommandList.h"
+#include "TimeManager.h"
 
 #include "EASTL/vector.h"
 

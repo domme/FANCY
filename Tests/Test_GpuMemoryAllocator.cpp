@@ -1,14 +1,14 @@
 #include "Test_GpuMemoryAllocator.h"
 
-#include "fancy_core/MathUtil.h"
-#include "fancy_core/Profiler.h"
-#include "fancy_core/GpuBuffer.h"
-#include "fancy_imgui/imgui.h"
-#include "fancy_core/RenderCore.h"
-#include "fancy_core/RenderCore_PlatformDX12.h"
-#include "fancy_core/StringUtil.h"
-#include "fancy_core/PagedLinearAllocator.h"
-#include "fancy_core/StaticString.h"
+#include "MathUtil.h"
+#include "Profiler.h"
+#include "GpuBuffer.h"
+#include "imgui.h"
+#include "RenderCore.h"
+#include "RenderCore_PlatformDX12.h"
+#include "StringUtil.h"
+#include "PagedLinearAllocator.h"
+#include "StaticString.h"
 
 using namespace Fancy;
 

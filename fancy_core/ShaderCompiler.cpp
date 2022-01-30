@@ -101,22 +101,17 @@ namespace Fancy
     return VertexAttributeSemantic::NONE;
   }
 //---------------------------------------------------------------------------//
-  eastl::string ShaderCompiler::GetShaderPathRelative(const char* aPath) const
-  {
-    const StaticFilePath path("%s/%s", GetShaderRootFolderRelative(), aPath);
-    return eastl::string(path);
-  }
-//---------------------------------------------------------------------------//
   bool ShaderCompiler::Compile(const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const
   {
-    LOG_INFO("Compiling shader %s...", aDesc.myPath.c_str());
-
-    StaticFilePath hlslSrcPathRel("%s/%s", GetShaderRootFolderRelative(), aDesc.myPath.c_str());
-    eastl::string hlslSrcPathAbs = Path::GetAbsoluteResourcePath(hlslSrcPathRel.GetBuffer());
+    eastl::string hlslSrcPathAbs = Path::GetAbsolutePath(aDesc.myPath.c_str());
+    LOG_INFO("Compiling shader %s...", hlslSrcPathAbs.c_str());
 
     ASSERT(!hlslSrcPathAbs.empty());
     if (hlslSrcPathAbs.empty())
       return false;
+
+    if (!Path::FileExists(hlslSrcPathAbs.c_str()))
+      LOG_ERROR("Shader file not found at %s", hlslSrcPathAbs.c_str());
     
     const bool success = Compile_Internal(hlslSrcPathAbs.c_str(), aDesc, aCompilerOutput);
     if (success)

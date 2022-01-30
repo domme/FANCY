@@ -28,7 +28,7 @@ namespace Fancy {
     RenderCore::Shutdown();
   }
 //---------------------------------------------------------------------------//
-  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams, const RenderPlatformProperties& someRenderProperties)
+  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams, const RenderPlatformProperties& someRenderProperties, const char* aRelativeRootFolder)
   {
     ASSERT(ourInstance == nullptr);
     if (ourInstance != nullptr)
@@ -37,7 +37,7 @@ namespace Fancy {
     CommandLine::CreateInstance(someArguments, aNumArguments);
 
     // Init IO-subsystem
-    Path::InitRootFolders();
+    Path::InitRootFolder(aRelativeRootFolder);
 
     ourInstance = new FancyRuntime(anAppInstanceHandle);
 

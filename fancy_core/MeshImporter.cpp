@@ -95,11 +95,11 @@ namespace Fancy
       {
         eastl::string relativePath = Path::GetContainingFolder(aSceneSourcePath) + "/" + texPathAbs;
         Path::RemoveFolderUpMarkers(relativePath);
-        texPathAbs = Path::GetAbsoluteResourcePath(relativePath);
+        texPathAbs = Path::GetAbsolutePath(relativePath);
       }
 
       Path::RemoveFolderUpMarkers(texPathAbs);
-      const eastl::string& texPathInResources = Path::GetRelativeResourcePath(texPathAbs);
+      const eastl::string& texPathInResources = Path::GetRelativePath(texPathAbs);
 
       return texPathInResources;
     }
@@ -112,7 +112,7 @@ namespace Fancy
 
     Priv_MeshImporter::ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 
-    eastl::string pathAbs = Path::GetAbsoluteResourcePath(aPath);
+    eastl::string pathAbs = Path::GetAbsolutePath(aPath);
 
     Assimp::Importer importer;
     const aiScene* importedScene = importer.ReadFile(pathAbs.c_str(), Priv_MeshImporter::GetAiImportOptions(someImportOptions));

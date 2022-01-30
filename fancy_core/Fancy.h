@@ -3,7 +3,6 @@
 #include "FancyCoreDefines.h"
 #include "TimeManager.h"
 #include "Ptr.h"
-#include "WindowsIncludes.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -16,7 +15,7 @@ namespace Fancy {
   class FancyRuntime
   {
   public:
-    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams, const RenderPlatformProperties& someRenderProperties);
+    static FancyRuntime* Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams, const RenderPlatformProperties& someRenderProperties, const char* aRelativeRootFolder);
     static void Shutdown();
     static FancyRuntime* GetInstance();
 
