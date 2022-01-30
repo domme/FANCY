@@ -49,3 +49,5 @@ Tests/tests_runtimedependencies.txt
 FANCY.sln
 
 FANCY.sln.DotSettings
+
+*.sln
