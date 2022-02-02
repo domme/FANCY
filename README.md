@@ -24,15 +24,15 @@ Mostly created for personal learning-purposes and graphics-demos. Most areas are
 * [EASTL](https://github.com/electronicarts/EASTL)
 
 ## Building
-A Visual Studio 2019 solution is included in the sources. In order to build this solution, all git submodules must be properly initialized and some external prebuilt libraries need to be provided. Fancy uses [vcpgk](https://github.com/microsoft/vcpkg) for most of these libraries (all except DirectXShaderCompiler since this is not included in vcpkg).
+Fancy relies on [Sharpmake](https://github.com/ubisoft/Sharpmake) to generate a Visual Studio 2019 solution and project files. Sharpmake is included in the FANCY repository as a Git submodule. Once all external dependencies are set up (read on below how to do that), it should be sufficient to execute "generate_solution.bat".
+
+In order to generate and build this solution, all git submodules must be properly initialized and some external prebuilt libraries need to be provided. Fancy uses [vcpgk](https://github.com/microsoft/vcpkg) for most of these libraries (all except DirectXShaderCompiler and the DX12 Agility SDK since those are not included in vcpkg).
 
 If you don't already have vcpkg installed and set up (including the global Visual Studio integration), please checkout [vcpkg](https://github.com/microsoft/vcpkg) follow the [setup-steps for windows](https://github.com/microsoft/vcpkg#quick-start-windows).
 With a properly set up vcpkg, please execute "get_external_libs.bat" located in the FANCY root folder using cmd or powershell and provide it with the path to the vcpgk root folder as its first argument (e.g. ".\get_external_libs.bat C:/vcpgk/"). This will download and install all required external libraries that are part of vcpkg (e.g. Assimp, EASTL and xxHash).
 
-The DirectXShaderCompiler is the only required library that's not part of vcpkg unfortunately. You can use the bat-file "get_directx_shadercompiler.bat" which downloads and unpacks the specific [release-version](https://github.com/microsoft/DirectXShaderCompiler/releases) of DXC that FANCY currently uses. Alternatively, you can also do this manually by extracting the contents of a DXC release package into external/dxc/
+All other required libraries that are not part of vcpkg need to be downloaded using the bat-script "get_external_binaries.bat" which downloads and unpacks all other prebuilt binaries that are needed (mainly DirectXShaderCompiler and DX12 Agility SDK)
 
 You will also need to have the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) installed on your system (with VK_SDK_PATH environment variable pointing to the correct folder).
 
-Now you're all set to compile and start the "Tests" project.
-
-
+Now you're all set to generate the solution as mentioned above and compile and start the "Tests" project.

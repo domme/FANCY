@@ -1,0 +1,95 @@
+#include "fancy_core_precompile.h"
+
+#include "FancyCoreDefines.h"
+#include "Fancy.h"
+#include "TimeManager.h"
+#include "CommandLine.h"
+
+#include "Rendering/RenderCore.h"
+#include "Rendering/CommandQueue.h"
+#include "Rendering/RenderOutput.h"
+
+#include "IO/PathService.h"
+#include "IO/ObjectCore.h"
+
+#include "Debug/Log.h"
+#include "Debug/Profiler.h"
+
+namespace Fancy {
+//---------------------------------------------------------------------------//
+  FancyRuntime* FancyRuntime::ourInstance = nullptr;
+//---------------------------------------------------------------------------//
+  FancyRuntime::FancyRuntime(HINSTANCE anAppInstanceHandle)
+    : myAppInstanceHandle(anAppInstanceHandle)
+  {
+  }
+//---------------------------------------------------------------------------//
+  FancyRuntime::~FancyRuntime()
+  {
+    RenderCore::Shutdown();
+  }
+//---------------------------------------------------------------------------//
+  FancyRuntime* FancyRuntime::Init(HINSTANCE anAppInstanceHandle, const char** someArguments, uint aNumArguments, const WindowParameters& someWindowParams, const RenderPlatformProperties& someRenderProperties, const char* aRelativeRootFolder)
+  {
+    ASSERT(ourInstance == nullptr);
+    if (ourInstance != nullptr)
+      return ourInstance;
+
+    CommandLine::CreateInstance(someArguments, aNumArguments);
+
+    // Init IO-subsystem
+    Path::InitRootFolder(aRelativeRootFolder);
+
+    ourInstance = new FancyRuntime(anAppInstanceHandle);
+
+    // Init rendering subsystem
+    if (!RenderCore::IsInitialized())
+      RenderCore::Init(someRenderProperties);
+
+    ASSERT(RenderCore::IsInitialized());
+
+    ObjectCore::Init();
+
+    // Create the output
+    ourInstance->myRenderOutput = RenderCore::CreateRenderOutput(anAppInstanceHandle, someWindowParams);
+    
+    return ourInstance;
+  }
+//---------------------------------------------------------------------------//
+  void FancyRuntime::Shutdown()
+  {
+    RenderCore::GetCommandQueue(CommandListType::Graphics)->WaitForIdle();
+    ourInstance->myRenderOutput.reset();
+
+    ASSERT(ourInstance != nullptr);
+    SAFE_DELETE(ourInstance);
+  }
+//---------------------------------------------------------------------------//
+  FancyRuntime* FancyRuntime::GetInstance()
+  {
+    return ourInstance;
+  }
+//---------------------------------------------------------------------------//
+  void FancyRuntime::BeginFrame()
+  {
+    Profiler::BeginFrame();
+    RenderCore::BeginFrame();
+    Profiler::BeginFrameGPU();
+    myRenderOutput->BeginFrame();
+  }
+//---------------------------------------------------------------------------//
+  void FancyRuntime::Update(double _dt)
+  {
+    myRealTimeClock.Update(static_cast<float>(_dt));
+  }
+//---------------------------------------------------------------------------//
+  void FancyRuntime::EndFrame()
+  {
+    myRenderOutput->EndFrame();
+    Profiler::EndFrameGPU();
+    RenderCore::EndFrame();
+    Profiler::EndFrame();
+    ++Time::ourFrameIdx;
+  }
+//---------------------------------------------------------------------------//
+}  // end of namespace Fancy

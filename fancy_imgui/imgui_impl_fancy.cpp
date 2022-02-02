@@ -1,24 +1,24 @@
 #include "imgui_impl_fancy.h"
-#include "imgui.h"
 
 #include <functional>
+#include <Common/Slot.h>
+#include <Common/Window.h>
+#include <Common/WindowsIncludes.h>
+#include <Debug/Annotations.h>
+#include <Debug/Log.h>
+#include <Debug/Profiler.h>
+#include <Rendering/BlendState.h>
+#include <Rendering/CommandList.h>
+#include <Rendering/CommandQueue.h>
+#include <Rendering/DepthStencilState.h>
+#include <Rendering/RenderCore.h>
+#include <Rendering/RenderOutput.h>
+#include <Rendering/ShaderDesc.h>
+#include <Rendering/ShaderPipeline.h>
+#include <Rendering/ShaderPipelineDesc.h>
+#include <Rendering/Texture.h>
 
-#include <ShaderPipeline.h>
-#include <RenderCore.h>
-#include <Window.h>
-#include <RenderOutput.h>
-#include <Texture.h>
-#include <BlendState.h>
-#include <DepthStencilState.h>
-#include <CommandList.h>
-#include <ShaderDesc.h>
-#include <ShaderPipelineDesc.h>
-#include <Slot.h>
-#include <Log.h>
-#include <WindowsIncludes.h>
-#include <CommandQueue.h>
-#include <Profiler.h>
-#include <Annotations.h>
+#include "imgui.h"
 
 ANNOTATION_CREATE_TAG(ANNTAG_IMGUI, "ImGui", 0xFFC17700);
 

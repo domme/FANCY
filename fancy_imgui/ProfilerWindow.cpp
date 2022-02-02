@@ -1,13 +1,14 @@
 #include "ProfilerWindow.h"
 
 #include <imgui.h>
-#include <Profiler.h>
-#include <FancyCoreDefines.h>
-#include <Log.h>
-#include <MathIncludes.h>
+#include <Common/FancyCoreDefines.h>
+#include <Common/MathIncludes.h>
+#include <Common/TimeManager.h>
+#include <Debug/Annotations.h>
+#include <Debug/Log.h>
+#include <Debug/Profiler.h>
+
 #include "imgui_internal.h"
-#include <TimeManager.h>
-#include <Annotations.h>
 
 namespace Fancy
 {
