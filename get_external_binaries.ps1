@@ -39,3 +39,17 @@ Invoke-WebRequest -Uri $Url -OutFile $ZipFile
 
 Expand-Archive $ZipFile -DestinationPath $ExtractPath -Force
 Remove-Item -Path $ZipFile -Force -Confirm:$false
+
+############################################
+# WinPixEventRuntime
+############################################
+$Url = 'https://www.nuget.org/api/v2/package/WinPixEventRuntime/1.0.220124001' 
+$ZipFile = $PSScriptRoot + '/pix.zip'
+
+$ExtractPath = $PSScriptRoot + '/external/WinPixEventRuntime/'
+New-Item -ItemType Directory -Path $ExtractPath -Force
+
+Invoke-WebRequest -Uri $Url -OutFile $ZipFile
+
+Expand-Archive $ZipFile -DestinationPath $ExtractPath -Force
+Remove-Item -Path $ZipFile -Force -Confirm:$false

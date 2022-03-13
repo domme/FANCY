@@ -55,6 +55,11 @@ namespace Fancy
       conf.TargetCopyFiles.Add(FancyExternalBasePath + @"DX12_Agility_SDK/build/native/bin/" + Util.PlatformToArchitecture(target.Platform) + "/D3D12Core.dll");
       conf.TargetCopyFiles.Add(FancyExternalBasePath + @"DX12_Agility_SDK/build/native/bin/" + Util.PlatformToArchitecture(target.Platform) + "/d3d12SDKLayers.dll");
 
+      // WinPixEventRuntime
+      conf.LibraryPaths.Add(FancyExternalBasePath + @"WinPixEventRuntime/bin/" + Util.PlatformToArchitecture(target.Platform));
+      conf.LibraryFiles.Add(new string[] { "WinPixEventRuntime.lib" });
+      conf.TargetCopyFiles.Add(FancyExternalBasePath + @"WinPixEventRuntime/bin/" + Util.PlatformToArchitecture(target.Platform) + "/WinPixEventRuntime.dll");
+
       // DX12
       conf.LibraryFiles.Add(new string[] { "dxgi.lib", "d3d12.lib" });
 

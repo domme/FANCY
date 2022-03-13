@@ -51,3 +51,5 @@ FANCY.sln
 FANCY.sln.DotSettings
 
 *.sln
+
+external/WinPixEventRuntime/

@@ -54,6 +54,9 @@ namespace Fancy
 
       // DX12 Agility
       conf.IncludePaths.Add(ExternalBasePath + "DX12_Agility_SDK/build/native/include/");
+
+      // WinPixEventRuntime
+      conf.IncludePaths.Add(ExternalBasePath + "WinPixEventRuntime/Include/");
     }
   }
 }
