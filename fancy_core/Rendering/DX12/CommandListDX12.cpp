@@ -347,8 +347,6 @@ namespace Fancy {
     TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), D3D12_RESOURCE_STATE_COPY_SOURCE);
     TrackResourceTransition(aDstBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
 
-    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
-
     D3D12_TEXTURE_COPY_LOCATION srcLocation;
     srcLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
     srcLocation.SubresourceIndex = textureSubresourceIndex;
@@ -441,10 +439,6 @@ namespace Fancy {
     dstLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
     dstLocation.SubresourceIndex = destSubResourceIndex;
     dstLocation.pResource = dstResource;
-
-    ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
-
-    const D3D12_RESOURCE_DESC& dstResourceDesc = dstResource->GetDesc();
 
     const DataFormat format = aDstTexture->GetProperties().myFormat;
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
@@ -641,7 +635,6 @@ namespace Fancy {
   {
     const GpuQueryHeapDX12* queryHeapDx12 = static_cast<const GpuQueryHeapDX12*>(aQueryHeap);
     const GpuBufferDX12* bufferDx12 = static_cast<const GpuBufferDX12*>(aBuffer);
-    GpuResourceDataDX12* resourceDataDx12 = bufferDx12->GetData();
 
     TrackResourceTransition(aBuffer, D3D12_RESOURCE_STATE_COPY_DEST);
     FlushBarriers();
@@ -938,7 +931,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::TrackResourceTransition(const GpuResource* aResource, D3D12_RESOURCE_STATES aNewState, bool aIsSharedReadState /* = false */)
   {
-    TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewState);
+    TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewState, aIsSharedReadState);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::TrackSubresourceTransition(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, D3D12_RESOURCE_STATES aNewState, bool aToSharedReadState /* = false */)
@@ -972,15 +965,17 @@ namespace Fancy {
     const bool dstIsRead = (dstStates & DX12_READ_STATES) == dstStates;
 
     LocalHazardData* localData = nullptr;
-    auto it = myLocalHazardData.find(aResource);
-    if (it == myLocalHazardData.end())  // We don't have a local record of this resource yet
     {
-      localData = &myLocalHazardData[aResource];
-      localData->mySubresources.resize(aResource->mySubresources.GetNumSubresources());
-    }
-    else
-    {
-      localData = &it->second;
+      auto it = myLocalHazardData.find(aResource);
+      if (it == myLocalHazardData.end())  // We don't have a local record of this resource yet
+      {
+        localData = &myLocalHazardData[aResource];
+        localData->mySubresources.resize(aResource->mySubresources.GetNumSubresources());
+      }
+      else
+      {
+        localData = &it->second;
+      }
     }
 
     bool canTransitionAllSubresources = numPossibleSubresourceTransitions == aResource->mySubresources.GetNumSubresources();

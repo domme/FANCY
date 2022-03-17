@@ -277,7 +277,7 @@ namespace Fancy
     return nullptr;
   }
 //---------------------------------------------------------------------------//
-  void ObjectCore::ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter aFilter)
+  void ObjectCore::ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter /*aFilter*/)
   {
     const TextureProperties& texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;

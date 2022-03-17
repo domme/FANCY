@@ -76,7 +76,7 @@ namespace Fancy
     myFocusPoint = myCamera->myPosition + myCamera->myOrientation * glm::float3(0.0f, 0.0f, myFocusPointDistance);
   }
 
-  void CameraController::UpdateTrackballCamera(float aDeltaTime, const Fancy::InputState& anInputState)
+  void CameraController::UpdateTrackballCamera(float /*aDeltaTime*/, const Fancy::InputState& anInputState)
   {
     if (anInputState.myMouseBtnMask & InputState::MOUSE_BTN_LEFT)
     {

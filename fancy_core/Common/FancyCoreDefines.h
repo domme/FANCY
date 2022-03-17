@@ -16,7 +16,7 @@ using FixedShortString = eastl::fixed_string<char, 32>;
 #define SIZE_KB (1024)
 //---------------------------------------------------------------------------//  
   template<class T, unsigned int Size>
-  constexpr unsigned int GetArraySize(T(&anArray)[Size])
+  constexpr unsigned int GetArraySize(T(&)[Size])
   {
     return Size;
   }

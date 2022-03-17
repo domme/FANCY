@@ -88,7 +88,7 @@ namespace Fancy
     return true;
   }
 //---------------------------------------------------------------------------//
-  void StaticDescriptorAllocatorDX12::DestroyPageData(eastl::any& aPageData)
+  void StaticDescriptorAllocatorDX12::DestroyPageData(eastl::any& /*aPageData*/)
   {
   }
 //---------------------------------------------------------------------------//

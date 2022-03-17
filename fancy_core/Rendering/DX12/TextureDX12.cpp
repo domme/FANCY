@@ -89,8 +89,8 @@ namespace Fancy {
     resourceDesc.Alignment = 0;
     resourceDesc.Width = glm::max(1u, static_cast<uint>(myProperties.myWidth));
     resourceDesc.Height = glm::max(1u, static_cast<uint>(myProperties.myHeight));
-    resourceDesc.DepthOrArraySize = glm::max(1u, static_cast<uint>(myProperties.myDepthOrArraySize));
-    resourceDesc.MipLevels = myProperties.myNumMipLevels;
+    resourceDesc.DepthOrArraySize = (uint16) glm::max(1u, static_cast<uint>(myProperties.myDepthOrArraySize));
+    resourceDesc.MipLevels = (uint16) myProperties.myNumMipLevels;
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;

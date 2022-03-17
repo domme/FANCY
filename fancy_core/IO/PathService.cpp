@@ -198,7 +198,7 @@ namespace Fancy {
       {
         size_t posSlashBefore = aPath.rfind('/', posDots - 1u);
         if ((size_t)posSlashBefore == eastl::string::npos)
-          posSlashBefore = -1;
+          posSlashBefore = (size_t) -1;
 
         eastl::string firstPart = aPath.substr(0u, (size_t)(posSlashBefore + 1u));
         eastl::string secondPart = aPath.substr(posDots + kSearchKeyLen);
@@ -206,7 +206,7 @@ namespace Fancy {
 
         posDots = aPath.find(kSearchKey);
 
-        if (posSlashBefore == -1)
+        if (posSlashBefore == (size_t) -1)
           break;
       }
     }

@@ -16,7 +16,7 @@ namespace Fancy
   {
   }
 //---------------------------------------------------------------------------//
-  void InputState::OnWindowEvent(UINT message, WPARAM wParam, LPARAM lParam, bool* aWasHandled)
+  void InputState::OnWindowEvent(UINT message, WPARAM wParam, LPARAM lParam, bool* /*aWasHandled*/)
   {
     switch (message)
     {

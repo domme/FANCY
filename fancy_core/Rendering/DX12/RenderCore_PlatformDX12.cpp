@@ -945,12 +945,12 @@ CommandQueue* RenderCore_PlatformDX12::CreateCommandQueue(CommandListType aType)
   return new CommandQueueDX12(aType);
 }
 //---------------------------------------------------------------------------//
-TextureView* RenderCore_PlatformDX12::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName /* = nullptr */)
+TextureView* RenderCore_PlatformDX12::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* /*aDebugName*/ /* = nullptr */)
 {
   return new TextureViewDX12(aTexture, someProperties);
 }
 //---------------------------------------------------------------------------//
-GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName /* = nullptr */)
+GpuBufferView* RenderCore_PlatformDX12::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* /*aDebugName*/ /* = nullptr */)
 {
   return new GpuBufferViewDX12(aBuffer, someProperties);
 }

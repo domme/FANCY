@@ -71,13 +71,15 @@ namespace Fancy
   void PagedLinearAllocator::Free(const Block& aBlockToFree)
   {
 #if CORE_DEBUG_MEMORY_ALLOCATIONS
-    auto it = eastl::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&aBlockToFree](const AllocDebugInfo& anInfo)
     {
-      return anInfo.myStart == aBlockToFree.myStart;
-    });
+      auto it = eastl::find_if(myAllocDebugInfos.begin(), myAllocDebugInfos.end(), [&aBlockToFree](const AllocDebugInfo& anInfo)
+      {
+        return anInfo.myStart == aBlockToFree.myStart;
+      });
 
-    ASSERT(it != myAllocDebugInfos.end());
-    myAllocDebugInfos.erase(it);
+      ASSERT(it != myAllocDebugInfos.end());
+      myAllocDebugInfos.erase(it);
+    }
 #endif
 
     auto pageIt = eastl::find_if(myPages.begin(), myPages.end(), [aBlockToFree](const Page& aPage)

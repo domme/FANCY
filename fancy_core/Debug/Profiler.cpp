@@ -69,7 +69,8 @@ namespace Fancy
     if (ourNodeInfoPool.find(hash) == ourNodeInfoPool.end())
     {
       SampleNodeInfo& info = ourNodeInfoPool[hash];
-      strcpy(info.myName, aName);
+      ASSERT(strlen(aName) <= ARRAY_LENGTH(info.myName));
+      memcpy(info.myName, aName, strlen(aName));
       info.myTag = aTag;
     }
 

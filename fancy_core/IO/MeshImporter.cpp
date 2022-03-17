@@ -182,7 +182,7 @@ namespace Fancy
       aiMaterial* aiMaterial = myScene->mMaterials[aiMatIndex];
 
       SceneMeshInstance meshInstance;
-      meshInstance.myMeshIndex = CreateMesh(aNode, meshList.data(), (uint)meshList.size(), aResultOut);
+      meshInstance.myMeshIndex = CreateMesh(meshList.data(), (uint)meshList.size(), aResultOut);
       meshInstance.myMaterialIndex = CreateMaterial(aiMaterial, aResultOut);
       meshInstance.myTransform = aTransform;
       aResultOut.myInstances.push_back(meshInstance);
@@ -191,7 +191,7 @@ namespace Fancy
     return true;
   }
 //---------------------------------------------------------------------------//
-  uint MeshImporter::CreateMesh(const aiNode* aNode, aiMesh** someMeshes, uint aMeshCount, SceneData& aResultOut)
+  uint MeshImporter::CreateMesh(aiMesh** someMeshes, uint aMeshCount, SceneData& aResultOut)
   {
     // Mesh already created during this import-process?
     uint64 assimpMeshListHash = 0u;
@@ -424,9 +424,9 @@ namespace Fancy
 
     const eastl::string& diffuseTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_DIFFUSE, 0u, mySourcePath);
     const eastl::string& normalTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_NORMALS, 0u, mySourcePath);
-    const eastl::string& specularTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_SPECULAR, 0u, mySourcePath);
+    // const eastl::string& specularTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_SPECULAR, 0u, mySourcePath);
     const eastl::string& specPowerTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_SHININESS, 0u, mySourcePath);
-    const eastl::string& opacityTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_OPACITY, 0u, mySourcePath);
+    // const eastl::string& opacityTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_OPACITY, 0u, mySourcePath);
 
     MaterialDesc matDesc;
     matDesc.myTextures[(uint)MaterialTextureType::BASE_COLOR] = diffuseTexPath;

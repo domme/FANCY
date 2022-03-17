@@ -37,7 +37,7 @@ namespace Fancy {
     bool ProcessNodeRecursive(const aiNode* aNode, const glm::float4x4& aParentTransform, SceneData& aResultOut);
     bool ProcessMeshes(const aiNode* aNode, const glm::float4x4& aTransform, SceneData& aResultOut);
 
-    uint CreateMesh(const aiNode* aNode, aiMesh** someMeshes, uint aMeshCount, SceneData& aResultOut);
+    uint CreateMesh(aiMesh** someMeshes, uint aMeshCount, SceneData& aResultOut);
     MeshDesc CreateMeshDesc(uint64 anAssimpMeshListHash);
 
     uint CreateMaterial(const aiMaterial* anAiMaterial, SceneData& aResultOut);

@@ -22,7 +22,7 @@ namespace Fancy
       AnnotationTagData& tagData = myData[myNextFreeIdx];
       ASSERT(strlen(aName) <= ARRAY_LENGTH(tagData.myName));
 
-      strcpy(tagData.myName, aName);
+      memcpy(tagData.myName, aName, strlen(aName));
       tagData.myColor = aColor;
 
       return static_cast<uint8>(myNextFreeIdx++);
