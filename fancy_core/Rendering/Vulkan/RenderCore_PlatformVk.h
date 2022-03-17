@@ -28,6 +28,8 @@ struct VkExt
 
   static PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
   static PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
+  static PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabel;
+  static PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabel;
 };
 
 namespace Fancy

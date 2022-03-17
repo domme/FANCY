@@ -8,6 +8,8 @@
 #include "Rendering/CommandQueue.h"
 #include "Rendering/GpuBuffer.h"
 
+#include "Debug/Annotations.h"
+
 #include <chrono>
 #include <ratio>
 
@@ -231,6 +233,9 @@ namespace Fancy
     const GpuQuery timestamp = aCommandList->InsertTimestamp();
     newSample.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
     newSample.myStart.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
+
+    uint color = Annotations::GetTagData(aTag).myColor;
+    aCommandList->BeginMarkerRegion(aName, color);
   }
 //---------------------------------------------------------------------------//
   void Profiler::PopGpuMarker(CommandList* aCommandList)
@@ -244,6 +249,8 @@ namespace Fancy
     const GpuQuery timestamp = aCommandList->InsertTimestamp();
     closedSample.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
     closedSample.myEnd.myQueryInfo.myCommandListType = (uint)timestamp.myCommandListType;
+
+    aCommandList->EndMarkerRegion();
   }
 //---------------------------------------------------------------------------//
   void Profiler::BeginFrame()

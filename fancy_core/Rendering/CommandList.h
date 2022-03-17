@@ -102,6 +102,8 @@ namespace Fancy {
     virtual void EndQuery(const GpuQuery& aQuery) = 0;
     virtual GpuQuery InsertTimestamp() = 0;
     virtual void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) = 0;
+    virtual void BeginMarkerRegion(const char* aName, uint aColor = UINT_MAX);
+    virtual void EndMarkerRegion();
 
     void TransitionResource(const GpuResource* aResource, ResourceTransition aTransition, uint someUsageFlags = 0u);
     virtual void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint someUsageFlags = 0u) = 0;
@@ -118,6 +120,7 @@ namespace Fancy {
     virtual void Close() = 0;
 
     virtual void FlushBarriers() = 0;
+    void PreExecute();
     virtual void PostExecute(uint64 aFenceVal);
     virtual void ResetAndOpen();
 
@@ -171,6 +174,7 @@ namespace Fancy {
     bool myClipRectDirty;
     bool myTopologyDirty;
     bool myRenderTargetsDirty;
+    uint myMarkerRegionStackDepth;
     TextureView* myRenderTargets[RenderConstants::kMaxNumRenderTargets];
     TextureView* myDepthStencilTarget;
 

@@ -1,6 +1,8 @@
 #include "fancy_core_precompile.h"
 #include "CommandListDX12.h"
 
+#if FANCY_ENABLE_DX12
+
 #include "Common/FancyCoreDefines.h"
 #include "Common/TimeManager.h"
 
@@ -19,7 +21,7 @@
 #include "DebugUtilsDX12.h"
 #include "RtPipelineStateDX12.h"
 
-#if FANCY_ENABLE_DX12
+#include "WinPixEventRuntime/pix3.h"
 
 namespace Fancy { 
 //---------------------------------------------------------------------------//
@@ -651,6 +653,18 @@ namespace Fancy {
       aNumQueries,
       bufferDx12->GetData()->myResource.Get(), 
       aBufferOffset);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::BeginMarkerRegion(const char* aName, uint aColor)
+  {
+    CommandList::BeginMarkerRegion(aName, aColor);
+    PIXBeginEvent(myCommandList, aColor, aName);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::EndMarkerRegion()
+  {
+    CommandList::EndMarkerRegion();
+    PIXEndEvent(myCommandList);
   }
 //---------------------------------------------------------------------------//
   void CommandListDX12::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint /* someUsageFlags = 0u*/)

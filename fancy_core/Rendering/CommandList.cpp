@@ -101,6 +101,7 @@ namespace Fancy {
     , myDepthStencilTarget(nullptr)
     , myRaytracingPipelineState(nullptr)
     , myRaytracingPipelineStateDirty(false)
+    , myMarkerRegionStackDepth(0u)
   {
   }
 //---------------------------------------------------------------------------//
@@ -301,6 +302,17 @@ namespace Fancy {
     myClipRectDirty = true;
   }
 //---------------------------------------------------------------------------//
+  void CommandList::BeginMarkerRegion(const char* /*aName*/, uint /*aColor*/)
+  {
+    ++myMarkerRegionStackDepth;
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::EndMarkerRegion()
+  {
+    ASSERT(myMarkerRegionStackDepth > 0);
+    --myMarkerRegionStackDepth;
+  }
+//---------------------------------------------------------------------------//
   void CommandList::TransitionResource(const GpuResource* aResource, ResourceTransition aTransition, uint someUsageFlags /* = 0u */)
   {
     TransitionResource(aResource, aResource->GetSubresources(), aTransition, someUsageFlags);
@@ -324,6 +336,12 @@ namespace Fancy {
     }
 
     PrepareResourceShaderAccess(aView->GetResource(), aView->GetSubresourceRange(), access);
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::PreExecute()
+  {
+    ASSERT(myMarkerRegionStackDepth == 0, "There are still %d region markers open when trying to execute the command list. Did you forget to call EndMarkerRegion()?");
+    FlushBarriers();
   }
 //---------------------------------------------------------------------------//
   void CommandList::PostExecute(uint64 aFenceVal)
@@ -366,6 +384,7 @@ namespace Fancy {
     myViewportDirty = true;
     myRenderTargetsDirty = true;
     myDepthStencilTarget = nullptr;
+    myMarkerRegionStackDepth = 0u;
     memset(myRenderTargets, 0u, sizeof(myRenderTargets));
 
     myIsOpen = true;

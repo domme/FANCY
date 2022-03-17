@@ -62,6 +62,8 @@ namespace Fancy
     void EndQuery(const GpuQuery& aQuery) override;
     GpuQuery InsertTimestamp() override;
     void CopyQueryDataToBuffer(const GpuQueryHeap* aQueryHeap, const GpuBuffer* aBuffer, uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset) override;
+    void BeginMarkerRegion(const char* aName, uint aColor) override;
+    void EndMarkerRegion() override;
 
     void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint someUsageFlags = 0u) override;
     void PrepareResourceShaderAccess(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceAccess aTransition) override;

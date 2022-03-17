@@ -43,7 +43,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   uint64 CommandQueue::ExecuteAndFreeCommandList(CommandList* aCommandList, SyncMode aSyncMode)
   {
-    aCommandList->FlushBarriers();
+    aCommandList->PreExecute();
     const uint64 fence = ExecuteCommandListInternal(aCommandList, aSyncMode);
     FreeCommandList(aCommandList);
     return fence;
@@ -51,7 +51,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   uint64 CommandQueue::ExecuteAndResetCommandList(CommandList* aCommandList, SyncMode aSyncMode)
   {
-    aCommandList->FlushBarriers();
+    aCommandList->PreExecute();
     return ExecuteAndResetCommandListInternal(aCommandList, aSyncMode);
   }
 //---------------------------------------------------------------------------//

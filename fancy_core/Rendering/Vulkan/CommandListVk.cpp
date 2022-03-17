@@ -737,6 +737,25 @@ namespace Fancy
     vkCmdCopyQueryPoolResults(myCommandBuffer, queryHeapVk->GetQueryPool(), aFirstQueryIndex, aNumQueries, bufferDataVk->myBufferData.myBuffer, aBufferOffset, stride, resultFlags);
   }
 //---------------------------------------------------------------------------//
+  void CommandListVk::BeginMarkerRegion(const char* aName, uint aColor)
+  {
+    CommandList::BeginMarkerRegion(aName, aColor);
+
+    VkDebugUtilsLabelEXT marker = { VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT };
+    marker.pLabelName = aName;
+    marker.color[0] = float(aColor & 0xFF) / 255.0f;
+    marker.color[1] = float((aColor >> 8) & 0xFF) / 255.0f;
+    marker.color[2] = float((aColor >> 16) & 0xFF) / 255.0f;
+    marker.color[3] = float((aColor >> 24) & 0xFF) / 255.0f;
+    VkExt::vkCmdBeginDebugUtilsLabel(myCommandBuffer, &marker);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::EndMarkerRegion()
+  {
+    CommandList::EndMarkerRegion();
+    VkExt::vkCmdEndDebugUtilsLabel(myCommandBuffer);
+  }
+//---------------------------------------------------------------------------//
   void CommandListVk::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint /* someUsageFlags = 0u*/)
   {
     VkImageLayout newLayout = VK_IMAGE_LAYOUT_UNDEFINED;

@@ -24,17 +24,19 @@
 #include "RtAccelerationStructureVk.h"
 #include "RtPipelineStateVk.h"
 
-PFN_vkCreateAccelerationStructureKHR VkExt::vkCreateAccelerationStructureKHR;
-PFN_vkDestroyAccelerationStructureKHR VkExt::vkDestroyAccelerationStructureKHR;
-PFN_vkGetAccelerationStructureBuildSizesKHR VkExt::vkGetAccelerationStructureBuildSizesKHR;
-PFN_vkCmdBuildAccelerationStructuresKHR VkExt::vkCmdBuildAccelerationStructuresKHR;
-PFN_vkGetAccelerationStructureDeviceAddressKHR VkExt::vkGetAccelerationStructureDeviceAddressKHR;
-PFN_vkBuildAccelerationStructuresKHR VkExt::vkBuildAccelerationStructuresKHR;
-PFN_vkCmdTraceRaysKHR VkExt::vkCmdTraceRaysKHR;
-PFN_vkGetRayTracingShaderGroupHandlesKHR VkExt::vkGetRayTracingShaderGroupHandlesKHR;
-PFN_vkCreateRayTracingPipelinesKHR VkExt::vkCreateRayTracingPipelinesKHR;
-PFN_vkCreateDebugReportCallbackEXT VkExt::vkCreateDebugReportCallbackEXT;
-PFN_vkDestroyDebugReportCallbackEXT VkExt::vkDestroyDebugReportCallbackEXT;
+PFN_vkCreateAccelerationStructureKHR VkExt::vkCreateAccelerationStructureKHR = nullptr;
+PFN_vkDestroyAccelerationStructureKHR VkExt::vkDestroyAccelerationStructureKHR = nullptr;
+PFN_vkGetAccelerationStructureBuildSizesKHR VkExt::vkGetAccelerationStructureBuildSizesKHR = nullptr;
+PFN_vkCmdBuildAccelerationStructuresKHR VkExt::vkCmdBuildAccelerationStructuresKHR = nullptr;
+PFN_vkGetAccelerationStructureDeviceAddressKHR VkExt::vkGetAccelerationStructureDeviceAddressKHR = nullptr;
+PFN_vkBuildAccelerationStructuresKHR VkExt::vkBuildAccelerationStructuresKHR = nullptr;
+PFN_vkCmdTraceRaysKHR VkExt::vkCmdTraceRaysKHR = nullptr;
+PFN_vkGetRayTracingShaderGroupHandlesKHR VkExt::vkGetRayTracingShaderGroupHandlesKHR = nullptr;
+PFN_vkCreateRayTracingPipelinesKHR VkExt::vkCreateRayTracingPipelinesKHR = nullptr;
+PFN_vkCreateDebugReportCallbackEXT VkExt::vkCreateDebugReportCallbackEXT = nullptr;
+PFN_vkDestroyDebugReportCallbackEXT VkExt::vkDestroyDebugReportCallbackEXT = nullptr;
+PFN_vkCmdBeginDebugUtilsLabelEXT VkExt::vkCmdBeginDebugUtilsLabel = nullptr;
+PFN_vkCmdEndDebugUtilsLabelEXT VkExt::vkCmdEndDebugUtilsLabel = nullptr;
 
 namespace Fancy
 {
@@ -817,6 +819,12 @@ namespace Fancy
       VkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT) vkGetInstanceProcAddr(myInstance, "vkSetDebugUtilsObjectNameEXT");
       ASSERT(VkSetDebugUtilsObjectNameEXT != nullptr);
 
+      VkExt::vkCmdBeginDebugUtilsLabel = (PFN_vkCmdBeginDebugUtilsLabelEXT) vkGetInstanceProcAddr(myInstance, "vkCmdBeginDebugUtilsLabelEXT");
+      ASSERT(VkExt::vkCmdBeginDebugUtilsLabel != nullptr);
+
+      VkExt::vkCmdEndDebugUtilsLabel = (PFN_vkCmdEndDebugUtilsLabelEXT) vkGetInstanceProcAddr(myInstance, "vkCmdEndDebugUtilsLabelEXT");
+      ASSERT(VkExt::vkCmdEndDebugUtilsLabel != nullptr);
+      
       if (debugLayerBreak)
       {
         VkExt::vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(myInstance, "vkCreateDebugReportCallbackEXT");
