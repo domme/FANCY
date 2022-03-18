@@ -1,10 +1,10 @@
 #include "Test_SharedQueueResourceUsage.h"
 
-#include "RenderCore.h"
-#include "CommandList.h"
-#include "CommandQueue.h"
-#include "ShaderPipelineDesc.h"
-#include "TempResourcePool.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/CommandList.h"
+#include "Rendering/CommandQueue.h"
+#include "Rendering/ShaderPipelineDesc.h"
+#include "Rendering/TempResourcePool.h"
 
 #include "EASTL/vector.h"
 
@@ -13,7 +13,7 @@ using namespace Fancy;
 static uint kNumBufferElements = 1024;
 
 Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Shared Queue Resources")
+  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Shared Queue Resources")
 {
   GpuBufferProperties props;
   props.myElementSizeBytes = sizeof(uint);

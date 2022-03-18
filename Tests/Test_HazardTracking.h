@@ -1,10 +1,10 @@
 #pragma once
-#include "Test.h"
-#include "GpuBuffer.h"
-#include "ShaderPipeline.h"
-#include "Texture.h"
+#include "Common/Application.h"
+#include "Rendering/GpuBuffer.h"
+#include "Rendering/ShaderPipeline.h"
+#include "Rendering/Texture.h"
 
-class Test_HazardTracking : public Test
+class Test_HazardTracking : public Application
 {
 public:
   Test_HazardTracking(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

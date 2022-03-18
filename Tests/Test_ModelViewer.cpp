@@ -3,25 +3,24 @@
 #include <EASTL/fixed_vector.h>
 #include <EASTL/span.h>
 
-#include "Window.h"
-#include "ShaderPipelineDesc.h"
-#include "RenderCore.h"
-#include "CommandList.h"
-#include "RenderOutput.h"
-#include "GpuResourceView.h"
-#include "Mesh.h"
-#include "TextureSampler.h"
-#include "Mesh.h"
-#include "ShaderPipeline.h"
-#include "Shader.h"
-#include "Texture.h"
-#include "StringUtil.h"
+#include "Common/Window.h"
+#include "Rendering/ShaderPipelineDesc.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/CommandList.h"
+#include "Rendering/RenderOutput.h"
+#include "Rendering/GpuResourceView.h"
+#include "IO/Mesh.h"
+#include "Rendering/TextureSampler.h"
+#include "Rendering/ShaderPipeline.h"
+#include "Rendering/Shader.h"
+#include "Rendering/Texture.h"
+#include "Common/StringUtil.h"
 #include "imgui.h"
-#include "ObjectCore.h"
-#include "GpuBufferProperties.h"
-#include "GpuBuffer.h"
-#include "Material.h"
-#include "Scene.h"
+#include "IO/ObjectCore.h"
+#include "Rendering/GpuBufferProperties.h"
+#include "Rendering/GpuBuffer.h"
+#include "IO/Material.h"
+#include "IO/Scene.h"
 
 using namespace Fancy;
 
@@ -54,7 +53,7 @@ static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const ch
 
 Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Model Viewer")
+  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Model Viewer")
   , myCameraController(&myCamera)
 {
   myUnlitTexturedShader = locLoadShader("fancy/resources/shaders/Unlit_Textured.hlsl");

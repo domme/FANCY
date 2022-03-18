@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Test.h"
-#include "Ptr.h"
-#include "Camera.h"
-#include "CameraController.h"
-#include "MeshImporter.h"
+#include "Common/Application.h"
+#include "Common/Ptr.h"
+#include "Common/Camera.h"
+#include "Common/CameraController.h"
+#include "IO/MeshImporter.h"
 
 namespace Fancy
 {
@@ -17,7 +17,7 @@ namespace Fancy
   struct Scene;
 }
 
-class Test_ModelViewer : public Test
+class Test_ModelViewer : public Application
 {
 public:
   Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

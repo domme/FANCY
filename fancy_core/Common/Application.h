@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FancyCoreDefines.h"
+#include "Common/FancyCoreDefines.h"
 #include "EASTL/string.h"
 
 namespace Fancy {
@@ -10,17 +10,17 @@ namespace Fancy {
   class RenderOutput;
 }
 
-class Test
+class Application
 {
 public:
-  Test(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState, const char* aName)
+  Application(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState, const char* aName)
     : myRuntime(aRuntime)
     , myWindow(aWindow)
     , myOutput(aRenderOutput)
     , myInput(anInputState)
     , myName(aName)
   { }
-  virtual ~Test() = default;
+  virtual ~Application() = default;
 
   virtual void OnWindowResized(uint /*aWidth*/, uint /*aHeight*/) {};
   virtual void OnUpdate(bool /*aDrawProperties*/) {}

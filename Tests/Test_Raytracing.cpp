@@ -1,26 +1,26 @@
 #include "Test_Raytracing.h"
-#include "GpuBuffer.h"
-#include "GpuBufferProperties.h"
+#include "Rendering/GpuBuffer.h"
+#include "Rendering/GpuBufferProperties.h"
 
 #include <EASTL/fixed_vector.h>
 #include <EASTL/vector.h>
 
-#include "CommandList.h"
-#include "CommandListDX12.h"
-#include "RtAccelerationStructure.h"
-#include "RtPipelineState.h"
-#include "RtShaderBindingTable.h"
-#include "ShaderDesc.h"
-#include "RenderEnums.h"
-#include "RenderOutput.h"
-#include "TempResourcePool.h"
-#include "Window.h"
+#include "Rendering/CommandList.h"
+#include "Rendering/DX12/CommandListDX12.h"
+#include "Rendering/RtAccelerationStructure.h"
+#include "Rendering/RtPipelineState.h"
+#include "Rendering/RtShaderBindingTable.h"
+#include "Rendering/ShaderDesc.h"
+#include "Rendering/RenderEnums.h"
+#include "Rendering/RenderOutput.h"
+#include "Rendering/TempResourcePool.h"
+#include "Common/Window.h"
 
 using namespace Fancy;
 
 Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-    : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Raytracing")
+    : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Raytracing")
 {
   // Create bottom level BVH
   eastl::vector<glm::float3> vertices = {

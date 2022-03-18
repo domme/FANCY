@@ -1,10 +1,12 @@
 #include "Test_Mipmapping.h"
-#include "TextureProperties.h"
-#include "Log.h"
-#include "Texture.h"
-#include "RenderCore.h"
+#include "Rendering/TextureProperties.h"
+#include "Rendering/Texture.h"
 #include "imgui.h"
-#include "ObjectCore.h"
+#include "Common/Ptr.h"
+#include "Debug/Log.h"
+#include "IO/ObjectCore.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/TextureProperties.h"
 
 using namespace Fancy;
 
@@ -55,7 +57,7 @@ void ImageData::Create(SharedPtr<TextureView> aTexture)
 
 Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Mipmapping")
+  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Mipmapping")
 {
   const uint loadFlags = ObjectCore::SHADER_WRITABLE;
   myImageDatas.push_back(ObjectCore::LoadTexture("Textures/Sibenik/kamen.png", loadFlags));

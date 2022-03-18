@@ -1,19 +1,21 @@
 #include "Test_GpuMemoryAllocator.h"
 
-#include "MathUtil.h"
-#include "Profiler.h"
-#include "GpuBuffer.h"
+#include "Common/MathUtil.h"
+#include "Debug/Profiler.h"
+#include "Rendering/GpuBuffer.h"
 #include "imgui.h"
-#include "RenderCore.h"
-#include "RenderCore_PlatformDX12.h"
-#include "StringUtil.h"
-#include "PagedLinearAllocator.h"
-#include "StaticString.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/DX12/RenderCore_PlatformDX12.h"
+#include "Common/StringUtil.h"
+#include "Common/PagedLinearAllocator.h"
+#include "Common/StaticString.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/RenderEnums.h"
 
 using namespace Fancy;
 
 Test_GpuMemoryAllocator::Test_GpuMemoryAllocator(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "GPU Memory Allocations")
+  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "GPU Memory Allocations")
   , myBufferToAllocSizeMb(64)
   , myScale(10.0f)
 {

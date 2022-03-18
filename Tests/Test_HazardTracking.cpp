@@ -1,14 +1,15 @@
 #include "Test_HazardTracking.h"
-#include "TextureProperties.h"
-#include "Texture.h"
-#include "RenderCore.h"
-#include "CommandList.h"
+#include "Rendering/Texture.h"
+#include "Rendering/CommandList.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/TextureProperties.h"
+#include "Rendering/ShaderPipeline.h"
 
 using namespace Fancy;
 
 Test_HazardTracking::Test_HazardTracking(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Hazard Tracking")
+  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Hazard Tracking")
 {
   TextureProperties texProps;
   texProps.myWidth = 32;

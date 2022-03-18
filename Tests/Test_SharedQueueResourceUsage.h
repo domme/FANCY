@@ -1,9 +1,9 @@
 #pragma once
-#include "Test.h"
-#include "GpuBuffer.h"
-#include "ShaderPipeline.h"
+#include "Common/Application.h"
+#include "Rendering/GpuBuffer.h"
+#include "Rendering/ShaderPipeline.h"
 
-class Test_SharedQueueResourceUsage : public Test
+class Test_SharedQueueResourceUsage : public Application
 {
 public:
   Test_SharedQueueResourceUsage(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

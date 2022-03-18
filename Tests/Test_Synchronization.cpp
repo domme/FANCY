@@ -1,11 +1,11 @@
 #include "Test_Synchronization.h"
 
-#include "MathUtil.h"
-#include "GpuBuffer.h"
+#include "Common/MathUtil.h"
+#include "Rendering/GpuBuffer.h"
 #include "imgui.h"
-#include "RenderCore.h"
-#include "CommandList.h"
-#include "TimeManager.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/CommandList.h"
+#include "Common/TimeManager.h"
 
 #include "EASTL/vector.h"
 
@@ -14,7 +14,7 @@ using namespace Fancy;
 static uint kNumBufferElements = 1000;
 
 Test_Synchronization::Test_Synchronization(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Synchronization")
+  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Synchronization")
 {
   GpuBufferProperties props;
   props.myElementSizeBytes = sizeof(uint);

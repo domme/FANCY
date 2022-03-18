@@ -2,7 +2,7 @@
 #include "imgui.h"
 
 Test_ImGui::Test_ImGui(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "ImGui")
+  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "ImGui")
 {
 
 }

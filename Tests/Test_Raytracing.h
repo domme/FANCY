@@ -1,6 +1,6 @@
 #pragma once
-#include "Test.h"
-#include "Ptr.h"
+#include "Common/Application.h"
+#include "Common/Ptr.h"
 
 using namespace Fancy;
 
@@ -16,7 +16,7 @@ namespace Fancy
   class Shader;
 }
 
-class Test_Raytracing : public Test
+class Test_Raytracing : public Application
 {
 public:
   Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

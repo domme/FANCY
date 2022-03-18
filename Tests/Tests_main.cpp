@@ -1,16 +1,16 @@
 #include <Windows.h>
 #include <imgui.h>
 #include <imgui_impl_fancy.h>
-#include <RenderOutput.h>
-#include <RenderCore.h>
-#include "CommandList.h"
-#include <Fancy.h>
-#include <Window.h>
-#include <Profiler.h>
-#include <Input.h>
+#include "Rendering/RenderOutput.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/CommandList.h"
+#include "Common/Fancy.h"
+#include "Common/Window.h"
+#include "Debug/Profiler.h"
+#include "Common/Input.h"
 
 #include <array>
-#include "Test.h"
+#include "Common/Application.h"
 #include "Test_Profiler.h"
 #include "Test_ImGui.h"
 #include "Test_GpuMemoryAllocator.h"
@@ -19,9 +19,10 @@
 #include "Test_Mipmapping.h"
 #include "Test_ModelViewer.h"
 #include "Test_Raytracing.h"
-#include "StringUtil.h"
 #include "Test_SharedQueueResourceUsage.h"
 #include "Test_HazardTracking.h"
+#include "Common/Ptr.h"
+#include "Common/StringUtil.h"
 
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 4; }
 
@@ -57,11 +58,11 @@ UniquePtr<Test_SharedQueueResourceUsage> mySharedQueueResourceUsageTest;
 UniquePtr<Test_HazardTracking> myHazardTrackingTest;
 UniquePtr<Test_Raytracing> myRaytracingTest;
 
-eastl::vector<Test*> myTests;
+eastl::vector<Application*> myTests;
 
 void OnWindowResized(uint aWidth, uint aHeight)
 {
-  for (Test* testItem : myTests)
+  for (Application* testItem : myTests)
   {
     testItem->OnWindowResized(aWidth, aHeight);
   }
@@ -134,7 +135,7 @@ void Update()
 
   ImGui::Separator();
 
-  for (Test* testItem : myTests)
+  for (Application* testItem : myTests)
   {
     if (ImGui::TreeNode(testItem->GetName()))
     {
@@ -158,7 +159,7 @@ void Render()
   GPU_END_PROFILE(ctx);
   RenderCore::ExecuteAndFreeCommandList(ctx);
 
-  for (Test* testItem : myTests)
+  for (Application* testItem : myTests)
     testItem->OnRender();
 
   ImGui::Render();

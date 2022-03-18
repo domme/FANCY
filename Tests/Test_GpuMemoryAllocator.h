@@ -1,11 +1,11 @@
 #pragma once
-#include "Test.h"
-#include "GpuBuffer.h"
-#include "Texture.h"
+#include "Common/Application.h"
+#include "Rendering/GpuBuffer.h"
+#include "Rendering/Texture.h"
 
 #include "EASTL/vector.h"
 
-class Test_GpuMemoryAllocator : public Test
+class Test_GpuMemoryAllocator : public Application
 {
 public:
   Test_GpuMemoryAllocator(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

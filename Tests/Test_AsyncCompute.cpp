@@ -1,22 +1,21 @@
 #include "Test_AsyncCompute.h"
 
-#include "GpuBuffer.h"
 #include "imgui.h"
-#include "RenderCore.h"
-#include "CommandList.h"
-#include "CommandQueue.h"
-#include "GrowingList.h"
-#include "TimeManager.h"
-#include "ShaderPipelineDesc.h"
+#include "Common/TimeManager.h"
 
 #include "EASTL/vector.h"
+#include "Rendering/CommandList.h"
+#include "Rendering/CommandQueue.h"
+#include "Rendering/GpuBufferProperties.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/ShaderPipelineDesc.h"
 
 using namespace Fancy;
 
 static uint kNumBufferElements = 1024;
 
 Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Async Compute")
+  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Async Compute")
 {
   GpuBufferProperties props;
   props.myElementSizeBytes = sizeof(uint);
@@ -88,7 +87,7 @@ void Test_AsyncCompute::OnUpdate(bool aDrawProperties)
         uint mySrcBufferIndex;
       };
       myExpectedBufferValue = (uint)Time::ourFrameIdx;
-      CBuffer cbuf = { myExpectedBufferValue, myBufferUAV->GetGlobalDescriptorIndex(), 0 };
+      CBuffer cbuf = { (uint)myExpectedBufferValue, myBufferUAV->GetGlobalDescriptorIndex(), 0 };
       graphicsContext->BindConstantBuffer(&cbuf, sizeof(cbuf), 0);
       graphicsContext->PrepareResourceShaderAccess(myBufferUAV.get());
       graphicsContext->Dispatch(glm::int3(kNumBufferElements, 1, 1));

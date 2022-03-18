@@ -1,14 +1,14 @@
 #include "Test_Profiler.h"
 
-#include "MathUtil.h"
-#include "Profiler.h"
-#include "Annotations.h"
-#include "GpuBuffer.h"
+#include "Common/MathUtil.h"
+#include "Debug/Profiler.h"
+#include "Debug/Annotations.h"
+#include "Rendering/GpuBuffer.h"
 #include "imgui.h"
-#include "RenderCore.h"
-#include "CommandList.h"
+#include "Rendering/RenderCore.h"
+#include "Rendering/CommandList.h"
 #include "imgui_internal.h"
-#include "GrowingList.h"
+#include "Common/GrowingList.h"
 
 using namespace Fancy;
 
@@ -64,7 +64,7 @@ struct TestStruct
 };
 
 Test_Profiler::Test_Profiler(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Profiler")
+  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Profiler")
 {
   GpuBufferProperties props;
   props.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
