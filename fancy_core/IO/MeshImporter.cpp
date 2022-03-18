@@ -21,6 +21,8 @@
 #include "Common/StaticString.h"
 #include "Material.h"
 #include "BinaryCache.h"
+#include "Common/CommandLine.h"
+#include "Rendering/ShaderPipeline.h"
 
 namespace Fancy 
 {
@@ -105,10 +107,17 @@ namespace Fancy
     }
   }
 //---------------------------------------------------------------------------//
+  bool MeshImporter::Import(const char* aPath, const ShaderPipeline* aShaderPipeline, SceneData& aResultOut, ImportOptions someImportOptions)
+  {
+    const Shader* vertexShader = aShaderPipeline->GetShader(SHADERSTAGE_VERTEX);
+    ASSERT(vertexShader != nullptr, "Vertex shader needed during mesh import to get the required vertex attributes");
+    return Import(aPath, vertexShader->myVertexAttributes, aResultOut, someImportOptions);
+  }
+//---------------------------------------------------------------------------//
   bool MeshImporter::Import(const char* aPath, const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& someVertexAttributes, SceneData& aResultOut, ImportOptions someImportOptions)
   {
-    if (BinaryCache::ReadScene(aPath, aResultOut))
-      return true;
+      if (!CommandLine::GetInstance()->HasArgument("nobinarycache") && BinaryCache::ReadScene(aPath, aResultOut))
+        return true;
 
     Priv_MeshImporter::ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 
@@ -130,7 +139,7 @@ namespace Fancy
     aiNode* rootNode = importedScene->mRootNode;
     bool success = ProcessNodeRecursive(rootNode, Priv_MeshImporter::MatFromAiMat(rootNode->mTransformation), aResultOut);
 
-    if (success)
+    if (success && !CommandLine::GetInstance()->HasArgument("nobinarycache"))
       BinaryCache::WriteScene(aPath, aResultOut);
 
     myScene = nullptr;
@@ -432,7 +441,7 @@ namespace Fancy
     matDesc.myTextures[(uint)MaterialTextureType::BASE_COLOR] = diffuseTexPath;
     matDesc.myTextures[(uint)MaterialTextureType::NORMAL] = normalTexPath;
     matDesc.myTextures[(uint)MaterialTextureType::MATERIAL] = specPowerTexPath;
-    matDesc.myParameters[(uint)MaterialParameterType::DIFFUSE_REFLECTIVITY] = glm::float4((color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f));
+    matDesc.myParameters[(uint)MaterialParameterType::COLOR] = glm::float4((color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f));
     matDesc.myParameters[(uint)MaterialParameterType::SPECULAR_REFLECTIVITY] = glm::float4(specular);
     matDesc.myParameters[(uint)MaterialParameterType::SPECULAR_POWER] = glm::float4(specularPower);
     matDesc.myParameters[(uint)MaterialParameterType::OPACITY] = glm::float4(opacity);

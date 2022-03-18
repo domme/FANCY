@@ -16,6 +16,7 @@ struct aiMaterial;
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct Material;
+  class ShaderPipeline;
 //---------------------------------------------------------------------------//
   class MeshImporter
   {
@@ -31,6 +32,7 @@ namespace Fancy {
       ALL = ~0u
     };
 
+    bool Import(const char* aPath, const ShaderPipeline* aShaderPipeline, SceneData& aResultOut, ImportOptions someImportOptions = ALL);
     bool Import(const char* aPath, const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& someVertexAttributes, SceneData& aResultOut, ImportOptions someImportOptions = ALL);
     
   private:

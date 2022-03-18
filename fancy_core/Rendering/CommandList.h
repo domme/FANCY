@@ -91,6 +91,7 @@ namespace Fancy {
     virtual void Dispatch(const glm::int3& aNumThreads) = 0;
     virtual void DispatchRays(const DispatchRaysDesc& aDesc) = 0;
 
+    void BindVertexBuffer(const GpuBuffer* aBuffer, uint64 anOffset = 0, uint64 aSize = 0);
     virtual void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) = 0;
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
     virtual void BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) = 0;

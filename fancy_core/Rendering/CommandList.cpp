@@ -137,6 +137,14 @@ namespace Fancy {
     CopyBufferToTexture(aDstTexture, aDstSubresource, TextureRegion(glm::uvec3(0), glm::uvec3(dstWidth, dstHeight, dstDepth)), aSrcBuffer, aSrcOffset);
   }
 //---------------------------------------------------------------------------//
+  void CommandList::BindVertexBuffer(const GpuBuffer* aBuffer, uint64 anOffset /* = 0*/, uint64 aSize /* = 0*/)
+  {
+    if (aSize == 0)
+      aSize = aBuffer->GetByteSize() - anOffset;
+
+    BindVertexBuffers(&aBuffer, &anOffset, &aSize, 1u);
+  }
+//---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
   {
     const uint type = (uint)aType;

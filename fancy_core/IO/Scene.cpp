@@ -7,6 +7,7 @@ namespace Fancy
 {
 //---------------------------------------------------------------------------//
   Scene::Scene(const SceneData& aData)
+    : myInstances(aData.myInstances)
   {
     myMeshes.reserve(aData.myMeshes.size());
     for (const MeshData& meshData : aData.myMeshes)
@@ -17,8 +18,6 @@ namespace Fancy
       myMaterials.push_back(ObjectCore::CreateMaterial(material));
 
     myVertexInputLayout = RenderCore::CreateVertexInputLayout(aData.myVertexInputLayoutProperties);
-
-    myInstances = aData.myInstances;
   }
 //---------------------------------------------------------------------------//
 }

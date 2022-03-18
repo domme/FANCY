@@ -484,7 +484,7 @@ namespace Fancy
     myPendingBarrierSrcStageMask = 0u;
     myPendingBarrierDstStageMask = 0u;
   }
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
   void CommandListVk::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* /*someSizes*/, uint aNumBuffers)
   {
     const Shader* vertexShader = myGraphicsPipelineState.myShaderPipeline ? myGraphicsPipelineState.myShaderPipeline->GetShader(ShaderStage::SHADERSTAGE_VERTEX) : nullptr;

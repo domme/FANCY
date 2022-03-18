@@ -177,7 +177,7 @@ namespace Fancy
     {
       TextureData textureData;
       TextureProperties texProps;
-      if (BinaryCache::ReadTextureData(texPathRel.c_str(), texProps, textureData))
+      if (!CommandLine::GetInstance()->HasArgument("nobinarycache") && BinaryCache::ReadTextureData(texPathRel.c_str(), texProps, textureData))
       {
         texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
         SharedPtr<Texture> texFromDiskCache = RenderCore::CreateTexture(texProps, texProps.myPath.c_str(), textureData.mySubDatas.data(), (uint)textureData.mySubDatas.size());
@@ -260,7 +260,9 @@ namespace Fancy
       }
 
       textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
-      BinaryCache::WriteTextureData(texPathRel.c_str(), const_cast<TextureProperties&>(tex->GetProperties()), textureData);
+
+      if (!CommandLine::GetInstance()->HasArgument("nobinarycache"))
+        BinaryCache::WriteTextureData(texPathRel.c_str(), const_cast<TextureProperties&>(tex->GetProperties()), textureData);
 
       // Debug for testing binary cache by reloading the texture right away:
       //tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), textureData.mySubDatas.data(), textureData.mySubDatas.size());

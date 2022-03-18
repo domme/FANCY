@@ -20,7 +20,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   enum class MaterialParameterType
   {
-    DIFFUSE_REFLECTIVITY = 0,
+    COLOR = 0,
     SPECULAR_REFLECTIVITY,
     SPECULAR_POWER,
     OPACITY,
