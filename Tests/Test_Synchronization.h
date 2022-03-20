@@ -1,8 +1,8 @@
 #pragma once
-#include "Common/Application.h"
+#include "Test.h"
 #include "Rendering/GpuBuffer.h"
 
-class Test_Synchronization : public Application
+class Test_Synchronization : public Test
 {
 public:
   Test_Synchronization(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

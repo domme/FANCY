@@ -1,9 +1,9 @@
 #pragma once
-#include "Common/Application.h"
 #include "Rendering/GpuBuffer.h"
 #include "ProfilerWindow.h"
+#include "Test.h"
 
-class Test_Profiler : public Application
+class Test_Profiler : public Test
 {
 public:
   Test_Profiler(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

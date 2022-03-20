@@ -1,5 +1,5 @@
 #pragma once
-#include "Common/Application.h"
+#include "Test.h"
 
 #include "Common/Ptr.h"
 #include "EASTL/vector.h"
@@ -32,7 +32,7 @@ struct ImageData
   int mySelectedFilter;
 };
 
-class Test_Mipmapping : public Application
+class Test_Mipmapping : public Test
 {
 public:
   Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

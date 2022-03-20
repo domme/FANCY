@@ -64,7 +64,7 @@ struct TestStruct
 };
 
 Test_Profiler::Test_Profiler(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Profiler")
+  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Profiler")
 {
   GpuBufferProperties props;
   props.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;

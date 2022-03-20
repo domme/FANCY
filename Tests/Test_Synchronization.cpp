@@ -14,7 +14,7 @@ using namespace Fancy;
 static uint kNumBufferElements = 1000;
 
 Test_Synchronization::Test_Synchronization(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Synchronization")
+  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Synchronization")
 {
   GpuBufferProperties props;
   props.myElementSizeBytes = sizeof(uint);

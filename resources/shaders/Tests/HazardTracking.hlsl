@@ -1,4 +1,4 @@
-#include "GlobalResources.h"
+#include "fancy/resources/shaders/GlobalResources.h"
 
 cbuffer CB0 : register(b0, Space_LocalCBuffer)
 {

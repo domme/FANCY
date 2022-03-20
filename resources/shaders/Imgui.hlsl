@@ -1,4 +1,4 @@
-#include "GlobalResources.h"
+#include "fancy/resources/shaders/GlobalResources.h"
 
 struct VS_OUT
 {

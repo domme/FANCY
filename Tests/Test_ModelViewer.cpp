@@ -53,7 +53,7 @@ static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const ch
 
 Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Model Viewer")
+  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Model Viewer")
   , myCameraController(&myCamera)
 {
   myUnlitTexturedShader = locLoadShader("fancy/resources/shaders/Unlit_Textured.hlsl");

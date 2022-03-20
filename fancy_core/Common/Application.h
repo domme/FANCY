@@ -1,37 +1,48 @@
 #pragma once
 
+#include "Camera.h"
+#include "CameraController.h"
+#include "Common/Input.h"
 #include "Common/FancyCoreDefines.h"
 #include "EASTL/string.h"
+
+struct ImGuiContext;
 
 namespace Fancy {
   class Window;
   class FancyRuntime;
-  struct InputState;
   class RenderOutput;
+  struct RenderPlatformProperties;
+  struct WindowParameters;
+
+  class Application
+  {
+  public:
+    Application(HINSTANCE anInstanceHandle,
+      const char** someArguments,
+      uint aNumArguments,
+      const char* aName,
+      const RenderPlatformProperties& someRenderProperties,
+      const WindowParameters& someWindowParams);
+
+    virtual ~Application();
+
+    virtual void OnWindowResized(uint aWidth, uint aHeight);
+    virtual void BeginFrame();
+    virtual void Update();
+    virtual void Render();
+    virtual void EndFrame();
+
+    const char* GetName() const { return myName.c_str(); }
+
+  protected:
+    FancyRuntime* myRuntime;
+    Window* myWindow;
+    RenderOutput* myRenderOutput;
+    eastl::string myName;
+    InputState myInputState;
+    Camera myCamera;
+    CameraController myCameraController;
+  };
+
 }
-
-class Application
-{
-public:
-  Application(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState, const char* aName)
-    : myRuntime(aRuntime)
-    , myWindow(aWindow)
-    , myOutput(aRenderOutput)
-    , myInput(anInputState)
-    , myName(aName)
-  { }
-  virtual ~Application() = default;
-
-  virtual void OnWindowResized(uint /*aWidth*/, uint /*aHeight*/) {};
-  virtual void OnUpdate(bool /*aDrawProperties*/) {}
-  virtual void OnRender() {}
-
-  const char* GetName() const { return myName.c_str(); }
-
-protected:
-  Fancy::FancyRuntime* myRuntime;
-  Fancy::Window* myWindow;
-  Fancy::RenderOutput* myOutput;
-  Fancy::InputState* myInput;
-  eastl::string myName;
-};

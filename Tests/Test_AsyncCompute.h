@@ -1,9 +1,9 @@
 #pragma once
-#include "Common/Application.h"
+#include "Test.h"
 #include "Rendering/GpuBuffer.h"
 #include "Rendering/ShaderPipeline.h"
 
-class Test_AsyncCompute : public Application
+class Test_AsyncCompute : public Test
 {
 public:
   Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

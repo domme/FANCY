@@ -1,7 +1,7 @@
 #pragma once
-#include "Common/Application.h"
+#include "Test.h"
 
-class Test_ImGui : public Application
+class Test_ImGui : public Test
 {
 public:
   Test_ImGui(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

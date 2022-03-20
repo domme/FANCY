@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common/Application.h"
+#include "Test.h"
 #include "Common/Ptr.h"
 #include "Common/Camera.h"
 #include "Common/CameraController.h"
@@ -17,7 +17,7 @@ namespace Fancy
   struct Scene;
 }
 
-class Test_ModelViewer : public Application
+class Test_ModelViewer : public Test
 {
 public:
   Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);

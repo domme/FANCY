@@ -57,7 +57,7 @@ void ImageData::Create(SharedPtr<TextureView> aTexture)
 
 Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Application(aRuntime, aWindow, aRenderOutput, anInputState, "Mipmapping")
+  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Mipmapping")
 {
   const uint loadFlags = ObjectCore::SHADER_WRITABLE;
   myImageDatas.push_back(ObjectCore::LoadTexture("Textures/Sibenik/kamen.png", loadFlags));
