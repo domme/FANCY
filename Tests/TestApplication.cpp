@@ -11,7 +11,7 @@ using namespace Fancy;
 
   TestApplication::TestApplication(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArguments,
     const char* aName, const RenderPlatformProperties& someRenderProperties, const WindowParameters& someWindowParams)
-      : Application(anInstanceHandle, someArguments, aNumArguments, aName, someRenderProperties, someWindowParams)
+      : Application(anInstanceHandle, someArguments, aNumArguments, aName, "../../../../../", someRenderProperties, someWindowParams)
       , myImGuiContext(ImGui::CreateContext())
   {
     ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);

@@ -42,7 +42,30 @@ namespace Fancy
     myView = glm::inverse(myViewInv);
     myViewProj = myProjection * myView;
   }
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
+  //3----2
+  //|    |
+  //0----1
+  void Camera::GetVerticesOnNearPlane(eastl::fixed_vector<glm::float3, 4>& someVerticesOut)
+  {
+    glm::float3 verts[4] = {
+      { -1.0f, -1.0f, 0.0f }, { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, { -1.0f, 1.0f, 0.0f }
+    };
+
+    glm::float4x4 viewProjInv = glm::inverse(myViewProj);
+
+    for (const glm::float3& v : verts)
+    {
+      glm::float4 vWorld = viewProjInv * glm::float4(v, 1.0f);
+      float div = 1.0f / vWorld.w;
+      vWorld.x *= div;
+      vWorld.y *= div;
+      vWorld.z *= div;
+
+      someVerticesOut.push_back(vWorld);
+    }
+  }
+  //---------------------------------------------------------------------------//
   void Camera::UpdateFrustumPlanes()
   {
     //If the camera's projection matrix is an orthogonal projection, the frustum planes have to be derived 

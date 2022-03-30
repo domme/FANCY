@@ -441,7 +441,7 @@ namespace Fancy
     matDesc.myTextures[(uint)MaterialTextureType::BASE_COLOR] = diffuseTexPath;
     matDesc.myTextures[(uint)MaterialTextureType::NORMAL] = normalTexPath;
     matDesc.myTextures[(uint)MaterialTextureType::MATERIAL] = specPowerTexPath;
-    matDesc.myParameters[(uint)MaterialParameterType::COLOR] = glm::float4((color_diffuse.r + color_diffuse.g + color_diffuse.b) * (1.0f / 3.0f));
+    matDesc.myParameters[(uint)MaterialParameterType::COLOR] = glm::float4(color_diffuse.r, color_diffuse.g, color_diffuse.b, 1.0f);
     matDesc.myParameters[(uint)MaterialParameterType::SPECULAR_REFLECTIVITY] = glm::float4(specular);
     matDesc.myParameters[(uint)MaterialParameterType::SPECULAR_POWER] = glm::float4(specularPower);
     matDesc.myParameters[(uint)MaterialParameterType::OPACITY] = glm::float4(opacity);

@@ -102,6 +102,22 @@ namespace Fancy { namespace MathUtil {
     return ((n < 2) ? 1 : 1 + Log2(n / 2));
   }
 //---------------------------------------------------------------------------//
+  inline uint Encode_Unorm(float aVal01, uint aNumBits, uint aShift)
+  {
+    const uint maxVal = (1 << aNumBits) - 1;
+    return static_cast<uint>(glm::clamp(aVal01, 0.0f, 1.0f) * static_cast<float>(maxVal)) << aShift;
+  }
+  //---------------------------------------------------------------------------//
+  inline uint Encode_Unorm_RGBA(const glm::float4& aVec01)
+  {
+    uint enc;
+    enc  = Encode_Unorm(aVec01.x, 8, 0);
+    enc |= Encode_Unorm(aVec01.y, 8, 8);
+    enc |= Encode_Unorm(aVec01.z, 8, 16);
+    enc |= Encode_Unorm(aVec01.w, 8, 24);
+    return enc;
+  }
+  //---------------------------------------------------------------------------//
   struct Hasher
   {
     Hasher(uint64 aSeed = 0u);

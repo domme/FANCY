@@ -22,6 +22,7 @@ namespace Fancy {
       const char** someArguments,
       uint aNumArguments,
       const char* aName,
+      const char* aRelativeRootFolder,
       const RenderPlatformProperties& someRenderProperties,
       const WindowParameters& someWindowParams);
 

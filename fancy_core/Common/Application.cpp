@@ -11,13 +11,13 @@
 namespace Fancy
 {
   Fancy::Application::Application(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArguments,
-    const char* aName, const RenderPlatformProperties& someRenderProperties, const WindowParameters& someWindowParams)
+    const char* aName, const char* aRelativeRootFolder, const RenderPlatformProperties& someRenderProperties, const WindowParameters& someWindowParams)
     : myWindow(nullptr)
     , myRenderOutput(nullptr)
     , myName(aName)
     , myCameraController(&myCamera)
   {
-    myRuntime = FancyRuntime::Init(anInstanceHandle, someArguments, aNumArguments, someWindowParams, someRenderProperties, "../../../../../");
+    myRuntime = FancyRuntime::Init(anInstanceHandle, someArguments, aNumArguments, someWindowParams, someRenderProperties, aRelativeRootFolder);
 
     myRenderOutput = myRuntime->GetRenderOutput();
     myWindow = myRenderOutput->GetWindow();
@@ -46,6 +46,7 @@ namespace Fancy
   void Application::Update()
   {
     myCameraController.Update(0.016f, myInputState);
+    myRuntime->Update(0.016);
   }
 
   void Application::Render()

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MathIncludes.h"
+#include "EASTL/fixed_vector.h"
 
 namespace Fancy
 {
@@ -13,6 +14,11 @@ namespace Fancy
 
     void UpdateProjection();
     void UpdateView();
+
+    //3----2
+    //|    |
+    //0----1
+    void GetVerticesOnNearPlane(eastl::fixed_vector<glm::float3, 4>& someVerticesOut);
     
     enum FrustumPlane
     {
