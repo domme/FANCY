@@ -145,6 +145,11 @@ namespace Fancy {
     BindVertexBuffers(&aBuffer, &anOffset, &aSize, 1u);
   }
 //---------------------------------------------------------------------------//
+  void CommandList::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
+  {
+    ValidateDrawState();
+  }
+//---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery(GpuQueryType aType)
   {
     const uint type = (uint)aType;
@@ -607,6 +612,25 @@ namespace Fancy {
   }
 
   */
+//---------------------------------------------------------------------------//
+  void CommandList::ValidateDrawState()
+  {
+    bool hasDepthStencilTarget = myDepthStencilTarget != nullptr;
+    bool dsNeedsDepthOrStencil = myGraphicsPipelineState.myDepthStencilState && (myGraphicsPipelineState.myDepthStencilState->GetProperties().myDepthTestEnabled || myGraphicsPipelineState.myDepthStencilState->GetProperties().myStencilEnabled);
+    ASSERT(hasDepthStencilTarget || !dsNeedsDepthOrStencil);
+
+    bool hasWritableDepth = hasDepthStencilTarget && !myDepthStencilTarget->GetProperties().myIsDepthReadOnly;
+    bool dsNeedsWritableDepth = myGraphicsPipelineState.myDepthStencilState && myGraphicsPipelineState.myDepthStencilState->GetProperties().myDepthTestEnabled;
+    ASSERT(hasWritableDepth || !dsNeedsWritableDepth);
+
+    bool hasStencil = hasDepthStencilTarget && DataFormatInfo::GetFormatInfo(myDepthStencilTarget->GetProperties().myFormat).myNumPlanes == 2;
+    bool dsNeedsStencil = myGraphicsPipelineState.myDepthStencilState && myGraphicsPipelineState.myDepthStencilState->GetProperties().myStencilEnabled;
+    ASSERT(hasStencil || !dsNeedsStencil);
+
+    bool hasWritableStencil = hasStencil && !myDepthStencilTarget->GetProperties().myIsStencilReadOnly;
+    bool dsNeedsWritableStencil = dsNeedsStencil && myGraphicsPipelineState.myDepthStencilState->GetProperties().myStencilWriteMask != 0;
+    ASSERT(hasWritableStencil || !dsNeedsWritableStencil);
+  }
 //---------------------------------------------------------------------------//
   void CommandList::ValidateTextureCopy(const TextureProperties& aDstProps, const SubresourceLocation& aDstSubresrource, const TextureRegion& aDstRegion,
     const TextureProperties& aSrcProps, const SubresourceLocation& aSrcSubresource, const TextureRegion& aSrcRegion) const

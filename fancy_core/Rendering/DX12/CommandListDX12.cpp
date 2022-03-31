@@ -778,6 +778,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
   {
+    CommandList::Render(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
+
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
     ApplyTopologyType();

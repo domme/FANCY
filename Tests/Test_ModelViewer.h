@@ -27,6 +27,7 @@ public:
   void OnRender() override;
 
 private:
+  void UpdateDepthbuffer();
   void RenderGrid(Fancy::CommandList* ctx);
   void RenderScene(Fancy::CommandList* ctx);
 
@@ -41,5 +42,6 @@ private:
   Fancy::SharedPtr<Fancy::TextureSampler> mySampler;
   Fancy::SharedPtr<Fancy::VertexInputLayout> myInstancedVertexLayout;
   Fancy::SharedPtr<Fancy::GpuBuffer> myInstancePositions;
+  Fancy::SharedPtr<Fancy::TextureView> myDepthStencilDsv;
   int myNumInstances;
 };

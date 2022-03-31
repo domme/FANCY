@@ -123,6 +123,8 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   bufferProps.myElementSizeBytes = sizeof(glm::float3);
   bufferProps.myNumElements = numInstances;
   myInstancePositions = RenderCore::CreateBuffer(bufferProps, "Test_ModelViewer/InstancePositions", instancePositions.data());
+
+  UpdateDepthbuffer();
 }
 
 Test_ModelViewer::~Test_ModelViewer()
@@ -135,6 +137,7 @@ void Test_ModelViewer::OnWindowResized(uint aWidth, uint aHeight)
   myCamera.myWidth = myWindow->GetWidth();
   myCamera.myHeight = myWindow->GetHeight();
   myCamera.UpdateProjection();
+  UpdateDepthbuffer();
 }
 
 void Test_ModelViewer::OnUpdate(bool aDrawProperties)
@@ -150,6 +153,7 @@ void Test_ModelViewer::OnUpdate(bool aDrawProperties)
 void Test_ModelViewer::OnRender()
 {
   CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
+  ctx->ClearDepthStencilTarget(myDepthStencilDsv.get(), 1.0f, 0u, (uint)DepthStencilClearFlags::CLEAR_ALL);
     
   RenderGrid(ctx);
   RenderScene(ctx);
@@ -157,11 +161,38 @@ void Test_ModelViewer::OnRender()
   RenderCore::ExecuteAndFreeCommandList(ctx);
 }
 
+void Test_ModelViewer::UpdateDepthbuffer()
+{
+  uint width = myWindow->GetWidth();
+  uint height = myWindow->GetHeight();
+
+  TextureProperties dsTexProps;
+  dsTexProps.myDimension = GpuResourceDimension::TEXTURE_2D;
+  dsTexProps.bIsDepthStencil = true;
+  dsTexProps.myFormat = DataFormat::D_24UNORM_S_8UI;
+  dsTexProps.myIsRenderTarget = true;
+  dsTexProps.myIsShaderWritable = false;
+  dsTexProps.myWidth = width;
+  dsTexProps.myHeight = height;
+  dsTexProps.myNumMipLevels = 1u;
+
+  SharedPtr<Texture> dsTexture = RenderCore::CreateTexture(dsTexProps, "Backbuffer DepthStencil Texture");
+  ASSERT(dsTexture != nullptr);
+
+  TextureViewProperties props;
+  props.myDimension = GpuResourceDimension::TEXTURE_2D;
+  props.myIsRenderTarget = true;
+  props.myFormat = DataFormat::D_24UNORM_S_8UI;
+  props.mySubresourceRange = dsTexture->mySubresources;
+  myDepthStencilDsv = RenderCore::CreateTextureView(dsTexProps, props, "DepthStencil Texture");
+  ASSERT(myDepthStencilDsv != nullptr);
+}
+
 void Test_ModelViewer::RenderGrid(Fancy::CommandList* ctx)
 {
   ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
   ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
-  ctx->SetRenderTarget(myOutput->GetBackbufferRtv(), myOutput->GetDepthStencilDsv());
+  ctx->SetRenderTarget(myOutput->GetBackbufferRtv(), myDepthStencilDsv.get());
 
   ctx->SetDepthStencilState(nullptr);
   ctx->SetBlendState(nullptr);
@@ -210,7 +241,7 @@ void Test_ModelViewer::RenderScene(Fancy::CommandList* ctx)
 {
   ctx->SetViewport(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
   ctx->SetClipRect(glm::uvec4(0, 0, myWindow->GetWidth(), myWindow->GetHeight()));
-  ctx->SetRenderTarget(myOutput->GetBackbufferRtv(), myOutput->GetDepthStencilDsv());
+  ctx->SetRenderTarget(myOutput->GetBackbufferRtv(), myDepthStencilDsv.get());
 
   ctx->SetDepthStencilState(nullptr);
   ctx->SetBlendState(nullptr);

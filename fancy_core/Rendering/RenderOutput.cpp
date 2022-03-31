@@ -67,9 +67,6 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void RenderOutput::DestroyViews()
   {
-    myDepthSrv.reset();
-    myDepthStencilDsv.reset();
-    myDepthStencilDsv_ReadOnly.reset();
     for (uint i = 0u; i < kBackbufferCount; ++i)
     {
       myBackbufferSrv[i].reset();
@@ -81,44 +78,6 @@ namespace Fancy {
   {
     uint width, height;
     GetWindowSizeSafe(width, height);
-
-    TextureProperties dsTexProps;
-    dsTexProps.myDimension = GpuResourceDimension::TEXTURE_2D;
-    dsTexProps.bIsDepthStencil = true;
-    dsTexProps.myFormat = DataFormat::D_24UNORM_S_8UI;
-    dsTexProps.myIsRenderTarget = true;
-    dsTexProps.myIsShaderWritable = false;
-    dsTexProps.myWidth = width;
-    dsTexProps.myHeight = height;
-    dsTexProps.myNumMipLevels = 1u;
-
-    SharedPtr<Texture> dsTexture = RenderCore::CreateTexture(dsTexProps, "Backbuffer DepthStencil Texture");
-    ASSERT(dsTexture != nullptr);
-
-    // DepthStencil DSVs
-    {
-      TextureViewProperties props;
-      props.myDimension = GpuResourceDimension::TEXTURE_2D;
-      props.myIsRenderTarget = true;
-      props.myFormat = DataFormat::D_24UNORM_S_8UI;
-      props.mySubresourceRange = dsTexture->mySubresources;
-      myDepthStencilDsv = RenderCore::CreateTextureView(dsTexture, props);
-      ASSERT(myDepthStencilDsv != nullptr);
-
-      props.myIsDepthReadOnly = true;
-      props.myIsStencilReadOnly = true;
-      myDepthStencilDsv_ReadOnly = RenderCore::CreateTextureView(dsTexture, props);
-      ASSERT(myDepthStencilDsv_ReadOnly != nullptr);
-    }
-
-    // Depth SRV
-    {
-      TextureViewProperties props;
-      props.myDimension = GpuResourceDimension::TEXTURE_2D;
-      props.myFormat = DataFormat::D_24UNORM_S_8UI;
-      myDepthSrv = RenderCore::CreateTextureView(dsTexture, props);
-      ASSERT(myDepthSrv != nullptr);
-    }
 
     for (uint i = 0u; i < kBackbufferCount; i++)
     {

@@ -267,7 +267,7 @@ namespace Fancy { namespace ImGuiRendering {
     RenderOutput* renderOutput = ourRenderOutput;
 
     ctx->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
-    ctx->SetRenderTarget(renderOutput->GetBackbufferRtv(), renderOutput->GetDepthStencilDsv());
+    ctx->SetRenderTarget(renderOutput->GetBackbufferRtv(), nullptr);
     ctx->SetDepthStencilState(ourDepthStencilState);
     ctx->SetBlendState(ourBlendState);
     ctx->SetCullMode(CullMode::NONE);

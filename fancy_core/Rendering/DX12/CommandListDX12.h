@@ -81,7 +81,7 @@ namespace Fancy {
     void ApplyRenderTargets();
     void ApplyTopologyType();
     void ApplyResourceBindings();
-
+    
     bool GetLocalSubresourceStates(const GpuResource* aResource, SubresourceLocation aSubresource, D3D12_RESOURCE_STATES& aStatesOut);
     D3D12_RESOURCE_STATES ResolveValidateDstStates(const GpuResource* aResource, D3D12_RESOURCE_STATES aDstStates);
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, D3D12_RESOURCE_STATES aDstStates);

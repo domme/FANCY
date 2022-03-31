@@ -517,11 +517,13 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
   {
-    FlushBarriers();
+    CommandList::Render(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
+
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
     ApplyGraphicsPipelineState();
     ApplyResourceBindings();
+    FlushBarriers();
 
     VkRenderPassBeginInfo renderPassBegin;
     renderPassBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
