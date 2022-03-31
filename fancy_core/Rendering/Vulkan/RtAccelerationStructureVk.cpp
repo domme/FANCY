@@ -278,7 +278,7 @@ namespace Fancy
     else
     {
       VkAccelerationStructureBuildRangeInfoKHR& rangeInfo = buildRangeInfos.push_back();
-      rangeInfo.primitiveCount = 1;
+      rangeInfo.primitiveCount = numInstances;
       rangeInfo.primitiveOffset = 0;
       rangeInfo.firstVertex = 0;
       rangeInfo.transformOffset = 0;
