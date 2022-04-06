@@ -1,17 +1,25 @@
 #pragma once
+#include "Rendering/RenderOutput.h"
+#include "Common/Ptr.h"
 
 struct ImDrawData;
 
-namespace Fancy 
+namespace Fancy
 {
-  class FancyRuntime;
+  struct VertexInputLayout;
+  class TextureSampler;
+  class DepthStencilState;
+  class BlendState;
+  class ShaderPipeline;
   class RenderOutput;
-}
+  class TextureView;
 
-namespace Fancy { namespace ImGuiRendering {
-  bool Init(Fancy::RenderOutput* aRenderOutput, Fancy::FancyRuntime* aRuntime);
-  void NewFrame();
-  void RenderDrawLists(ImDrawData* _draw_data);
-  void Shutdown();
-} }
+  namespace ImGuiRendering
+  {
+    bool Init(const SharedPtr<RenderOutput>& aRenderOutput);
+    void NewFrame();
+    void RenderDrawLists(ImDrawData* _draw_data);
+    void Shutdown();
+  };
+} 
 

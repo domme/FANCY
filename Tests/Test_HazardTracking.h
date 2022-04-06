@@ -7,7 +7,7 @@
 class Test_HazardTracking : public Test
 {
 public:
-  Test_HazardTracking(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
+  Test_HazardTracking(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
   ~Test_HazardTracking() override;
   void OnUpdate(bool aDrawProperties) override;
   void OnRender() override;

@@ -17,6 +17,7 @@
 #include "EASTL/string.h"
 
 namespace Fancy {
+  class Time;
   struct RtAccelerationStructureInstanceData;
   //---------------------------------------------------------------------------//
   class RtShaderBindingTable;
@@ -80,7 +81,7 @@ namespace Fancy {
     };
     
     /// Init platform-independent stuff
-    static void Init(const RenderPlatformProperties& someProperties);
+    static void Init(const RenderPlatformProperties& someProperties, const SharedPtr<Time>& aTimeClock);
     static void BeginFrame();
     static void EndFrame();
     static void Shutdown();
@@ -167,7 +168,7 @@ namespace Fancy {
     RenderCore() = default;
 
     static void Init_0_Platform(const RenderPlatformProperties& someProperties);
-    static void Init_1_Services();
+    static void Init_1_Services(const SharedPtr<Time>& aTimeClock);
     static void Init_2_Resources();
 
     static void Shutdown_0_Resources();

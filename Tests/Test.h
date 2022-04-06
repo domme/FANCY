@@ -4,8 +4,8 @@
 #include "EASTL/string.h"
 
 namespace Fancy {
+  class AssetManager;
   class Window;
-  class FancyRuntime;
   struct InputState;
   class RenderOutput;
 }
@@ -13,8 +13,8 @@ namespace Fancy {
 class Test
 {
 public:
-  Test(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState, const char* aName)
-    : myRuntime(aRuntime)
+  Test(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState, const char* aName)
+    : myAssetManager(anAssetManager)
     , myWindow(aWindow)
     , myOutput(aRenderOutput)
     , myInput(anInputState)
@@ -29,7 +29,7 @@ public:
   const char* GetName() const { return myName.c_str(); }
 
 protected:
-  Fancy::FancyRuntime* myRuntime;
+  Fancy::AssetManager* myAssetManager;
   Fancy::Window* myWindow;
   Fancy::RenderOutput* myOutput;
   Fancy::InputState* myInput;

@@ -1,13 +1,12 @@
 #pragma once
 
-#include "IO/FileWatcher.h"
 #include "Rendering/ShaderCompiler.h"
 
 #if FANCY_ENABLE_DX12
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  class ShaderCompilerDX12 : public ShaderCompiler, public FileWatcher
+  class ShaderCompilerDX12 : public ShaderCompiler
   {
   public:
       ~ShaderCompilerDX12() override = default;

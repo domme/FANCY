@@ -14,8 +14,8 @@ using namespace Fancy;
 
 static uint kNumBufferElements = 1024;
 
-Test_AsyncCompute::Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Async Compute")
+Test_AsyncCompute::Test_AsyncCompute(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
+  : Test(myAssetManager, aWindow, aRenderOutput, anInputState, "Async Compute")
 {
   GpuBufferProperties props;
   props.myElementSizeBytes = sizeof(uint);

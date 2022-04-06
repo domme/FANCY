@@ -28,6 +28,8 @@ using FixedShortString = eastl::fixed_string<char, 32>;
 //---------------------------------------------------------------------------//
 // Typedefs
 //---------------------------------------------------------------------------//
+  using int16 = std::int16_t;
+  using int64 = std::int64_t;
   using uint16 = std::uint16_t;
   using uint64 = std::uint64_t;
   using uint8 = std::uint8_t;

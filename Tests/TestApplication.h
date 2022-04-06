@@ -14,11 +14,11 @@
 #include "Test_Raytracing.h"
 #include "Test_SharedQueueResourceUsage.h"
 #include "Test_HazardTracking.h"
+#include "Rendering/RenderOutput.h"
 
 namespace Fancy
 {
   class Window;
-  class FancyRuntime;
   class RenderOutput;
   struct RenderPlatformProperties;
   struct WindowParameters;
@@ -52,7 +52,7 @@ namespace Fancy
       }
       else
       {
-        aTestPtr = eastl::make_unique<T>(myRuntime, myWindow, myRenderOutput, &myInputState);
+        aTestPtr = eastl::make_unique<T>(myAssetManager.get(), myRenderOutput->GetWindow(), myRenderOutput.get(), &myInputState);
         myTests.push_back(aTestPtr.get());
       }
     }

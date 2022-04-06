@@ -4,7 +4,7 @@
 #include "imgui.h"
 #include "Common/Ptr.h"
 #include "Debug/Log.h"
-#include "IO/ObjectCore.h"
+#include "IO/AssetManager.h"
 #include "Rendering/RenderCore.h"
 #include "Rendering/TextureProperties.h"
 
@@ -52,17 +52,17 @@ void ImageData::Create(SharedPtr<TextureView> aTexture)
   myIsWindowOpen = false;
   myIsDirty = false;
   mySelectedMipLevel = 0;
-  mySelectedFilter = ObjectCore::FILTER_LINEAR;
+  mySelectedFilter = AssetManager::FILTER_LINEAR;
 }
 
-Test_Mipmapping::Test_Mipmapping(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
+Test_Mipmapping::Test_Mipmapping(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Mipmapping")
+  : Test(anAssetManager, aWindow, aRenderOutput, anInputState, "Mipmapping")
 {
-  const uint loadFlags = ObjectCore::SHADER_WRITABLE;
-  myImageDatas.push_back(ObjectCore::LoadTexture("Textures/Sibenik/kamen.png", loadFlags));
-  myImageDatas.push_back(ObjectCore::LoadTexture("Textures/Checkerboard.png", loadFlags));
-  myImageDatas.push_back(ObjectCore::LoadTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
+  const uint loadFlags = AssetManager::SHADER_WRITABLE;
+  myImageDatas.push_back(myAssetManager->LoadTexture("Textures/Sibenik/kamen.png", loadFlags));
+  myImageDatas.push_back(myAssetManager->LoadTexture("Textures/Checkerboard.png", loadFlags));
+  myImageDatas.push_back(myAssetManager->LoadTexture("Textures/Sibenik/mramor6x6.png", loadFlags));
 
   RenderCore::ourOnShaderPipelineRecompiled.Connect(this, &Test_Mipmapping::OnShaderPipelineRecompiled);
 }
@@ -95,7 +95,7 @@ void Test_Mipmapping::OnUpdate(bool aDrawProperties)
 
       if (data.myIsDirty | myUpdateAlways)
       {
-        ObjectCore::ComputeMipmaps(data.myTexture, (ObjectCore::ResampleFilter) data.mySelectedFilter);
+        myAssetManager->ComputeMipmaps(data.myTexture, (AssetManager::ResampleFilter) data.mySelectedFilter);
         data.myIsDirty = false;
       }
 
@@ -107,7 +107,7 @@ void Test_Mipmapping::OnUpdate(bool aDrawProperties)
 
 void Test_Mipmapping::OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aShader)
 {
-  if (aShader == ObjectCore::GetMipDownsampleShader())
+  if (aShader == myAssetManager->GetMipDownsampleShader())
   {
     for (ImageData& data : myImageDatas)
       data.myIsDirty = true;

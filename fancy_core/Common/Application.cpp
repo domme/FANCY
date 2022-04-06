@@ -1,10 +1,13 @@
 #include "fancy_core_precompile.h"
 #include "Application.h"
 
-#include "Fancy.h"
+#include "CommandLine.h"
 #include "Window.h"
 #include "Debug/Profiler.h"
+#include "IO/AssetManager.h"
+#include "IO/PathService.h"
 #include "Rendering/CommandList.h"
+#include "Rendering/CommandQueue.h"
 #include "Rendering/RenderCore.h"
 #include "Rendering/RenderOutput.h"
 
@@ -12,41 +15,54 @@ namespace Fancy
 {
   Fancy::Application::Application(HINSTANCE anInstanceHandle, const char** someArguments, uint aNumArguments,
     const char* aName, const char* aRelativeRootFolder, const RenderPlatformProperties& someRenderProperties, const WindowParameters& someWindowParams)
-    : myWindow(nullptr)
-    , myRenderOutput(nullptr)
+    : myAppInstanceHandle(anInstanceHandle)
     , myName(aName)
     , myCameraController(&myCamera)
+    , myRealTimeClock(new Time)
   {
-    myRuntime = FancyRuntime::Init(anInstanceHandle, someArguments, aNumArguments, someWindowParams, someRenderProperties, aRelativeRootFolder);
+    CommandLine::CreateInstance(someArguments, aNumArguments);
 
-    myRenderOutput = myRuntime->GetRenderOutput();
-    myWindow = myRenderOutput->GetWindow();
+    // Init IO-subsystem
+    Path::InitRootFolder(aRelativeRootFolder);
 
-    myWindow->myOnResize.Connect(this, &Application::OnWindowResized);
-    myWindow->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
+    // Init rendering subsystem
+    if (!RenderCore::IsInitialized())
+      RenderCore::Init(someRenderProperties, myRealTimeClock);
+
+    ASSERT(RenderCore::IsInitialized());
+
+    myRenderOutput = RenderCore::CreateRenderOutput(anInstanceHandle, someWindowParams);
+    myRenderOutput->GetWindow()->myOnResize.Connect(this, &Application::OnWindowResized);
+    myRenderOutput->GetWindow()->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
+
+    myAssetManager.reset(new AssetManager());
   }
 
   Application::~Application()
   {
-    FancyRuntime::Shutdown();
+    RenderCore::WaitForIdle(CommandListType::Graphics);
+    RenderCore::WaitForIdle(CommandListType::Compute);
   }
 
   void Application::OnWindowResized(uint aWidth, uint aHeight)
   {
-    myCamera.myWidth = myWindow->GetWidth();
-    myCamera.myHeight = myWindow->GetHeight();
+    myCamera.myWidth = aWidth;
+    myCamera.myHeight = aHeight;
     myCamera.UpdateProjection();
   }
 
   void Application::BeginFrame()
   {
-    myRuntime->BeginFrame();
+    Profiler::BeginFrame();
+    RenderCore::BeginFrame();
+    Profiler::BeginFrameGPU();
+    myRenderOutput->BeginFrame();
   }
 
   void Application::Update()
   {
     myCameraController.Update(0.016f, myInputState);
-    myRuntime->Update(0.016);
+    myRealTimeClock->Update(0.016f);
   }
 
   void Application::Render()
@@ -61,7 +77,11 @@ namespace Fancy
 
   void Application::EndFrame()
   {
-    myRuntime->EndFrame();
+    myRenderOutput->EndFrame();
+    Profiler::EndFrameGPU();
+    RenderCore::EndFrame();
+    Profiler::EndFrame();
+    ++Time::ourFrameIdx;
   }
 }
 

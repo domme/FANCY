@@ -20,7 +20,7 @@ namespace Fancy
 class Test_ModelViewer : public Test
 {
 public:
-  Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
+  Test_ModelViewer(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
   ~Test_ModelViewer() override;
   void OnWindowResized(uint aWidth, uint aHeight) override;
   void OnUpdate(bool aDrawProperties) override;

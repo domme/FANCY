@@ -2,22 +2,19 @@
 #include "FileWatcher.h"
 #include "Common/FancyCoreDefines.h"
 #include "Common/TimeManager.h"
-#include "Common/Fancy.h"
 #include "PathService.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//  
-  FileWatcher::FileWatcher()
+  FileWatcher::FileWatcher(const SharedPtr<Time>& aClock)
+    : myClock(aClock)
   {
-    Time& realTimeClock = FancyRuntime::GetInstance()->GetRealTimeClock();
-    realTimeClock.GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).Connect(this, &FileWatcher::UpdateFileInfos);
+    myClock->GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).Connect(this, &FileWatcher::UpdateFileInfos);
   }
 //---------------------------------------------------------------------------//
   FileWatcher::~FileWatcher()
   {
-    FancyRuntime* runtime = Fancy::FancyRuntime::GetInstance();
-    if(runtime != nullptr)
-        runtime->GetRealTimeClock().GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).DetachObserver(this);
+    myClock->GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).DetachObserver(this);
 
     eastl::vector<eastl::string> watchedPaths;
     watchedPaths.reserve(myWatchEntries.size());

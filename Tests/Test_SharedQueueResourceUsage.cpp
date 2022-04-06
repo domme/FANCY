@@ -12,8 +12,8 @@ using namespace Fancy;
 
 static uint kNumBufferElements = 1024;
 
-Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Shared Queue Resources")
+Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
+  : Test(anAssetManager, aWindow, aRenderOutput, anInputState, "Shared Queue Resources")
 {
   GpuBufferProperties props;
   props.myElementSizeBytes = sizeof(uint);

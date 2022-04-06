@@ -165,10 +165,10 @@ uint RenderCore::GetNumDescriptors(GlobalResourceType aType, const RenderPlatfor
   }
 }
 //---------------------------------------------------------------------------//
-void RenderCore::Init(const RenderPlatformProperties& someProperties)
+void RenderCore::Init(const RenderPlatformProperties& someProperties, const SharedPtr<Time>& aTimeClock)
 {
   Init_0_Platform(someProperties);
-  Init_1_Services();
+  Init_1_Services(aTimeClock);
   Init_2_Resources();
 }
 //---------------------------------------------------------------------------//
@@ -482,11 +482,11 @@ void RenderCore::Init_0_Platform(const RenderPlatformProperties& someProperties)
   ourPlatformImpl->InitInternalResources();
 }
 //---------------------------------------------------------------------------//
-void RenderCore::Init_1_Services()
+void RenderCore::Init_1_Services(const SharedPtr<Time>& aTimeClock)
 {
   ASSERT(ourPlatformImpl != nullptr);
 
-  ourShaderFileWatcher = eastl::make_unique<FileWatcher>();
+  ourShaderFileWatcher = eastl::make_unique<FileWatcher>(aTimeClock);
   std::function<void(const eastl::string&)> onUpdatedFn(&RenderCore::OnShaderFileUpdated);
   ourShaderFileWatcher->myOnFileUpdated.Connect(onUpdatedFn);
 

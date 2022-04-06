@@ -23,28 +23,25 @@
 ANNOTATION_CREATE_TAG(ANNTAG_IMGUI, "ImGui", 0xFFC17700);
 
 namespace Fancy { namespace ImGuiRendering {
-//---------------------------------------------------------------------------//
-  FancyRuntime* ourFancyRuntime = nullptr;
-  RenderOutput* ourRenderOutput = nullptr;
-
-  struct CBufferData
-  {
-    glm::float4x4 myProjectionMatrix;
-    uint myTextureIndex;
-    uint mySamplerIndex;
-  };
-
   SharedPtr<TextureView> ourFontTexture;
   SharedPtr<ShaderPipeline> ourProgramPipeline;
   SharedPtr<BlendState> ourBlendState;
   SharedPtr<DepthStencilState> ourDepthStencilState;
   SharedPtr<TextureSampler> ourSampler;
   SharedPtr<VertexInputLayout> ourInputLayout;
-      
-  HWND ourHwnd = nullptr;
-  INT64 ourTicksPerSecond = 0;
-  INT64 ourTime = 0;
+  void* ourHwnd = nullptr;
+  int64 ourTicksPerSecond = 0;
+  int64 ourTime = 0;
+  SharedPtr<RenderOutput> ourRenderOutput = nullptr;
 
+//---------------------------------------------------------------------------//
+  struct CBufferData
+  {
+    glm::float4x4 myProjectionMatrix;
+    uint myTextureIndex;
+    uint mySamplerIndex;
+  };
+  
   void HandleWindowEvent(UINT msg, WPARAM wParam, LPARAM lParam, bool* aWasHandled)
   {
     ImGuiIO& io = ::ImGui::GetIO();
@@ -96,14 +93,14 @@ namespace Fancy { namespace ImGuiRendering {
     (*aWasHandled) = false;
   }
 
-  bool Init(Fancy::RenderOutput* aRenderOutput, Fancy::FancyRuntime* aRuntime)
+  bool Init(const SharedPtr<RenderOutput>& aRenderOutput)
   {
     ourRenderOutput = aRenderOutput;
-    std::function<void(UINT, WPARAM, LPARAM, bool*)> fnWindowHandler = &HandleWindowEvent;
-    ourRenderOutput->GetWindow()->myWindowEventHandler.Connect(fnWindowHandler);
 
-    ourFancyRuntime = aRuntime;
-    ourHwnd = ourRenderOutput->GetWindow()->GetWindowHandle();
+    std::function<void(UINT, WPARAM, LPARAM, bool*)> fnWindowHandler = &HandleWindowEvent;
+    aRenderOutput->GetWindow()->myWindowEventHandler.Connect(fnWindowHandler);
+
+    ourHwnd = aRenderOutput->GetWindow()->GetWindowHandle();
 
     ImGuiIO& io = ::ImGui::GetIO();
     io.KeyMap[ImGuiKey_Tab] = VK_TAB;                              // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array that we will update during the application lifetime.
@@ -232,7 +229,7 @@ namespace Fancy { namespace ImGuiRendering {
 
     // Setup display size (every frame to accommodate for window resizing)
     RECT rect;
-    GetClientRect(ourHwnd, &rect);
+    GetClientRect((HWND)ourHwnd, &rect);
     io.DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
 
     // Setup time step
@@ -264,10 +261,8 @@ namespace Fancy { namespace ImGuiRendering {
     PROFILE_FUNCTION_TAG(ANNTAG_IMGUI);
     GPU_BEGIN_PROFILE_FUNCTION_TAG(ctx, ANNTAG_IMGUI);
 
-    RenderOutput* renderOutput = ourRenderOutput;
-
     ctx->SetViewport(glm::uvec4(0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y));
-    ctx->SetRenderTarget(renderOutput->GetBackbufferRtv(), nullptr);
+    ctx->SetRenderTarget(ourRenderOutput->GetBackbufferRtv(), nullptr);
     ctx->SetDepthStencilState(ourDepthStencilState);
     ctx->SetBlendState(ourBlendState);
     ctx->SetCullMode(CullMode::NONE);
@@ -337,7 +332,6 @@ namespace Fancy { namespace ImGuiRendering {
 
   void Shutdown()
   {
-    ourFancyRuntime = nullptr;
     ourRenderOutput = nullptr;
     
     ourFontTexture.reset();
@@ -350,4 +344,7 @@ namespace Fancy { namespace ImGuiRendering {
     ourTime = 0;
   }
 //---------------------------------------------------------------------------//
-} }
+}
+
+  
+}

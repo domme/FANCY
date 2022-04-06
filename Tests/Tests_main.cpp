@@ -2,7 +2,6 @@
 #include "Common/FancyCoreDefines.h"
 #include "Rendering/RenderCore.h"
 #include "Rendering/CommandList.h"
-#include "Common/Fancy.h"
 #include "Common/Window.h"
 #include "Debug/Profiler.h"
 #include <array>

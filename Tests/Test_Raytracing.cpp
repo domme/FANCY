@@ -18,9 +18,9 @@
 
 using namespace Fancy;
 
-Test_Raytracing::Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
+Test_Raytracing::Test_Raytracing(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-    : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Raytracing")
+    : Test(anAssetManager, aWindow, aRenderOutput, anInputState, "Raytracing")
 {
   // Create bottom level BVH
   eastl::vector<glm::float3> vertices = {

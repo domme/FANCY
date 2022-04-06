@@ -7,9 +7,9 @@
 
 using namespace Fancy;
 
-Test_HazardTracking::Test_HazardTracking(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
+Test_HazardTracking::Test_HazardTracking(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Hazard Tracking")
+  : Test(anAssetManager, aWindow, aRenderOutput, anInputState, "Hazard Tracking")
 {
   TextureProperties texProps;
   texProps.myWidth = 32;

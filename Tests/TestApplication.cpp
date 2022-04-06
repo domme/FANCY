@@ -3,8 +3,6 @@
 #include "imgui.h"
 #include "imgui_impl_fancy.h"
 #include "Test.h"
-#include "Common/Fancy.h"
-#include "Common/Ptr.h"
 #include "Rendering/RenderCore.h"
 
 using namespace Fancy;
@@ -14,7 +12,7 @@ using namespace Fancy;
       : Application(anInstanceHandle, someArguments, aNumArguments, aName, "../../../../../", someRenderProperties, someWindowParams)
       , myImGuiContext(ImGui::CreateContext())
   {
-    ImGuiRendering::Init(myRuntime->GetRenderOutput(), myRuntime);
+    ImGuiRendering::Init(myRenderOutput);
   }
 
   TestApplication::~TestApplication()

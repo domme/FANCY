@@ -16,7 +16,7 @@
 #include "Rendering/Texture.h"
 #include "Common/StringUtil.h"
 #include "imgui.h"
-#include "IO/ObjectCore.h"
+#include "IO/AssetManager.h"
 #include "Rendering/GpuBufferProperties.h"
 #include "Rendering/GpuBuffer.h"
 #include "IO/Material.h"
@@ -51,9 +51,9 @@ static SharedPtr<ShaderPipeline> locLoadShader(const char* aShaderPath, const ch
 
 //---------------------------------------------------------------------------//
 
-Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow,
+Test_ModelViewer::Test_ModelViewer(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow,
   Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState)
-  : Test(aRuntime, aWindow, aRenderOutput, anInputState, "Model Viewer")
+  : Test(anAssetManager, aWindow, aRenderOutput, anInputState, "Model Viewer")
   , myCameraController(&myCamera)
 {
   myUnlitTexturedShader = locLoadShader("fancy/resources/shaders/Unlit_Textured.hlsl");
@@ -84,8 +84,8 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   myCamera.myFovDeg = 60.0f;
   myCamera.myNear = 1.0f;
   myCamera.myFar = 10000.0f;
-  myCamera.myWidth = myWindow->GetWidth();
-  myCamera.myHeight = myWindow->GetHeight();
+  myCamera.myWidth = (float) myWindow->GetWidth();
+  myCamera.myHeight = (float) myWindow->GetHeight();
   myCamera.myIsOrtho = false;
 
   myCamera.UpdateView();
@@ -100,7 +100,7 @@ Test_ModelViewer::Test_ModelViewer(Fancy::FancyRuntime* aRuntime, Fancy::Window*
   const bool importSuccess = importer.Import("fancy/resources/models/cube.obj", vertexAttributes, sceneData);
   ASSERT(importSuccess);
 
-  myScene = eastl::make_shared<Scene>(sceneData);
+  myScene = eastl::make_shared<Scene>(sceneData, myAssetManager);
 
   VertexInputLayoutProperties instancedVertexLayoutProps = sceneData.myVertexInputLayoutProperties;
   instancedVertexLayoutProps.myAttributes.push_back({ DataFormat::RGB_32F, VertexAttributeSemantic::POSITION, 1u, 1u });

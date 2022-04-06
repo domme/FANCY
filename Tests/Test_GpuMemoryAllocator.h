@@ -8,7 +8,7 @@
 class Test_GpuMemoryAllocator : public Test
 {
 public:
-  Test_GpuMemoryAllocator(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
+  Test_GpuMemoryAllocator(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
   ~Test_GpuMemoryAllocator() override;
   void OnUpdate(bool aDrawProperties) override;
   void OnRender() override;

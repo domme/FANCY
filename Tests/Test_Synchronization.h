@@ -5,7 +5,7 @@
 class Test_Synchronization : public Test
 {
 public:
-  Test_Synchronization(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
+  Test_Synchronization(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
   ~Test_Synchronization() override;
   void OnUpdate(bool aDrawProperties) override;
   void OnRender() override;

@@ -6,7 +6,9 @@
 #include "EASTL/vector.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  class Time;
+
+  //---------------------------------------------------------------------------//
   struct FileWatchEntry
   {
     eastl::string myPath;
@@ -16,7 +18,7 @@ namespace Fancy {
   class FileWatcher
   {
   public:
-    FileWatcher();
+    FileWatcher(const SharedPtr<Time>& aTimeClock);
     virtual ~FileWatcher();
 
     void AddFileWatch(const eastl::string& aPath) const;
@@ -29,6 +31,7 @@ namespace Fancy {
     void UpdateFileInfos();
     
     mutable eastl::vector<FileWatchEntry> myWatchEntries;
+    SharedPtr<Time> myClock;
   };
 //---------------------------------------------------------------------------//
 }

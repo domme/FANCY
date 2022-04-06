@@ -6,7 +6,7 @@
 class Test_AsyncCompute : public Test
 {
 public:
-  Test_AsyncCompute(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
+  Test_AsyncCompute(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
   ~Test_AsyncCompute() override;
   void OnUpdate(bool aDrawProperties) override;
   void OnRender() override;

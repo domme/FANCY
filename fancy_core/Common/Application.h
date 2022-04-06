@@ -2,15 +2,17 @@
 
 #include "Camera.h"
 #include "CameraController.h"
+#include "TimeManager.h"
 #include "Common/Input.h"
 #include "Common/FancyCoreDefines.h"
 #include "EASTL/string.h"
+#include "Common/Ptr.h"
 
 struct ImGuiContext;
 
 namespace Fancy {
+  class AssetManager;
   class Window;
-  class FancyRuntime;
   class RenderOutput;
   struct RenderPlatformProperties;
   struct WindowParameters;
@@ -37,13 +39,14 @@ namespace Fancy {
     const char* GetName() const { return myName.c_str(); }
 
   protected:
-    FancyRuntime* myRuntime;
-    Window* myWindow;
-    RenderOutput* myRenderOutput;
+    HINSTANCE myAppInstanceHandle;
     eastl::string myName;
+    CameraController myCameraController;
+    SharedPtr<Time> myRealTimeClock;
     InputState myInputState;
     Camera myCamera;
-    CameraController myCameraController;
+    SharedPtr<RenderOutput> myRenderOutput;
+    UniquePtr<AssetManager> myAssetManager;
   };
 
 }

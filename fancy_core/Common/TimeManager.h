@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FancyCoreDefines.h"
 #include "Slot.h"
 
 namespace Fancy {

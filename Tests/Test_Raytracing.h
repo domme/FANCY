@@ -19,7 +19,7 @@ namespace Fancy
 class Test_Raytracing : public Test
 {
 public:
-  Test_Raytracing(Fancy::FancyRuntime* aRuntime, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
+  Test_Raytracing(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
   ~Test_Raytracing() override = default;
 
   void OnWindowResized(uint aWidth, uint aHeight) override;
