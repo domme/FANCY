@@ -24,6 +24,7 @@ namespace Fancy {
     SPECULAR_REFLECTIVITY,
     SPECULAR_POWER,
     OPACITY,
+    EMISSION,
 
     NUM,
     NONE = ~0

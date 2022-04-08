@@ -118,6 +118,22 @@ namespace Fancy { namespace MathUtil {
     return enc;
   }
   //---------------------------------------------------------------------------//
+  inline float Halton(uint i, uint aBase)
+  {
+    float64 f = 1.0;
+    float64 r = 0.0;
+    float64 b = (float64)aBase;
+
+    while (i > 0)
+    {
+      f = f / b;
+      r += f * fmod(i, b);
+      i /= aBase;
+    }
+
+    return r;
+  }
+  //---------------------------------------------------------------------------//
   struct Hasher
   {
     Hasher(uint64 aSeed = 0u);
