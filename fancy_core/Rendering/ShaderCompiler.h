@@ -17,6 +17,7 @@ namespace Fancy {
     ShaderDesc myDesc;
     ShaderProperties myProperties;
     eastl::fixed_vector<VertexShaderAttributeDesc, 16> myVertexAttributes;
+    eastl::fixed_vector<eastl::string, 16> myIncludedFilePaths;
     SharedPtr<VertexInputLayout> myDefaultVertexInputLayout;
     eastl::any myNativeData;
   };
@@ -29,8 +30,6 @@ namespace Fancy {
       static VertexAttributeSemantic GetVertexAttributeSemantic(const char* aSemanticName);
 
       virtual ~ShaderCompiler() = default;
-      
-      eastl::string GetShaderPathRelative(const char* aRelativeShaderPath) const;
 
       bool Compile(const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const;
 

@@ -212,10 +212,11 @@ namespace Fancy {
       GetHLSLprofileString((ShaderStage)aDesc.myShaderStage).c_str()
     };
 
+    DxcShaderCompiler::IncludeInfo includeInfo;
     Microsoft::WRL::ComPtr<IDxcBlob> compiledShaderBytecode;
-    if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, compiledShaderBytecode))
+    if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, includeInfo, compiledShaderBytecode))
       return false;
-
+    
     IDxcContainerReflection* dxcReflection = myDxcCompiler.GetDxcReflector();
     HRESULT success = dxcReflection->Load(compiledShaderBytecode.Get());
     if (success != S_OK)
@@ -289,6 +290,7 @@ namespace Fancy {
     memcpy(compiledNativeData.myBytecode.data(), compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize());
 
     anOutput->myNativeData = compiledNativeData;
+    anOutput->myIncludedFilePaths = eastl::move(includeInfo.myIncludedFiles);
 
     return true;
   }

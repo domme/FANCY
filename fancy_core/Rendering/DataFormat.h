@@ -19,7 +19,7 @@ namespace Fancy {
       , myCopyableSizePerPlane{ aSizeBytesPlane0, aSizeBytesPlane1 }
       , myNumComponents(aNumComponents)
       , myNumPlanes(aNumPlanes)
-      , myIsUintInt(0u)
+      , myIsUintInt(aIsUintInt)
       , myFormat(aFormat)
       , myIsDepthStencil(anIsDepthStencil)
       , mySRGB(anSRGB)

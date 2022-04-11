@@ -67,6 +67,7 @@ SharedPtr<Texture> RenderCore::ourDefaultDiffuseTexture;
 SharedPtr<Texture> RenderCore::ourDefaultNormalTexture;
 SharedPtr<Texture> RenderCore::ourDefaultSpecularTexture;
 
+eastl::hash_map<eastl::string, eastl::vector<eastl::string>> RenderCore::ourShaderIncludeHeaderToShaderPaths;
 eastl::hash_map<uint64, SharedPtr<Shader>> RenderCore::ourShaderCache;
 eastl::hash_map<uint64, SharedPtr<ShaderPipeline>> RenderCore::ourShaderPipelineCache;
 eastl::hash_map<uint64, SharedPtr<BlendState>> RenderCore::ourBlendStateCache;
@@ -793,6 +794,12 @@ SharedPtr<Shader> RenderCore::CreateShader(const ShaderDesc& aDesc)
 
   ourShaderFileWatcher->AddFileWatch(actualShaderPath);
 
+  for (const eastl::string& includeFile : compilerOutput.myIncludedFilePaths)
+  {
+    ourShaderFileWatcher->AddFileWatch(includeFile);
+    ourShaderIncludeHeaderToShaderPaths[includeFile].push_back(actualShaderPath);
+  }
+  
   return program;
 }
 //---------------------------------------------------------------------------//
@@ -1229,7 +1236,18 @@ CommandQueue* RenderCore::GetCommandQueue(uint64 aFenceVal)
 //---------------------------------------------------------------------------//
 void RenderCore::OnShaderFileUpdated(const eastl::string& aShaderFile)
 {
-  ourChangedShaderFiles.push_back(aShaderFile);
+  // Is this file an include-header? Then mark all the shader files its used in for recompilation
+  auto it = ourShaderIncludeHeaderToShaderPaths.find(aShaderFile);
+  if (it != ourShaderIncludeHeaderToShaderPaths.end())
+  {
+    const eastl::vector<eastl::string>& shaderPaths = it->second;
+    for (const eastl::string& path : shaderPaths)
+      ourChangedShaderFiles.push_back(path);
+  }
+  else
+  {
+    ourChangedShaderFiles.push_back(aShaderFile);
+  }
 }
 //---------------------------------------------------------------------------//
 void RenderCore::OnShaderFileDeletedMoved(const eastl::string& aShaderFile)

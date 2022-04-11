@@ -86,8 +86,9 @@ namespace Fancy
       GetHLSLprofileString((ShaderStage) aDesc.myShaderStage).c_str()
     };
 
+    DxcShaderCompiler::IncludeInfo includeInfo;
     eastl::vector<uint8> spvBinaryData;
-    if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, spvBinaryData))
+    if (!myDxcCompiler.CompileToBytecode(anHlslSrcPathAbs, aDesc, config, includeInfo, spvBinaryData))
       return false;
 
     // TODO: Save shader-cache?
@@ -198,6 +199,7 @@ namespace Fancy
     spvReflectDestroyShaderModule(&reflectModule);
 
     aCompilerOutput->myNativeData = compiledDataVk;
+    aCompilerOutput->myIncludedFilePaths = eastl::move(includeInfo.myIncludedFiles);
 
     return true;
   }

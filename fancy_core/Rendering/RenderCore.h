@@ -194,6 +194,7 @@ namespace Fancy {
     static SharedPtr<Texture> ourDefaultSpecularTexture;
     static SharedPtr<Texture> ourMissingTexture;
 
+    static eastl::hash_map<eastl::string, eastl::vector<eastl::string>> ourShaderIncludeHeaderToShaderPaths;
     static eastl::hash_map<uint64, SharedPtr<Shader>> ourShaderCache;  
     static eastl::hash_map<uint64, SharedPtr<ShaderPipeline>> ourShaderPipelineCache;
     static eastl::hash_map<uint64, SharedPtr<BlendState>> ourBlendStateCache;
@@ -226,6 +227,7 @@ namespace Fancy {
     static uint ourMappedQueryBufferIdx[(uint)GpuQueryType::NUM];
 
     static eastl::vector<eastl::string> ourChangedShaderFiles;
+    static eastl::vector<eastl::string> ourChangedShaderIncludeFiles;
   };
 //---------------------------------------------------------------------------//
 }

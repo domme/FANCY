@@ -131,7 +131,7 @@ namespace Fancy { namespace MathUtil {
       i /= aBase;
     }
 
-    return r;
+    return (float) r;
   }
   //---------------------------------------------------------------------------//
   struct Hasher

@@ -26,6 +26,7 @@ namespace Fancy {
     uint64 GetFileWriteTime(const eastl::string& aFile);
     eastl::string GetUserDataPath();
 
+    void RemoveDoubleSlashes(eastl::string& aPath);
     void RemoveFolderUpMarkers(eastl::string& aPath);
     void ConvertToSlash(eastl::string& aPath);
     void ConvertToBackslash(eastl::string& aPath);

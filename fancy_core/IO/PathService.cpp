@@ -248,5 +248,20 @@ namespace Fancy {
       return "";
     }
   //---------------------------------------------------------------------------//
+    void RemoveDoubleSlashes(eastl::string& aPath)
+    {
+      if (aPath.size() < 2)
+        return;
+
+      for (int i = (int) aPath.size() - 1; i > 0; --i)
+      {
+        if ((aPath[i] == '/' && aPath[i - 1] == '/') ||
+          (aPath[i] == '\\' && aPath[i - 1] == '\\'))
+        {
+          aPath.erase(i - 1, 1);
+        }
+      }
+    }
+  //---------------------------------------------------------------------------//
   }
 }
