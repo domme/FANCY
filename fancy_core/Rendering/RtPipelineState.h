@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RtShaderIdentifier.h"
+#include "Common/MathIncludes.h"
 
 namespace Fancy
 {

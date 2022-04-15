@@ -145,7 +145,12 @@ namespace Fancy {
     BindVertexBuffers(&aBuffer, &anOffset, &aSize, 1u);
   }
 //---------------------------------------------------------------------------//
-  void CommandList::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
+  void CommandList::DrawInstanced(uint aNumVerticesPerInstance, uint aNumInstances, uint aBaseVertex, uint aStartInstance)
+  {
+    ValidateDrawState();
+  }
+//---------------------------------------------------------------------------//
+  void CommandList::DrawIndexedInstanced(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
   {
     ValidateDrawState();
   }

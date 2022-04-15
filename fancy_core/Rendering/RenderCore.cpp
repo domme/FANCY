@@ -53,6 +53,7 @@ namespace
 }
 //---------------------------------------------------------------------------//
 Slot<void(const ShaderPipeline*)> RenderCore::ourOnShaderPipelineRecompiled;
+Slot<void(const RtPipelineState*)> RenderCore::ourOnRtPipelineStateRecompiled;
 bool RenderCore::ourDebugLogResourceBarriers = false;
 bool RenderCore::ourDebugWaitAfterEachSubmit = false;
 
@@ -763,7 +764,10 @@ void RenderCore::UpdateChangedShaders()
   }
 
   for (RtPipelineState* rtPso : changedRtPsos)
+  {
     rtPso->Recompile();
+    ourOnRtPipelineStateRecompiled(rtPso);
+  }
 }
 //---------------------------------------------------------------------------//
 SharedPtr<RenderOutput> RenderCore::CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)

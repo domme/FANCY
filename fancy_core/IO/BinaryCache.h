@@ -3,6 +3,8 @@
 #include "Common/FancyCoreDefines.h"
 #include "Common/Ptr.h"
 
+#if FANCY_USE_BINARY_CACHE
+
 namespace Fancy {
   
   //---------------------------------------------------------------------------//
@@ -34,3 +36,5 @@ namespace Fancy {
 //---------------------------------------------------------------------------//      
   };
 }
+
+#endif

@@ -168,6 +168,7 @@ namespace Fancy
     uint64 texPathRelHash = MathUtil::Hash(texPathRel);
     MathUtil::hash_combine(texPathRelHash, ((uint64)someLoadFlags & SHADER_WRITABLE));
 
+#if FANCY_USE_BINARY_CACHE
     if ((someLoadFlags & NO_DISK_CACHE) == 0 && !CommandLine::GetInstance()->HasArgument("noDiskCache"))
     {
       TextureData textureData;
@@ -188,6 +189,7 @@ namespace Fancy
         return texView;
       }
     }
+#endif
 
     Image image;
     if (!ImageLoader::Load(texPathAbs.c_str(), image))
@@ -256,8 +258,10 @@ namespace Fancy
 
       textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
 
+#if FANCY_USE_BINARY_CACHE
       if (!CommandLine::GetInstance()->HasArgument("nobinarycache"))
         BinaryCache::WriteTextureData(texPathRel.c_str(), const_cast<TextureProperties&>(tex->GetProperties()), textureData);
+#endif
 
       // Debug for testing binary cache by reloading the texture right away:
       //tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), textureData.mySubDatas.data(), textureData.mySubDatas.size());

@@ -776,9 +776,23 @@ namespace Fancy {
     myCommandList->IASetIndexBuffer(&indexBufferView);
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
+  void CommandListDX12::DrawInstanced(uint aNumVerticesPerInstance, uint aNumInstances, uint aBaseVertex, uint aStartInstance)
   {
-    CommandList::Render(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
+    CommandList::DrawInstanced(aNumVerticesPerInstance, aNumInstances, aBaseVertex, aStartInstance);
+  
+    ApplyViewportAndClipRect();
+    ApplyRenderTargets();
+    ApplyTopologyType();
+    ApplyGraphicsPipelineState();
+    FlushBarriers();
+    ApplyResourceBindings();
+
+    myCommandList->DrawInstanced(aNumVerticesPerInstance, aNumInstances, aBaseVertex, aStartInstance);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListDX12::DrawIndexedInstanced(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
+  {
+    CommandList::DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
 
     ApplyViewportAndClipRect();
     ApplyRenderTargets();

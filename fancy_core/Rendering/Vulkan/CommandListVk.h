@@ -71,7 +71,8 @@ namespace Fancy
 
     void Close() override;
 
-    void Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
+    void DrawInstanced(uint aNumVerticesPerInstance, uint aNumInstances, uint aBaseVertex, uint aStartInstance) override;
+    void DrawIndexedInstanced(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance) override;
     void Dispatch(const glm::int3& aNumThreads) override;
     void DispatchRays(const DispatchRaysDesc& aDesc) override;
 

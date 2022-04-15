@@ -42,4 +42,5 @@ using FixedShortString = eastl::fixed_string<char, 32>;
 
 #define FANCY_ENABLE_VK 1
 #define FANCY_ENABLE_DX12 1
+#define FANCY_USE_BINARY_CACHE 0
 

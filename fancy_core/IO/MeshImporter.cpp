@@ -116,8 +116,10 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   bool MeshImporter::Import(const char* aPath, const eastl::fixed_vector<VertexShaderAttributeDesc, 16>& someVertexAttributes, SceneData& aResultOut, ImportOptions someImportOptions)
   {
+#if FANCY_USE_BINARY_CACHE
       if (!CommandLine::GetInstance()->HasArgument("nobinarycache") && BinaryCache::ReadScene(aPath, aResultOut))
         return true;
+#endif
 
     Priv_MeshImporter::ScopedLoggingStream loggingStream(Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn);
 
@@ -139,8 +141,10 @@ namespace Fancy
     aiNode* rootNode = importedScene->mRootNode;
     bool success = ProcessNodeRecursive(rootNode, Priv_MeshImporter::MatFromAiMat(rootNode->mTransformation), aResultOut);
 
+#if FANCY_USE_BINARY_CACHE
     if (success && !CommandLine::GetInstance()->HasArgument("nobinarycache"))
       BinaryCache::WriteScene(aPath, aResultOut);
+#endif
 
     myScene = nullptr;
     mySourcePath.clear();

@@ -7,6 +7,7 @@
 #include "Common/Ptr.h"
 #include "TempResources.h"
 #include "GpuQuery.h"
+#include "RtPipelineState.h"
 #include "Common/CircularArray.h"
 #include "TextureSampler.h"
 #include "TextureReadbackTask.h"
@@ -161,6 +162,7 @@ namespace Fancy {
     static CommandQueue* GetCommandQueue(uint64 aFenceVal);
     
     static Slot<void(const ShaderPipeline*)> ourOnShaderPipelineRecompiled;
+    static Slot<void(const RtPipelineState*)> ourOnRtPipelineStateRecompiled;
     static bool ourDebugLogResourceBarriers;
     static bool ourDebugWaitAfterEachSubmit;
 

@@ -515,9 +515,37 @@ namespace Fancy
     vkCmdBindIndexBuffer(myCommandBuffer, resourceDataVk->myBufferData.myBuffer, anOffset, indexType);
   }
 //---------------------------------------------------------------------------//
-  void CommandListVk::Render(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
+  void CommandListVk::DrawInstanced(uint aNumVerticesPerInstance, uint aNumInstances, uint aBaseVertex,
+    uint aStartInstance)
   {
-    CommandList::Render(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
+    CommandList::DrawInstanced(aNumVerticesPerInstance, aNumInstances, aBaseVertex, aStartInstance);
+
+    ApplyViewportAndClipRect();
+    ApplyRenderTargets();
+    ApplyGraphicsPipelineState();
+    ApplyResourceBindings();
+    FlushBarriers();
+
+    VkRenderPassBeginInfo renderPassBegin;
+    renderPassBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBegin.pNext = nullptr;
+    renderPassBegin.renderArea.offset = { 0, 0 };
+    renderPassBegin.renderArea.extent = { myFramebufferRes.x, myFramebufferRes.y };
+    renderPassBegin.clearValueCount = 0u;
+    renderPassBegin.pClearValues = nullptr;
+    renderPassBegin.renderPass = myRenderPass;
+    renderPassBegin.framebuffer = myFramebuffer;
+
+    vkCmdBeginRenderPass(myCommandBuffer, &renderPassBegin, VK_SUBPASS_CONTENTS_INLINE);
+
+    vkCmdDraw(myCommandBuffer, aNumVerticesPerInstance, aNumInstances, aBaseVertex, aStartInstance);
+
+    vkCmdEndRenderPass(myCommandBuffer);
+  }
+//---------------------------------------------------------------------------//
+  void CommandListVk::DrawIndexedInstanced(uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance)
+  {
+    CommandList::DrawIndexedInstanced(aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance);
 
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
@@ -817,7 +845,7 @@ namespace Fancy
 
     myIsOpen = false;
   }
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
   void CommandListVk::Dispatch(const glm::int3& aNumThreads)
   {
     FlushBarriers();

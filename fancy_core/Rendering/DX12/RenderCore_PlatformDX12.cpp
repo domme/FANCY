@@ -596,6 +596,10 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12(const RenderPlatformProperties&
       const bool gpuValidation = CommandLine::GetInstance()->HasArgument("GPUValidation");
       debugInterface->SetEnableGPUBasedValidation(gpuValidation);
     }
+    else
+    {
+      LOG_ERROR("Failed to initialize DX12 debug layer");
+    }
   }
 
   ASSERT_HRESULT(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&ourDevice)));

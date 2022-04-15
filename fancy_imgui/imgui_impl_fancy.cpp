@@ -320,7 +320,7 @@ namespace Fancy { namespace ImGuiRendering {
           const glm::uvec4 clipRect( (uint) pcmd->ClipRect.x, (uint) pcmd->ClipRect.y, (uint) pcmd->ClipRect.z, (uint) pcmd->ClipRect.w);
           ctx->SetClipRect(clipRect);
 
-          ctx->Render(pcmd->ElemCount, 1u, cmdIndexOffset, 0u, 0u);
+          ctx->DrawIndexedInstanced(pcmd->ElemCount, 1u, cmdIndexOffset, 0u, 0u);
         }
         cmdIndexOffset += pcmd->ElemCount;
       }

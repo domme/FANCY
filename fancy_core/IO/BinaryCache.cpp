@@ -1,5 +1,8 @@
 #include "fancy_core_precompile.h"
 #include "BinaryCache.h"
+
+#if FANCY_USE_BINARY_CACHE
+
 #include "Mesh.h"
 #include "Rendering/RenderCore.h"
 #include "PathService.h"
@@ -312,3 +315,4 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 }
 
+#endif
