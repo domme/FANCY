@@ -103,6 +103,8 @@ namespace Fancy {
     static SharedPtr<RenderOutput> CreateRenderOutput(void* aNativeInstanceHandle, const WindowParameters& someWindowParams);
     static SharedPtr<Shader> CreateShader(const ShaderDesc& aDesc);
     static SharedPtr<ShaderPipeline> CreateShaderPipeline(const ShaderPipelineDesc& aDesc);
+    static SharedPtr<ShaderPipeline> CreateVertexPixelShaderPipeline(const char* aShaderPath, const char* aMainVtxFunction = "main", const char* aMainFragmentFunction = "main", const char* someDefines = nullptr);
+    static SharedPtr<ShaderPipeline> CreateComputeShaderPipeline(const char* aShaderPath, const char* aMainFunction = "main", const char* someDefines = nullptr);
     static SharedPtr<Texture> CreateTexture(const TextureProperties& someProperties, const char* aName = nullptr, TextureSubData* someUploadDatas = nullptr, uint aNumUploadDatas = 0u);
     static SharedPtr<GpuBuffer> CreateBuffer(const GpuBufferProperties& someProperties, const char* aName = nullptr, const void* someInitialData = nullptr);
     static SharedPtr<TextureView> CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName = nullptr);

@@ -829,6 +829,47 @@ SharedPtr<ShaderPipeline> RenderCore::CreateShaderPipeline(const ShaderPipelineD
 
   return pipeline;
 }
+
+SharedPtr<ShaderPipeline> RenderCore::CreateVertexPixelShaderPipeline(const char* aShaderPath, const char* aMainVtxFunction, const char* aMainFragmentFunction, const char* someDefines)
+{
+  eastl::vector<eastl::string> defines;
+  if (someDefines)
+    StringUtil::Tokenize(someDefines, ",", defines);
+
+  ShaderPipelineDesc pipelineDesc;
+
+  ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_VERTEX];
+  shaderDesc->myPath = aShaderPath;
+  shaderDesc->myMainFunction = aMainVtxFunction;
+  for (const eastl::string& str : defines)
+    shaderDesc->myDefines.push_back(str);
+
+  shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_FRAGMENT];
+  shaderDesc->myPath = aShaderPath;
+  shaderDesc->myMainFunction = aMainFragmentFunction;
+  for (const eastl::string& str : defines)
+    shaderDesc->myDefines.push_back(str);
+
+  return CreateShaderPipeline(pipelineDesc);
+}
+
+SharedPtr<ShaderPipeline> RenderCore::CreateComputeShaderPipeline(const char* aShaderPath, const char* aMainFunction, const char* someDefines)
+{
+  eastl::vector<eastl::string> defines;
+  if (someDefines)
+    StringUtil::Tokenize(someDefines, ",", defines);
+
+  ShaderPipelineDesc pipelineDesc;
+
+  ShaderDesc* shaderDesc = &pipelineDesc.myShader[(uint)ShaderStage::SHADERSTAGE_COMPUTE];
+  shaderDesc->myPath = aShaderPath;
+  shaderDesc->myMainFunction = aMainFunction;
+  for (const eastl::string& str : defines)
+    shaderDesc->myDefines.push_back(str);
+
+  return CreateShaderPipeline(pipelineDesc);
+}
+
 //---------------------------------------------------------------------------//
 SharedPtr<Shader> RenderCore::GetShader(uint64 aDescHash)
 {
