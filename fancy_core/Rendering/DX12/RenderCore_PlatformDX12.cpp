@@ -461,8 +461,7 @@ DXGI_FORMAT RenderCore_PlatformDX12::GetTypelessFormat(DXGI_FORMAT aFormat)
     return DXGI_FORMAT_BC7_TYPELESS;
 
   default:
-    ASSERT(false, "Missing typeless format");
-    return DXGI_FORMAT_R32G32B32A32_TYPELESS;
+    return DXGI_FORMAT_UNKNOWN;
   }
 }
 //---------------------------------------------------------------------------//

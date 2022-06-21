@@ -66,7 +66,6 @@ namespace Fancy {
     ASSERT(!someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive");
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.myFormat);
-    ASSERT(formatInfo.myNumComponents != 3, "Texture-formats must be 1-, 2-, or 4-component");
 
     myProperties.myDepthOrArraySize = glm::max(1u, myProperties.myDepthOrArraySize);
     
@@ -74,9 +73,15 @@ namespace Fancy {
     if (!myProperties.myPreferTypedFormat)
     {
       if (myProperties.bIsDepthStencil)
+      {
         dxgiFormat = RenderCore_PlatformDX12::GetDepthStencilTextureFormat(dxgiFormat);
+      }
       else
-        dxgiFormat = RenderCore_PlatformDX12::GetTypelessFormat(dxgiFormat);
+      {
+        DXGI_FORMAT typelessFormat = RenderCore_PlatformDX12::GetTypelessFormat(dxgiFormat);
+        if (typelessFormat != DXGI_FORMAT_UNKNOWN)
+          dxgiFormat = typelessFormat;
+      }
     }
 
     const uint minSide = (myProperties.myDimension == GpuResourceDimension::TEXTURE_3D) ? glm::min(myProperties.myWidth, myProperties.myHeight, myProperties.myDepthOrArraySize) : glm::min(myProperties.myWidth, myProperties.myHeight);
