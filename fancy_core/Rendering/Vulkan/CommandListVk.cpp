@@ -485,13 +485,21 @@ namespace Fancy
     myPendingBarrierDstStageMask = 0u;
   }
   //---------------------------------------------------------------------------//
-  void CommandListVk::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* /*someSizes*/, uint aNumBuffers)
+  void CommandListVk::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers, const VertexInputLayout* anInputLayout /*= nullptr*/)
   {
     const Shader* vertexShader = myGraphicsPipelineState.myShaderPipeline ? myGraphicsPipelineState.myShaderPipeline->GetShader(ShaderStage::SHADERSTAGE_VERTEX) : nullptr;
     const VertexInputLayout* shaderInputLayout = vertexShader ? vertexShader->myDefaultVertexInputLayout.get() : nullptr;
-    const VertexInputLayout* inputLayout = myGraphicsPipelineState.myVertexInputLayout ? myGraphicsPipelineState.myVertexInputLayout : shaderInputLayout;
+    const VertexInputLayout* inputLayout = anInputLayout ? anInputLayout : shaderInputLayout;
 
     ASSERT(inputLayout && inputLayout->myProperties.myBufferBindings.size() == aNumBuffers);
+
+    const bool isDefaultLayout = inputLayout == shaderInputLayout;
+    const bool pipelineStateIsDefault = myGraphicsPipelineState.myVertexInputLayout == nullptr;
+    if (myGraphicsPipelineState.myVertexInputLayout != inputLayout && !(isDefaultLayout && pipelineStateIsDefault))
+    {
+      myGraphicsPipelineState.myVertexInputLayout = inputLayout;
+      myGraphicsPipelineState.myIsDirty = true;
+    }
     
     eastl::fixed_vector<VkBuffer, 4> vkBuffers;
     for (uint i = 0u; i < aNumBuffers; ++i)
@@ -499,6 +507,10 @@ namespace Fancy
       TrackResourceTransition(someBuffers[i], VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
       const GpuResourceDataVk* resourceDataVk = static_cast<const GpuBufferVk*>(someBuffers[i])->GetData();
       vkBuffers.push_back(resourceDataVk->myBufferData.myBuffer);
+
+      ASSERT(someSizes[i] <= UINT_MAX);
+      uint sizeInBytes = static_cast<uint>(someSizes[i]);
+      ASSERT(inputLayout->myProperties.myBufferBindings[i].myStride <= sizeInBytes);
     }
 
     vkCmdBindVertexBuffers(myCommandBuffer, 0u, aNumBuffers, vkBuffers.data(), someOffsets);

@@ -78,6 +78,14 @@ namespace Fancy
       ~ScopedMarker();
     };
 
+    struct ScopedGpuMarker
+    {
+      ScopedGpuMarker(CommandList* aCommandList, const char* aName, uint16 aTag);
+      ~ScopedGpuMarker();
+
+      CommandList* myCtx = nullptr;
+    };
+
     static SampleNode& OpenMarker(const char* aName, uint16 aTag, Timeline aTimeline);
     static SampleNode& CloseMarker(Timeline aTimeline);
   
@@ -115,4 +123,7 @@ namespace Fancy
 #define GPU_BEGIN_PROFILE_FUNCTION(aCommandList, ...) Profiler::PushGpuMarker(aCommandList, __FUNCTION__, 0u)
 #define GPU_BEGIN_PROFILE(aCommandList, aName, aTag) Profiler::PushGpuMarker(aCommandList, aName, aTag)
 #define GPU_END_PROFILE(aCommandList) Profiler::PopGpuMarker(aCommandList)
+#define GPU_SCOPED_PROFILER(aCommandList, aName, aTag) Profiler::ScopedGpuMarker __gpuMarker##__FUNCTION__##__COUNTER__(aCommandList, aName, aTag)
+#define GPU_SCOPED_PROFILER_FUNCTION(aCommandList, aTag) Profiler::ScopedGpuMarker __gpuMarker##__FUNCTION__(aCommandList, __FUNCTION__, aTag)
+
 }

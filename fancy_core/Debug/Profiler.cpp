@@ -49,6 +49,17 @@ namespace Fancy
     PopMarker();
   }
 //---------------------------------------------------------------------------//
+  Profiler::ScopedGpuMarker::ScopedGpuMarker(CommandList* aCommandList, const char* aName, uint16 aTag)
+    : myCtx(aCommandList)
+  {
+    Profiler::PushGpuMarker(aCommandList, aName, aTag);
+  }
+//---------------------------------------------------------------------------//
+  Profiler::ScopedGpuMarker::~ScopedGpuMarker()
+  {
+    Profiler::PopGpuMarker(myCtx);
+  }
+//---------------------------------------------------------------------------//
   Profiler::SampleNode& Profiler::OpenMarker(const char* aName, uint16 aTag, Timeline aTimeline)
   {
     ASSERT((aTimeline == TIMELINE_GPU && locAcceptsNewSamplesGPU) 

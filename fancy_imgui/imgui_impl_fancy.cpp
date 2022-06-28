@@ -28,7 +28,6 @@ namespace Fancy { namespace ImGuiRendering {
   SharedPtr<BlendState> ourBlendState;
   SharedPtr<DepthStencilState> ourDepthStencilState;
   SharedPtr<TextureSampler> ourSampler;
-  SharedPtr<VertexInputLayout> ourInputLayout;
   void* ourHwnd = nullptr;
   int64 ourTicksPerSecond = 0;
   int64 ourTime = 0;
@@ -210,15 +209,6 @@ namespace Fancy { namespace ImGuiRendering {
       ourDepthStencilState = RenderCore::CreateDepthStencilState(desc);
       ASSERT(ourDepthStencilState != nullptr);
     }
-
-    {
-      VertexInputLayoutProperties inputLayout;
-      inputLayout.myAttributes.push_back(VertexInputAttributeDesc(DataFormat::RG_32F, VertexAttributeSemantic::POSITION));
-      inputLayout.myAttributes.push_back(VertexInputAttributeDesc(DataFormat::RG_32F, VertexAttributeSemantic::TEXCOORD));
-      inputLayout.myAttributes.push_back(VertexInputAttributeDesc(DataFormat::R_32UI, VertexAttributeSemantic::COLOR));
-      inputLayout.myBufferBindings.push_back({ sizeof(ImDrawVert), VertexInputRate::PER_VERTEX });
-      ourInputLayout = RenderCore::CreateVertexInputLayout(inputLayout);
-    }
     
     return true;
   }
@@ -269,7 +259,6 @@ namespace Fancy { namespace ImGuiRendering {
     ctx->SetFillMode(FillMode::SOLID);
     ctx->SetWindingOrder(WindingOrder::CCW);
     ctx->SetTopologyType(TopologyType::TRIANGLE_LIST);
-    ctx->SetVertexInputLayout(ourInputLayout.get());
     ctx->SetShaderPipeline(ourProgramPipeline.get());
 
     float translate = -0.5f * 2.f;

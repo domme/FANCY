@@ -725,13 +725,21 @@ namespace Fancy {
     }
   }
 //---------------------------------------------------------------------------//
-  void CommandListDX12::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers)
+  void CommandListDX12::BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers, const VertexInputLayout* anInputLayout /*= nullptr*/)
   {
     const Shader* vertexShader = myGraphicsPipelineState.myShaderPipeline ? myGraphicsPipelineState.myShaderPipeline->GetShader(ShaderStage::SHADERSTAGE_VERTEX) : nullptr;
     const VertexInputLayout* shaderInputLayout = vertexShader ? vertexShader->myDefaultVertexInputLayout.get() : nullptr;
-    const VertexInputLayout* inputLayout = myGraphicsPipelineState.myVertexInputLayout ? myGraphicsPipelineState.myVertexInputLayout : shaderInputLayout;
+    const VertexInputLayout* inputLayout = anInputLayout ? anInputLayout : shaderInputLayout;
 
     ASSERT(inputLayout && inputLayout->myProperties.myBufferBindings.size() == aNumBuffers);
+
+    const bool isDefaultLayout = inputLayout == shaderInputLayout;
+    const bool pipelineStateIsDefault = myGraphicsPipelineState.myVertexInputLayout == nullptr;
+    if (myGraphicsPipelineState.myVertexInputLayout != inputLayout && !(isDefaultLayout && pipelineStateIsDefault))
+    {
+      myGraphicsPipelineState.myVertexInputLayout = inputLayout;
+      myGraphicsPipelineState.myIsDirty = true;
+    }
 
     eastl::fixed_vector<D3D12_VERTEX_BUFFER_VIEW, 4> vertexBufferViews;
     for (uint i = 0u; i < aNumBuffers; ++i)
@@ -747,6 +755,7 @@ namespace Fancy {
       ASSERT(someSizes[i] <= UINT_MAX);
       vertexBufferView.SizeInBytes = static_cast<uint>(someSizes[i]);
 
+      ASSERT(inputLayout->myProperties.myBufferBindings[i].myStride <= vertexBufferView.SizeInBytes);
       vertexBufferView.StrideInBytes = inputLayout->myProperties.myBufferBindings[i].myStride;
     }
 

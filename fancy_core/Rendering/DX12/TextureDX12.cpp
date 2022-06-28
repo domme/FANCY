@@ -109,8 +109,8 @@ namespace Fancy {
     {
       if (myProperties.myIsShaderWritable)
           resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-      else if (myProperties.myIsRenderTarget)
-        resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+      if (myProperties.myIsRenderTarget)
+          resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
     }
 
     D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
@@ -160,7 +160,8 @@ namespace Fancy {
     }
     else
     {
-      clearValue.Format = resourceDesc.Format;
+      DXGI_FORMAT typedFormat = RenderCore_PlatformDX12::ResolveFormat(myProperties.myFormat);
+      clearValue.Format = typedFormat;
       memset(clearValue.Color, 0, sizeof(clearValue.Color));
     }
 

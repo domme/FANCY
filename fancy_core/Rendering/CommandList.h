@@ -39,7 +39,7 @@ namespace Fancy {
     DataFormat myRTVformats[RenderConstants::kMaxNumRenderTargets];
     DataFormat myDSVformat;
     TopologyType myTopologyType;
-    
+        
     bool myIsDirty : 1;
   };
 //---------------------------------------------------------------------------//
@@ -92,7 +92,7 @@ namespace Fancy {
     virtual void DispatchRays(const DispatchRaysDesc& aDesc) = 0;
 
     void BindVertexBuffer(const GpuBuffer* aBuffer, uint64 anOffset = 0, uint64 aSize = 0);
-    virtual void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers) = 0;
+    virtual void BindVertexBuffers(const GpuBuffer** someBuffers, uint64* someOffsets, uint64* someSizes, uint aNumBuffers, const VertexInputLayout* anInputLayout = nullptr) = 0;
     virtual void BindIndexBuffer(const GpuBuffer* aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL) = 0;
     virtual void BindLocalBuffer(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someViewProperties, uint aRegisterIndex) = 0;
 
@@ -110,6 +110,7 @@ namespace Fancy {
     void TransitionResource(const GpuResource* aResource, ResourceTransition aTransition, uint someUsageFlags = 0u);
     virtual void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint someUsageFlags = 0u) = 0;
 
+    uint GetPrepareDescriptorIndex(const GpuResourceView* aView);
     void PrepareResourceShaderAccess(const GpuResourceView* aView);
     virtual void PrepareResourceShaderAccess(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceAccess aTransition) = 0;
 
@@ -142,7 +143,6 @@ namespace Fancy {
     void SetCullMode(const CullMode eCullMode);
     void SetWindingOrder(const WindingOrder eWindingOrder);
     void SetTopologyType(TopologyType aType);
-    void SetVertexInputLayout(const VertexInputLayout* anInputLayout);
     void SetRenderTarget(TextureView* aColorTarget, TextureView* aDepthStencil);
     void SetRenderTargets(TextureView** someColorTargets, uint aNumColorTargets, TextureView* aDepthStencil);
     void SetRaytracingPipelineState(RtPipelineState* aPipelineState);

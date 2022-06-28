@@ -336,6 +336,12 @@ namespace Fancy {
     TransitionResource(aResource, aResource->GetSubresources(), aTransition, someUsageFlags);
   }
 //---------------------------------------------------------------------------//
+  uint CommandList::GetPrepareDescriptorIndex(const GpuResourceView* aView)
+  {
+    PrepareResourceShaderAccess(aView);
+    return aView->GetGlobalDescriptorIndex();
+  }
+//---------------------------------------------------------------------------//
   void CommandList::PrepareResourceShaderAccess(const GpuResourceView* aView)
   {
     ShaderResourceAccess access = SHADER_RESOURCE_ACCESS_SRV;;
@@ -474,17 +480,6 @@ namespace Fancy {
     myTopologyDirty |= dirty;
     state.myIsDirty |= dirty;
     state.myTopologyType = aType;
-  }
-//---------------------------------------------------------------------------//
-  void CommandList::SetVertexInputLayout(const VertexInputLayout* anInputLayout)
-  {
-    GraphicsPipelineState& state = myGraphicsPipelineState;
-
-    if (state.myVertexInputLayout != anInputLayout)
-    {
-      state.myIsDirty = true;
-      state.myVertexInputLayout = anInputLayout;
-    }
   }
 //---------------------------------------------------------------------------//
   void CommandList::SetRenderTarget(TextureView* aColorTarget, TextureView* aDepthStencil)
