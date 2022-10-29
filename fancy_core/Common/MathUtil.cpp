@@ -61,4 +61,21 @@ namespace Fancy { namespace MathUtil {
     return XXH64(aValue, aSize, 0ull);
   }
 //---------------------------------------------------------------------------//
+  glm::float2 ToSpherical(const glm::float3& aNormalizedDir)
+  {
+    float phi = atan2f(aNormalizedDir.z, aNormalizedDir.x);
+    float theta = glm::acos(aNormalizedDir.y);
+    return glm::float2(theta, phi);
+  }
+//---------------------------------------------------------------------------//
+  glm::float3 ToCartesian(const glm::float2 aSphericalThetaPhi)
+  {
+    float cosTheta = glm::cos(aSphericalThetaPhi.x);
+    float sinTheta = glm::sin(aSphericalThetaPhi.x);
+    float cosPhi = glm::cos(aSphericalThetaPhi.y);
+    float sinPhi = glm::sin(aSphericalThetaPhi.y);
+
+    return glm::float3(cosPhi * sinTheta, cosTheta, sinPhi * sinTheta);
+  }
+//---------------------------------------------------------------------------//
 } }

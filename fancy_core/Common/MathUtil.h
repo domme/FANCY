@@ -134,6 +134,9 @@ namespace Fancy { namespace MathUtil {
     return (float) r;
   }
   //---------------------------------------------------------------------------//
+  glm::float2 ToSpherical(const glm::float3& aNormalizedDir);
+  glm::float3 ToCartesian(const glm::float2 aSphericalThetaPhi);
+  //---------------------------------------------------------------------------//
   struct Hasher
   {
     Hasher(uint64 aSeed = 0u);

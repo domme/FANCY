@@ -62,6 +62,8 @@ UniquePtr<TempResourcePool> RenderCore::ourTempResourcePool;
 UniquePtr<FileWatcher> RenderCore::ourShaderFileWatcher;
 UniquePtr<ShaderCompiler> RenderCore::ourShaderCompiler;
 
+SharedPtr<TextureSampler> RenderCore::ourLinearClampSampler;
+
 SharedPtr<DepthStencilState> RenderCore::ourDefaultDepthStencilState;
 SharedPtr<BlendState> RenderCore::ourDefaultBlendState;
 SharedPtr<Texture> RenderCore::ourDefaultDiffuseTexture;
@@ -509,6 +511,14 @@ void RenderCore::Init_2_Resources()
   // TODO: Rework this so that it can load actual textures
 
   ASSERT(ourPlatformImpl != nullptr);
+
+  // Linear clamp sampler
+  {
+    TextureSamplerProperties samplerProps;
+    samplerProps.myMinFiltering = SamplerFilterMode::BILINEAR;
+    samplerProps.myMagFiltering = SamplerFilterMode::BILINEAR;
+    ourLinearClampSampler = RenderCore::CreateTextureSampler(samplerProps);
+  }
 
   {
     TextureProperties props;

@@ -58,6 +58,7 @@ namespace Fancy
           eastl::string path = StringUtil::ToNarrowString(wPath.c_str());
           Path::RemoveFolderUpMarkers(path);
           Path::RemoveDoubleSlashes(path);
+          path = Path::GetAbsolutePath(path);
           path.make_lower();
 
           if (eastl::find(myIncludedFilePaths.begin(), myIncludedFilePaths.end(), path) != myIncludedFilePaths.end())

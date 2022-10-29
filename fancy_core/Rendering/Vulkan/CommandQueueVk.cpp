@@ -109,9 +109,10 @@ namespace Fancy
     for (uint i = 0u; i < (uint) myPendingStallSemaphores.size(); ++i)
     {
       if (myPendingStallSemaphores[i].first == otherQueueSemaphore)
+      {
         myPendingStallSemaphores[i].second = glm::max(myPendingStallSemaphores[i].second, waitVal);
-
-      return;
+        return;
+      }
     }
 
     myPendingStallSemaphores.push_back({ otherQueueSemaphore, waitVal });
@@ -127,9 +128,10 @@ namespace Fancy
     for (uint i = 0u; i < (uint) myPendingStallSemaphores.size(); ++i)
     {
       if (myPendingStallSemaphores[i].first == otherQueueSemaphore)
+      {
         myPendingStallSemaphores[i].second = glm::max(myPendingStallSemaphores[i].second, aFenceVal);
-
-      return;
+        return;
+      }
     }
 
     myPendingStallSemaphores.push_back({ otherQueueSemaphore, aFenceVal });

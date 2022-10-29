@@ -9,9 +9,9 @@ namespace Fancy {
   {
     SamplerFilterMode   myMinFiltering = SamplerFilterMode::NEAREST;
     SamplerFilterMode   myMagFiltering = SamplerFilterMode::NEAREST;
-    SamplerAddressMode  myAddressModeX = SamplerAddressMode::CLAMP_BORDER;
-    SamplerAddressMode  myAddressModeY = SamplerAddressMode::CLAMP_BORDER;
-    SamplerAddressMode  myAddressModeZ = SamplerAddressMode::CLAMP_BORDER;
+    SamplerAddressMode  myAddressModeX = SamplerAddressMode::CLAMP_EDGE;
+    SamplerAddressMode  myAddressModeY = SamplerAddressMode::CLAMP_EDGE;
+    SamplerAddressMode  myAddressModeZ = SamplerAddressMode::CLAMP_EDGE;
     CompFunc            myComparisonFunc = CompFunc::NEVER;
     SamplerBorderColor  myBorderColor = SamplerBorderColor::FLOAT_TRANSPARENT_BLACK;
     float               myMinLod = 0.0f;

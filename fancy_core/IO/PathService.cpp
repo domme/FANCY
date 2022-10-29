@@ -189,6 +189,7 @@ namespace Fancy {
     void RemoveFolderUpMarkers(eastl::string& aPath)
     {
       ConvertToSlash(aPath);
+      RemoveDoubleSlashes(aPath);
 
       const eastl::string kSearchKey = "/../";
       const size_t kSearchKeyLen = kSearchKey.length();

@@ -168,6 +168,8 @@ namespace Fancy {
     static bool ourDebugLogResourceBarriers;
     static bool ourDebugWaitAfterEachSubmit;
 
+    static SharedPtr<TextureSampler> ourLinearClampSampler;
+
   protected:
     RenderCore() = default;
 
