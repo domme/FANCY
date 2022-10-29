@@ -601,7 +601,62 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12(const RenderPlatformProperties&
     }
   }
 
-  ASSERT_HRESULT(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&ourDevice)));
+  IDXGIAdapter1* selectedAdapter = nullptr;
+  const char* adapterTypeStr = CommandLine::GetInstance()->GetStringValue("GpuType");
+  eastl::string adapterType = adapterTypeStr;
+  adapterType.make_lower();
+
+  {
+    Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
+    ASSERT_HRESULT(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
+
+    uint i = 0;
+    IDXGIAdapter1* adapter;
+    eastl::string defaultAdapterName;
+    while (dxgiFactory->EnumAdapters1(i, &adapter) != DXGI_ERROR_NOT_FOUND)
+    {
+      DXGI_ADAPTER_DESC1 desc;
+      adapter->GetDesc1(&desc);
+      eastl::string gpuName = StringUtil::ToNarrowString(desc.Description);
+      LOG_INFO("Found GPU %i: %s (dedicated VRAM: %i MB)", i, gpuName.c_str(), desc.DedicatedVideoMemory / SIZE_MB);
+
+      if (i == 0)
+        defaultAdapterName = gpuName;
+
+      gpuName.make_lower();
+      if (selectedAdapter == nullptr && gpuName.find(adapterType) != eastl::string::npos)
+      {
+        selectedAdapter = adapter;
+        LOG_INFO("Selecting adapter %s", gpuName.c_str());
+      }
+
+      ++i;
+    }
+
+    if (!adapterType.empty() && selectedAdapter == nullptr)
+    {
+      LOG_WARNING("Unable to find GPU type %s - falling back to default GPU instead", adapterType.c_str());
+    }
+
+    if (selectedAdapter == nullptr)
+    {
+      LOG_INFO("Using default GPU %s", defaultAdapterName.c_str());
+    }
+  }
+  
+  // Needs to be sorted from highest to lowest.
+  D3D_FEATURE_LEVEL supportedFeatureLevels[] = { D3D_FEATURE_LEVEL_12_2, D3D_FEATURE_LEVEL_12_1 };
+  const char* featureLevelStr[] = { "12_2", "12_1" };
+
+  for (uint i = 0; i < ARRAY_LENGTH(supportedFeatureLevels); ++i)
+  {
+    HRESULT result = D3D12CreateDevice(selectedAdapter, supportedFeatureLevels[i], IID_PPV_ARGS(&ourDevice));
+    if (result == S_OK)
+    {
+      LOG_INFO("Created D3D device with feature level %s", featureLevelStr[i]);
+      break;
+    }
+  }
 
   if (enableDebugLayer)
   {

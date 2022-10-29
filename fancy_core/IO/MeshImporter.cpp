@@ -32,7 +32,7 @@ namespace Fancy
     struct ScopedLoggingStream : public Assimp::LogStream
     {
       explicit ScopedLoggingStream(uint aSeverityMask) { Assimp::DefaultLogger::get()->attachStream(this, aSeverityMask); }
-      ~ScopedLoggingStream() { Assimp::DefaultLogger::get()->detatchStream(this); }
+      ~ScopedLoggingStream() { Assimp::DefaultLogger::get()->detachStream(this); }
       void write(const char* message) override { LOG_INFO("SceneImporter: %s", message); }
     };
   //---------------------------------------------------------------------------//
