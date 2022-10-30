@@ -701,6 +701,14 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12(const RenderPlatformProperties&
   // TODO: Check if there's a way to detect missing HW-support and disable the missing queues
   myCaps.myHasAsyncCompute = true;
   myCaps.myHasAsyncCopy = true;
+
+  D3D12_FEATURE_DATA_D3D12_OPTIONS5 options;
+  HRESULT result = ourDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options, sizeof(options));
+  myCaps.mySupportsRaytracing = result == S_OK && options.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED && !CommandLine::GetInstance()->HasArgument("noRT");
+  if (myCaps.mySupportsRaytracing)
+    LOG_INFO("DXR Raytracing is supported with RT tier %i", (int) options.RaytracingTier);
+  else
+    LOG_INFO("DXR Raytracing is NOT supported");
 }
 //---------------------------------------------------------------------------//
 void RenderCore_PlatformDX12::BeginFrame()

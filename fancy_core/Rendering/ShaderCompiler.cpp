@@ -71,6 +71,7 @@ namespace Fancy
     case SM_6_2: return "6_2";
     case SM_6_3: return "6_3";
     case SM_6_4: return "6_4";
+    case SM_6_5: return "6_5";
     default: ASSERT(false); return "";
     }
   }

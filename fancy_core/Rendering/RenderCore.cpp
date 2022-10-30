@@ -1055,16 +1055,25 @@ SharedPtr<GpuBufferView> RenderCore::CreateBufferView(const GpuBufferProperties&
 //---------------------------------------------------------------------------//
 SharedPtr<RtAccelerationStructure> RenderCore::CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags, const char* aName)
 {
+  if (!GetPlatformCaps().mySupportsRaytracing)
+    return nullptr;
+
   return SharedPtr<RtAccelerationStructure>(ourPlatformImpl->CreateRtBottomLevelAccelerationStructure(someGeometries, aNumGeometries, aSomeFlags, aName));
 }
 //---------------------------------------------------------------------------//
 SharedPtr<RtAccelerationStructure> RenderCore::CreateRtTopLevelAccelerationStructure(const RtAccelerationStructureInstanceData* someInstances, uint aNumInstances, uint someFlags, const char* aName)
 {
+  if (!GetPlatformCaps().mySupportsRaytracing)
+    return nullptr;
+
   return SharedPtr<RtAccelerationStructure>(ourPlatformImpl->CreateRtTopLevelAccelerationStructure(someInstances, aNumInstances, someFlags, aName));
 }
 //---------------------------------------------------------------------------//
 SharedPtr<RtPipelineState> RenderCore::CreateRtPipelineState(const RtPipelineStateProperties& someProps)
 {
+  if (!GetPlatformCaps().mySupportsRaytracing)
+    return nullptr;
+
   const uint64 hash = someProps.GetHash();
   auto it = ourRtPipelineStateCache.find(hash);
   if (it != ourRtPipelineStateCache.end())
@@ -1077,6 +1086,9 @@ SharedPtr<RtPipelineState> RenderCore::CreateRtPipelineState(const RtPipelineSta
 //---------------------------------------------------------------------------//
 SharedPtr<RtShaderBindingTable> RenderCore::CreateRtShaderTable(const RtShaderBindingTableProperties& someProps)
 {
+  if (!GetPlatformCaps().mySupportsRaytracing)
+    return nullptr;
+
   return SharedPtr<RtShaderBindingTable>(new RtShaderBindingTable(someProps));
 }
 //---------------------------------------------------------------------------//
