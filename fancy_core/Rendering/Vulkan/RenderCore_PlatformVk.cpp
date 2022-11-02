@@ -1117,6 +1117,7 @@ namespace Fancy
       myCaps.myRaytracingShaderRecordAlignment = rtDeviceProperties.shaderGroupHandleAlignment;
       myCaps.myRaytracingShaderTableAddressAlignment = rtDeviceProperties.shaderGroupBaseAlignment;
       myCaps.myRaytracingMaxShaderRecordSize = rtDeviceProperties.maxShaderGroupStride;
+      myCaps.myRaytracingMaxShaderRecordSize = rtDeviceProperties.maxRayRecursionDepth;
     }
 
     constexpr float64 nsToMs = 1e-6;

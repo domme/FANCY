@@ -696,6 +696,7 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12(const RenderPlatformProperties&
   myCaps.myRaytracingShaderRecordAlignment = D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT;
   myCaps.myRaytracingShaderTableAddressAlignment = D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT;
   myCaps.myRaytracingMaxShaderRecordSize = D3D12_RAYTRACING_MAX_SHADER_RECORD_STRIDE;
+  myCaps.myRaytracingMaxRecursionDepth = D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH;
   // DX12 always supports async compute and copy on the API-level, even though there might not
   // be hardware-support for it.
   // TODO: Check if there's a way to detect missing HW-support and disable the missing queues

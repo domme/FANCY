@@ -51,6 +51,7 @@ namespace Fancy {
     unsigned int myRaytracingShaderTableAddressAlignment = 0u;
     unsigned int myRaytracingShaderRecordAlignment = 0u;
     unsigned int myRaytracingMaxShaderRecordSize = 0u;
+    unsigned int myRaytracingMaxRecursionDepth = 0u;
     bool myHasAsyncCompute = false;
     bool myHasAsyncCopy = false;
     bool mySupportsRaytracing = false;
