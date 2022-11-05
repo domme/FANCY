@@ -90,7 +90,7 @@ namespace Fancy {
     ctxDx12->TrackResourceTransition(GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT);
     RenderCore::ExecuteAndFreeCommandList(ctx);
 
-    mySwapChain->Present(1, 0);
+    mySwapChain->Present(0, 0);
   }
 //---------------------------------------------------------------------------//
   void RenderOutputDX12::ResizeSwapChain(uint aWidth, uint aHeight)
