@@ -49,7 +49,7 @@ namespace Fancy
         {
           const DataFormatInfo& vertexFormatInfo = DataFormatInfo::GetFormatInfo(geoInfo.myVertexFormat);
           const uint vertexComponentSize = vertexFormatInfo.mySizeBytes / vertexFormatInfo.myNumComponents;
-          const uint vertexStride = glm::max(geoInfo.myVertexStride, vertexFormatInfo.mySizeBytes);
+          const uint vertexStride = glm::max(geoInfo.myVertexStride, (uint) vertexFormatInfo.mySizeBytes);
           ASSERT(MathUtil::IsAligned(vertexStride, vertexComponentSize)); // Stride must be a multiple of the component size
           
           const uint indexStride = DataFormatInfo::GetFormatInfo(geoInfo.myIndexFormat).mySizeBytes;

@@ -134,6 +134,12 @@ namespace Fancy { namespace MathUtil {
     return (float) r;
   }
   //---------------------------------------------------------------------------//
+  template<class T>
+  T DivideRoundUp( const T dividend, const T divisor )
+  {
+    return (dividend + (divisor - 1)) / divisor;
+  }
+  //---------------------------------------------------------------------------//
   glm::float2 ToSpherical(const glm::float3& aNormalizedDir);
   glm::float3 ToCartesian(const glm::float2 aSphericalThetaPhi);
   //---------------------------------------------------------------------------//

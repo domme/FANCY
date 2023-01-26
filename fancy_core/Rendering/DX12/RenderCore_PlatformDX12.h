@@ -35,6 +35,7 @@ namespace Fancy {
     static D3D12_COMPARISON_FUNC ResolveCompFunc(const CompFunc& aCompFunc);
     static D3D12_STENCIL_OP ResolveStencilOp(const StencilOp& aStencilOp);
     static DXGI_FORMAT ResolveFormat(DataFormat aFormat);
+    static DataFormat ResolveDXGIFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetDepthStencilTextureFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetDepthStencilViewFormat(DXGI_FORMAT aFormat);
     static DXGI_FORMAT GetDepthViewFormat(DXGI_FORMAT aFormat);
