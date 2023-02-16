@@ -27,7 +27,7 @@ namespace Fancy {
       0u, lastSubresourceLocation.myPlaneIndex + 1u);
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(myProperties.myFormat);
-    const uint pixelSizeBytes = formatInfo.mySizeBytes;
+    const float pixelSizeBytes = formatInfo.mySizeBytes;
 
     if (pixelSizeBytes > someInitialDatas[0].myPixelSizeBytes)
     {
@@ -35,32 +35,34 @@ namespace Fancy {
       // This can happen e.g. if the data is provided as RGB_8 but the rendering-API only supports RGBA_8 formats
       // In this case, we need to manually add some padding per pixel so the upload works
 
+      ASSERT(pixelSizeBytes >= 1.0f); // Code below assumes non-compressed formats
+
       TextureSubData* newDatas = static_cast<TextureSubData*>(malloc(sizeof(TextureSubData) * aNumInitialDatas));
       for (uint i = 0u; i < aNumInitialDatas; ++i)
       {
-        const uint64 width = someInitialDatas[i].myRowSizeBytes / someInitialDatas[i].myPixelSizeBytes;
-        const uint64 height = someInitialDatas[i].mySliceSizeBytes / someInitialDatas[i].myRowSizeBytes;
-        const uint64 depth = someInitialDatas[i].myTotalSizeBytes / someInitialDatas[i].mySliceSizeBytes;
+        const uint64 width = static_cast<uint64>(someInitialDatas[i].myRowSizeBytes / someInitialDatas[i].myPixelSizeBytes);
+        const uint64 height = static_cast<uint64>(someInitialDatas[i].mySliceSizeBytes / someInitialDatas[i].myRowSizeBytes);
+        const uint64 depth = static_cast<uint64>(someInitialDatas[i].myTotalSizeBytes / someInitialDatas[i].mySliceSizeBytes);
 
-        const uint64 requiredSizeBytes = width * height * depth * pixelSizeBytes;
+        const uint64 requiredSizeBytes = static_cast<uint64>(width * height * depth * pixelSizeBytes);
         newDatas[i].myData = (uint8*)malloc(requiredSizeBytes);
         newDatas[i].myTotalSizeBytes = requiredSizeBytes;
         newDatas[i].myPixelSizeBytes = pixelSizeBytes;
-        newDatas[i].myRowSizeBytes = width * pixelSizeBytes;
-        newDatas[i].mySliceSizeBytes = width * height * pixelSizeBytes;
+        newDatas[i].myRowSizeBytes = static_cast<uint64>(width * pixelSizeBytes);
+        newDatas[i].mySliceSizeBytes = static_cast<uint64>(width * height * pixelSizeBytes);
 
-        const uint64 oldPixelSizeBytes = someInitialDatas[i].myPixelSizeBytes;
+        const float oldPixelSizeBytes = someInitialDatas[i].myPixelSizeBytes;
         const uint64 numPixels = width * height * depth;
         for (uint64 iPixel = 0u; iPixel < numPixels; ++iPixel)
         {
           // Copy the smaller pixel to the new location
-          uint8* destPixelDataPtr = newDatas[i].myData + iPixel * pixelSizeBytes;
-          uint8* srcPixelDataPtr = someInitialDatas[i].myData + iPixel * oldPixelSizeBytes;
+          uint8* destPixelDataPtr = newDatas[i].myData + iPixel * static_cast<int>(pixelSizeBytes);
+          uint8* srcPixelDataPtr = someInitialDatas[i].myData + iPixel * static_cast<int>(oldPixelSizeBytes);
           memcpy(destPixelDataPtr, srcPixelDataPtr, oldPixelSizeBytes);
 
           // Add the padding value
           const uint kPaddingValue = ~0u;
-          memset(destPixelDataPtr + oldPixelSizeBytes, kPaddingValue, pixelSizeBytes - oldPixelSizeBytes);
+          memset(destPixelDataPtr + static_cast<int>(oldPixelSizeBytes), kPaddingValue, static_cast<int>(pixelSizeBytes) - static_cast<int>(oldPixelSizeBytes));
         }
       }
 

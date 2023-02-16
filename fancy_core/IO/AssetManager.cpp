@@ -168,114 +168,38 @@ namespace Fancy
     uint64 texPathRelHash = MathUtil::Hash(texPathRel);
     MathUtil::hash_combine(texPathRelHash, ((uint64)someLoadFlags & SHADER_WRITABLE));
 
-#if FANCY_USE_BINARY_CACHE
-    if ((someLoadFlags & NO_DISK_CACHE) == 0 && !CommandLine::GetInstance()->HasArgument("noDiskCache"))
+    SharedPtr<Texture> tex;
+
     {
-      TextureData textureData;
-      TextureProperties texProps;
-      if (!CommandLine::GetInstance()->HasArgument("nobinarycache") && BinaryCache::ReadTextureData(texPathRel.c_str(), texProps, textureData))
+      ImageData image;
+      if (!ImageLoader::Load(texPathAbs.c_str(), someLoadFlags, image))
       {
-        texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
-        SharedPtr<Texture> texFromDiskCache = RenderCore::CreateTexture(texProps, texProps.myPath.c_str(), textureData.mySubDatas.data(), (uint)textureData.mySubDatas.size());
-        ASSERT(texFromDiskCache != nullptr);
-
-        TextureViewProperties viewProps;
-        viewProps.mySubresourceRange = texFromDiskCache->mySubresources;
-        viewProps.myFormat = texFromDiskCache->GetProperties().myFormat;
-        SharedPtr<TextureView> texView = RenderCore::CreateTextureView(texFromDiskCache, viewProps, aPath);
-        ASSERT(texView != nullptr);
-
-        ourTextureCache[texPathRelHash] = texView;
-        return texView;
-      }
-    }
-#endif
-
-    Image image;
-    if (!ImageLoader::Load(texPathAbs.c_str(), image))
-    {
-      LOG_ERROR("Failed to load texture at path %s", texPathAbs.c_str());
-      return nullptr;
-    }
-
-    TextureProperties texProps;
-    texProps.myDimension = GpuResourceDimension::TEXTURE_2D;
-    texProps.myPath = texPathRel;
-    texProps.bIsDepthStencil = false;
-    texProps.myWidth = (uint)image.mySize.x;
-    texProps.myHeight = (uint)image.mySize.y;
-    texProps.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
-    texProps.myIsShaderWritable = (someLoadFlags & SHADER_WRITABLE) != 0;
-
-    if (!(image.myBitsPerChannel == 8u || image.myBitsPerChannel == 16u))
-    {
-      LOG_ERROR("Unsupported bits per channel in texture %s (has %d bits per channel)", texPathAbs.c_str(), image.myBitsPerChannel);
-      return nullptr;
-    }
-
-    switch (image.myNumChannels)
-    {
-    case 1: texProps.myFormat = image.myBitsPerChannel == 8 ? DataFormat::R_8 : DataFormat::R_16; break;
-    case 2: texProps.myFormat = image.myBitsPerChannel == 8 ? DataFormat::RG_8 : DataFormat::RG_16; break;
-      // 3-channels unsupported in all modern rendering-APIs. Image-importer lib should deal with it to convert it to 4 channels      
-    case 4: texProps.myFormat = image.myBitsPerChannel == 8 ? DataFormat::SRGB_8_A_8 : DataFormat::RGBA_16; break;
-    default: ASSERT(false, "Unsupported channels");
-      return nullptr;
-    }
-
-    const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(texProps.myFormat);
-    const uint expectedDataSize = formatInfo.mySizeBytes * texProps.myWidth * texProps.myHeight;
-    if (expectedDataSize != image.myByteSize)
-    {
-      LOG_ERROR("Invalid pixel data loaded from texture %s. Expected: %d, Actual: %d", texPathAbs.c_str(), expectedDataSize, image.myByteSize);
-      return nullptr;
-    }
-
-    TextureSubData dataFirstMip;
-    dataFirstMip.myData = image.myData.get();
-    dataFirstMip.myPixelSizeBytes = (image.myBitsPerChannel * image.myNumChannels) / 8u;
-    dataFirstMip.myRowSizeBytes = image.mySize.x * dataFirstMip.myPixelSizeBytes;
-    dataFirstMip.mySliceSizeBytes = image.mySize.x * image.mySize.y * dataFirstMip.myPixelSizeBytes;
-    dataFirstMip.myTotalSizeBytes = dataFirstMip.mySliceSizeBytes;
-    SharedPtr<Texture> tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), &dataFirstMip, 1u);
-
-    if (tex != nullptr)
-    {
-      TextureData textureData;
-
-      if (texProps.myNumMipLevels > 1)
-      {
-        ComputeMipmaps(tex);
-        SubresourceRange subresourceRange = tex->GetSubresources();
-        subresourceRange.myFirstMipLevel = 1;
-        subresourceRange.myNumMipLevels -= 1;
-
-        TextureReadbackTask readbackTask = RenderCore::ReadbackTexture(tex.get(), subresourceRange);
-        readbackTask.Wait();
-
-        readbackTask.GetData(textureData);
+        LOG_ERROR("Failed to load texture at path %s", texPathAbs.c_str());
+        return nullptr;
       }
 
-      textureData.mySubDatas.insert(textureData.mySubDatas.begin(), dataFirstMip);
-
-#if FANCY_USE_BINARY_CACHE
-      if (!CommandLine::GetInstance()->HasArgument("nobinarycache"))
-        BinaryCache::WriteTextureData(texPathRel.c_str(), const_cast<TextureProperties&>(tex->GetProperties()), textureData);
-#endif
-
-      // Debug for testing binary cache by reloading the texture right away:
-      //tex = RenderCore::CreateTexture(texProps, texPathRel.c_str(), textureData.mySubDatas.data(), textureData.mySubDatas.size());
-
-      TextureViewProperties viewProps;
-      viewProps.mySubresourceRange = tex->mySubresources;
-      viewProps.myFormat = tex->GetProperties().myFormat;
-      SharedPtr<TextureView> texView = RenderCore::CreateTextureView(tex, viewProps, aPath);
-
-      ourTextureCache[texPathRelHash] = texView;
-      return texView;
+      tex = RenderCore::CreateTexture(image.myProperties, texPathRel.c_str(),
+        image.myData.mySubDatas.data(), image.myData.mySubDatas.size());
+    }
+    
+    if ( tex == nullptr )
+    {
+      LOG_ERROR("Failed to create loaded texture at path %s", texPathAbs.c_str());
+      return nullptr;
     }
 
-    return nullptr;
+    if ( tex->GetProperties().myNumMipLevels == 1 && ( someLoadFlags & NO_MIP_GENERATION ) == 0 )
+    {
+      ComputeMipmaps(tex);
+    }
+
+    TextureViewProperties viewProps;
+    viewProps.mySubresourceRange = tex->mySubresources;
+    viewProps.myFormat = tex->GetProperties().myFormat;
+    SharedPtr<TextureView> texView = RenderCore::CreateTextureView(tex, viewProps, aPath);
+
+    ourTextureCache[texPathRelHash] = texView;
+    return texView;
   }
 //---------------------------------------------------------------------------//
   void AssetManager::ComputeMipmaps(const SharedPtr<Texture>& aTexture, ResampleFilter /*aFilter*/)

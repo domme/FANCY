@@ -124,9 +124,9 @@ namespace Fancy
     const uint height = glm::max(1u, someProperties.myHeight);
     const uint depth = glm::max(1u, someProperties.myDepthOrArraySize);
 
-    myTotalSizeBytes = myPixelSizeBytes * width * height * depth;
-    mySliceSizeBytes = myPixelSizeBytes * width * height;
-    myRowSizeBytes = myPixelSizeBytes * width;
+    myTotalSizeBytes = static_cast<uint64>(myPixelSizeBytes * width * height * depth);
+    mySliceSizeBytes = static_cast<uint64>(myPixelSizeBytes * width * height);
+    myRowSizeBytes = static_cast<uint64>(myPixelSizeBytes * width);
   }
 //---------------------------------------------------------------------------//
 }

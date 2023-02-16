@@ -19,7 +19,8 @@ namespace Fancy
     {
       NO_DISK_CACHE = 1 << 0,
       NO_MEM_CACHE = 1 << 1,
-      SHADER_WRITABLE = 1 << 2
+      SHADER_WRITABLE = 1 << 2,
+      NO_MIP_GENERATION = 1 << 3,
     };
 
     enum ResampleFilter

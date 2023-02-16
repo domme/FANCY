@@ -2,26 +2,20 @@
 
 #include "Common/FancyCoreDefines.h"
 #include "Common/MathIncludes.h"
+#include "Rendering/TextureData.h"
+#include "Rendering/TextureProperties.h"
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
-  struct Image
+  struct ImageData
   {
-    struct Malloc_deleter
-    {
-      void operator()(uint8* aPtr) const { free(aPtr); }
-    };
-
-    std::unique_ptr<uint8, Malloc_deleter> myData;
-    uint myBitsPerChannel = 0;
-    uint myNumChannels = 0;
-    glm::ivec2 mySize = glm::ivec2(0,0);
-    uint myByteSize = 0;
+    TextureProperties myProperties;
+    TextureData myData;
   };
 //---------------------------------------------------------------------------//
   struct ImageLoader
   {
-    static bool Load(const char* aPathAbs, Image& anImageOut);
+    static bool Load(const char* aPathAbs, uint someLoadFlags, ImageData& anImageOut);
   };
 //---------------------------------------------------------------------------//
 }

@@ -156,7 +156,7 @@ namespace Fancy { namespace ImGuiRendering {
       TextureSubData uploadData;
       uploadData.myData = fontPixelData;
       uploadData.myPixelSizeBytes = pixelSizeBytes;
-      uploadData.myRowSizeBytes = width * uploadData.myPixelSizeBytes;
+      uploadData.myRowSizeBytes = static_cast<uint64>(width * uploadData.myPixelSizeBytes);
       uploadData.mySliceSizeBytes = height * uploadData.myRowSizeBytes;
       uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
 

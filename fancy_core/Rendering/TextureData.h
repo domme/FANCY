@@ -129,7 +129,7 @@ namespace Fancy
   {
     TextureSubData()
       : myData(nullptr)
-      , myPixelSizeBytes(0u)
+      , myPixelSizeBytes(0.0f)
       , myRowSizeBytes(0u)
       , mySliceSizeBytes(0u)
       , myTotalSizeBytes(0u)
@@ -138,7 +138,7 @@ namespace Fancy
     TextureSubData(const TextureProperties& someProperties);
 
     uint8* myData;
-    uint64 myPixelSizeBytes;
+    float  myPixelSizeBytes;
     uint64 myRowSizeBytes;
     uint64 mySliceSizeBytes;
     uint64 myTotalSizeBytes;

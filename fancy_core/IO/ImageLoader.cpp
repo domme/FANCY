@@ -7,14 +7,17 @@
 
 #define STBI_FAILURE_USERMSG  // Slightly more user-friendly error-messages
 #define STB_IMAGE_IMPLEMENTATION
+#include "AssetManager.h"
 #include "dds.h"
 #include "Rendering/DX12/RenderCore_PlatformDX12.h"
 #include "stb/stb_image.h"
 
 using namespace Fancy;
 
-static bool LoadImage_STB(FILE* file, const char* aPathAbs, Image& anImageOut)
+static bool LoadImage_STB(FILE* file, const char* aPathAbs, uint someLoadFlags, ImageData& anImageOut)
 {
+  anImageOut = ImageData();
+
   glm::ivec2 size;
   int numChannels;
   if (!stbi_info_from_file(file, &size.x, &size.y, &numChannels))
@@ -24,24 +27,56 @@ static bool LoadImage_STB(FILE* file, const char* aPathAbs, Image& anImageOut)
     return false;
   }
 
-  const int forcedNumChannels = numChannels == 3 ? 4 : 0;  // Keep the original channels for everything else than RGB. In this case, always use RGBA
-  std::unique_ptr<uint8, Image::Malloc_deleter> imageData(stbi_load_from_file(file, &size.x, &size.y, &numChannels, forcedNumChannels));
-  if (!imageData)
+  const bool is16Bit = stbi_is_16_bit_from_file(file) == 1;
+  const int desiredNumChannels = numChannels == 3 ? 4 : 0;  // Keep the original channels for everything else than RGB. In this case, always use RGBA
+
+  TextureProperties& props = anImageOut.myProperties;
+  props.myDimension = GpuResourceDimension::TEXTURE_2D;
+  props.myPath = Path::GetRelativePath(aPathAbs);
+  props.myWidth = (uint)size.x;
+  props.myHeight = (uint)size.y;
+  props.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
+  props.myIsShaderWritable = (someLoadFlags & AssetManager::TextureLoadFlags::SHADER_WRITABLE) != 0;
+  props.myNumMipLevels = 1u;
+
+  switch(desiredNumChannels)
+  {
+  case 1: props.myFormat = is16Bit ? DataFormat::R_16 : DataFormat::R_8; break;
+  case 2: props.myFormat = is16Bit ? DataFormat::RG_16 : DataFormat::RG_8; break;
+    // 3-channels unsupported in all modern rendering-APIs. Image-importer lib should deal with it to convert it to 4 channels      
+  case 4: props.myFormat = is16Bit ? DataFormat::RGBA_16 : DataFormat::SRGB_8_A_8; break;
+  default: ASSERT(false, "Unsupported channels");
+    return nullptr;
+  }
+  
+  const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.myFormat);
+  const uint expectedDataSize = formatInfo.mySizeBytes * props.myWidth * props.myHeight;
+  uint8* loadedData = stbi_load_from_file(file, &size.x, &size.y, &numChannels, desiredNumChannels);
+  if (!loadedData)
   {
     LOG_ERROR("Unable to decode image file %s. Reason: %s", aPathAbs, stbi_failure_reason());
     fclose(file);
     return false;
   }
 
-  anImageOut.myData = std::move(imageData);
-  anImageOut.mySize = size;
-  anImageOut.myBitsPerChannel = 8; // TODO: Add support for HDR-images
-  anImageOut.myNumChannels = forcedNumChannels != 0 ? forcedNumChannels : numChannels;
-  anImageOut.myByteSize = (size.x * size.y * anImageOut.myNumChannels * anImageOut.myBitsPerChannel) / 8;
+  TextureData& texData = anImageOut.myData;
+  texData.myData.resize(expectedDataSize);
+  memcpy(texData.myData.data(), loadedData, expectedDataSize);
+
+  stbi_image_free(loadedData);
+  loadedData = nullptr;
+
+  TextureSubData& dataFirstMip = texData.mySubDatas.push_back();
+  dataFirstMip.myData = texData.myData.data();
+  dataFirstMip.myPixelSizeBytes = formatInfo.mySizeBytes;
+  dataFirstMip.myRowSizeBytes = static_cast<uint64>(props.myWidth * dataFirstMip.myPixelSizeBytes);
+  dataFirstMip.mySliceSizeBytes = static_cast<uint64>(props.myWidth * props.myHeight * dataFirstMip.myPixelSizeBytes);
+  dataFirstMip.myTotalSizeBytes = dataFirstMip.mySliceSizeBytes;
+  
   return true;
 }
 
-static bool LoadImage_DDS(FILE* file, const char* aPathAbs, Image& anImageOut)
+static bool LoadImage_DDS(FILE* file, const char* aPathAbs, uint someLoadFlags, ImageData& anImageOut)
 {
   uint magic = 0;
   if (fread(&magic, sizeof(magic), 1, file) != 1)
@@ -131,7 +166,7 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, Image& anImageOut)
         ASSERT(false, "Missing implementation");
     }
   }
-
+  
   const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
   
   uint64 pitchSizeBytes = 0;
@@ -148,13 +183,36 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, Image& anImageOut)
 
   if (fread(dataMip0.data(), 1, dataSizeMip0, file) != dataSizeMip0)
   {
-    LOG_ERROR("Error reading %d MiB from dds file %s", dataSizeMip0* SIZE_MB, aPathAbs);
+    LOG_ERROR("Error reading %d MiB from dds file %s", dataSizeMip0 * SIZE_MB, aPathAbs);
     return false;
   }
+
+  TextureData& texData = anImageOut.myData;
+  texData.myData.resize(dataSizeMip0);
+  memcpy(texData.myData.data(), dataMip0.data(), dataSizeMip0);
+
+  TextureSubData& dataFirstMip = texData.mySubDatas.push_back();
+  dataFirstMip.myData = texData.myData.data();
+  dataFirstMip.myPixelSizeBytes = formatInfo.mySizeBytes;
+  dataFirstMip.myRowSizeBytes = pitchSizeBytes;
+  dataFirstMip.mySliceSizeBytes = pitchSizeBytes * heightBlocksOrPixels;
+  dataFirstMip.myTotalSizeBytes = dataFirstMip.mySliceSizeBytes;
+
+  TextureProperties& props = anImageOut.myProperties;
+  props.myDimension = GpuResourceDimension::TEXTURE_2D;
+  props.myPath = Path::GetRelativePath(aPathAbs);
+  props.myWidth = width;
+  props.myHeight = height;
+  props.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
+  props.myIsShaderWritable = (someLoadFlags & AssetManager::TextureLoadFlags::SHADER_WRITABLE) != 0;
+  props.myNumMipLevels = 1u;
+  props.myFormat = format;
+
+  return true;
 }
 
 //---------------------------------------------------------------------------//
-  bool ImageLoader::Load(const char* aPathAbs, Image& anImageOut)
+  bool ImageLoader::Load(const char* aPathAbs, uint someLoadFlags, ImageData& anImageOut)
   {
     FILE* file = stbi__fopen(aPathAbs, "rb");
     if (file == nullptr)
@@ -167,11 +225,11 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, Image& anImageOut)
 
     if (extension.comparei("dds") == 0)
     {
-      return LoadImage_DDS(file, aPathAbs, anImageOut);
+      return LoadImage_DDS(file, aPathAbs, someLoadFlags, anImageOut);
     }
     else
     {
-      return LoadImage_STB(file, aPathAbs, anImageOut);
+      return LoadImage_STB(file, aPathAbs, someLoadFlags, anImageOut);
     }
     
     
