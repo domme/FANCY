@@ -14,9 +14,9 @@ namespace Fancy {
   class DataFormatInfo
   {
   public:
-    DataFormatInfo(DataFormat aFormat, float aSizeBytes, float aSizeBytesPlane0, float aSizeBytesPlane1, uint aNumComponents, uint aNumPlanes, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false, uint aIsUintInt = 0, uint aBlockSizeBytes = 0)
-      : mySizeBytes(aSizeBytes)
-      , myCopyableSizePerPlane{ aSizeBytesPlane0, aSizeBytesPlane1 }
+    DataFormatInfo(DataFormat aFormat, uint aBitsPerPixel, uint aBitsPerPixelPlane0, uint aBitsPerPixelPlane1, uint aNumComponents, uint aNumPlanes, bool anIsDepthStencil = false, bool anSRGB = false, bool anIsCompressed = false, uint aIsUintInt = 0, uint aBlockSizeBytes = 0)
+      : myBitsPerPixel(aBitsPerPixel)
+      , myCopyableBitsPerPixelPerPlane{ aBitsPerPixelPlane0, aBitsPerPixelPlane1 }
       , myNumComponents(aNumComponents)
       , myNumPlanes(aNumPlanes)
       , myIsUintInt(aIsUintInt)
@@ -28,8 +28,8 @@ namespace Fancy {
     {}
 
     DataFormatInfo()
-      : mySizeBytes(0.0f)
-      , myCopyableSizePerPlane{ 0.0f, 0.0f }
+      : myBitsPerPixel(0u)
+      , myCopyableBitsPerPixelPerPlane{ 0u, 0u }
       , myNumComponents(0u)
       , myNumPlanes(1u)
       , myIsUintInt(0u)
@@ -42,8 +42,8 @@ namespace Fancy {
 
     explicit DataFormatInfo(DataFormat aFormat);
     
-    float mySizeBytes;
-    float myCopyableSizePerPlane[2];
+    uint myBitsPerPixel;
+    uint myCopyableBitsPerPixelPerPlane[2];
     uint myNumComponents;
     uint myNumPlanes;
     uint myIsUintInt; // 0: false, 1: Uint, 2: Iint

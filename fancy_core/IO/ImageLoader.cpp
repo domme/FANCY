@@ -50,7 +50,7 @@ static bool LoadImage_STB(FILE* file, const char* aPathAbs, uint someLoadFlags, 
   }
   
   const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.myFormat);
-  const uint expectedDataSize = formatInfo.mySizeBytes * props.myWidth * props.myHeight;
+  const uint expectedDataSize = (formatInfo.myBitsPerPixel / 8) * props.myWidth * props.myHeight;
   uint8* loadedData = stbi_load_from_file(file, &size.x, &size.y, &numChannels, desiredNumChannels);
   if (!loadedData)
   {
@@ -68,9 +68,8 @@ static bool LoadImage_STB(FILE* file, const char* aPathAbs, uint someLoadFlags, 
 
   TextureSubData& dataFirstMip = texData.mySubDatas.push_back();
   dataFirstMip.myData = texData.myData.data();
-  dataFirstMip.myPixelSizeBytes = formatInfo.mySizeBytes;
-  dataFirstMip.myRowSizeBytes = static_cast<uint64>(props.myWidth * dataFirstMip.myPixelSizeBytes);
-  dataFirstMip.mySliceSizeBytes = static_cast<uint64>(props.myWidth * props.myHeight * dataFirstMip.myPixelSizeBytes);
+  dataFirstMip.myRowSizeBytes = props.myWidth * (formatInfo.myBitsPerPixel / 8);
+  dataFirstMip.mySliceSizeBytes = props.myWidth * props.myHeight * (formatInfo.myBitsPerPixel / 8);
   dataFirstMip.myTotalSizeBytes = dataFirstMip.mySliceSizeBytes;
   
   return true;
@@ -173,7 +172,7 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, uint someLoadFlags, 
   if (formatInfo.myIsCompressed)
     pitchSizeBytes = static_cast<uint64>(glm::max(1u, MathUtil::DivideRoundUp(width, 4u)) * formatInfo.myCompressedBlockSizeBytes);
   else
-    pitchSizeBytes = static_cast<uint64>(MathUtil::DivideRoundUp(width * static_cast<uint>(formatInfo.mySizeBytes), 8u));
+    pitchSizeBytes = static_cast<uint64>(MathUtil::DivideRoundUp(width * formatInfo.myBitsPerPixel, 8u));
 
   const uint heightBlocksOrPixels = formatInfo.myIsCompressed ? MathUtil::DivideRoundUp(height, 4u) : height;
   const uint64 dataSizeMip0 = heightBlocksOrPixels * pitchSizeBytes;
@@ -193,7 +192,6 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, uint someLoadFlags, 
 
   TextureSubData& dataFirstMip = texData.mySubDatas.push_back();
   dataFirstMip.myData = texData.myData.data();
-  dataFirstMip.myPixelSizeBytes = formatInfo.mySizeBytes;
   dataFirstMip.myRowSizeBytes = pitchSizeBytes;
   dataFirstMip.mySliceSizeBytes = pitchSizeBytes * heightBlocksOrPixels;
   dataFirstMip.myTotalSizeBytes = dataFirstMip.mySliceSizeBytes;

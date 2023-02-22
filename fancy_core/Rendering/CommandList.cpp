@@ -674,7 +674,7 @@ namespace Fancy {
     ASSERT(bufferCapacity > alignedBufferOffset);
 
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aSrcTextureProps.myFormat);
-    const uint64 alignedRowSize = MathUtil::Align(aSrcRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aSrcSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    const uint64 alignedRowSize = MathUtil::Align(BITS_TO_BYTES(aSrcRegion.mySize.x * formatInfo.myCopyableBitsPerPixelPerPlane[aSrcSubresource.myPlaneIndex]), RenderCore::GetPlatformCaps().myTextureRowAlignment);
     uint64 requiredBufferSize = alignedRowSize * aSrcRegion.mySize.y * aSrcRegion.mySize.z;
     if (entireSubresource)
       requiredBufferSize = MathUtil::Align(requiredBufferSize, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);
@@ -700,7 +700,7 @@ namespace Fancy {
       ASSERT(MathUtil::IsAligned(aSrcBufferOffset, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment));
     
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(aDstTexProps.myFormat);
-    const uint64 alignedRowSize = MathUtil::Align(aDstRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aDstSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    const uint64 alignedRowSize = MathUtil::Align(BITS_TO_BYTES(aDstRegion.mySize.x * formatInfo.myCopyableBitsPerPixelPerPlane[aDstSubresource.myPlaneIndex]), RenderCore::GetPlatformCaps().myTextureRowAlignment);
     uint64 requiredBufferSize = alignedRowSize * aDstRegion.mySize.y * aDstRegion.mySize.z;
     if (entireSubresource)
       requiredBufferSize = MathUtil::Align(requiredBufferSize, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment);

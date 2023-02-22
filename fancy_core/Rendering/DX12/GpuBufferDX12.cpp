@@ -278,9 +278,9 @@ namespace Fancy {
       const DataFormat format = someProperties.myFormat;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
       srvDesc.Format = RenderCore_PlatformDX12::ResolveFormat(format);
-      srvDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
-      ASSERT(someProperties.mySize / formatInfo.mySizeBytes <= UINT_MAX);
-      srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
+      srvDesc.Buffer.FirstElement = someProperties.myOffset / BITS_TO_BYTES(formatInfo.myBitsPerPixel);
+      ASSERT(someProperties.mySize / BITS_TO_BYTES(formatInfo.myBitsPerPixel) <= UINT_MAX);
+      srvDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / BITS_TO_BYTES(formatInfo.myBitsPerPixel));
     }
 
     // Resource must be nullptr in case of Rt acceleration structure according to the docs. The buffer-address is already included in the srvDesc
@@ -319,9 +319,9 @@ namespace Fancy {
       const DataFormat format = someProperties.myFormat;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
       uavDesc.Format = RenderCore_PlatformDX12::ResolveFormat(format);
-      uavDesc.Buffer.FirstElement = someProperties.myOffset / formatInfo.mySizeBytes;
-      ASSERT(someProperties.mySize / formatInfo.mySizeBytes <= UINT_MAX);
-      uavDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / formatInfo.mySizeBytes);
+      uavDesc.Buffer.FirstElement = someProperties.myOffset / BITS_TO_BYTES(formatInfo.myBitsPerPixel);
+      ASSERT(someProperties.mySize / BITS_TO_BYTES(formatInfo.myBitsPerPixel) <= UINT_MAX);
+      uavDesc.Buffer.NumElements = static_cast<uint>(someProperties.mySize / BITS_TO_BYTES(formatInfo.myBitsPerPixel));
     }
 
     RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView(dataDx12->myResource.Get(), nullptr, &uavDesc, aDescriptor.myCpuHandle);

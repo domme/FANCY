@@ -155,8 +155,7 @@ namespace Fancy { namespace ImGuiRendering {
 
       TextureSubData uploadData;
       uploadData.myData = fontPixelData;
-      uploadData.myPixelSizeBytes = pixelSizeBytes;
-      uploadData.myRowSizeBytes = static_cast<uint64>(width * uploadData.myPixelSizeBytes);
+      uploadData.myRowSizeBytes = static_cast<uint64>(width * pixelSizeBytes);
       uploadData.mySliceSizeBytes = height * uploadData.myRowSizeBytes;
       uploadData.myTotalSizeBytes = uploadData.mySliceSizeBytes;
 
@@ -167,7 +166,7 @@ namespace Fancy { namespace ImGuiRendering {
       props.myFormat = DataFormat::RGBA_8;
       props.myNumMipLevels = 1u;
       const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(props.myFormat);
-      ASSERT(formatInfo.mySizeBytes == pixelSizeBytes);
+      ASSERT(formatInfo.myBitsPerPixel == (pixelSizeBytes * 8 ));
 
       TextureViewProperties viewProps;
       viewProps.myDimension = GpuResourceDimension::TEXTURE_2D;

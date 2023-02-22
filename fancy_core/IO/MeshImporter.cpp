@@ -67,7 +67,7 @@ namespace Fancy
       uint overallVertexSize = 0u;
       for (const VertexShaderAttributeDesc& expectedAttribute : someVertexAttributes)
       {
-        overallVertexSize += DataFormatInfo::GetFormatInfo(expectedAttribute.myFormat).mySizeBytes;
+        overallVertexSize += DataFormatInfo::GetFormatInfo(expectedAttribute.myFormat).myBitsPerPixel / 8;
         layoutProps.myAttributes.push_back({ expectedAttribute.myFormat, expectedAttribute.mySemantic, expectedAttribute.mySemanticIndex, 0u });
       }
 
@@ -314,7 +314,7 @@ namespace Fancy
       for (uint i = 0u; i < expectedAttributes.size(); ++i)
       {
         const VertexShaderAttributeDesc& expectedAttribute = expectedAttributes[i];
-        uint expectedSize = DataFormatInfo::GetFormatInfo(expectedAttribute.myFormat).mySizeBytes;
+        uint expectedSize = DataFormatInfo::GetFormatInfo(expectedAttribute.myFormat).myBitsPerPixel / 8;
         attributeSizes[i] = expectedSize;
         overallVertexSize += expectedSize;
         for (uint k = 0u; k < importStreams.size(); ++k)

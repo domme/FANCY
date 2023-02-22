@@ -70,8 +70,8 @@ namespace Fancy
           ASSERT(geoInfo.myNumVertices > 0);
 
           const DataFormatInfo& vertexFormatInfo = DataFormatInfo::GetFormatInfo(geoInfo.myVertexFormat);
-          const uint vertexComponentSize = vertexFormatInfo.mySizeBytes / vertexFormatInfo.myNumComponents;
-          const uint vertexStride = glm::max(geoInfo.myVertexStride, (uint) vertexFormatInfo.mySizeBytes);
+          const uint vertexComponentSize = BITS_TO_BYTES(vertexFormatInfo.myBitsPerPixel) / vertexFormatInfo.myNumComponents;
+          const uint vertexStride = glm::max(geoInfo.myVertexStride, (uint) BITS_TO_BYTES(vertexFormatInfo.myBitsPerPixel));
           ASSERT(MathUtil::IsAligned(vertexStride, vertexComponentSize)); // Stride must be a multiple of the component size
 
           VkIndexType indexType = VK_INDEX_TYPE_NONE_KHR;

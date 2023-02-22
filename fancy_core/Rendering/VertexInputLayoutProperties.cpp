@@ -20,7 +20,7 @@ namespace Fancy {
   {
     uint64 overallSize = 0ull;
     for (const VertexInputAttributeDesc& attribute : myAttributes)
-      overallSize += DataFormatInfo::GetFormatInfo(attribute.myFormat).mySizeBytes;
+      overallSize += BITS_TO_BYTES(DataFormatInfo::GetFormatInfo(attribute.myFormat).myBitsPerPixel);
 
     return overallSize;
   }
@@ -39,7 +39,7 @@ namespace Fancy {
 
       myAttributeOffsetsInBuffer.push_back(bufferSize[bufferIndex]);
 
-      const uint size = DataFormatInfo::GetFormatInfo(attributeDesc.myFormat).mySizeBytes;
+      const uint size = BITS_TO_BYTES(DataFormatInfo::GetFormatInfo(attributeDesc.myFormat).myBitsPerPixel);
       bufferSize[attributeDesc.myBufferIndex] += size;
     }
   }

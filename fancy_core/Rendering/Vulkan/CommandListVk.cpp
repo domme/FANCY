@@ -207,7 +207,7 @@ namespace Fancy
         dstTexProps.myHeight == srcTexProps.myHeight &&
         dstTexProps.myDepthOrArraySize == srcTexProps.myDepthOrArraySize &&
         dstTexProps.myDimension == srcTexProps.myDimension &&
-        dstFormatInfo.mySizeBytes == srcFormatInfo.mySizeBytes &&
+        dstFormatInfo.myBitsPerPixel == srcFormatInfo.myBitsPerPixel &&
         dstFormatInfo.myNumPlanes == srcFormatInfo.myNumPlanes);
 
       const SubresourceRange& subresourceRange = srcTexture->GetSubresources();
@@ -607,13 +607,16 @@ namespace Fancy
       uint width, height, depth;
       texProps.GetSize(subResource.myMipLevel, width, height, depth);
 
-      const uint64 rowSize = width * formatInfo.myCopyableSizePerPlane[subResource.myPlaneIndex];
-      const uint64 alignedRowSize = MathUtil::Align(rowSize, caps.myTextureRowAlignment);
-      const uint64 alignedSliceSize = alignedRowSize * height;
+      uint64 rowPitch;
+      uint heightBlocksOrPixels;
+      TextureData::ComputeRowPitchSizeAndBlockHeight(texProps.myFormat, width, height, rowPitch, heightBlocksOrPixels, subResource.myPlaneIndex);
+      
+      const uint64 alignedRowSize = MathUtil::Align(rowPitch, caps.myTextureRowAlignment);
+      const uint64 alignedSliceSize = alignedRowSize * heightBlocksOrPixels;
       const uint64 alignedSubresourceSize = MathUtil::Align(alignedSliceSize * depth, caps.myTextureSubresourceBufferAlignment);
       requiredBufferSize += alignedSubresourceSize;
   
-      rowSizes[i] = rowSize;
+      rowSizes[i] = rowPitch;
       bufferRowSizes[i] = alignedRowSize;
       bufferSliceSizes[i] = alignedSliceSize;
       bufferSubresourceSizes[i] = alignedSubresourceSize;

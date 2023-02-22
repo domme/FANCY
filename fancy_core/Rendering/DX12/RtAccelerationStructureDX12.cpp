@@ -48,11 +48,11 @@ namespace Fancy
         if (geoDescDx12.Type == D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES)
         {
           const DataFormatInfo& vertexFormatInfo = DataFormatInfo::GetFormatInfo(geoInfo.myVertexFormat);
-          const uint vertexComponentSize = vertexFormatInfo.mySizeBytes / vertexFormatInfo.myNumComponents;
-          const uint vertexStride = glm::max(geoInfo.myVertexStride, (uint) vertexFormatInfo.mySizeBytes);
+          const uint vertexComponentSize = BITS_TO_BYTES(vertexFormatInfo.myBitsPerPixel) / vertexFormatInfo.myNumComponents;
+          const uint vertexStride = glm::max(geoInfo.myVertexStride, (uint) BITS_TO_BYTES(vertexFormatInfo.myBitsPerPixel));
           ASSERT(MathUtil::IsAligned(vertexStride, vertexComponentSize)); // Stride must be a multiple of the component size
           
-          const uint indexStride = DataFormatInfo::GetFormatInfo(geoInfo.myIndexFormat).mySizeBytes;
+          const uint indexStride = BITS_TO_BYTES(DataFormatInfo::GetFormatInfo(geoInfo.myIndexFormat).myBitsPerPixel);
           const uint transformStride = sizeof(glm::float3x4);
 
           const uint64 vertexBufferAddress = geoInfo.myVertexData.GetGpuBufferAddress(cmdList, vertexComponentSize);

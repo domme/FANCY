@@ -129,7 +129,6 @@ namespace Fancy
   {
     TextureSubData()
       : myData(nullptr)
-      , myPixelSizeBytes(0.0f)
       , myRowSizeBytes(0u)
       , mySliceSizeBytes(0u)
       , myTotalSizeBytes(0u)
@@ -138,7 +137,6 @@ namespace Fancy
     TextureSubData(const TextureProperties& someProperties);
 
     uint8* myData;
-    float  myPixelSizeBytes;
     uint64 myRowSizeBytes;
     uint64 mySliceSizeBytes;
     uint64 myTotalSizeBytes;
@@ -151,6 +149,9 @@ namespace Fancy
       : myData(std::move(someData))
       , mySubDatas(std::move(someSubDatas))
     {}
+    
+    static void ComputeRowPitchSizeAndBlockHeight(DataFormat aFormat, uint aWidth, uint aHeight, uint64& rowPitchSize, uint& aHeightBlocksOrPixels, uint aPlane = 0);
+
     eastl::vector<uint8> myData;
     eastl::vector<TextureSubData> mySubDatas;
   };

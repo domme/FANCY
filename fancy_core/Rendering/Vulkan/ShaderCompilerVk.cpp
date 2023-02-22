@@ -154,7 +154,7 @@ namespace Fancy
       {
         const VertexShaderAttributeDesc& shaderAttribute = vertexAttributes[i];
         props.myAttributes.push_back({ shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u });
-        overallVertexSize += DataFormatInfo::GetFormatInfo(shaderAttribute.myFormat).mySizeBytes;
+        overallVertexSize += BITS_TO_BYTES(DataFormatInfo::GetFormatInfo(shaderAttribute.myFormat).myBitsPerPixel);
       }
 
       props.myBufferBindings.push_back({ overallVertexSize, VertexInputRate::PER_VERTEX });

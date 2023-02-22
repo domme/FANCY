@@ -360,7 +360,7 @@ namespace Fancy {
     footprint.Offset = 0;
     footprint.Footprint.Format = RenderCore_PlatformDX12::GetCopyableFormat(formatDx12, aSrcSubresource.myPlaneIndex);
     footprint.Footprint.Width = aSrcRegion.mySize.x;
-    footprint.Footprint.RowPitch = (uint) MathUtil::Align((uint64) aSrcRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aSrcSubresource.myPlaneIndex], (uint64) RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    footprint.Footprint.RowPitch = (uint) MathUtil::Align((uint64) BITS_TO_BYTES(aSrcRegion.mySize.x * formatInfo.myCopyableBitsPerPixelPerPlane[aSrcSubresource.myPlaneIndex]), (uint64) RenderCore::GetPlatformCaps().myTextureRowAlignment);
     footprint.Footprint.Height = aSrcRegion.mySize.y;
     footprint.Footprint.Depth = aSrcRegion.mySize.z;
 
@@ -448,7 +448,7 @@ namespace Fancy {
     footprint.Offset = 0u;
     footprint.Footprint.Format = RenderCore_PlatformDX12::GetCopyableFormat(formatDx12, aDstSubresource.myPlaneIndex);
     footprint.Footprint.Width = aDstRegion.mySize.x;
-    footprint.Footprint.RowPitch = (uint) MathUtil::Align(aDstRegion.mySize.x * formatInfo.myCopyableSizePerPlane[aDstSubresource.myPlaneIndex], RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    footprint.Footprint.RowPitch = (uint) MathUtil::Align(BITS_TO_BYTES(aDstRegion.mySize.x * formatInfo.myCopyableBitsPerPixelPerPlane[aDstSubresource.myPlaneIndex]), RenderCore::GetPlatformCaps().myTextureRowAlignment);
     footprint.Footprint.Height = aDstRegion.mySize.y;
     footprint.Footprint.Depth = aDstRegion.mySize.z;
 
