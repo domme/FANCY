@@ -444,11 +444,15 @@ namespace Fancy {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
     const DXGI_FORMAT formatDx12 = RenderCore_PlatformDX12::ResolveFormat(format);
 
+    uint64 rowPitch;
+    uint heightBlocksOrPixel;
+    TextureData::ComputeRowPitchSizeAndBlockHeight(format, aDstRegion.mySize.x, aDstRegion.mySize.y, rowPitch, heightBlocksOrPixel, aDstSubresource.myPlaneIndex);
+
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
     footprint.Offset = 0u;
     footprint.Footprint.Format = RenderCore_PlatformDX12::GetCopyableFormat(formatDx12, aDstSubresource.myPlaneIndex);
     footprint.Footprint.Width = aDstRegion.mySize.x;
-    footprint.Footprint.RowPitch = (uint) MathUtil::Align(BITS_TO_BYTES(aDstRegion.mySize.x * formatInfo.myCopyableBitsPerPixelPerPlane[aDstSubresource.myPlaneIndex]), RenderCore::GetPlatformCaps().myTextureRowAlignment);
+    footprint.Footprint.RowPitch = (uint) MathUtil::Align(rowPitch, RenderCore::GetPlatformCaps().myTextureRowAlignment);
     footprint.Footprint.Height = aDstRegion.mySize.y;
     footprint.Footprint.Depth = aDstRegion.mySize.z;
 

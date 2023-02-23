@@ -2,6 +2,7 @@
 
 #include "Common/FancyCoreDefines.h"
 #include "Common/MathIncludes.h"
+#include "DataFormat.h"
 
 #include "EASTL/vector.h"
 

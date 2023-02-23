@@ -107,8 +107,8 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, uint someLoadFlags, 
   uint height = header.height;
   DataFormat format = DataFormat::UNKNOWN;
 
-  const bool hasMips = (header.flags & DDS_HEADER_FLAGS_MIPMAP) != 0;
   const bool isVolumeTexture = (header.flags & DDS_HEADER_FLAGS_VOLUME) != 0;
+  ASSERT(!isVolumeTexture, "Not implemented");
 
   bool isCubeMap = false;
   bool isArrayTexture = false;
@@ -122,22 +122,8 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, uint someLoadFlags, 
     isCubeMap = (header10.miscFlag & DDS_RESOURCE_MISC_TEXTURECUBE) != 0;
     isArrayTexture = header10.arraySize > 1;
 
-    switch( header10.resourceDimension )
-    {
-      case DDS_DIMENSION_TEXTURE1D:
-        dimension = isArrayTexture ? GpuResourceDimension::TEXTURE_1D_ARRAY : GpuResourceDimension::TEXTURE_1D;
-        break;
-      case DDS_DIMENSION_TEXTURE2D:
-        if (isCubeMap)
-          dimension = isArrayTexture ? GpuResourceDimension::TEXTURE_CUBE_ARRAY : GpuResourceDimension::TEXTURE_CUBE;
-        else
-          dimension = isArrayTexture ? GpuResourceDimension::TEXTURE_2D_ARRAY : GpuResourceDimension::TEXTURE_2D;
-        break;
-      case DDS_DIMENSION_TEXTURE3D:
-        dimension = GpuResourceDimension::TEXTURE_3D;
-        break;
-      default: ASSERT(false);
-    }
+    ASSERT(!isCubeMap && !isArrayTexture, "Not implemented");
+    ASSERT(header10.resourceDimension == DDS_DIMENSION_TEXTURE2D, "Non-2D textures not implemented");
   }
   else
   {
@@ -165,36 +151,6 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, uint someLoadFlags, 
         ASSERT(false, "Missing implementation");
     }
   }
-  
-  const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(format);
-  
-  uint64 pitchSizeBytes = 0;
-  if (formatInfo.myIsCompressed)
-    pitchSizeBytes = static_cast<uint64>(glm::max(1u, MathUtil::DivideRoundUp(width, 4u)) * formatInfo.myCompressedBlockSizeBytes);
-  else
-    pitchSizeBytes = static_cast<uint64>(MathUtil::DivideRoundUp(width * formatInfo.myBitsPerPixel, 8u));
-
-  const uint heightBlocksOrPixels = formatInfo.myIsCompressed ? MathUtil::DivideRoundUp(height, 4u) : height;
-  const uint64 dataSizeMip0 = heightBlocksOrPixels * pitchSizeBytes;
-
-  eastl::vector<uint8> dataMip0;
-  dataMip0.resize(dataSizeMip0);
-
-  if (fread(dataMip0.data(), 1, dataSizeMip0, file) != dataSizeMip0)
-  {
-    LOG_ERROR("Error reading %d MiB from dds file %s", dataSizeMip0 * SIZE_MB, aPathAbs);
-    return false;
-  }
-
-  TextureData& texData = anImageOut.myData;
-  texData.myData.resize(dataSizeMip0);
-  memcpy(texData.myData.data(), dataMip0.data(), dataSizeMip0);
-
-  TextureSubData& dataFirstMip = texData.mySubDatas.push_back();
-  dataFirstMip.myData = texData.myData.data();
-  dataFirstMip.myRowSizeBytes = pitchSizeBytes;
-  dataFirstMip.mySliceSizeBytes = pitchSizeBytes * heightBlocksOrPixels;
-  dataFirstMip.myTotalSizeBytes = dataFirstMip.mySliceSizeBytes;
 
   TextureProperties& props = anImageOut.myProperties;
   props.myDimension = GpuResourceDimension::TEXTURE_2D;
@@ -203,8 +159,50 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, uint someLoadFlags, 
   props.myHeight = height;
   props.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
   props.myIsShaderWritable = (someLoadFlags & AssetManager::TextureLoadFlags::SHADER_WRITABLE) != 0;
-  props.myNumMipLevels = 1u;
+  props.myNumMipLevels = header.mipMapCount;
   props.myFormat = format;
+
+  uint64 overallSizeBytes = 0;
+  for ( int mip = 0; mip < header.mipMapCount; ++mip )
+  {
+    const uint mipWidth = glm::max(1u, width >> mip);
+    const uint mipHeight = glm::max(1u, height >> mip);
+
+    uint64 rowPitchSizeBytes;
+    uint heightBlocksOrPixels;
+    TextureData::ComputeRowPitchSizeAndBlockHeight(format, mipWidth, mipHeight, rowPitchSizeBytes, heightBlocksOrPixels);
+    overallSizeBytes += heightBlocksOrPixels * rowPitchSizeBytes;
+  }
+
+  TextureData& texData = anImageOut.myData;
+  texData.myData.resize(overallSizeBytes);
+
+  uint8* dst = texData.myData.data();
+  for (int mip = 0; mip < header.mipMapCount; ++mip)
+  {
+    const uint mipWidth = glm::max(1u, width >> mip);
+    const uint mipHeight = glm::max(1u, height >> mip);
+
+    uint64 rowPitchSizeBytes;
+    uint heightBlocksOrPixels;
+    TextureData::ComputeRowPitchSizeAndBlockHeight(format, mipWidth, mipHeight, rowPitchSizeBytes, heightBlocksOrPixels);
+
+    const uint64 sizeOnMip = heightBlocksOrPixels * rowPitchSizeBytes;
+
+    if (fread(dst, 1, sizeOnMip, file) != sizeOnMip)
+    {
+      LOG_ERROR("Error reading %d MiB on mip %d from dds file %s", sizeOnMip * SIZE_MB, mip, aPathAbs);
+      return false;
+    }
+
+    TextureSubData& mipData = texData.mySubDatas.push_back();
+    mipData.myData = dst;
+    mipData.myRowSizeBytes = rowPitchSizeBytes;
+    mipData.mySliceSizeBytes = rowPitchSizeBytes * heightBlocksOrPixels;
+    mipData.myTotalSizeBytes = mipData.mySliceSizeBytes;
+
+    dst += sizeOnMip;
+  }
 
   return true;
 }
