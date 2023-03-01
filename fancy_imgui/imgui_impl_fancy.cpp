@@ -121,8 +121,6 @@ namespace Fancy { namespace ImGuiRendering {
     io.KeyMap[ImGuiKey_X] = 'X';
     io.KeyMap[ImGuiKey_Y] = 'Y';
     io.KeyMap[ImGuiKey_Z] = 'Z';
-  
-    io.RenderDrawListsFn = RenderDrawLists;
     io.ImeWindowHandle = ourHwnd;
   
     if (!QueryPerformanceFrequency((LARGE_INTEGER *)&ourTicksPerSecond))

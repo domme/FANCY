@@ -139,7 +139,7 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, uint someLoadFlags, 
         format = DataFormat::BC4;
       else if (header.ddspf.fourCC == DDSPF_BC4_SNORM.fourCC)
         format = DataFormat::BC4_SNORM;
-      else if (header.ddspf.fourCC == DDSPF_BC5_UNORM.fourCC)
+      else if (header.ddspf.fourCC == DDSPF_BC5_UNORM.fourCC || header.ddspf.fourCC == MAKEFOURCC('A','T','I','2'))
         format = DataFormat::BC5;
       else if (header.ddspf.fourCC == DDSPF_BC5_SNORM.fourCC)
         format = DataFormat::BC5_SNORM;
