@@ -1242,12 +1242,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   TextureView* RenderCore_PlatformVk::CreateTextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aDebugName)
   {
-    return new TextureViewVk(aTexture, someProperties);
+    return new TextureViewVk(aTexture, someProperties, aDebugName);
   }
 //---------------------------------------------------------------------------//
   GpuBufferView* RenderCore_PlatformVk::CreateBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aDebugName)
   {
-    return new GpuBufferViewVk(aBuffer, someProperties);
+    return new GpuBufferViewVk(aBuffer, someProperties, aDebugName);
   }
 //---------------------------------------------------------------------------//
   RtAccelerationStructure* RenderCore_PlatformVk::CreateRtBottomLevelAccelerationStructure(const RtAccelerationStructureGeometryData* someGeometries, uint aNumGeometries, uint aSomeFlags, const char* aName)

@@ -38,8 +38,8 @@ namespace Fancy {
   public:
     static GlobalResourceType GetGlobalResourceType(const TextureViewProperties& someViewProps);
 
-    TextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
-      : GpuResourceView(eastl::static_pointer_cast<GpuResource>(aTexture))
+    TextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName)
+      : GpuResourceView(eastl::static_pointer_cast<GpuResource>(aTexture), aName)
       , myProperties(someProperties)
     { }
 

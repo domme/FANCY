@@ -7,7 +7,7 @@
 
 #define STBI_FAILURE_USERMSG  // Slightly more user-friendly error-messages
 #define STB_IMAGE_IMPLEMENTATION
-#include "AssetManager.h"
+#include "Assets.h"
 #include "dds.h"
 #include "Rendering/DX12/RenderCore_PlatformDX12.h"
 #include "stb/stb_image.h"
@@ -36,7 +36,7 @@ static bool LoadImage_STB(FILE* file, const char* aPathAbs, uint someLoadFlags, 
   props.myWidth = (uint)size.x;
   props.myHeight = (uint)size.y;
   props.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
-  props.myIsShaderWritable = (someLoadFlags & AssetManager::TextureLoadFlags::SHADER_WRITABLE) != 0;
+  props.myIsShaderWritable = (someLoadFlags & Assets::TextureLoadFlags::SHADER_WRITABLE) != 0;
   props.myNumMipLevels = 1u;
 
   switch(desiredNumChannels)
@@ -158,7 +158,7 @@ static bool LoadImage_DDS(FILE* file, const char* aPathAbs, uint someLoadFlags, 
   props.myWidth = width;
   props.myHeight = height;
   props.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
-  props.myIsShaderWritable = (someLoadFlags & AssetManager::TextureLoadFlags::SHADER_WRITABLE) != 0;
+  props.myIsShaderWritable = (someLoadFlags & Assets::TextureLoadFlags::SHADER_WRITABLE) != 0;
   props.myNumMipLevels = header.mipMapCount;
   props.myFormat = format;
 

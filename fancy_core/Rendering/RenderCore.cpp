@@ -1010,7 +1010,6 @@ SharedPtr<TextureView> RenderCore::CreateTextureView(const SharedPtr<Texture>& a
   const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(viewProps.myFormat);
   ASSERT(viewProps.mySubresourceRange.myFirstPlane < formatInfo.myNumPlanes);
   ASSERT(!viewProps.myIsShaderWritable || !viewProps.myIsRenderTarget, "UAV and RTV are mutually exclusive");
-
   return SharedPtr<TextureView>(ourPlatformImpl->CreateTextureView(aTexture, viewProps, aName));
 }
 //---------------------------------------------------------------------------//

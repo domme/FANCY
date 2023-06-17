@@ -29,7 +29,7 @@ namespace Fancy {
   class TextureViewVk final : public TextureView
   {
   public:
-    TextureViewVk(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties);
+    TextureViewVk(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName);
     ~TextureViewVk() override;
   };
 //---------------------------------------------------------------------------//

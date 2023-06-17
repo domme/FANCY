@@ -34,7 +34,7 @@ namespace Fancy {
   class GpuBufferView : public GpuResourceView
   {
   public:
-    GpuBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
+    GpuBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aName);
 
     const GpuBufferViewProperties& GetProperties() const { return myProperties; }
     GpuBuffer* GetBuffer() const { return static_cast<GpuBuffer*>(myResource.get()); }

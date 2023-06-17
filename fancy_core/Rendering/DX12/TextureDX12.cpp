@@ -240,13 +240,13 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  TextureViewDX12::TextureViewDX12(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
-    : TextureView::TextureView(aTexture, someProperties)
+  TextureViewDX12::TextureViewDX12(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName)
+    : TextureView::TextureView(aTexture, someProperties, aName)
   {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
     RenderCore_PlatformDX12* platformDx12 = RenderCore::GetPlatformDX12();
     
-    eastl::string name = aTexture->myName;
+    eastl::string name = myName.empty() ? aTexture->myName : myName;
 
     bool success = false;
     GpuResourceViewDataDX12 nativeData;

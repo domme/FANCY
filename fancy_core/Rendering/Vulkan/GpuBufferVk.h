@@ -37,7 +37,7 @@ namespace Fancy
   public:
     static VkBufferView CreateVkBufferView(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties);
 
-    GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
+    GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aName);
     ~GpuBufferViewVk() override;
 
     VkBufferView GetBufferView() const;

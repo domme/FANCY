@@ -181,16 +181,19 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  GpuBufferViewDX12::GpuBufferViewDX12(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
-    : GpuBufferView::GpuBufferView(aBuffer, someProperties)
+  GpuBufferViewDX12::GpuBufferViewDX12(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aName)
+    : GpuBufferView::GpuBufferView(aBuffer, someProperties, aName)
   {
     GpuResourceViewDataDX12 nativeData;
+
+    eastl::string name = myName.empty() ? aBuffer->GetName() : myName;
 
     bool success = false;
     if (someProperties.myIsConstantBuffer)
     {
+      name.append("CBV");
       ASSERT(myType == GpuResourceViewType::CBV);
-      nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, "GpuBufferView");
+      nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str());
       ASSERT(nativeData.myDescriptor.myCpuHandle.ptr != UINT_MAX);
       success = CreateCBVdescriptor(aBuffer.get(), someProperties, nativeData.myDescriptor);
     }
@@ -202,8 +205,9 @@ namespace Fancy {
 
       if (someProperties.myIsShaderWritable)
       {
+        name.append("UAV");
         ASSERT(myType == GpuResourceViewType::UAV);
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_RWBUFFER, "GpuBufferView");
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_RWBUFFER, name.c_str());
         success = CreateUAVdescriptor(aBuffer.get(), rawProperties, nativeData.myDescriptor);
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
       }
@@ -211,13 +215,15 @@ namespace Fancy {
       {
         if (someProperties.myIsRtAccelerationStructure)
         {
+          name.append("SRV_RT_AS");
           ASSERT(myType == GpuResourceViewType::SRV_RT_AS);
-          nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE, "RtAsGpuBufferView");
+          nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE, name.c_str());
         }
         else
         {
+          name.append("SRV");
           ASSERT(myType == GpuResourceViewType::SRV);
-          nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_BUFFER, "GpuBufferView");
+          nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(GLOBAL_RESOURCE_BUFFER, name.c_str());
         }
         
         success = CreateSRVdescriptor(aBuffer.get(), rawProperties, nativeData.myDescriptor);

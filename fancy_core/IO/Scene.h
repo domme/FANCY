@@ -7,7 +7,7 @@
 
 namespace Fancy
 {
-  class AssetManager;
+  class Assets;
   //---------------------------------------------------------------------------//
   struct VertexInputLayout;
   struct Mesh;
@@ -29,7 +29,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   struct Scene
   {
-    Scene(const SceneData& aData, AssetManager* anAssetManager);
+    Scene(const SceneData& aData);
     eastl::vector<SceneMeshInstance> myInstances;
     eastl::vector<SharedPtr<Mesh>> myMeshes;
     eastl::vector<SharedPtr<Material>> myMaterials;

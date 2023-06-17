@@ -15,11 +15,12 @@ namespace Fancy {
   class GpuResourceView
   {
   public:
-    explicit GpuResourceView(SharedPtr<GpuResource> aResource)
+    explicit GpuResourceView(SharedPtr<GpuResource> aResource, const char* aName)
       : myResource(aResource)
       , myCoversAllSubresources(true)
       , myType(GpuResourceViewType::NONE)
       , myGlobalDescriptorIndex(UINT_MAX)
+      , myName(aName != nullptr ? aName : "")
     { }
 
     virtual ~GpuResourceView() = default;
@@ -35,6 +36,7 @@ namespace Fancy {
     bool myCoversAllSubresources;
     GpuResourceViewType myType;
     uint myGlobalDescriptorIndex;
+    eastl::string myName;
   };
 //---------------------------------------------------------------------------//
 }

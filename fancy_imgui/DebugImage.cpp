@@ -37,7 +37,19 @@ namespace Fancy
 
   void ImGuiMippedDebugImage::Update()
   {
-		glm::float2 size = glm::float2((float)myTexture->GetProperties().myWidth, (float)myTexture->GetProperties().myHeight);
+		glm::float2 textureSize = glm::float2((float)myTexture->GetProperties().myWidth, (float)myTexture->GetProperties().myHeight);
+		float ratio = textureSize.y / textureSize.x;
+
+		glm::float2 availableSize(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
+		glm::float2 size = availableSize;
+		if ( availableSize.y < availableSize.x )
+		{
+			size.x = size.y / ratio;
+		} else
+		{
+			size.y = size.x * ratio;
+		}
+
 		size *= myZoom;
 
 		myMipLevel = glm::min(myMipLevel + 1, (int) myMipViews.size()) - 1;

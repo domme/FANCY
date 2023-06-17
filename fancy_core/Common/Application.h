@@ -11,7 +11,7 @@
 struct ImGuiContext;
 
 namespace Fancy {
-  class AssetManager;
+  class Assets;
   class Window;
   class RenderOutput;
   struct RenderPlatformProperties;
@@ -46,7 +46,6 @@ namespace Fancy {
     InputState myInputState;
     Camera myCamera;
     SharedPtr<RenderOutput> myRenderOutput;
-    UniquePtr<AssetManager> myAssetManager;
   };
 
 }

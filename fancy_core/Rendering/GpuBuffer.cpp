@@ -49,8 +49,8 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  GpuBufferView::GpuBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties) :
-    GpuResourceView(eastl::static_pointer_cast<GpuResource>(aBuffer))
+  GpuBufferView::GpuBufferView(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aName) :
+    GpuResourceView(eastl::static_pointer_cast<GpuResource>(aBuffer), aName)
     , myProperties(someProperties)
   {
     if (someProperties.myIsConstantBuffer)

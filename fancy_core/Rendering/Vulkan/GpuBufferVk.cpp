@@ -267,12 +267,14 @@ namespace Fancy
   }
 //---------------------------------------------------------------------------//
 //---------------------------------------------------------------------------//
-  GpuBufferViewVk::GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties)
-    : GpuBufferView(aBuffer, someProperties)
+  GpuBufferViewVk::GpuBufferViewVk(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aName)
+    : GpuBufferView(aBuffer, someProperties, aName)
   {
     GpuResourceViewDataVk nativeData;
     nativeData.myType = GpuResourceViewDataVk::Buffer;
     nativeData.myView.myBuffer = nullptr;
+
+    eastl::string name = myName.empty() ? aBuffer->GetName() : myName;
 
     // Creating a vkBufferView is only needed for uniform texel buffers or storage texel buffers (Buffer<T> or RWBuffer<T> in HLSL)
     // For anything else, GpuBufferViewVk just acts as a reference-holder to the GpuBuffer and stores the view-properties needed when binding
@@ -285,6 +287,7 @@ namespace Fancy
       if (someProperties.myIsShaderWritable)
       {
         ASSERT(myType == GpuResourceViewType::UAV);
+        name.append("UAV");
         globalType = GLOBAL_RESOURCE_RWBUFFER;
       }
       else
@@ -292,11 +295,13 @@ namespace Fancy
         if (someProperties.myIsRtAccelerationStructure)
         {
           ASSERT(myType == GpuResourceViewType::SRV_RT_AS);
+          name.append("SRV_RT_AS");
           globalType = GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE;
         }
         else
         {
           ASSERT(myType == GpuResourceViewType::SRV);
+          name.append("SRV");
           globalType = GLOBAL_RESOURCE_BUFFER;
         }
       }
@@ -307,8 +312,7 @@ namespace Fancy
       {
         VkAccelerationStructureKHR accelerationStructure = bufferVk->GetData()->myBufferData.myAccelerationStructure;
         ASSERT(accelerationStructure != VK_NULL_HANDLE);
-
-        nativeData.myGlobalDescriptor = RenderCore::GetPlatformVk()->AllocateAndWriteGlobalRTASDescriptor(accelerationStructure, "RTAS View");
+        nativeData.myGlobalDescriptor = RenderCore::GetPlatformVk()->AllocateAndWriteGlobalRTASDescriptor(accelerationStructure, name.c_str());
         myGlobalDescriptorIndex = nativeData.myGlobalDescriptor.myIndex;
       }
       else
@@ -317,7 +321,7 @@ namespace Fancy
         descriptorInfo.buffer = bufferVk->GetData()->myBufferData.myBuffer;
         descriptorInfo.offset = someProperties.myOffset;
         descriptorInfo.range = someProperties.mySize;
-        nativeData.myGlobalDescriptor = RenderCore::GetPlatformVk()->AllocateAndWriteGlobalResourceDescriptor(globalType, descriptorInfo, "GpuBufferView");
+        nativeData.myGlobalDescriptor = RenderCore::GetPlatformVk()->AllocateAndWriteGlobalResourceDescriptor(globalType, descriptorInfo, name.c_str());
         myGlobalDescriptorIndex = nativeData.myGlobalDescriptor.myIndex;
       }
     }

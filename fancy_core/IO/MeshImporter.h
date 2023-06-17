@@ -1,12 +1,9 @@
 #pragma once
 
-#include "Rendering/Shader.h"
-#include "Mesh.h"
-#include "Scene.h"
-
 #include "EASTL/hash_map.h"
 #include "EASTL/string.h"
 #include "EASTL/fixed_vector.h"
+#include "Rendering/Shader.h"
 
 struct aiMesh;
 struct aiNode;
@@ -14,7 +11,9 @@ struct aiScene;
 struct aiMaterial;
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  struct MeshDesc;
+  struct SceneData;
+  //---------------------------------------------------------------------------//
   struct Material;
   class ShaderPipeline;
 //---------------------------------------------------------------------------//
@@ -40,7 +39,7 @@ namespace Fancy {
     bool ProcessMeshes(const aiNode* aNode, const glm::float4x4& aTransform, SceneData& aResultOut);
 
     uint CreateMesh(aiMesh** someMeshes, uint aMeshCount, SceneData& aResultOut);
-    MeshDesc CreateMeshDesc(uint64 anAssimpMeshListHash);
+    void CreateMeshDesc(uint64 anAssimpMeshListHash, MeshDesc& aMeshDescOut);
 
     uint CreateMaterial(const aiMaterial* anAiMaterial, SceneData& aResultOut);
     

@@ -4,7 +4,7 @@
 #include "CommandLine.h"
 #include "Window.h"
 #include "Debug/Profiler.h"
-#include "IO/AssetManager.h"
+#include "IO/Assets.h"
 #include "IO/PathService.h"
 #include "Rendering/CommandList.h"
 #include "Rendering/CommandQueue.h"
@@ -35,7 +35,7 @@ namespace Fancy
     myRenderOutput->GetWindow()->myOnResize.Connect(this, &Application::OnWindowResized);
     myRenderOutput->GetWindow()->myWindowEventHandler.Connect(&myInputState, &InputState::OnWindowEvent);
 
-    myAssetManager.reset(new AssetManager());
+    Assets::Init();
   }
 
   Application::~Application()

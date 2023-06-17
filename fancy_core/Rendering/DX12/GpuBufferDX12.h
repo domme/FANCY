@@ -34,7 +34,7 @@ namespace Fancy {
   class GpuBufferViewDX12 final : public GpuBufferView
   {
   public:
-    GpuBufferViewDX12(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties);
+    GpuBufferViewDX12(const SharedPtr<GpuBuffer>& aBuffer, const GpuBufferViewProperties& someProperties, const char* aName);
     ~GpuBufferViewDX12() override;
 
     static bool CreateSRVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor);

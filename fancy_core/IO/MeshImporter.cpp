@@ -21,6 +21,7 @@
 #include "Common/StaticString.h"
 #include "Material.h"
 #include "BinaryCache.h"
+#include "Scene.h"
 #include "Common/CommandLine.h"
 #include "Rendering/ShaderPipeline.h"
 
@@ -379,7 +380,7 @@ namespace Fancy
       meshPartDatas.push_back(partData);
     }
     
-    meshData.myDesc = CreateMeshDesc(assimpMeshListHash);
+    CreateMeshDesc(assimpMeshListHash, meshData.myDesc);
     aResultOut.myMeshes.push_back(std::move(meshData));
 
     uint index = (uint) aResultOut.myMeshes.size() - 1;
@@ -387,12 +388,12 @@ namespace Fancy
     return index;
   }
 //---------------------------------------------------------------------------//
-  MeshDesc MeshImporter::CreateMeshDesc(uint64 anAssimpMeshListHash)
+  void MeshImporter::CreateMeshDesc(uint64 anAssimpMeshListHash, MeshDesc & aMeshDescOut)
   {
     MeshDesc desc;
     desc.myName = StaticString<260>("%s_Mesh_%d", mySourcePath.c_str(), anAssimpMeshListHash);
     desc.myHash = MathUtil::Hash(desc.myName);
-    return desc;
+    aMeshDescOut = desc;
   }
 //---------------------------------------------------------------------------//
   uint MeshImporter::CreateMaterial(const aiMaterial* anAiMaterial, SceneData& aResultOut)

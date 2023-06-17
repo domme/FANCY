@@ -303,12 +303,12 @@ namespace Fancy
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-  TextureViewVk::TextureViewVk(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties)
-    : TextureView(aTexture, someProperties)
+  TextureViewVk::TextureViewVk(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName)
+    : TextureView(aTexture, someProperties, aName)
   {
     const DataFormatInfo& formatInfo = DataFormatInfo::GetFormatInfo(someProperties.myFormat);
 
-    eastl::string name = aTexture->myName;
+    eastl::string name = myName.empty() ? aTexture->myName : myName;
 
     GpuResourceViewDataVk nativeData;
     nativeData.myType = GpuResourceViewDataVk::Image;
