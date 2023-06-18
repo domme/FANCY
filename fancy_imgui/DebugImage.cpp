@@ -4,7 +4,6 @@
 #include "Common/MathIncludes.h"
 #include "Common/StaticString.h"
 #include "Rendering/CommandList.h"
-#include "Rendering/CommandList.h"
 #include "Rendering/RenderCore.h"
 #include "Rendering/Texture.h"
 #include "Rendering/TextureData.h"

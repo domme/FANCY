@@ -12,22 +12,29 @@ namespace Fancy
 
   void DebugTextureList::Update()
   {
+    // ImGui::Begin("Textures", &myIsOpen, ImGuiWindowFlags_NoSavedSettings);
+
     const eastl::hash_map<uint64, SharedPtr<TextureView>>& textures = Assets::GetTextures();
     eastl::vector<const char*> textureNames;
     textureNames.reserve(textures.size());
-    
+
+    ImGui::InputText("Filter", myFilterText, ARRAY_LENGTH(myFilterText));
+    const eastl::string filterName = myFilterText;
+        
     int selectedIdx = -1;
     for (const auto& it : textures)
     {
-      textureNames.push_back(it.second->myName.c_str());
-      if (selectedIdx < 0 && textureNames.back() == mySelectedItem)
+      const eastl::string& texName = it.second->myName;
+      if (filterName.empty() || texName.find(filterName) != eastl::string::npos)
       {
-        selectedIdx = textureNames.size() - 1;
+        textureNames.push_back(texName.c_str());
+        if (selectedIdx < 0 && textureNames.back() == mySelectedItem)
+        {
+          selectedIdx = textureNames.size() - 1;
+        }
       }
     }
-
-    ImGui::Begin("Textures", &myIsOpen);
-
+    
     if (ImGui::ListBox("Textures List", &selectedIdx, textureNames.data(), textureNames.size()))
     {
       mySelectedDebugImage.reset();
@@ -46,7 +53,7 @@ namespace Fancy
       mySelectedDebugImage->Update();
     }
 
-    ImGui::End();
+    // ImGui::End();
   }
 }
 
