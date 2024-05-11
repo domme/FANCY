@@ -20,7 +20,7 @@ namespace Fancy
 
       AddTargets(new Target(
                  Platform.win64,
-                 DevEnv.vs2019,
+                 DevEnv.vs2022,
                  Optimization.Debug | Optimization.Release));
     }
 
@@ -40,7 +40,7 @@ namespace Fancy
     [Sharpmake.Main]
     public static void SharpmakeMain(Sharpmake.Arguments arguments)
     {
-      KitsRootPaths.SetUseKitsRootForDevEnv(DevEnv.vs2019, KitsRootEnum.KitsRoot10, Options.Vc.General.WindowsTargetPlatformVersion.Latest);
+      KitsRootPaths.SetUseKitsRootForDevEnv(DevEnv.vs2022, KitsRootEnum.KitsRoot10, Options.Vc.General.WindowsTargetPlatformVersion.Latest);
       arguments.Generate<Fancy.FancySln>();
     }
   }
