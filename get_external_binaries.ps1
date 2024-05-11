@@ -1,7 +1,7 @@
 ############################################
 # DXC
 ############################################
-$Url = 'https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.6.2112/dxc_2021_12_08.zip' 
+$Url = 'https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.8.2403.2/dxc_2024_03_29.zip' 
 $ZipFile = $PSScriptRoot + '/' + $(Split-Path -Path $Url -Leaf)
 
 $ExtractPath = $PSScriptRoot + '/external/dxc/'
@@ -29,7 +29,7 @@ Remove-Item -Path $ZipFile -Force -Confirm:$false
 ############################################
 # DX12 Agility SDK
 ############################################
-$Url = 'https://www.nuget.org/api/v2/package/Microsoft.Direct3D.D3D12/1.4.10' 
+$Url = 'https://www.nuget.org/api/v2/package/Microsoft.Direct3D.D3D12/1.711.3-preview' 
 $ZipFile = $PSScriptRoot + '/agility.zip'
 
 $ExtractPath = $PSScriptRoot + '/external/DX12_Agility_SDK/'
@@ -43,7 +43,7 @@ Remove-Item -Path $ZipFile -Force -Confirm:$false
 ############################################
 # WinPixEventRuntime
 ############################################
-$Url = 'https://www.nuget.org/api/v2/package/WinPixEventRuntime/1.0.220124001' 
+$Url = 'https://www.nuget.org/api/v2/package/WinPixEventRuntime/1.0.240308001' 
 $ZipFile = $PSScriptRoot + '/pix.zip'
 
 $ExtractPath = $PSScriptRoot + '/external/WinPixEventRuntime/'
