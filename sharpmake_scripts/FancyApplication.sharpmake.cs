@@ -44,9 +44,6 @@ namespace Fancy
       conf.TargetCopyFiles.Add(FancyExternalBasePath + @"dxc/bin/" + Util.PlatformToArchitecture(target.Platform) + "/dxcompiler.dll");
       conf.TargetCopyFiles.Add(FancyExternalBasePath + @"dxc/bin/" + Util.PlatformToArchitecture(target.Platform) + "/dxil.dll");
 
-      // GLM
-      conf.IncludePaths.Add(FancyExternalBasePath + "glm/");
-
       // Vulkan
       conf.LibraryPaths.Add("%VK_SDK_PATH%/Lib/");
       conf.LibraryFiles.Add(new string[] { "vulkan-1.lib", "VkLayer_utils.lib", "shaderc_combined.lib" });

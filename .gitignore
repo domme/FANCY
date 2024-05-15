@@ -18,6 +18,7 @@ _build_temp/*/*/*.*
 lib/*
 *.cache
 *.opendb
+*.vs/*
 
 *.db
 FANCY.VC.db

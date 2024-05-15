@@ -42,9 +42,6 @@ namespace Fancy
       // DXC
       conf.IncludePaths.Add(ExternalBasePath + "dxc/inc/");
       
-      // GLM
-      conf.IncludePaths.Add(ExternalBasePath + "glm/");
-
       // SPIRV-Reflect
       conf.IncludePaths.Add(ExternalBasePath + "SPIRV-Reflect/");
 
