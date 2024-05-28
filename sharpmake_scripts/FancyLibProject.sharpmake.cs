@@ -15,10 +15,7 @@ namespace Fancy
 
     public FancyLibProject()
     {
-      AddTargets(new Target(Platform.win64,
-        DevEnv.vs2022,
-        Optimization.Debug | Optimization.Release,
-        OutputType.Lib));
+      AddTargets(FancyTargets.LibTargets);
 
       SourceRootPath = @"[project.SharpmakeCsPath]";
       ExternalBasePath = Path.Combine(SourceRootPath, "/../external/");
@@ -38,9 +35,6 @@ namespace Fancy
       conf.IncludePaths.Add("[project.SourceRootPath]");
       conf.IncludePaths.Add(ExternalBasePath);
       conf.LibraryPaths.Add(ExternalBasePath);
-
-      // DXC
-      conf.IncludePaths.Add(ExternalBasePath + "dxc/inc/");
       
       // SPIRV-Reflect
       conf.IncludePaths.Add(ExternalBasePath + "SPIRV-Reflect/");
@@ -49,11 +43,15 @@ namespace Fancy
       conf.IncludePaths.Add("%VK_SDK_PATH%/Include/Vulkan/");
       conf.IncludePaths.Add("%VK_SDK_PATH%/Include/");
 
-      // DX12 Agility
-      conf.IncludePaths.Add(ExternalBasePath + "DX12_Agility_SDK/build/native/include/");
-
       // WinPixEventRuntime
       conf.IncludePaths.Add(ExternalBasePath + "WinPixEventRuntime/Include/");
+
+      conf.AddPrivateDependency<Assimp>(target);
+      conf.AddPrivateDependency<EASTL>(target);
+      conf.AddPrivateDependency<GLM>(target);
+      conf.AddPrivateDependency<XXHash>(target);
+      conf.AddPrivateDependency<DXC>(target);
+      conf.AddPrivateDependency<Direct3D12AgilitySdk>(target);
     }
   }
 }

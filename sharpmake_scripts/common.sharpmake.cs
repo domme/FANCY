@@ -22,5 +22,23 @@ namespace Fancy
       }
     }
   }
-  
+
+  public class FancyTargets 
+  {
+    public static Target[] ApplicationTargets
+    {
+        get
+        {
+          return new Target[]{new Target( Platform.win64, DevEnv.vs2022, Optimization.Debug | Optimization.Release)};
+        }
+    }
+
+    public static Target[] LibTargets
+    {
+        get
+        {
+          return new Target[]{new Target( Platform.win64, DevEnv.vs2022, Optimization.Debug | Optimization.Release, OutputType.Lib)};
+        }
+    }
+  }
 }

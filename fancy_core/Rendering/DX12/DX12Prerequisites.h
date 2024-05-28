@@ -4,11 +4,11 @@
 
 #pragma warning(disable : 26812) // Disable "Prefer enum class over enum"
 
-#include <d3d12.h>
+#include "directx/d3d12.h"
 #include <dxgi1_4.h>
 #include <d3dcompiler.h>
 #include <wrl.h>
-#include <dxgiformat.h>
+#include "directx/dxgiformat.h"
 #include "Rendering/RendererPrerequisites.h"
 
 namespace {

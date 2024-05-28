@@ -8,7 +8,7 @@
 #include "ShaderDX12.h"
 #include "RenderCore_PlatformDX12.h"
 
-#include <dxc/inc/dxcapi.h>
+#include "directx-dxc/dxcapi.h"
 
 #if FANCY_ENABLE_DX12
 

@@ -4,7 +4,7 @@
 #include "IO/PathService.h"
 #include "IO/FileReader.h"
 
-#include <dxc/inc/dxcapi.h>
+#include "directx-dxc/dxcapi.h"
 #include <atomic>
 
 #include "Rendering/RenderCore.h"

@@ -15,9 +15,7 @@ namespace Fancy
 
     public FancyApplication()
     {
-      AddTargets(new Target(Platform.win64,
-        DevEnv.vs2022,
-        Optimization.Debug | Optimization.Release));
+      AddTargets(FancyTargets.ApplicationTargets);
 
       SourceRootPath = @"[project.SharpmakeCsPath]";
     }
@@ -38,30 +36,24 @@ namespace Fancy
       conf.IncludePaths.Add(FancyExternalBasePath);
       conf.LibraryPaths.Add(FancyExternalBasePath);
 
-      // DXC
-      conf.LibraryPaths.Add(FancyExternalBasePath + "dxc/lib/");
-      conf.LibraryFiles.Add("dxcompiler.lib");
-      conf.TargetCopyFiles.Add(FancyExternalBasePath + @"dxc/bin/" + Util.PlatformToArchitecture(target.Platform) + "/dxcompiler.dll");
-      conf.TargetCopyFiles.Add(FancyExternalBasePath + @"dxc/bin/" + Util.PlatformToArchitecture(target.Platform) + "/dxil.dll");
-
       // Vulkan
       conf.LibraryPaths.Add("%VK_SDK_PATH%/Lib/");
       conf.LibraryFiles.Add(new string[] { "vulkan-1.lib", "VkLayer_utils.lib", "shaderc_combined.lib" });
-
-      // DX12 Agility
-      conf.TargetCopyFiles.Add(FancyExternalBasePath + @"DX12_Agility_SDK/build/native/bin/" + Util.PlatformToArchitecture(target.Platform) + "/D3D12Core.dll");
-      conf.TargetCopyFiles.Add(FancyExternalBasePath + @"DX12_Agility_SDK/build/native/bin/" + Util.PlatformToArchitecture(target.Platform) + "/d3d12SDKLayers.dll");
 
       // WinPixEventRuntime
       conf.LibraryPaths.Add(FancyExternalBasePath + @"WinPixEventRuntime/bin/" + Util.PlatformToArchitecture(target.Platform));
       conf.LibraryFiles.Add(new string[] { "WinPixEventRuntime.lib" });
       conf.TargetCopyFiles.Add(FancyExternalBasePath + @"WinPixEventRuntime/bin/" + Util.PlatformToArchitecture(target.Platform) + "/WinPixEventRuntime.dll");
 
-      // DX12
-      conf.LibraryFiles.Add(new string[] { "dxgi.lib", "d3d12.lib" });
-
       conf.AddPrivateDependency<FancyCoreProject>(target);
       conf.AddPrivateDependency<FancyImGuiProject>(target);
+
+      conf.AddPrivateDependency<Assimp>(target);
+      conf.AddPrivateDependency<EASTL>(target);
+      conf.AddPrivateDependency<GLM>(target);
+      conf.AddPrivateDependency<XXHash>(target);
+      conf.AddPrivateDependency<DXC>(target);
+      conf.AddPrivateDependency<Direct3D12AgilitySdk>(target);
     }
   }
 }
