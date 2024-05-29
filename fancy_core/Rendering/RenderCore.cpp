@@ -2,7 +2,6 @@
 #include "RenderCore.h"
 
 #include "DX12/RenderCore_PlatformDX12.h"
-#include "Vulkan/RenderCore_PlatformVk.h"
 
 #include "DepthStencilState.h"
 #include "GpuBuffer.h"
@@ -270,15 +269,6 @@ RenderCore_PlatformDX12* RenderCore::GetPlatformDX12()
 #endif
 }
 //---------------------------------------------------------------------------//
-RenderCore_PlatformVk* RenderCore::GetPlatformVk()
-{
-#if FANCY_ENABLE_VK
-  return GetPlatformType() == RenderPlatformType::VULKAN ? static_cast<RenderCore_PlatformVk*>(ourPlatformImpl.get()) : nullptr;
-#else
-  return nullptr;
-#endif
-}
-//---------------------------------------------------------------------------//
 GpuRingBuffer* RenderCore::AllocateRingBuffer(CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char* aName /*= nullptr*/)
 {
   ASSERT(aCpuAccess != CpuMemoryAccessType::NO_CPU_ACCESS, "Ring buffers are expected to be either readable or writable from CPU");
@@ -453,30 +443,7 @@ void RenderCore::Init_0_Platform(const RenderPlatformProperties& someProperties)
 
   const CommandLine* commandLine = CommandLine::GetInstance();
 
-  RenderPlatformType platformType = RenderPlatformType::DX12;
-  if (commandLine->HasArgument("vulkan") || commandLine->HasArgument("vk"))
-    platformType = RenderPlatformType::VULKAN;
-
-  switch (platformType)
-  {
-  case RenderPlatformType::DX12:
-#if FANCY_ENABLE_DX12
-    ourPlatformImpl = eastl::make_unique<RenderCore_PlatformDX12>(someProperties);
-#else
-    ASSERT(false, "DX12 not supported. Recompile with FANCY_ENABLE_DX12 1");
-#endif
-    break;
-  case RenderPlatformType::VULKAN:
-#if FANCY_ENABLE_VK
-    ourPlatformImpl = eastl::make_unique<RenderCore_PlatformVk>(someProperties);
-#else
-    ASSERT(false, "Vulkan not supported. Recompile with FANCY_ENABLE_VK 1");
-#endif
-    break;
-  default:
-    break;
-  }
-  ASSERT(ourPlatformImpl != nullptr, "Unsupported rendering API requested");
+  ourPlatformImpl = eastl::make_unique<RenderCore_PlatformDX12>(someProperties);
 
   ourCommandQueues[(uint)CommandListType::Graphics].reset(ourPlatformImpl->CreateCommandQueue(CommandListType::Graphics));
   if (GetPlatformCaps().myHasAsyncCopy)

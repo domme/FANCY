@@ -8,7 +8,6 @@
 #include <atomic>
 
 #include "Rendering/RenderCore.h"
-#include "Rendering/Vulkan/RenderCore_PlatformVk.h"
 
 namespace Fancy 
 {
@@ -116,13 +115,7 @@ namespace Fancy
 
       std::atomic<int> myRefCount = 1;
     };
-
-    StaticString<32> GetVkTargetEnvArg()
-    {
-      uint majorVersion, minorVersion;
-      RenderCore::GetPlatformVk()->GetVulkanVersion(majorVersion, minorVersion);
-      return StaticString<32>("-fspv-target-env=vulkan%d.%d", majorVersion, minorVersion);
-    }
+    
 //---------------------------------------------------------------------------//
   }
 //---------------------------------------------------------------------------//
@@ -180,24 +173,6 @@ namespace Fancy
       AddArgument(L"/Qembed_debug");          // Silence warning about embedding PDBs into the shader container
     }
 
-    eastl::wstring vkTargetEnvArg;
-    if (aConfig.mySpirv)
-    {
-      AddArgument(L"-spirv");                 // Generate SPIR-V code
-      // AddArgument(L"-fspv-reflect");          // Emit additional SPIR-V instructions to aid reflection
-      //AddArgument(L"-fspv-extension=KHR");    // Allow all KHR extensions (including raytracing)
-      //AddArgument(L"-fspv-extension=SPV_EXT_descriptor_indexing");
-      //AddArgument(L"-fspv-extension=SPV_EXT_shader_stencil_export");
-      //AddArgument(L"-fspv-extension=SPV_EXT_shader_viewport_index_layer");
-      AddArgument(L"-fvk-use-dx-layout");     // Use DirectX memory layout for Vulkan resources
-      AddArgument(L"-fvk-use-dx-position-w"); // Reciprocate SV_Position.w after reading from stage input in PS to accommodate the difference between Vulkan and DirectX
-      if (aDesc.myShaderStage == (uint)ShaderStage::SHADERSTAGE_VERTEX)
-        AddArgument(L"-fvk-invert-y");
-
-      vkTargetEnvArg = StringUtil::ToWideString(Priv_DxcShaderCompiler::GetVkTargetEnvArg().GetBuffer());
-      AddArgument(vkTargetEnvArg.c_str());
-    }
-
     eastl::fixed_vector<eastl::wstring, 32> defineNames;
     eastl::fixed_vector<DxcDefine, 32> defines;
     for (const eastl::string& define : aDesc.myDefines)
@@ -208,12 +183,6 @@ namespace Fancy
 
     defineNames.push_back(L"DXC_COMPILER");
     defines.push_back({ defineNames[defineNames.size() - 1].c_str(), nullptr });
-
-    if (aConfig.mySpirv)
-    {
-      defineNames.push_back(L"VULKAN");
-      defines.push_back({ defineNames[defineNames.size() - 1].c_str(), nullptr });
-    }
 
     const char* stageDefine = ShaderCompiler::ShaderStageToDefineString(static_cast<ShaderStage>(aDesc.myShaderStage));
     defineNames.push_back(StringUtil::ToWideString(stageDefine));

@@ -9,7 +9,6 @@
 namespace Fancy {
 //---------------------------------------------------------------------------//
   struct GpuResourceDataDX12;
-  struct GpuResourceDataVk;
 //---------------------------------------------------------------------------//
   class GpuResource
   {
@@ -39,10 +38,6 @@ namespace Fancy {
 
 #if FANCY_ENABLE_DX12
     GpuResourceDataDX12* GetDX12Data() const;
-#endif
-
-#if FANCY_ENABLE_VK
-    GpuResourceDataVk* GetVkData() const;
 #endif
 
     bool IsBuffer() const { return myType == GpuResourceType::BUFFER; }

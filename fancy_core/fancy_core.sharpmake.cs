@@ -10,9 +10,6 @@ namespace Fancy
     public FancyCoreProject()
     {
       Name = "fancy_core";
-
-      SourceFiles.Add(Path.Combine(ExternalBasePath, "SPIRV-Reflect/spirv_reflect.h"));
-      SourceFiles.Add(Path.Combine(ExternalBasePath, "SPIRV-Reflect/spirv_reflect.c"));
     }
 
     [Sharpmake.Configure]

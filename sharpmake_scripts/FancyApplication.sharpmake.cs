@@ -36,10 +36,6 @@ namespace Fancy
       conf.IncludePaths.Add(FancyExternalBasePath);
       conf.LibraryPaths.Add(FancyExternalBasePath);
 
-      // Vulkan
-      conf.LibraryPaths.Add("%VK_SDK_PATH%/Lib/");
-      conf.LibraryFiles.Add(new string[] { "vulkan-1.lib", "VkLayer_utils.lib", "shaderc_combined.lib" });
-
       // WinPixEventRuntime
       conf.LibraryPaths.Add(FancyExternalBasePath + @"WinPixEventRuntime/bin/" + Util.PlatformToArchitecture(target.Platform));
       conf.LibraryFiles.Add(new string[] { "WinPixEventRuntime.lib" });

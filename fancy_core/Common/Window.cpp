@@ -94,12 +94,7 @@ namespace Fancy {
     RECT windowRect = { 0, 0, static_cast<LONG>(someParams.myWidth), static_cast<LONG>(someParams.myHeight) };
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
-    eastl::string title = someParams.myTitle;
-
-    if (CommandLine::GetInstance()->HasArgument("vulkan") || CommandLine::GetInstance()->HasArgument("vk"))
-      title += " - Vulkan";
-    else
-      title += " - DX12";
+    eastl::string title = someParams.myTitle + " - DX12";
 
     // Create the window and store a handle to it.
     HWND windowHandle = CreateWindowEx(NULL,

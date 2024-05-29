@@ -208,7 +208,6 @@ namespace Fancy {
     DxcShaderCompiler::Config config =
     {
       true,
-      false,
       GetHLSLprofileString((ShaderStage)aDesc.myShaderStage).c_str()
     };
 

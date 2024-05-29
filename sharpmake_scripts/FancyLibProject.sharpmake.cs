@@ -35,13 +35,6 @@ namespace Fancy
       conf.IncludePaths.Add("[project.SourceRootPath]");
       conf.IncludePaths.Add(ExternalBasePath);
       conf.LibraryPaths.Add(ExternalBasePath);
-      
-      // SPIRV-Reflect
-      conf.IncludePaths.Add(ExternalBasePath + "SPIRV-Reflect/");
-
-      // Vulkan
-      conf.IncludePaths.Add("%VK_SDK_PATH%/Include/Vulkan/");
-      conf.IncludePaths.Add("%VK_SDK_PATH%/Include/");
 
       // WinPixEventRuntime
       conf.IncludePaths.Add(ExternalBasePath + "WinPixEventRuntime/Include/");

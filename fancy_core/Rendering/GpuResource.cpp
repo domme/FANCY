@@ -1,7 +1,6 @@
 #include "fancy_core_precompile.h"
 #include "GpuResource.h"
 #include "DX12/GpuResourceDataDX12.h"
-#include "Vulkan/GpuResourceDataVk.h"
 
 namespace Fancy
 {
@@ -45,13 +44,6 @@ namespace Fancy
   GpuResourceDataDX12* GpuResource::GetDX12Data() const
   {
     return !myNativeData.has_value() ? nullptr : const_cast<GpuResourceDataDX12*>(eastl::any_cast<GpuResourceDataDX12>(&myNativeData));
-  }
-#endif
-//---------------------------------------------------------------------------//
-#if FANCY_ENABLE_VK
-  GpuResourceDataVk* GpuResource::GetVkData() const
-  {
-    return !myNativeData.has_value() ? nullptr : const_cast<GpuResourceDataVk*>(eastl::any_cast<GpuResourceDataVk>(&myNativeData));
   }
 #endif
 //---------------------------------------------------------------------------//
