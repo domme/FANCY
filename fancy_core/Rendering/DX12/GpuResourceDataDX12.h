@@ -26,7 +26,7 @@ namespace Fancy {
   {
     Microsoft::WRL::ComPtr<ID3D12Resource> myResource;
     GpuMemoryAllocationDX12 myGpuMemory;
-    GpuResourceHazardDataDX12 myHazardData;
+    mutable GpuResourceHazardDataDX12 myHazardData;
   };
 //---------------------------------------------------------------------------//
 }

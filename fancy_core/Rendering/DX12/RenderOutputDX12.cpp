@@ -63,7 +63,7 @@ namespace Fancy {
       hazardData->mySubresources.push_back(subHazardData);
       hazardData->myCanChangeStates = true;
 
-      resource.myNativeData = dataDx12;
+      resource.myDx12Data = dataDx12;
 
       TextureProperties backbufferProps;
       backbufferProps.myDimension = GpuResourceDimension::TEXTURE_2D;

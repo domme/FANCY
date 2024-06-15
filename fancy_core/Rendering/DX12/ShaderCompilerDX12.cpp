@@ -288,8 +288,8 @@ namespace Fancy {
     compiledNativeData.myBytecode.resize(compiledShaderBytecode->GetBufferSize());
     memcpy(compiledNativeData.myBytecode.data(), compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize());
 
-    anOutput->myNativeData = compiledNativeData;
-    anOutput->myIncludedFilePaths = eastl::move(includeInfo.myIncludedFiles);
+    anOutput->myDx12Data = compiledNativeData;
+    anOutput->myIncludedFilePaths = includeInfo.myIncludedFiles;
 
     return true;
   }

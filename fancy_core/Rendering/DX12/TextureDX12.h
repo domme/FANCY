@@ -29,7 +29,6 @@ namespace Fancy {
       uint* someNumRowsOut,
       uint64* someRowSizesOut) const;
 
-    GpuResourceDataDX12* GetData() const;
   protected:
     void Destroy() override;
   };

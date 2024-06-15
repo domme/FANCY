@@ -11,7 +11,7 @@ namespace Fancy {
   {
     Shader::SetFromCompilerOutput(aCompilerOutput);
 
-    myCompiledData = eastl::any_cast<const ShaderCompiledDataDX12&>(aCompilerOutput.myNativeData);
+    myCompiledData = aCompilerOutput.myDx12Data;
 
     myNativeByteCode.pShaderBytecode = myCompiledData.myBytecode.data();
     myNativeByteCode.BytecodeLength = myCompiledData.myBytecode.size();

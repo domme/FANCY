@@ -4,11 +4,11 @@
 #include "Common/FancyCoreDefines.h"
 #include "TextureData.h"
 
-#include "EASTL/any.h"
+#if FANCY_ENABLE_DX12
+  #include "DX12/GpuResourceDataDX12.h"
+#endif
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  struct GpuResourceDataDX12;
 //---------------------------------------------------------------------------//
   class GpuResource
   {
@@ -23,9 +23,11 @@ namespace Fancy {
     void operator=(GpuResource&& anOtherResource) noexcept
     {
       myType = anOtherResource.myType;
-      myNativeData = anOtherResource.myNativeData;
       myName = anOtherResource.myName;
       mySubresources = anOtherResource.mySubresources;
+#if FANCY_ENABLE_DX12
+      myDx12Data = anOtherResource.myDx12Data;
+#endif
     }
 
     static uint CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex);
@@ -37,7 +39,8 @@ namespace Fancy {
     const char* GetName() const { return myName.c_str(); }
 
 #if FANCY_ENABLE_DX12
-    GpuResourceDataDX12* GetDX12Data() const;
+    const GpuResourceDataDX12* GetDX12Data() const { return &myDx12Data; }
+    GpuResourceDataDX12* GetDX12Data() { return &myDx12Data; }
 #endif
 
     bool IsBuffer() const { return myType == GpuResourceType::BUFFER; }
@@ -51,7 +54,10 @@ namespace Fancy {
     SubresourceRange mySubresources;
     eastl::string myName;
     GpuResourceType myType;
-    eastl::any myNativeData;
+
+#if FANCY_ENABLE_DX12
+    GpuResourceDataDX12 myDx12Data;
+  #endif
   };
 //---------------------------------------------------------------------------//
 }

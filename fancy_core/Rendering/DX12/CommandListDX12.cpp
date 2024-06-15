@@ -327,8 +327,8 @@ namespace Fancy {
 
     FlushBarriers();
 
-    ID3D12Resource* dstResource = static_cast<const GpuBufferDX12*>(aDstBuffer)->GetData()->myResource.Get();
-    ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
+    ID3D12Resource* dstResource = aDstBuffer->GetDX12Data()->myResource.Get();
+    ID3D12Resource* srcResource = aSrcBuffer->GetDX12Data()->myResource.Get();
 
     myCommandList->CopyBufferRegion(dstResource, aDstOffset, srcResource, aSrcOffset, aSize);
   }
@@ -339,8 +339,8 @@ namespace Fancy {
     ValidateTextureToBufferCopy(aDstBuffer->GetProperties(), aDstOffset, aSrcTexture->GetProperties(), aSrcSubresource, aSrcRegion);
 #endif
 
-    ID3D12Resource* bufferResourceDX12 = static_cast<const GpuBufferDX12*>(aDstBuffer)->GetData()->myResource.Get();
-    ID3D12Resource* textureResourceDX12 = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
+    ID3D12Resource* bufferResourceDX12 = aDstBuffer->GetDX12Data()->myResource.Get();
+    ID3D12Resource* textureResourceDX12 = aSrcTexture->GetDX12Data()->myResource.Get();
 
     const uint16 textureSubresourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubresource));
 
@@ -389,8 +389,8 @@ namespace Fancy {
     ValidateTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcTexture->GetProperties(), aSrcSubresource, aSrcRegion);
 #endif
     
-    ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDstTexture)->GetData()->myResource.Get();
-    ID3D12Resource* srcResource = static_cast<const TextureDX12*>(aSrcTexture)->GetData()->myResource.Get();
+    ID3D12Resource* dstResource = aDstTexture->GetDX12Data()->myResource.Get();
+    ID3D12Resource* srcResource = aSrcTexture->GetDX12Data()->myResource.Get();
 
     const uint16 destSubResourceIndex = static_cast<uint16>(aDstTexture->GetSubresourceIndex(aDstSubresource));
     const uint16 srcSubResourceIndex = static_cast<uint16>(aSrcTexture->GetSubresourceIndex(aSrcSubresource));
@@ -426,8 +426,8 @@ namespace Fancy {
     ValidateBufferToTextureCopy(aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcBuffer->GetProperties(), aSrcOffset);
 #endif
 
-    ID3D12Resource* dstResource = static_cast<const TextureDX12*>(aDstTexture)->GetData()->myResource.Get();
-    ID3D12Resource* srcResource = static_cast<const GpuBufferDX12*>(aSrcBuffer)->GetData()->myResource.Get();
+    ID3D12Resource* dstResource = aDstTexture->GetDX12Data()->myResource.Get();
+    ID3D12Resource* srcResource = aSrcBuffer->GetDX12Data()->myResource.Get();
 
     const uint16 destSubResourceIndex = static_cast<uint16>(aDstTexture->GetSubresourceIndex(aDstSubresource));
     const uint16 srcSubResourceIndex = 0;
@@ -648,7 +648,7 @@ namespace Fancy {
       Adapter::ResolveQueryType(aQueryHeap->myType),
       aFirstQueryIndex,
       aNumQueries,
-      bufferDx12->GetData()->myResource.Get(), 
+      bufferDx12->GetDX12Data()->myResource.Get(), 
       aBufferOffset);
   }
 //---------------------------------------------------------------------------//
@@ -751,7 +751,7 @@ namespace Fancy {
       const GpuBuffer* buffer = someBuffers[i];
       TrackResourceTransition(buffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
-      GpuResourceDataDX12* resourceDataDx12 = buffer->GetDX12Data();
+      const GpuResourceDataDX12* resourceDataDx12 = buffer->GetDX12Data();
       const uint64 resourceStartAddress = resourceDataDx12->myResource->GetGPUVirtualAddress();
 
       D3D12_VERTEX_BUFFER_VIEW& vertexBufferView = vertexBufferViews.push_back();
@@ -772,7 +772,7 @@ namespace Fancy {
 
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
 
-    GpuResourceDataDX12* storage = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
+    const GpuResourceDataDX12* storage = aBuffer->GetDX12Data();
 
     uint64 resourceStartAddress = storage->myResource->GetGPUVirtualAddress();
     indexBufferView.BufferLocation = resourceStartAddress + anIndexOffset;

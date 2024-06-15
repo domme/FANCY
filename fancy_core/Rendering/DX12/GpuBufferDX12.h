@@ -22,8 +22,6 @@ namespace Fancy {
     void Create(const GpuBufferProperties& clParameters, const char* aName = nullptr, const void* pInitialData = nullptr) override;
     uint64 GetDeviceAddress() const override;
     
-    GpuResourceDataDX12* GetData() const;
-
   protected:
     void* Map_Internal(uint64 anOffset, uint64 aSize) const override;
     void Unmap_Internal(GpuResourceMapMode aMapMode, uint64 anOffset, uint64 aSize) const override;

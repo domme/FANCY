@@ -28,23 +28,18 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool TextureDX12::IsValid() const
   {
-    return GetData() != nullptr && GetData()->myResource.Get() != nullptr;
+    return myDx12Data.myResource.Get() != nullptr;
   }
 //---------------------------------------------------------------------------//
   void TextureDX12::SetName(const char* aName)
   {
     Texture::SetName(aName);
 
-    if (GpuResourceDataDX12* dataDx12 = GetData())
+    if (GpuResourceDataDX12* dataDx12 = GetDX12Data())
     {
       eastl::wstring wName = StringUtil::ToWideString(myName);
       dataDx12->myResource->SetName(wName.c_str());
     }
-  }
-//---------------------------------------------------------------------------//
-  GpuResourceDataDX12* TextureDX12::GetData() const
-  {
-    return !myNativeData.has_value() ? nullptr : const_cast<GpuResourceDataDX12*>(eastl::any_cast<GpuResourceDataDX12>(&myNativeData));
   }
 //---------------------------------------------------------------------------//
   void TextureDX12::Create(const TextureProperties& someProperties, const char* aName /* = nullptr */, const TextureSubData* someInitialDatas /* = nullptr */, uint aNumInitialDatas /*= 0u*/)
@@ -192,7 +187,7 @@ namespace Fancy {
     eastl::wstring wName = StringUtil::ToWideString(myName);
     dataDx12.myResource->SetName(wName.c_str());
 
-    myNativeData = dataDx12;
+    myDx12Data = dataDx12;
 
     if (hasInitData)
     {
@@ -210,7 +205,7 @@ namespace Fancy {
     ASSERT(aSubresourceRange.myFirstArrayIndex + aSubresourceRange.myNumArrayIndices <= mySubresources.myNumArrayIndices);
     ASSERT(aSubresourceRange.myFirstPlane + aSubresourceRange.myNumPlanes <= mySubresources.myNumPlanes);
 
-    ID3D12Resource* texResource = GetData()->myResource.Get();
+    ID3D12Resource* texResource = GetDX12Data()->myResource.Get();
     const D3D12_RESOURCE_DESC& texResourceDesc = texResource->GetDesc();
 
     ID3D12Device* device = RenderCore::GetPlatformDX12()->GetDevice();
@@ -225,7 +220,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void TextureDX12::Destroy()
   {
-    GpuResourceDataDX12* dataDx12 = GetData();
+    GpuResourceDataDX12* dataDx12 = GetDX12Data();
     if (dataDx12 != nullptr)
     {
       dataDx12->myResource.Reset();
@@ -234,7 +229,6 @@ namespace Fancy {
         RenderCore::GetPlatformDX12()->ReleaseGpuMemory(dataDx12->myGpuMemory);
     }
 
-    myNativeData.reset();
     myProperties = TextureProperties();
   }
 //---------------------------------------------------------------------------//
@@ -391,7 +385,7 @@ namespace Fancy {
       return false;
     }
 
-    GpuResourceDataDX12* dataDx12 = static_cast<const TextureDX12*>(aTexture)->GetData();
+    const GpuResourceDataDX12* dataDx12 = aTexture->GetDX12Data();
     RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView(dataDx12->myResource.Get(), &srvDesc, aDescriptor.myCpuHandle);
     return true;
   }
@@ -442,7 +436,7 @@ namespace Fancy {
       return false;
     }
 
-    GpuResourceDataDX12* dataDx12 = static_cast<const TextureDX12*>(aTexture)->GetData();
+    const GpuResourceDataDX12* dataDx12 = aTexture->GetDX12Data();
     RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView(dataDx12->myResource.Get(), nullptr, &uavDesc, aDescriptor.myCpuHandle);
     return true;
   }
@@ -494,7 +488,7 @@ namespace Fancy {
       return false;
     }
 
-    GpuResourceDataDX12* dataDx12 = static_cast<const TextureDX12*>(aTexture)->GetData();
+    const GpuResourceDataDX12* dataDx12 = aTexture->GetDX12Data();
     RenderCore::GetPlatformDX12()->GetDevice()->CreateRenderTargetView(dataDx12->myResource.Get(), &rtvDesc, aDescriptor.myCpuHandle);
     return true;
   }
@@ -543,7 +537,7 @@ namespace Fancy {
       return false;
     }
 
-    GpuResourceDataDX12* dataDx12 = static_cast<const TextureDX12*>(aTexture)->GetData();
+    const GpuResourceDataDX12* dataDx12 = aTexture->GetDX12Data();
     RenderCore::GetPlatformDX12()->GetDevice()->CreateDepthStencilView(dataDx12->myResource.Get(), &dsvDesc, aDescriptor.myCpuHandle);
     return true;
   }

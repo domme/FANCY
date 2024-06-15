@@ -4,7 +4,9 @@
 #include "Shader.h"
 #include "DxcShaderCompiler.h"
 
-#include "EASTL/any.h"
+#if FANCY_ENABLE_DX12
+  #include "DX12/ShaderDX12.h"
+#endif
 
 namespace Fancy {
   struct RtShaderCompiledData;
@@ -19,7 +21,10 @@ namespace Fancy {
     eastl::fixed_vector<VertexShaderAttributeDesc, 16> myVertexAttributes;
     eastl::fixed_vector<eastl::string, 16> myIncludedFilePaths;
     SharedPtr<VertexInputLayout> myDefaultVertexInputLayout;
-    eastl::any myNativeData;
+
+#if FANCY_ENABLE_DX12
+    ShaderCompiledDataDX12 myDx12Data;
+#endif
   };
 //---------------------------------------------------------------------------//
   class ShaderCompiler

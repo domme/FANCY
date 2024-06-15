@@ -21,23 +21,18 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool GpuBufferDX12::IsValid() const
   {
-    return GetData() != nullptr && GetData()->myResource.Get() != nullptr;
+    return GetDX12Data() != nullptr && GetDX12Data()->myResource.Get() != nullptr;
   }
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::SetName(const char* aName)
   {
     GpuBuffer::SetName(aName);
 
-    if (GpuResourceDataDX12* dataDx12 = GetData())
+    if (GpuResourceDataDX12* dataDx12 = GetDX12Data())
     {
       eastl::wstring wName = StringUtil::ToWideString(myName);
       dataDx12->myResource->SetName(wName.c_str());
     }
-  }
-//---------------------------------------------------------------------------//
-  GpuResourceDataDX12* GpuBufferDX12::GetData() const
-  {
-    return !myNativeData.has_value() ? nullptr : const_cast<GpuResourceDataDX12*>(eastl::any_cast<GpuResourceDataDX12>(&myNativeData));
   }
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::Create(const GpuBufferProperties& someProperties, const char* aName /*= nullptr*/, const void* pInitialData /*= nullptr*/)
@@ -136,7 +131,7 @@ namespace Fancy {
     dataDx12.myResource->SetName(wName.c_str());
     dataDx12.myGpuMemory = gpuMemory;
 
-    myNativeData = dataDx12;
+    myDx12Data = dataDx12;
 
     if (pInitialData != nullptr)
     {
@@ -158,15 +153,15 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   uint64 GpuBufferDX12::GetDeviceAddress() const
   {
-    if (GetData() == nullptr)
+    if (GetDX12Data() == nullptr || GetDX12Data()->myResource == nullptr)
       return 0;
 
-    return GetData()->myResource->GetGPUVirtualAddress();
+    return GetDX12Data()->myResource->GetGPUVirtualAddress();
   }
 //---------------------------------------------------------------------------//
   void GpuBufferDX12::Destroy()
   {
-    GpuResourceDataDX12* dataDx12 = GetData();
+    GpuResourceDataDX12* dataDx12 = GetDX12Data();
     if (dataDx12 != nullptr)
     {
       dataDx12->myResource.Reset();
@@ -175,7 +170,6 @@ namespace Fancy {
         RenderCore::GetPlatformDX12()->ReleaseGpuMemory(dataDx12->myGpuMemory);
     }
 
-    myNativeData.reset();
     myProperties = GpuBufferProperties();
   }
 //---------------------------------------------------------------------------//
@@ -246,7 +240,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool GpuBufferViewDX12::CreateSRVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
-    GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
+    const GpuResourceDataDX12* dataDx12 = aBuffer->GetDX12Data();
     
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
     memset(&srvDesc, 0u, sizeof(srvDesc));
@@ -296,7 +290,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool GpuBufferViewDX12::CreateUAVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
-    GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
+    const GpuResourceDataDX12* dataDx12 = aBuffer->GetDX12Data();
 
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
     memset(&uavDesc, 0u, sizeof(uavDesc));
@@ -336,7 +330,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   bool GpuBufferViewDX12::CreateCBVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)
   {
-    GpuResourceDataDX12* dataDx12 = static_cast<const GpuBufferDX12*>(aBuffer)->GetData();
+    const GpuResourceDataDX12* dataDx12 = aBuffer->GetDX12Data();
 
     D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
     cbvDesc.BufferLocation = dataDx12->myResource->GetGPUVirtualAddress() + someProperties.myOffset;
@@ -355,7 +349,7 @@ namespace Fancy {
     range.End = range.Begin + aSize;
 
     void* mappedData = nullptr;
-    ASSERT_HRESULT(GetData()->myResource->Map(0, &range, &mappedData));
+    ASSERT_HRESULT(GetDX12Data()->myResource->Map(0, &range, &mappedData));
 
     return mappedData;
   }
@@ -370,7 +364,7 @@ namespace Fancy {
     if (aMapMode == GpuResourceMapMode::READ || aMapMode == GpuResourceMapMode::READ_UNSYNCHRONIZED)
       range.End = 0;
 
-    GetData()->myResource->Unmap(0u, &range);
+    GetDX12Data()->myResource->Unmap(0u, &range);
   }
 //---------------------------------------------------------------------------//
 }
