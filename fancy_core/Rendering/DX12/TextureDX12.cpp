@@ -290,7 +290,7 @@ namespace Fancy {
     const uint numTexMips = texProps.myNumMipLevels;
     const uint numTexArraySlices = texProps.GetArraySize();
     
-    myNativeData = nativeData;
+    myDX12Data = nativeData;
     const SubresourceRange& subresourceRange = someProperties.mySubresourceRange;
     mySubresourceRange = subresourceRange;
 
@@ -301,8 +301,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   TextureViewDX12::~TextureViewDX12()
   {
-    const GpuResourceViewDataDX12& viewData = eastl::any_cast<const GpuResourceViewDataDX12&>(myNativeData);
-    RenderCore::GetPlatformDX12()->FreeDescriptor(viewData.myDescriptor);
+    RenderCore::GetPlatformDX12()->FreeDescriptor(myDX12Data.myDescriptor);
   }
 //---------------------------------------------------------------------------//
   bool TextureViewDX12::CreateSRV(const Texture* aTexture, const TextureViewProperties& someProperties, const DescriptorDX12& aDescriptor)

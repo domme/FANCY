@@ -227,15 +227,14 @@ namespace Fancy {
 
     ASSERT(success);
 
-    myNativeData = nativeData;
+    myDX12Data = nativeData;
     mySubresourceRange = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
     myCoversAllSubresources = true;
   }
 //---------------------------------------------------------------------------//
   GpuBufferViewDX12::~GpuBufferViewDX12()
   {
-    const GpuResourceViewDataDX12& viewData = eastl::any_cast<const GpuResourceViewDataDX12&>(myNativeData);
-    RenderCore::GetPlatformDX12()->FreeDescriptor(viewData.myDescriptor);
+    RenderCore::GetPlatformDX12()->FreeDescriptor(myDX12Data.myDescriptor);
   }
 //---------------------------------------------------------------------------//
   bool GpuBufferViewDX12::CreateSRVdescriptor(const GpuBuffer* aBuffer, const GpuBufferViewProperties& someProperties, const DescriptorDX12& aDescriptor)

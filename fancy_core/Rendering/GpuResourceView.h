@@ -3,7 +3,9 @@
 #include "GpuResource.h"
 #include "Common/Ptr.h"
 
-#include "EASTL/any.h"
+#if FANCY_ENABLE_DX12
+  #include "DX12/GpuResourceViewDataDX12.h"
+#endif
 
 namespace Fancy {
 //---------------------------------------------------------------------------//
@@ -30,7 +32,10 @@ namespace Fancy {
     GpuResourceViewType GetType() const { return myType; }
     uint GetGlobalDescriptorIndex() const { return myGlobalDescriptorIndex; }
 
-    eastl::any myNativeData;
+#if FANCY_ENABLE_DX12
+    GpuResourceViewDataDX12 myDX12Data;
+#endif
+
     SubresourceRange mySubresourceRange;
     SharedPtr<GpuResource> myResource;
     bool myCoversAllSubresources;

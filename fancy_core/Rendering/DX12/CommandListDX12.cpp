@@ -248,7 +248,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::ClearRenderTarget(TextureView* aTextureView, const float* aColor)
   {
-    const GpuResourceViewDataDX12& viewDataDx12 = eastl::any_cast<const GpuResourceViewDataDX12&>(aTextureView->myNativeData);
+    const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myDX12Data;
 
     ASSERT(aTextureView->GetProperties().myIsRenderTarget);
     ASSERT(aTextureView->myType == GpuResourceViewType::RTV);
@@ -261,7 +261,7 @@ namespace Fancy {
 //---------------------------------------------------------------------------//
   void CommandListDX12::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
   {
-    const GpuResourceViewDataDX12& viewDataDx12 = eastl::any_cast<const GpuResourceViewDataDX12&>(aTextureView->myNativeData);
+    const GpuResourceViewDataDX12& viewDataDx12 = aTextureView->myDX12Data;
     ASSERT(aTextureView->myType == GpuResourceViewType::DSV);
 
     const DataFormat format = aTextureView->GetTexture()->GetProperties().myFormat;
@@ -858,7 +858,7 @@ namespace Fancy {
     {
       ASSERT(myRenderTargets[i] != nullptr);
 
-      const GpuResourceViewDataDX12& viewData = eastl::any_cast<const GpuResourceViewDataDX12&>(myRenderTargets[i]->myNativeData);
+      const GpuResourceViewDataDX12& viewData = myRenderTargets[i]->myDX12Data;
       ASSERT(myRenderTargets[i]->myType == GpuResourceViewType::RTV);
 
       TrackSubresourceTransition(myRenderTargets[i]->GetResource(), myRenderTargets[i]->GetSubresourceRange(), D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -868,7 +868,7 @@ namespace Fancy {
     
     if (myDepthStencilTarget != nullptr)
     {
-      const GpuResourceViewDataDX12& dsvViewData = eastl::any_cast<const GpuResourceViewDataDX12&>(myDepthStencilTarget->myNativeData);
+      const GpuResourceViewDataDX12& dsvViewData = myDepthStencilTarget->myDX12Data;
       ASSERT(myDepthStencilTarget->myType == GpuResourceViewType::DSV);
 
       const D3D12_RESOURCE_STATES depthState = myDepthStencilTarget->GetProperties().myIsDepthReadOnly ? D3D12_RESOURCE_STATE_DEPTH_READ : D3D12_RESOURCE_STATE_DEPTH_WRITE;
