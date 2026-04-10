@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <shellapi.h>
 #include "Common/FancyCoreDefines.h"
 #include "Rendering/RenderCore.h"
 #include "Rendering/CommandList.h"

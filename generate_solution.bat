@@ -1,2 +1,3 @@
-.\external\sharpmake\sharpmake.application.exe /sources(@'fancy_sln.sharpmake.cs')
+@echo off
+cmake --preset vs2022-win64
 pause
