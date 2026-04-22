@@ -5,12 +5,10 @@
 
 #if FANCY_ENABLE_DX12
 
-namespace Fancy
-{
-  namespace DebugUtilsDX12
-  {
-    eastl::string ResourceStatesToString(D3D12_RESOURCE_STATES aStates);
+namespace Fancy {
+  namespace DebugUtilsDX12 {
+    eastl::string ResourceStatesToString( D3D12_RESOURCE_STATES aStates );
   }
-}
+}  // namespace Fancy
 
 #endif

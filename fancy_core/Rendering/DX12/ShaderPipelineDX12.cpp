@@ -4,8 +4,7 @@
 
 #if FANCY_ENABLE_DX12
 
-void Fancy::ShaderPipelineDX12::CreateFromShaders()
-{
+void Fancy::ShaderPipelineDX12::CreateFromShaders() {
   // Nothing to do... this whole class could be removed?
 }
 

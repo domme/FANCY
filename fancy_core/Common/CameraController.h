@@ -2,33 +2,27 @@
 
 #include "MathIncludes.h"
 
-namespace Fancy
-{
-//---------------------------------------------------------------------------//
+namespace Fancy {
+  //---------------------------------------------------------------------------//
   struct InputState;
   class Camera;
-//---------------------------------------------------------------------------//
-  class CameraController
-  {
+  //---------------------------------------------------------------------------//
+  class CameraController {
   public:
-    CameraController(Camera* aCamera);
+    CameraController( Camera * aCamera );
     ~CameraController();
 
-    void Update(float aDeltaTime, const InputState& anInputState);
+    void Update( float aDeltaTime, const InputState & anInputState );
 
     float myMoveSpeed;
 
   private:
-    enum class Mode
-    {
-      FPS,
-      TRACKBALL
-    };
+    enum class Mode { FPS, TRACKBALL };
 
-    void UpdateFPSCamera(float aDeltaTime, const Fancy::InputState& anInputState);
-    void UpdateTrackballCamera(float aDeltaTime, const Fancy::InputState& anInputState);
+    void UpdateFPSCamera( float aDeltaTime, const Fancy::InputState & anInputState );
+    void UpdateTrackballCamera( float aDeltaTime, const Fancy::InputState & anInputState );
 
-    Camera* myCamera;
+    Camera * myCamera;
 
     glm::float2 myMouseSensitivity;
     glm::int2 myLastMousePos;
@@ -36,5 +30,5 @@ namespace Fancy
     float myFocusPointDistance;
     Mode myLastMode;
   };
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy

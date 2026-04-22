@@ -7,48 +7,58 @@
 #include "TextureData.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  class Texture : public GpuResource
-  {
+  //---------------------------------------------------------------------------//
+  class Texture : public GpuResource {
     friend class RenderOutput;  // Needed to modify implicit SwapChain-texture properties
 
   public:
     Texture();
-    Texture(GpuResource&& aResource, const TextureProperties& someProperties, bool aIsSwapChainTexture);
+    Texture( GpuResource && aResource, const TextureProperties & someProperties, bool aIsSwapChainTexture );
     virtual ~Texture() = default;
 
-    static void ComputeRowPitchSizeAndBlockHeight(DataFormat aFormat, uint aWidth, uint aHeight, uint64& rowPitchSize, uint& aHeightBlocksOrPixels);
+    static void ComputeRowPitchSizeAndBlockHeight( DataFormat aFormat, uint aWidth, uint aHeight, uint64 & rowPitchSize,
+                                                   uint & aHeightBlocksOrPixels );
 
-    virtual void Create(const TextureProperties& someProperties, const char* aName = nullptr, const TextureSubData* someInitialDatas = nullptr, uint aNumInitialDatas = 0u) = 0;
+    virtual void Create( const TextureProperties & someProperties, const char * aName = nullptr,
+                         const TextureSubData * someInitialDatas = nullptr, uint aNumInitialDatas = 0u ) = 0;
 
-    const TextureProperties& GetProperties() const { return myProperties; }
-    bool IsSwapChainTexture() const { return myIsSwapChainTexture; }
-    
+    const TextureProperties & GetProperties() const {
+      return myProperties;
+    }
+    bool IsSwapChainTexture() const {
+      return myIsSwapChainTexture;
+    }
+
   protected:
     virtual void Destroy() = 0;
 
-    void InitTextureData(const TextureSubData* someInitialDatas, uint aNumInitialDatas);
+    void InitTextureData( const TextureSubData * someInitialDatas, uint aNumInitialDatas );
 
     TextureProperties myProperties;
     bool myIsSwapChainTexture;
   };
-//---------------------------------------------------------------------------//
-  class TextureView : public GpuResourceView
-  {
+  //---------------------------------------------------------------------------//
+  class TextureView : public GpuResourceView {
   public:
-    static GlobalResourceType GetGlobalResourceType(const TextureViewProperties& someViewProps);
+    static GlobalResourceType GetGlobalResourceType( const TextureViewProperties & someViewProps );
 
-    TextureView(const SharedPtr<Texture>& aTexture, const TextureViewProperties& someProperties, const char* aName)
-      : GpuResourceView(eastl::static_pointer_cast<GpuResource>(aTexture), aName)
-      , myProperties(someProperties)
-    { }
+    TextureView( const SharedPtr< Texture > & aTexture, const TextureViewProperties & someProperties,
+                 const char * aName )
+        : GpuResourceView( eastl::static_pointer_cast< GpuResource >( aTexture ), aName ),
+          myProperties( someProperties ) {}
 
-    const TextureViewProperties& GetProperties() const { return myProperties; }
-    Texture* GetTexture() const { return static_cast<Texture*>(myResource.get()); }
-    SharedPtr<Texture> GetTexturePtr() const { return eastl::static_pointer_cast<Texture>(myResource); }
+    const TextureViewProperties & GetProperties() const {
+      return myProperties;
+    }
+    Texture * GetTexture() const {
+      return static_cast< Texture * >( myResource.get() );
+    }
+    SharedPtr< Texture > GetTexturePtr() const {
+      return eastl::static_pointer_cast< Texture >( myResource );
+    }
 
   protected:
     TextureViewProperties myProperties;
   };
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy

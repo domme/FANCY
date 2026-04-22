@@ -5,9 +5,8 @@
 #include "RendererPrerequisites.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  struct BlendStateRenderTargetProperties
-  {
+  //---------------------------------------------------------------------------//
+  struct BlendStateRenderTargetProperties {
     bool myAlphaSeparateBlend = false;
     bool myBlendEnabled = false;
     BlendFactor mySrcBlendFactor = BlendFactor::ONE;
@@ -18,26 +17,25 @@ namespace Fancy {
     BlendOp myBlendOpAlpha = BlendOp::ADD;
     uint myColorChannelWriteMask = UINT_MAX;
   };
-//---------------------------------------------------------------------------//
-  struct BlendStateProperties
-  {
-    BlendStateRenderTargetProperties myRendertargetProperties[RenderConstants::kMaxNumRenderTargets];
+  //---------------------------------------------------------------------------//
+  struct BlendStateProperties {
+    BlendStateRenderTargetProperties myRendertargetProperties[ RenderConstants::kMaxNumRenderTargets ];
     bool myAlphaToCoverageEnabled = false;
     bool myBlendStatePerRT = false;
     bool myLogicOpEnabled = false;
     LogicOp myLogicOp = LogicOp::NO_OP;
   };
-//---------------------------------------------------------------------------//
-  class BlendState 
-  {
+  //---------------------------------------------------------------------------//
+  class BlendState {
   public:
-    explicit BlendState(BlendStateProperties aProperties) 
-      : myProperties(aProperties) 
-    {}
+    explicit BlendState( BlendStateProperties aProperties ) : myProperties( aProperties ) {}
 
-    const BlendStateProperties& GetProperties() const { return myProperties; }
+    const BlendStateProperties & GetProperties() const {
+      return myProperties;
+    }
+
   private:
     BlendStateProperties myProperties;
   };
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy

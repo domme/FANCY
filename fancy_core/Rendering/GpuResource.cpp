@@ -2,42 +2,36 @@
 #include "GpuResource.h"
 #include "DX12/GpuResourceDataDX12.h"
 
-namespace Fancy
-{
-//---------------------------------------------------------------------------//
-  uint GpuResource::CalcSubresourceIndex(uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex)
-  {
-    return aPlaneIndex * aNumMips * aNumArraySlices +
-      anArrayIndex * aNumMips +
-      aMipIndex;
+namespace Fancy {
+  //---------------------------------------------------------------------------//
+  uint GpuResource::CalcSubresourceIndex( uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices,
+                                          uint aPlaneIndex ) {
+    return aPlaneIndex * aNumMips * aNumArraySlices + anArrayIndex * aNumMips + aMipIndex;
   }
-//---------------------------------------------------------------------------//
-  uint GpuResource::CalcNumSubresources(uint aNumMips, uint aNumArraySlices, uint aNumPlanes)
-  {
+  //---------------------------------------------------------------------------//
+  uint GpuResource::CalcNumSubresources( uint aNumMips, uint aNumArraySlices, uint aNumPlanes ) {
     return aNumMips * aNumArraySlices * aNumPlanes;
   }
-//---------------------------------------------------------------------------//
-  uint GpuResource::GetSubresourceIndex(const SubresourceLocation& aSubresourceLocation) const
-  {
-    const uint index = CalcSubresourceIndex(aSubresourceLocation.myMipLevel, mySubresources.myNumMipLevels,
-      aSubresourceLocation.myArrayIndex, mySubresources.myNumArrayIndices,
-      aSubresourceLocation.myPlaneIndex);
+  //---------------------------------------------------------------------------//
+  uint GpuResource::GetSubresourceIndex( const SubresourceLocation & aSubresourceLocation ) const {
+    const uint index = CalcSubresourceIndex( aSubresourceLocation.myMipLevel, mySubresources.myNumMipLevels,
+                                             aSubresourceLocation.myArrayIndex, mySubresources.myNumArrayIndices,
+                                             aSubresourceLocation.myPlaneIndex );
 
     return index;
   }
-//---------------------------------------------------------------------------//
-  SubresourceLocation GpuResource::GetSubresourceLocation(uint aSubresourceIndex) const
-  {
+  //---------------------------------------------------------------------------//
+  SubresourceLocation GpuResource::GetSubresourceLocation( uint aSubresourceIndex ) const {
     SubresourceLocation location;
     location.myMipLevel = aSubresourceIndex % mySubresources.myNumMipLevels;
-    location.myArrayIndex = (aSubresourceIndex / mySubresources.myNumMipLevels) % mySubresources.myNumArrayIndices;
-    location.myPlaneIndex = aSubresourceIndex / (mySubresources.myNumMipLevels * mySubresources.myNumArrayIndices);
+    location.myArrayIndex = ( aSubresourceIndex / mySubresources.myNumMipLevels ) % mySubresources.myNumArrayIndices;
+    location.myPlaneIndex = aSubresourceIndex / ( mySubresources.myNumMipLevels * mySubresources.myNumArrayIndices );
 
-    ASSERT(location.myMipLevel < mySubresources.myNumMipLevels 
-      && location.myArrayIndex < mySubresources.myNumArrayIndices 
-      && location.myPlaneIndex < mySubresources.myNumPlanes);
+    ASSERT( location.myMipLevel < mySubresources.myNumMipLevels &&
+            location.myArrayIndex < mySubresources.myNumArrayIndices &&
+            location.myPlaneIndex < mySubresources.myNumPlanes );
 
     return location;
   }
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy

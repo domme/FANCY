@@ -13,11 +13,9 @@
 #define FANCY_RENDERER_SUPPORT_FRAGMENT_DENSITY_MAP 0
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  namespace RenderConstants 
-  {
-    enum
-    {
+  //---------------------------------------------------------------------------//
+  namespace RenderConstants {
+    enum {
       kMaxNumRenderTargets = 8u,
       kMaxNumTextureSamplers = 32u,
       kMaxNumReadBuffers = 32u,
@@ -33,15 +31,13 @@ namespace Fancy {
       kDefaultNumAttributes = 16u,
     };
   }
-//---------------------------------------------------------------------------//
-  enum class RenderPlatformType
-  {
+  //---------------------------------------------------------------------------//
+  enum class RenderPlatformType {
     DX12 = 0,
     VULKAN,
   };
-//---------------------------------------------------------------------------//
-  struct RenderPlatformCaps
-  {
+  //---------------------------------------------------------------------------//
+  struct RenderPlatformCaps {
     unsigned int myMaxNumVertexAttributes = 32u;
     unsigned int myCbufferPlacementAlignment = 1u;
     unsigned int myTextureRowAlignment = 1u;
@@ -56,9 +52,8 @@ namespace Fancy {
     bool myHasAsyncCopy = false;
     bool mySupportsRaytracing = false;
   };
-//---------------------------------------------------------------------------//
-  struct RenderPlatformProperties
-  {
+  //---------------------------------------------------------------------------//
+  struct RenderPlatformProperties {
     unsigned int myNumGlobalTextures1D = 64u;
     unsigned int myNumGlobalTextures2D = 2048u;
     unsigned int myNumGlobalTextures3D = 1024u;
@@ -68,5 +63,5 @@ namespace Fancy {
     unsigned int myNumLocalBuffers = 8u;
     unsigned int myNumLocalCBuffers = 8u;
   };
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

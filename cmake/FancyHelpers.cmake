@@ -4,6 +4,35 @@ set(FANCY_VCPKG_BIN_DEBUG   "${_fancy_vcpkg_installed}/debug/bin" CACHE INTERNAL
 set(FANCY_WINPIX_BIN        "${FANCY_ROOT}/external/WinPixEventRuntime/bin/x64" CACHE INTERNAL "")
 unset(_fancy_vcpkg_installed)
 
+# ---------------------------------------------------------------------------
+# clang-format target
+# ---------------------------------------------------------------------------
+find_program(CLANG_FORMAT_EXE
+    NAMES clang-format
+    HINTS
+        "$ENV{ProgramFiles}/Microsoft Visual Studio/2022/Community/VC/Tools/Llvm/x64/bin"
+        "$ENV{ProgramFiles}/Microsoft Visual Studio/2022/Professional/VC/Tools/Llvm/x64/bin"
+        "$ENV{ProgramFiles}/Microsoft Visual Studio/2022/Enterprise/VC/Tools/Llvm/x64/bin"
+)
+
+if(CLANG_FORMAT_EXE)
+    # Collect all project .h/.cpp files (skip external/vcpkg/stb)
+    file(GLOB_RECURSE _ALL_FANCY_SOURCES
+        "${FANCY_ROOT}/fancy_core/*.cpp"  "${FANCY_ROOT}/fancy_core/*.h"
+        "${FANCY_ROOT}/fancy_imgui/*.cpp" "${FANCY_ROOT}/fancy_imgui/*.h"
+        "${FANCY_ROOT}/Tests/*.cpp"       "${FANCY_ROOT}/Tests/*.h"
+    )
+    add_custom_target(fancy_format
+        COMMAND ${CLANG_FORMAT_EXE} -i ${_ALL_FANCY_SOURCES}
+        COMMENT "Running clang-format on Fancy sources"
+        VERBATIM
+    )
+    unset(_ALL_FANCY_SOURCES)
+else()
+    message(STATUS "clang-format not found — fancy_format target unavailable")
+endif()
+
+
 # Applies the common MSVC compile options that all Fancy targets must share.
 # IMPORTANT: PCH consumers (REUSE_FROM fancy_core) must have the same flags as the PCH creator.
 function(fancy_apply_compile_options target)

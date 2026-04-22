@@ -4,13 +4,11 @@
 
 #if FANCY_ENABLE_DX12
 
-namespace Fancy
-{
-  class ShaderPipelineDX12 : public ShaderPipeline
-  {
+namespace Fancy {
+  class ShaderPipelineDX12 : public ShaderPipeline {
   public:
     void CreateFromShaders() override;
   };
-}
+}  // namespace Fancy
 
 #endif

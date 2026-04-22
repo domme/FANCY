@@ -4,16 +4,14 @@
 
 #if FANCY_ENABLE_DX12
 
-namespace Fancy
-{
-  class GpuQueryHeapDX12 final : public GpuQueryHeap
-  {
+namespace Fancy {
+  class GpuQueryHeapDX12 final : public GpuQueryHeap {
   public:
-    GpuQueryHeapDX12(GpuQueryType aQueryType, uint aNumQueries);
+    GpuQueryHeapDX12( GpuQueryType aQueryType, uint aNumQueries );
     ~GpuQueryHeapDX12() override;
 
-    Microsoft::WRL::ComPtr<ID3D12QueryHeap> myHeap;
+    Microsoft::WRL::ComPtr< ID3D12QueryHeap > myHeap;
   };
-}
+}  // namespace Fancy
 
 #endif

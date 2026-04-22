@@ -6,16 +6,14 @@
 #include "Rendering/TextureProperties.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  struct ImageData
-  {
+  //---------------------------------------------------------------------------//
+  struct ImageData {
     TextureProperties myProperties;
     TextureData myData;
   };
-//---------------------------------------------------------------------------//
-  struct ImageLoader
-  {
-    static bool Load(const char* aPathAbs, uint someLoadFlags, ImageData& anImageOut);
+  //---------------------------------------------------------------------------//
+  struct ImageLoader {
+    static bool Load( const char * aPathAbs, uint someLoadFlags, ImageData & anImageOut );
   };
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy

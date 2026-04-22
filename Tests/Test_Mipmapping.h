@@ -5,25 +5,30 @@
 #include "EASTL/vector.h"
 #include "EASTL/string.h"
 
-namespace Fancy
-{
+namespace Fancy {
   class ShaderPipeline;
   class Texture;
   class TextureView;
-}
+}  // namespace Fancy
 
-struct ImageData
-{
-  ImageData(Fancy::SharedPtr<Fancy::TextureView> aTexture) { Create(aTexture); }
+struct ImageData {
+  ImageData( Fancy::SharedPtr< Fancy::TextureView > aTexture ) {
+    Create( aTexture );
+  }
   ImageData() {}
-  void Create(Fancy::SharedPtr<Fancy::TextureView> aTexture);
-  void Clear() { myTexture.reset(); myTextureView.reset(); myMipLevelReadViews.clear(); myMipLevelWriteViews.clear(); }
+  void Create( Fancy::SharedPtr< Fancy::TextureView > aTexture );
+  void Clear() {
+    myTexture.reset();
+    myTextureView.reset();
+    myMipLevelReadViews.clear();
+    myMipLevelWriteViews.clear();
+  }
   bool myIsSRGB = false;
 
-  Fancy::SharedPtr<Fancy::Texture> myTexture;
-  Fancy::SharedPtr<Fancy::TextureView> myTextureView;
-  eastl::vector<Fancy::SharedPtr<Fancy::TextureView>> myMipLevelReadViews;
-  eastl::vector<Fancy::SharedPtr<Fancy::TextureView>> myMipLevelWriteViews;
+  Fancy::SharedPtr< Fancy::Texture > myTexture;
+  Fancy::SharedPtr< Fancy::TextureView > myTextureView;
+  eastl::vector< Fancy::SharedPtr< Fancy::TextureView > > myMipLevelReadViews;
+  eastl::vector< Fancy::SharedPtr< Fancy::TextureView > > myMipLevelWriteViews;
 
   eastl::string myName;
   bool myIsWindowOpen;
@@ -32,18 +37,17 @@ struct ImageData
   int mySelectedFilter;
 };
 
-class Test_Mipmapping : public Test
-{
+class Test_Mipmapping : public Test {
 public:
-  Test_Mipmapping(Fancy::AssetManager* anAssetManager, Fancy::Window* aWindow, Fancy::RenderOutput* aRenderOutput, Fancy::InputState* anInputState);
+  Test_Mipmapping( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput,
+                   Fancy::InputState * anInputState );
   ~Test_Mipmapping() override;
-  void OnUpdate(bool aDrawProperties) override;
+  void OnUpdate( bool aDrawProperties ) override;
 
 private:
-  void OnShaderPipelineRecompiled(const Fancy::ShaderPipeline* aShader);
-  
-  eastl::vector<ImageData> myImageDatas;
+  void OnShaderPipelineRecompiled( const Fancy::ShaderPipeline * aShader );
+
+  eastl::vector< ImageData > myImageDatas;
   int mySelectedMipLevel = 0;
   bool myUpdateAlways = false;
 };
-

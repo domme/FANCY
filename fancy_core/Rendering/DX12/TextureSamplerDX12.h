@@ -6,19 +6,20 @@
 #if FANCY_ENABLE_DX12
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  class TextureSamplerDX12 : public TextureSampler
-  {
+  //---------------------------------------------------------------------------//
+  class TextureSamplerDX12 : public TextureSampler {
   public:
-    TextureSamplerDX12(const TextureSamplerProperties& someProperties);
+    TextureSamplerDX12( const TextureSamplerProperties & someProperties );
     ~TextureSamplerDX12() override;
 
-    const DescriptorDX12& GetDescriptor() const { return myDescriptor; }
+    const DescriptorDX12 & GetDescriptor() const {
+      return myDescriptor;
+    }
 
   protected:
     DescriptorDX12 myDescriptor;
   };
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy
 
 #endif

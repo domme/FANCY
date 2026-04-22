@@ -6,7 +6,7 @@
 #if FANCY_USE_BINARY_CACHE
 
 namespace Fancy {
-  
+
   //---------------------------------------------------------------------------//
   struct MeshDesc;
   struct MeshData;
@@ -17,24 +17,26 @@ namespace Fancy {
   struct SceneData;
   struct VertexInputLayoutProperties;
   class BinarySerializer;
-//---------------------------------------------------------------------------//
-  struct BinaryCache
-  {
-    static eastl::string GetCacheFilePathAbs(const char* aPathInResources);
+  //---------------------------------------------------------------------------//
+  struct BinaryCache {
+    static eastl::string GetCacheFilePathAbs( const char * aPathInResources );
 
-    static void WriteScene(const char* aSourceFilePath, SceneData& aSceneData);
-    static bool ReadScene(const char* aSourceFilePath, SceneData& aSceneData);
+    static void WriteScene( const char * aSourceFilePath, SceneData & aSceneData );
+    static bool ReadScene( const char * aSourceFilePath, SceneData & aSceneData );
 
-    static void WriteTextureData(const char* aSourceFilePath, TextureProperties& someTexProps, TextureData& aTextureData);
-    static bool ReadTextureData(const char* aSourceFilePath, TextureProperties& someTexProps, TextureData& aTextureData);
+    static void WriteTextureData( const char * aSourceFilePath, TextureProperties & someTexProps,
+                                  TextureData & aTextureData );
+    static bool ReadTextureData( const char * aSourceFilePath, TextureProperties & someTexProps,
+                                 TextureData & aTextureData );
 
   private:
-    static bool HasValidDiskCache(const char* aPath);
+    static bool HasValidDiskCache( const char * aPath );
 
-    static bool SerializeScene(BinarySerializer& aSerializer, SceneData& aSceneData);
-    static bool SerializeTextureData(BinarySerializer& aSerializer, TextureProperties& someTexProps, TextureData& aTextureData);
-//---------------------------------------------------------------------------//      
+    static bool SerializeScene( BinarySerializer & aSerializer, SceneData & aSceneData );
+    static bool SerializeTextureData( BinarySerializer & aSerializer, TextureProperties & someTexProps,
+                                      TextureData & aTextureData );
+    //---------------------------------------------------------------------------//
   };
-}
+}  // namespace Fancy
 
 #endif

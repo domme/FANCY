@@ -2,12 +2,10 @@
 #include "TempResources.h"
 #include "TempResourcePool.h"
 
-namespace Fancy
-{
-//---------------------------------------------------------------------------//
-  TempResourceKeepAlive::~TempResourceKeepAlive()
-  {
-    myPool->FreeResource(myResource, myBucketHash);
+namespace Fancy {
+  //---------------------------------------------------------------------------//
+  TempResourceKeepAlive::~TempResourceKeepAlive() {
+    myPool->FreeResource( myResource, myBucketHash );
   }
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy

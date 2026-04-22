@@ -3,51 +3,36 @@
 #include "Common/FancyCoreDefines.h"
 #include "Common/Ptr.h"
 
-namespace Fancy
-{
-//---------------------------------------------------------------------------//
+namespace Fancy {
+  //---------------------------------------------------------------------------//
   class TempResourcePool;
   class GpuBuffer;
   class GpuBufferView;
   class Texture;
   class TextureView;
-//---------------------------------------------------------------------------//
-  struct TempResourceKeepAlive
-  {
-    TempResourceKeepAlive(TempResourcePool* aPool, void* aResource, uint64 aBucketHash)
-      : myPool(aPool), myResource(aResource), myBucketHash(aBucketHash) {}
+  //---------------------------------------------------------------------------//
+  struct TempResourceKeepAlive {
+    TempResourceKeepAlive( TempResourcePool * aPool, void * aResource, uint64 aBucketHash )
+        : myPool( aPool ), myResource( aResource ), myBucketHash( aBucketHash ) {}
 
     ~TempResourceKeepAlive();
 
   private:
     TempResourcePool * myPool;
-    void* myResource;
+    void * myResource;
     uint64 myBucketHash;
   };
   //---------------------------------------------------------------------------//
-  struct TempBufferResource
-  {
+  struct TempBufferResource {
     friend class TempResourcePool;
 
-    TempBufferResource()
-      : myBuffer(nullptr)
-      , myReadView(nullptr)
-      , myWriteView(nullptr)
-    {
+    TempBufferResource() : myBuffer( nullptr ), myReadView( nullptr ), myWriteView( nullptr ) {}
 
-    }
+    TempBufferResource( const TempBufferResource & anOther )
+        : myBuffer( anOther.myBuffer ), myReadView( anOther.myReadView ), myWriteView( anOther.myWriteView ),
+          myKeepAlive( anOther.myKeepAlive ) {}
 
-    TempBufferResource(const TempBufferResource& anOther)
-      : myBuffer(anOther.myBuffer)
-      , myReadView(anOther.myReadView)
-      , myWriteView(anOther.myWriteView)
-      , myKeepAlive(anOther.myKeepAlive)
-    {
-
-    }
-
-    TempBufferResource& operator=(const TempBufferResource& anOther)
-    {
+    TempBufferResource & operator=( const TempBufferResource & anOther ) {
       myBuffer = anOther.myBuffer;
       myReadView = anOther.myReadView;
       myWriteView = anOther.myWriteView;
@@ -55,8 +40,7 @@ namespace Fancy
       return *this;
     }
 
-    TempBufferResource& operator=(TempBufferResource&& anOther) noexcept
-    {
+    TempBufferResource & operator=( TempBufferResource && anOther ) noexcept {
       myBuffer = anOther.myBuffer;
       myReadView = anOther.myReadView;
       myWriteView = anOther.myWriteView;
@@ -64,32 +48,24 @@ namespace Fancy
       return *this;
     }
 
-    GpuBuffer* myBuffer;
-    GpuBufferView* myReadView;
-    GpuBufferView* myWriteView;
+    GpuBuffer * myBuffer;
+    GpuBufferView * myReadView;
+    GpuBufferView * myWriteView;
 
   protected:
-    SharedPtr<TempResourceKeepAlive> myKeepAlive;
+    SharedPtr< TempResourceKeepAlive > myKeepAlive;
   };
   //---------------------------------------------------------------------------//
-  struct TempTextureResource
-  {
+  struct TempTextureResource {
     friend class TempResourcePool;
 
     TempTextureResource()
-      : myTexture(nullptr)
-      , myReadView(nullptr)
-      , myWriteView(nullptr)
-      , myRenderTargetView(nullptr)
-    {
+        : myTexture( nullptr ), myReadView( nullptr ), myWriteView( nullptr ), myRenderTargetView( nullptr ) {}
 
-    }
+    TempTextureResource( const TempTextureResource & anOther ) = default;
+    TempTextureResource & operator=( const TempTextureResource & anOther ) = default;
 
-    TempTextureResource(const TempTextureResource& anOther) = default;
-    TempTextureResource& operator=(const TempTextureResource& anOther) = default;
-
-    TempTextureResource& operator=(TempTextureResource&& anOther) noexcept
-    {
+    TempTextureResource & operator=( TempTextureResource && anOther ) noexcept {
       myTexture = anOther.myTexture;
       myReadView = anOther.myReadView;
       myWriteView = anOther.myWriteView;
@@ -98,13 +74,13 @@ namespace Fancy
       return *this;
     }
 
-    Texture* myTexture;
-    TextureView* myReadView;
-    TextureView* myWriteView;
-    TextureView* myRenderTargetView;
+    Texture * myTexture;
+    TextureView * myReadView;
+    TextureView * myWriteView;
+    TextureView * myRenderTargetView;
 
   protected:
-    SharedPtr<TempResourceKeepAlive> myKeepAlive;
+    SharedPtr< TempResourceKeepAlive > myKeepAlive;
   };
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy

@@ -4,8 +4,7 @@
 
 using namespace Fancy;
 
-void Shader::SetFromCompilerOutput(const ShaderCompilerResult& aCompilerOutput)
-{
+void Shader::SetFromCompilerOutput( const ShaderCompilerResult & aCompilerOutput ) {
   myProperties = aCompilerOutput.myProperties;
   myDesc = aCompilerOutput.myDesc;
   myVertexAttributes = aCompilerOutput.myVertexAttributes;

@@ -11,10 +11,9 @@
 #if FANCY_ENABLE_DX12
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  RenderOutputDX12::RenderOutputDX12(void* aNativeInstanceHandle, const WindowParameters& someWindowParams)
-    : RenderOutput(aNativeInstanceHandle, someWindowParams)
-  {
+  //---------------------------------------------------------------------------//
+  RenderOutputDX12::RenderOutputDX12( void * aNativeInstanceHandle, const WindowParameters & someWindowParams )
+      : RenderOutput( aNativeInstanceHandle, someWindowParams ) {
     DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     swapChainDesc.BufferCount = kBackbufferCount;
     swapChainDesc.BufferDesc.Width = myWindow->GetWidth();
@@ -26,41 +25,38 @@ namespace Fancy {
     swapChainDesc.SampleDesc.Count = 1;
     swapChainDesc.Windowed = TRUE;
 
-    RenderCore_PlatformDX12* coreDX12 = static_cast<RenderCore_PlatformDX12*>(RenderCore::GetPlatform());
-    Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain = coreDX12->CreateSwapChain(swapChainDesc);
+    RenderCore_PlatformDX12 * coreDX12 = static_cast< RenderCore_PlatformDX12 * >( RenderCore::GetPlatform() );
+    Microsoft::WRL::ComPtr< IDXGISwapChain > swapChain = coreDX12->CreateSwapChain( swapChainDesc );
 
-    ASSERT(swapChain != nullptr);
+    ASSERT( swapChain != nullptr );
 
-    ASSERT_HRESULT(swapChain.As(&mySwapChain));
+    ASSERT_HRESULT( swapChain.As( &mySwapChain ) );
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
   //---------------------------------------------------------------------------//
-  RenderOutputDX12::~RenderOutputDX12()
-  {
-  }
-//---------------------------------------------------------------------------//
-  void RenderOutputDX12::CreateBackbufferResources(uint aWidth, uint aHeight)
-  {
-    for (uint i = 0u; i < kBackbufferCount; ++i)
-    {
-      GpuResource resource(GpuResourceType::TEXTURE);
-      resource.myName = StaticString<32>("Backbuffer Texture %d", i);
+  RenderOutputDX12::~RenderOutputDX12() {}
+  //---------------------------------------------------------------------------//
+  void RenderOutputDX12::CreateBackbufferResources( uint aWidth, uint aHeight ) {
+    for ( uint i = 0u; i < kBackbufferCount; ++i ) {
+      GpuResource resource( GpuResourceType::TEXTURE );
+      resource.myName = StaticString< 32 >( "Backbuffer Texture %d", i );
 
       GpuResourceDataDX12 dataDx12;
-      ASSERT_HRESULT(mySwapChain->GetBuffer(i, IID_PPV_ARGS(&dataDx12.myResource)));
-      eastl::wstring wName = StringUtil::ToWideString(resource.myName);
-      dataDx12.myResource->SetName(wName.c_str());
+      ASSERT_HRESULT( mySwapChain->GetBuffer( i, IID_PPV_ARGS( &dataDx12.myResource ) ) );
+      eastl::wstring wName = StringUtil::ToWideString( resource.myName );
+      dataDx12.myResource->SetName( wName.c_str() );
 
       GpuSubresourceHazardDataDX12 subHazardData;
       subHazardData.myContext = CommandListType::Graphics;
       subHazardData.myStates = D3D12_RESOURCE_STATE_PRESENT;
 
-      resource.mySubresources = SubresourceRange(0u, 1u, 0u, 1u, 0u, 1u);
+      resource.mySubresources = SubresourceRange( 0u, 1u, 0u, 1u, 0u, 1u );
 
-      GpuResourceHazardDataDX12* hazardData = &dataDx12.myHazardData;
-      hazardData->myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
+      GpuResourceHazardDataDX12 * hazardData = &dataDx12.myHazardData;
+      hazardData->myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
+                                 D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
       hazardData->myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
-      hazardData->mySubresources.push_back(subHazardData);
+      hazardData->mySubresources.push_back( subHazardData );
       hazardData->myCanChangeStates = true;
 
       resource.myDx12Data = dataDx12;
@@ -74,38 +70,33 @@ namespace Fancy {
       backbufferProps.myDepthOrArraySize = 1u;
       backbufferProps.myNumMipLevels = 1u;
 
-      myBackbufferTextures[i].reset(new TextureDX12(std::move(resource), backbufferProps, true));
+      myBackbufferTextures[ i ].reset( new TextureDX12( std::move( resource ), backbufferProps, true ) );
     }
   }
-//---------------------------------------------------------------------------//
-  void RenderOutputDX12::OnBeginFrame()
-  {
+  //---------------------------------------------------------------------------//
+  void RenderOutputDX12::OnBeginFrame() {
     myCurrBackbufferIndex = mySwapChain->GetCurrentBackBufferIndex();
   }
-//---------------------------------------------------------------------------//
-  void RenderOutputDX12::Present()
-  {
-    CommandList* ctx = RenderCore::BeginCommandList(CommandListType::Graphics);
-    CommandListDX12* ctxDx12 = static_cast<CommandListDX12*>(ctx);
-    ctxDx12->TrackResourceTransition(GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT);
-    RenderCore::ExecuteAndFreeCommandList(ctx);
+  //---------------------------------------------------------------------------//
+  void RenderOutputDX12::Present() {
+    CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
+    CommandListDX12 * ctxDx12 = static_cast< CommandListDX12 * >( ctx );
+    ctxDx12->TrackResourceTransition( GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT );
+    RenderCore::ExecuteAndFreeCommandList( ctx );
 
-    mySwapChain->Present(0, 0);
+    mySwapChain->Present( 0, 0 );
   }
-//---------------------------------------------------------------------------//
-  void RenderOutputDX12::ResizeSwapChain(uint aWidth, uint aHeight)
-  {
-    ASSERT_HRESULT(mySwapChain->ResizeBuffers(kBackbufferCount, aWidth, aHeight, DXGI_FORMAT_UNKNOWN, 0));
+  //---------------------------------------------------------------------------//
+  void RenderOutputDX12::ResizeSwapChain( uint aWidth, uint aHeight ) {
+    ASSERT_HRESULT( mySwapChain->ResizeBuffers( kBackbufferCount, aWidth, aHeight, DXGI_FORMAT_UNKNOWN, 0 ) );
   }
-//---------------------------------------------------------------------------//
-  void RenderOutputDX12::DestroyBackbufferResources()
-  {
-    for (uint i = 0u; i < kBackbufferCount; ++i)
-    {
-      myBackbufferTextures[i].reset();
+  //---------------------------------------------------------------------------//
+  void RenderOutputDX12::DestroyBackbufferResources() {
+    for ( uint i = 0u; i < kBackbufferCount; ++i ) {
+      myBackbufferTextures[ i ].reset();
     }
   }
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy
 
 #endif

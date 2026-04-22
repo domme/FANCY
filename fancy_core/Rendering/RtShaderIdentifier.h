@@ -4,11 +4,9 @@
 #include "Common/FancyCoreDefines.h"
 #include "RenderEnums.h"
 
-namespace Fancy
-{
-  struct RtShaderIdentifier
-  {
+namespace Fancy {
+  struct RtShaderIdentifier {
     RtShaderIdentifierType myType;
-    eastl::fixed_vector<uint8, 64> myData;
+    eastl::fixed_vector< uint8, 64 > myData;
   };
-}
+}  // namespace Fancy

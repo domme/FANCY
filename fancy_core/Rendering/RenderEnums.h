@@ -1,18 +1,15 @@
 #pragma once
 
-namespace Fancy
-{
-//---------------------------------------------------------------------------//  
-  enum class TopologyType
-  {
+namespace Fancy {
+  //---------------------------------------------------------------------------//
+  enum class TopologyType {
     TRIANGLE_LIST,
     LINES,
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class CompFunc
-  {
+  //---------------------------------------------------------------------------//
+  enum class CompFunc {
     NEVER = 0,
     LESS,
     EQUAL,
@@ -24,9 +21,8 @@ namespace Fancy
 
     NUM
   };
-//-----------------------------------------------------------------------//
-  enum class StencilOp
-  {
+  //-----------------------------------------------------------------------//
+  enum class StencilOp {
     KEEP = 0,
     ZERO,
     REPLACE,
@@ -38,34 +34,30 @@ namespace Fancy
 
     NUM
   };
-//-----------------------------------------------------------------------//
-  enum class FillMode
-  {
+  //-----------------------------------------------------------------------//
+  enum class FillMode {
     WIREFRAME = 0,
     SOLID,
 
     NUM
   };
-//-----------------------------------------------------------------------//
-  enum class CullMode
-  {
+  //-----------------------------------------------------------------------//
+  enum class CullMode {
     NONE = 0,
     FRONT,
     BACK,
 
     NUM
   };
-//-----------------------------------------------------------------------//
-  enum class WindingOrder
-  {
+  //-----------------------------------------------------------------------//
+  enum class WindingOrder {
     CCW = 0,
     CW,
 
     NUM
   };
-//-----------------------------------------------------------------------//    
-  enum class BlendFactor
-  {
+  //-----------------------------------------------------------------------//
+  enum class BlendFactor {
     ZERO = 0,
     ONE,
     SRC_COLOR,
@@ -86,9 +78,8 @@ namespace Fancy
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class BlendOp
-  {
+  //---------------------------------------------------------------------------//
+  enum class BlendOp {
     ADD = 0,
     SUBTRACT,
     REV_SUBTRACT,
@@ -97,9 +88,8 @@ namespace Fancy
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class LogicOp
-  {
+  //---------------------------------------------------------------------------//
+  enum class LogicOp {
     CLEAR = 0,
     AND,
     AND_REVERSE,
@@ -119,9 +109,8 @@ namespace Fancy
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum ShaderStage
-  {
+  //---------------------------------------------------------------------------//
+  enum ShaderStage {
     SHADERSTAGE_VERTEX = 0,
     SHADERSTAGE_FRAGMENT,
     SHADERSTAGE_GEOMETRY,
@@ -133,29 +122,26 @@ namespace Fancy
     SHADERSTAGE_INTERSECTION,
     SHADERSTAGE_ANYHIT,
     SHADERSTAGE_CLOSEST_HIT,
-    
+
     SHADERSTAGE_NUM,
     SHADERSTAGE_NUM_RASTERIZATION = SHADERSTAGE_TESS_DOMAIN + 1 - SHADERSTAGE_VERTEX,
     SHADERSTAGE_NUM_RAYTRACING = SHADERSTAGE_CLOSEST_HIT + 1 - SHADERSTAGE_RAYGEN,
     SHADERSTAGE_NONE = SHADERSTAGE_NUM
   };
-//---------------------------------------------------------------------------//
-  inline bool IsRaytracingStage(ShaderStage aStage)
-  {
+  //---------------------------------------------------------------------------//
+  inline bool IsRaytracingStage( ShaderStage aStage ) {
     return aStage >= SHADERSTAGE_RAYGEN && aStage <= SHADERSTAGE_CLOSEST_HIT;
   }
-//---------------------------------------------------------------------------//
-  enum class CpuMemoryAccessType
-  {
+  //---------------------------------------------------------------------------//
+  enum class CpuMemoryAccessType {
     NO_CPU_ACCESS = 0,
     CPU_WRITE,
     CPU_READ,
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class GpuResourceMapMode
-  {
+  //---------------------------------------------------------------------------//
+  enum class GpuResourceMapMode {
     READ = 0,
     READ_UNSYNCHRONIZED,
     WRITE_UNSYNCHRONIZED,
@@ -163,15 +149,10 @@ namespace Fancy
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class GpuResourceType
-  {
-    TEXTURE = 0,
-    BUFFER
-  };
-//---------------------------------------------------------------------------//
-  enum class GpuResourceDimension
-  {
+  //---------------------------------------------------------------------------//
+  enum class GpuResourceType { TEXTURE = 0, BUFFER };
+  //---------------------------------------------------------------------------//
+  enum class GpuResourceDimension {
     UNKONWN = 0,
     BUFFER,
     TEXTURE_1D,
@@ -183,9 +164,8 @@ namespace Fancy
     TEXTURE_CUBE_ARRAY,
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class GpuBufferBindFlags
-  {
+  //---------------------------------------------------------------------------//
+  enum class GpuBufferBindFlags {
     NONE = 0,
     CONSTANT_BUFFER = 1 << 0,
     VERTEX_BUFFER = 1 << 1,
@@ -197,9 +177,8 @@ namespace Fancy
 
     ALL = ~0
   };
-//---------------------------------------------------------------------------//
-  enum class GpuBufferUsage
-  {
+  //---------------------------------------------------------------------------//
+  enum class GpuBufferUsage {
     STAGING_UPLOAD = 0,
     STAGING_UPLOAD_RT_BUILD_INPUT,
     STAGING_READBACK,
@@ -208,17 +187,10 @@ namespace Fancy
     INDEX_BUFFER,
     SHADER_BUFFER,
   };
-//---------------------------------------------------------------------------//
-  enum class GpuBufferViewType
-  {
-    CONSTANT = 0,
-    STRUCTURED,
-    RAW,
-    TYPED
-  };
-//---------------------------------------------------------------------------//
-  enum class VertexAttributeSemantic
-  {
+  //---------------------------------------------------------------------------//
+  enum class GpuBufferViewType { CONSTANT = 0, STRUCTURED, RAW, TYPED };
+  //---------------------------------------------------------------------------//
+  enum class VertexAttributeSemantic {
     NONE = 0,
 
     POSITION,
@@ -230,9 +202,8 @@ namespace Fancy
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class SamplerFilterMode
-  {
+  //---------------------------------------------------------------------------//
+  enum class SamplerFilterMode {
     NEAREST = 0,
     BILINEAR,
     TRILINEAR,
@@ -240,9 +211,8 @@ namespace Fancy
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class SamplerAddressMode
-  {
+  //---------------------------------------------------------------------------//
+  enum class SamplerAddressMode {
     CLAMP_EDGE = 0,
     MIRROR_CLAMP_EDGE,
     CLAMP_BORDER,
@@ -251,9 +221,8 @@ namespace Fancy
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class SamplerBorderColor
-  {
+  //---------------------------------------------------------------------------//
+  enum class SamplerBorderColor {
     FLOAT_TRANSPARENT_BLACK = 0,
     INT_TRANSPARENT_BLACK,
     FLOAT_OPAQUE_BLACK,
@@ -263,40 +232,32 @@ namespace Fancy
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class DepthStencilClearFlags
-  {
-    CLEAR_DEPTH = (1 << 0),
-    CLEAR_STENCIL = (1 << 1),
-    CLEAR_ALL = 0xFF
-  };
-//---------------------------------------------------------------------------//
-  enum class GpuDescriptorTypeFlags
-  {
-    READ_BUFFER = (1 << 0),
-    READ_TEXTURE = (1 << 1),
-    WRITE_BUFFER = (1 << 2),
-    WRITE_TEXTURE = (1 << 3),
-    CONSTANT_BUFFER = (1 << 4),
+  //---------------------------------------------------------------------------//
+  enum class DepthStencilClearFlags { CLEAR_DEPTH = ( 1 << 0 ), CLEAR_STENCIL = ( 1 << 1 ), CLEAR_ALL = 0xFF };
+  //---------------------------------------------------------------------------//
+  enum class GpuDescriptorTypeFlags {
+    READ_BUFFER = ( 1 << 0 ),
+    READ_TEXTURE = ( 1 << 1 ),
+    WRITE_BUFFER = ( 1 << 2 ),
+    WRITE_TEXTURE = ( 1 << 3 ),
+    CONSTANT_BUFFER = ( 1 << 4 ),
     BUFFER_TEXTURE_CONSTANT_BUFFER = READ_BUFFER | READ_TEXTURE | WRITE_BUFFER | WRITE_TEXTURE | CONSTANT_BUFFER,
-    SAMPLER = (1 << 5),
-    RENDER_TARGET = (1 << 6),
-    VERTEX_BUFFER = (1 << 7),
-    INDEX_BUFFER = (1 << 8),
-    DEPTH_STENCIL_TEXTURE = (1 << 9)
+    SAMPLER = ( 1 << 5 ),
+    RENDER_TARGET = ( 1 << 6 ),
+    VERTEX_BUFFER = ( 1 << 7 ),
+    INDEX_BUFFER = ( 1 << 8 ),
+    DEPTH_STENCIL_TEXTURE = ( 1 << 9 )
   };
-//---------------------------------------------------------------------------//
-  enum class GpuMemoryType
-  {
+  //---------------------------------------------------------------------------//
+  enum class GpuMemoryType {
     BUFFER = 0,
     TEXTURE,
     RENDERTARGET,
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class CommandListType
-  {
+  //---------------------------------------------------------------------------//
+  enum class CommandListType {
     Graphics = 0,
     Compute,
     DMA,
@@ -305,25 +266,22 @@ namespace Fancy
     UNKNOWN,
     SHARED_READ
   };
-//---------------------------------------------------------------------------//
-  enum class GpuQueryType
-  {
+  //---------------------------------------------------------------------------//
+  enum class GpuQueryType {
     TIMESTAMP = 0,
     OCCLUSION,
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class SyncMode
-  {
+  //---------------------------------------------------------------------------//
+  enum class SyncMode {
     BLOCKING = 0,
     ASYNC,
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum ShaderModel
-  {
+  //---------------------------------------------------------------------------//
+  enum ShaderModel {
     SM_6_0 = 0,
     SM_6_1,
     SM_6_2,
@@ -332,59 +290,44 @@ namespace Fancy
     SM_6_5,
     SM_LATEST = SM_6_5,
   };
-//---------------------------------------------------------------------------//
-  enum class ResourceTransition
-  {
-    TO_SHARED_CONTEXT_READ,  // Transition to all allowed read states on a subresource and mark it for being used simultaneously on different queues
+  //---------------------------------------------------------------------------//
+  enum class ResourceTransition {
+    TO_SHARED_CONTEXT_READ,  // Transition to all allowed read states on a subresource and mark it for being used
+                             // simultaneously on different queues
   };
-//---------------------------------------------------------------------------//
-  enum class ResourceUsageFlags
-  {
-    SHADER_READ = 1 << 0,
-    COPY_SRC = 1 << 1,
-    DEPTH_STENCIL_READ = 1 << 2
-  };
-//---------------------------------------------------------------------------//
-  enum ShaderResourceAccess
-  {
-    SHADER_RESOURCE_ACCESS_SRV,
-    SHADER_RESOURCE_ACCESS_UAV,
-    SHADER_RESOURCE_ACCESS_RTAS
-  };
-//---------------------------------------------------------------------------//
-  enum class VertexInputRate
-  {
+  //---------------------------------------------------------------------------//
+  enum class ResourceUsageFlags { SHADER_READ = 1 << 0, COPY_SRC = 1 << 1, DEPTH_STENCIL_READ = 1 << 2 };
+  //---------------------------------------------------------------------------//
+  enum ShaderResourceAccess { SHADER_RESOURCE_ACCESS_SRV, SHADER_RESOURCE_ACCESS_UAV, SHADER_RESOURCE_ACCESS_RTAS };
+  //---------------------------------------------------------------------------//
+  enum class VertexInputRate {
     PER_VERTEX = 0,
     PER_INSTANCE,
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class RtAccelerationStructureType
-  {
+  //---------------------------------------------------------------------------//
+  enum class RtAccelerationStructureType {
     BOTTOM_LEVEL = 0,
     TOP_LEVEL,
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class RtAccelerationStructureGeometryType
-  {
+  //---------------------------------------------------------------------------//
+  enum class RtAccelerationStructureGeometryType {
     TRIANGLES = 0,
     AABBS,
 
     NUM
   };
-//---------------------------------------------------------------------------//
-  enum class RtAccelerationStructureGeometryFlags
-  {
+  //---------------------------------------------------------------------------//
+  enum class RtAccelerationStructureGeometryFlags {
     NONE = 0u,
     OPAQUE_GEOMETRY = 1 << 0u,
     NO_DUPLICATE_ANYHIT_INVOCATION = 1 << 1u
   };
-//---------------------------------------------------------------------------//
-  enum class RtAccelerationStructureFlags
-  {
+  //---------------------------------------------------------------------------//
+  enum class RtAccelerationStructureFlags {
     NONE = 0u,
     ALLOW_UPDATE = 1 << 0u,
     ALLOW_COMPACTION = 1 << 1u,
@@ -392,40 +335,35 @@ namespace Fancy
     PREFER_FAST_BUILD = 1 << 3u,
     MINIMIZE_MEMORY = 1 << 4u
   };
-//---------------------------------------------------------------------------//
-  enum RtHitGroupType
-  {
+  //---------------------------------------------------------------------------//
+  enum RtHitGroupType {
     RT_HIT_GROUP_TYPE_TRIANGLES = 0,
     RT_HIT_GROUP_TYPE_PROCEDURAL_GEOMETRY,
     RT_HIT_GROUP_TYPE_NUM,
   };
-//---------------------------------------------------------------------------//
-  enum RtPipelineFlags
-  {
+  //---------------------------------------------------------------------------//
+  enum RtPipelineFlags {
     RT_PIPELINE_FLAG_NONE = 0,
     RT_PIPELINE_FLAG_SKIP_TRIANGLES = 1 << 0u,
     RT_PIPELINE_FLAG_SKIP_PROCEDURAL = 1 << 1u,
   };
-//---------------------------------------------------------------------------//
-  enum RtShaderIdentifierType
-  {
+  //---------------------------------------------------------------------------//
+  enum RtShaderIdentifierType {
     RT_SHADER_IDENTIFIER_TYPE_RAYGEN = 0,
     RT_SHADER_IDENTIFIER_TYPE_MISS,
     RT_SHADER_IDENTIFIER_TYPE_HIT,
     RT_SHADER_IDENTIFIER_TYPE_NUM
   };
-//---------------------------------------------------------------------------//
-  enum RtAccelerationStructureInstanceFlags
-  {
+  //---------------------------------------------------------------------------//
+  enum RtAccelerationStructureInstanceFlags {
     RT_INSTANCE_FLAG_NONE = 0,
     RT_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE = 1 << 0,
     RT_INSTANCE_FLAG_TRIANGLE_FRONT_COUNTERCLOCKWISE = 1 << 1,
     RT_INSTANCE_FLAG_FORCE_OPAQUE = 1 << 2,
     RT_INSTANCE_FLAG_FORCE_NONE_OPAQUE = 1 << 3
   };
-//---------------------------------------------------------------------------//
-  enum GlobalResourceType
-  {
+  //---------------------------------------------------------------------------//
+  enum GlobalResourceType {
     GLOBAL_RESOURCE_SRV_START = 0,
     GLOBAL_RESOURCE_TEXTURE_1D = GLOBAL_RESOURCE_SRV_START,
     GLOBAL_RESOURCE_TEXTURE_1D_UINT,
@@ -460,8 +398,6 @@ namespace Fancy
     GLOBAL_RESOURCE_NUM,
     GLOBAL_RESOURCE_NUM_NOSAMPLER = GLOBAL_RESOURCE_SAMPLER
   };
-//---------------------------------------------------------------------------//
-  
+  //---------------------------------------------------------------------------//
 
-
-}
+}  // namespace Fancy

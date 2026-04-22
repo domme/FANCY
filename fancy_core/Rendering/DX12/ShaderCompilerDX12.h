@@ -5,16 +5,16 @@
 #if FANCY_ENABLE_DX12
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  class ShaderCompilerDX12 : public ShaderCompiler
-  {
+  //---------------------------------------------------------------------------//
+  class ShaderCompilerDX12 : public ShaderCompiler {
   public:
-      ~ShaderCompilerDX12() override = default;
+    ~ShaderCompilerDX12() override = default;
 
   protected:
-    bool Compile_Internal(const char* anHlslSrcPathAbs, const ShaderDesc& aDesc, ShaderCompilerResult* aCompilerOutput) const override;
+    bool Compile_Internal( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc,
+                           ShaderCompilerResult * aCompilerOutput ) const override;
   };
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy
 
 #endif

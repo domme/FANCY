@@ -5,66 +5,61 @@
 #include "PathService.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//  
-  FileWatcher::FileWatcher(const SharedPtr<Time>& aClock)
-    : myClock(aClock)
-  {
-    myClock->GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).Connect(this, &FileWatcher::UpdateFileInfos);
+  //---------------------------------------------------------------------------//
+  FileWatcher::FileWatcher( const SharedPtr< Time > & aClock ) : myClock( aClock ) {
+    myClock->GetTimedUpdateSlot( TimedUpdateInterval::PER_SECOND_REALTIME )
+        .Connect( this, &FileWatcher::UpdateFileInfos );
   }
-//---------------------------------------------------------------------------//
-  FileWatcher::~FileWatcher()
-  {
-    myClock->GetTimedUpdateSlot(TimedUpdateInterval::PER_SECOND_REALTIME).DetachObserver(this);
+  //---------------------------------------------------------------------------//
+  FileWatcher::~FileWatcher() {
+    myClock->GetTimedUpdateSlot( TimedUpdateInterval::PER_SECOND_REALTIME ).DetachObserver( this );
 
-    eastl::vector<eastl::string> watchedPaths;
-    watchedPaths.reserve(myWatchEntries.size());
-    for (const FileWatchEntry& entry : myWatchEntries)
-      watchedPaths.push_back(entry.myPath);
+    eastl::vector< eastl::string > watchedPaths;
+    watchedPaths.reserve( myWatchEntries.size() );
+    for ( const FileWatchEntry & entry : myWatchEntries )
+      watchedPaths.push_back( entry.myPath );
 
-    for (const eastl::string& path : watchedPaths)
-      RemoveFileWatch(path);
+    for ( const eastl::string & path : watchedPaths )
+      RemoveFileWatch( path );
   }
-//---------------------------------------------------------------------------//
-  void FileWatcher::AddFileWatch(const eastl::string& aPath) const
-  {
-    if (std::find_if(myWatchEntries.begin(), myWatchEntries.end(), [=](const auto& entry){ return entry.myPath == aPath; }) != myWatchEntries.end())
+  //---------------------------------------------------------------------------//
+  void FileWatcher::AddFileWatch( const eastl::string & aPath ) const {
+    if ( std::find_if( myWatchEntries.begin(), myWatchEntries.end(),
+                       [ = ]( const auto & entry ) { return entry.myPath == aPath; } ) != myWatchEntries.end() )
       return;
 
-    const uint64 currWriteTime = Path::GetFileWriteTime(aPath);
+    const uint64 currWriteTime = Path::GetFileWriteTime( aPath );
 
-    ASSERT(currWriteTime > 0u, "Could not read file write time");
-    if (currWriteTime == 0u)
-    {
+    ASSERT( currWriteTime > 0u, "Could not read file write time" );
+    if ( currWriteTime == 0u ) {
       return;
     }
 
     FileWatchEntry entry;
     entry.myPath = aPath;
     entry.myLastWriteTime = currWriteTime;
-    myWatchEntries.push_back(entry);
+    myWatchEntries.push_back( entry );
   }
-//---------------------------------------------------------------------------//
-  void FileWatcher::RemoveFileWatch(const eastl::string& aPath)
-  {
-    auto it = std::find_if(myWatchEntries.begin(), myWatchEntries.end(), [=](const auto& entry) { return entry.myPath == aPath; });
+  //---------------------------------------------------------------------------//
+  void FileWatcher::RemoveFileWatch( const eastl::string & aPath ) {
+    auto it = std::find_if( myWatchEntries.begin(), myWatchEntries.end(),
+                            [ = ]( const auto & entry ) { return entry.myPath == aPath; } );
 
-    if ( it != myWatchEntries.end())
-      myWatchEntries.erase(it);
+    if ( it != myWatchEntries.end() )
+      myWatchEntries.erase( it );
   }
-//---------------------------------------------------------------------------//
-  void FileWatcher::UpdateFileInfos()
-  {
-    for(FileWatchEntry& entry : myWatchEntries)
-    {
-      const uint64 currWriteTime = Path::GetFileWriteTime(entry.myPath);
+  //---------------------------------------------------------------------------//
+  void FileWatcher::UpdateFileInfos() {
+    for ( FileWatchEntry & entry : myWatchEntries ) {
+      const uint64 currWriteTime = Path::GetFileWriteTime( entry.myPath );
 
-      if (entry.myLastWriteTime < currWriteTime)
-        myOnFileUpdated(entry.myPath);
-      else if (currWriteTime == 0u && entry.myLastWriteTime != 0u)
-        myOnFileDeletedMoved(entry.myPath);
+      if ( entry.myLastWriteTime < currWriteTime )
+        myOnFileUpdated( entry.myPath );
+      else if ( currWriteTime == 0u && entry.myLastWriteTime != 0u )
+        myOnFileDeletedMoved( entry.myPath );
 
       entry.myLastWriteTime = currWriteTime;
     }
   }
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy

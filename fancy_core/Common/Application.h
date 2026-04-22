@@ -17,35 +17,32 @@ namespace Fancy {
   struct RenderPlatformProperties;
   struct WindowParameters;
 
-  class Application
-  {
+  class Application {
   public:
-    Application(HINSTANCE anInstanceHandle,
-      const char** someArguments,
-      uint aNumArguments,
-      const char* aName,
-      const char* aRelativeRootFolder,
-      const RenderPlatformProperties& someRenderProperties,
-      const WindowParameters& someWindowParams);
+    Application( HINSTANCE anInstanceHandle, const char ** someArguments, uint aNumArguments, const char * aName,
+                 const char * aRelativeRootFolder, const RenderPlatformProperties & someRenderProperties,
+                 const WindowParameters & someWindowParams );
 
     virtual ~Application();
 
-    virtual void OnWindowResized(uint aWidth, uint aHeight);
+    virtual void OnWindowResized( uint aWidth, uint aHeight );
     virtual void BeginFrame();
     virtual void Update();
     virtual void Render();
     virtual void EndFrame();
 
-    const char* GetName() const { return myName.c_str(); }
+    const char * GetName() const {
+      return myName.c_str();
+    }
 
   protected:
     HINSTANCE myAppInstanceHandle;
     eastl::string myName;
     CameraController myCameraController;
-    SharedPtr<Time> myRealTimeClock;
+    SharedPtr< Time > myRealTimeClock;
     InputState myInputState;
     Camera myCamera;
-    SharedPtr<RenderOutput> myRenderOutput;
+    SharedPtr< RenderOutput > myRenderOutput;
   };
 
-}
+}  // namespace Fancy

@@ -3,10 +3,8 @@
 
 #include "DebugImage.h"
 
-namespace Fancy
-{
-  class DebugTextureList
-  {
+namespace Fancy {
+  class DebugTextureList {
   public:
     void Update();
 
@@ -14,10 +12,7 @@ namespace Fancy
     eastl::string mySelectedItem;
     bool myIsOpen = false;
 
-    char myFilterText[256] = {};
-    UniquePtr<ImGuiMippedDebugImage> mySelectedDebugImage;
+    char myFilterText[ 256 ] = {};
+    UniquePtr< ImGuiMippedDebugImage > mySelectedDebugImage;
   };
-}
-
-
-
+}  // namespace Fancy

@@ -5,11 +5,10 @@
 #include "Common/Ptr.h"
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------//
   class TextureView;
-//---------------------------------------------------------------------------//
-  enum class MaterialTextureType
-  {
+  //---------------------------------------------------------------------------//
+  enum class MaterialTextureType {
     BASE_COLOR = 0,
     NORMAL,
     MATERIAL,
@@ -17,9 +16,8 @@ namespace Fancy {
     NUM,
     NONE = ~0
   };
-//---------------------------------------------------------------------------//
-  enum class MaterialParameterType
-  {
+  //---------------------------------------------------------------------------//
+  enum class MaterialParameterType {
     COLOR = 0,
     SPECULAR_REFLECTIVITY,
     SPECULAR_POWER,
@@ -29,21 +27,19 @@ namespace Fancy {
     NUM,
     NONE = ~0
   };
-//---------------------------------------------------------------------------//
-  struct MaterialDesc
-  {
+  //---------------------------------------------------------------------------//
+  struct MaterialDesc {
     uint64 GetHash() const;
 
-    eastl::string myTextures[(uint)MaterialTextureType::NUM];
-    glm::float4 myParameters[(uint)MaterialParameterType::NUM] = {};
+    eastl::string myTextures[ (uint) MaterialTextureType::NUM ];
+    glm::float4 myParameters[ (uint) MaterialParameterType::NUM ] = {};
   };
-//---------------------------------------------------------------------------//
-  struct Material
-  {
+  //---------------------------------------------------------------------------//
+  struct Material {
     MaterialDesc GetDescription() const;
 
-    SharedPtr<TextureView> myTextures[(uint) MaterialTextureType::NUM];
-    glm::float4 myParameters[(uint)MaterialParameterType::NUM] = {};
+    SharedPtr< TextureView > myTextures[ (uint) MaterialTextureType::NUM ];
+    glm::float4 myParameters[ (uint) MaterialParameterType::NUM ] = {};
   };
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy

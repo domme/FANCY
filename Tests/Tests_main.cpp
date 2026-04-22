@@ -11,46 +11,46 @@
 #include "Common/Ptr.h"
 #include "Common/StringUtil.h"
 
-extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 4; }
+extern "C" {
+__declspec( dllexport ) extern const UINT D3D12SDKVersion = 4;
+}
 
-extern "C" { __declspec(dllexport) extern const char* D3D12SDKPath = u8".\\"; }
+extern "C" {
+__declspec( dllexport ) extern const char * D3D12SDKPath = u8".\\";
+}
 
 using namespace Fancy;
 
-Fancy::UniquePtr<TestApplication> myTestApp;
+Fancy::UniquePtr< TestApplication > myTestApp;
 
-_Use_decl_annotations_
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
-{
+_Use_decl_annotations_ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow ) {
   int numArgs = 0;
-  LPWSTR* commandLineArgs = CommandLineToArgvW(GetCommandLineW(), &numArgs);
+  LPWSTR * commandLineArgs = CommandLineToArgvW( GetCommandLineW(), &numArgs );
 
-  eastl::vector<eastl::string> commandLineArgStrings(numArgs);
-  eastl::vector<const char*> cStrings(numArgs);
-  for (uint i = 0u; i < numArgs; ++i)
-  {
-    commandLineArgStrings[i] = StringUtil::ToNarrowString(commandLineArgs[i]);
-    cStrings[i] = commandLineArgStrings[i].c_str();
+  eastl::vector< eastl::string > commandLineArgStrings( numArgs );
+  eastl::vector< const char * > cStrings( numArgs );
+  for ( uint i = 0u; i < numArgs; ++i ) {
+    commandLineArgStrings[ i ] = StringUtil::ToNarrowString( commandLineArgs[ i ] );
+    cStrings[ i ] = commandLineArgStrings[ i ].c_str();
   }
 
-  LocalFree(commandLineArgs);
+  LocalFree( commandLineArgs );
 
   RenderPlatformProperties renderProperties;
   WindowParameters windowParams;
   windowParams.myWidth = 1280;
   windowParams.myHeight = 720;
-  myTestApp.reset(new TestApplication(hInstance, cStrings.data(), cStrings.size(), "Tests", renderProperties, windowParams));
+  myTestApp.reset(
+      new TestApplication( hInstance, cStrings.data(), cStrings.size(), "Tests", renderProperties, windowParams ) );
 
   MSG msg = { 0 };
-  while (true)
-  {
+  while ( true ) {
     // Process any messages in the queue.
-    if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-    {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
+    if ( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) ) {
+      TranslateMessage( &msg );
+      DispatchMessage( &msg );
 
-      if (msg.message == WM_QUIT)
+      if ( msg.message == WM_QUIT )
         break;
     }
 

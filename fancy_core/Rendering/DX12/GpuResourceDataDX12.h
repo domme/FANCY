@@ -6,29 +6,26 @@
 #if FANCY_ENABLE_DX12
 
 namespace Fancy {
-//---------------------------------------------------------------------------//
-  struct GpuSubresourceHazardDataDX12
-  {
+  //---------------------------------------------------------------------------//
+  struct GpuSubresourceHazardDataDX12 {
     D3D12_RESOURCE_STATES myStates;
     CommandListType myContext;
   };
-//---------------------------------------------------------------------------//
-  struct GpuResourceHazardDataDX12
-  {
+  //---------------------------------------------------------------------------//
+  struct GpuResourceHazardDataDX12 {
     bool myCanChangeStates = true;
     D3D12_RESOURCE_STATES myReadStates;
     D3D12_RESOURCE_STATES myWriteStates;
     bool myAllSubresourcesSameStates;
-    eastl::fixed_vector<GpuSubresourceHazardDataDX12, 16> mySubresources;
+    eastl::fixed_vector< GpuSubresourceHazardDataDX12, 16 > mySubresources;
   };
-//---------------------------------------------------------------------------//
-  struct GpuResourceDataDX12
-  {
-    Microsoft::WRL::ComPtr<ID3D12Resource> myResource;
+  //---------------------------------------------------------------------------//
+  struct GpuResourceDataDX12 {
+    Microsoft::WRL::ComPtr< ID3D12Resource > myResource;
     GpuMemoryAllocationDX12 myGpuMemory;
     mutable GpuResourceHazardDataDX12 myHazardData;
   };
-//---------------------------------------------------------------------------//
-}
+  //---------------------------------------------------------------------------//
+}  // namespace Fancy
 
 #endif

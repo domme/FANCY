@@ -1,8 +1,7 @@
 #error "don't use this file"
 
 namespace Fancy {
-  enum DataFormat
-  {
+  enum DataFormat {
     NONE,
     SRGB_8_A_8,
     RGBA_8,
