@@ -47,7 +47,7 @@ namespace Fancy {
     }
     //---------------------------------------------------------------------------//
     eastl::string GetContainingFolder( const eastl::string & aPath ) {
-      size_t slashPos = (size_t) glm::min( aPath.rfind( '/' ), aPath.rfind( '\\' ) );
+      size_t slashPos = ( size_t ) glm::min( aPath.rfind( '/' ), aPath.rfind( '\\' ) );
       if ( slashPos == eastl::string::npos )
         return aPath;
 
@@ -175,16 +175,16 @@ namespace Fancy {
       size_t posDots = aPath.find( kSearchKey );
       while ( posDots != eastl::string::npos ) {
         size_t posSlashBefore = aPath.rfind( '/', posDots - 1u );
-        if ( (size_t) posSlashBefore == eastl::string::npos )
-          posSlashBefore = (size_t) -1;
+        if ( ( size_t ) posSlashBefore == eastl::string::npos )
+          posSlashBefore = ( size_t ) -1;
 
-        eastl::string firstPart = aPath.substr( 0u, (size_t) ( posSlashBefore + 1u ) );
+        eastl::string firstPart = aPath.substr( 0u, ( size_t ) ( posSlashBefore + 1u ) );
         eastl::string secondPart = aPath.substr( posDots + kSearchKeyLen );
         aPath = firstPart + secondPart;
 
         posDots = aPath.find( kSearchKey );
 
-        if ( posSlashBefore == (size_t) -1 )
+        if ( posSlashBefore == ( size_t ) -1 )
           break;
       }
     }
@@ -228,7 +228,7 @@ namespace Fancy {
       if ( aPath.size() < 2 )
         return;
 
-      for ( int i = (int) aPath.size() - 1; i > 0; --i ) {
+      for ( int i = ( int ) aPath.size() - 1; i > 0; --i ) {
         if ( ( aPath[ i ] == '/' && aPath[ i - 1 ] == '/' ) || ( aPath[ i ] == '\\' && aPath[ i - 1 ] == '\\' ) ) {
           aPath.erase( i - 1, 1 );
         }

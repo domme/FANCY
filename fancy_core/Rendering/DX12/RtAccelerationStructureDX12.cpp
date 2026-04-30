@@ -12,15 +12,15 @@ namespace Fancy {
   namespace Private {
     static uint GetAccelerationStructureFlags( uint someFlags ) {
       uint flags = 0u;
-      if ( someFlags & (uint) RtAccelerationStructureFlags::ALLOW_UPDATE )
+      if ( someFlags & ( uint ) RtAccelerationStructureFlags::ALLOW_UPDATE )
         flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE;
-      if ( someFlags & (uint) RtAccelerationStructureFlags::ALLOW_COMPACTION )
+      if ( someFlags & ( uint ) RtAccelerationStructureFlags::ALLOW_COMPACTION )
         flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_COMPACTION;
-      if ( someFlags & (uint) RtAccelerationStructureFlags::MINIMIZE_MEMORY )
+      if ( someFlags & ( uint ) RtAccelerationStructureFlags::MINIMIZE_MEMORY )
         flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_MINIMIZE_MEMORY;
-      if ( someFlags & (uint) RtAccelerationStructureFlags::PREFER_FAST_BUILD )
+      if ( someFlags & ( uint ) RtAccelerationStructureFlags::PREFER_FAST_BUILD )
         flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_BUILD;
-      if ( someFlags & (uint) RtAccelerationStructureFlags::PREFER_FAST_TRACE )
+      if ( someFlags & ( uint ) RtAccelerationStructureFlags::PREFER_FAST_TRACE )
         flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
 
       return flags;
@@ -36,9 +36,9 @@ namespace Fancy {
         memset( &geoDescDx12, 0, sizeof( geoDescDx12 ) );
 
         const RtAccelerationStructureGeometryData & geoInfo = someGeometries[ i ];
-        if ( geoInfo.myFlags & (uint) RtAccelerationStructureGeometryFlags::OPAQUE_GEOMETRY )
+        if ( geoInfo.myFlags & ( uint ) RtAccelerationStructureGeometryFlags::OPAQUE_GEOMETRY )
           geoDescDx12.Flags |= D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
-        if ( geoInfo.myFlags & (uint) RtAccelerationStructureGeometryFlags::NO_DUPLICATE_ANYHIT_INVOCATION )
+        if ( geoInfo.myFlags & ( uint ) RtAccelerationStructureGeometryFlags::NO_DUPLICATE_ANYHIT_INVOCATION )
           geoDescDx12.Flags |= D3D12_RAYTRACING_GEOMETRY_FLAG_NO_DUPLICATE_ANYHIT_INVOCATION;
 
         geoDescDx12.Type = RenderCore_PlatformDX12::GetRaytracingBVHGeometryType( geoInfo.myType );
@@ -47,7 +47,7 @@ namespace Fancy {
           const uint vertexComponentSize =
               BITS_TO_BYTES( vertexFormatInfo.myBitsPerPixel ) / vertexFormatInfo.myNumComponents;
           const uint vertexStride =
-              glm::max( geoInfo.myVertexStride, (uint) BITS_TO_BYTES( vertexFormatInfo.myBitsPerPixel ) );
+              glm::max( geoInfo.myVertexStride, ( uint ) BITS_TO_BYTES( vertexFormatInfo.myBitsPerPixel ) );
           ASSERT( MathUtil::IsAligned( vertexStride,
                                        vertexComponentSize ) );  // Stride must be a multiple of the component size
 
@@ -141,7 +141,8 @@ namespace Fancy {
       uint64 instanceDescBufferSize =
           MathUtil::Align( someInstanceDescs->size() * sizeof( D3D12_RAYTRACING_INSTANCE_DESC ),
                            D3D12_RAYTRACING_INSTANCE_DESCS_BYTE_ALIGNMENT );
-      uint sizeNeeded = (uint) glm::ceil( float( instanceDescBufferSize ) / sizeof( D3D12_RAYTRACING_INSTANCE_DESC ) );
+      uint sizeNeeded =
+          ( uint ) glm::ceil( float( instanceDescBufferSize ) / sizeof( D3D12_RAYTRACING_INSTANCE_DESC ) );
       someInstanceDescs->resize( sizeNeeded );
       instanceDescBuffer =
           cmdList->GetBuffer( instanceDescBufferOffset, GpuBufferUsage::STAGING_UPLOAD, someInstanceDescs->data(),
@@ -154,11 +155,11 @@ namespace Fancy {
     asInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
     asInputs.Type = RenderCore_PlatformDX12::GetRtAccelerationStructureType( myType );
     if ( isBLAS ) {
-      asInputs.NumDescs = (uint) someGeometryDescs->size();
+      asInputs.NumDescs = ( uint ) someGeometryDescs->size();
       asInputs.pGeometryDescs = someGeometryDescs->data();
     } else {
       asInputs.InstanceDescs = instanceDescBuffer->GetDeviceAddress() + instanceDescBufferOffset;
-      asInputs.NumDescs = (uint) someInstanceDescs->size();
+      asInputs.NumDescs = ( uint ) someInstanceDescs->size();
     }
 
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO asPrebuildInfo = {};
@@ -167,46 +168,49 @@ namespace Fancy {
     ASSERT( asPrebuildInfo.ResultDataMaxSizeInBytes > 0 );
 
     GpuBufferProperties bufferProps;
-    bufferProps.myBindFlags = (uint) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE;
+    bufferProps.myBindFlags = ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE;
     bufferProps.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
     bufferProps.myElementSizeBytes = asPrebuildInfo.ResultDataMaxSizeInBytes;
     bufferProps.myNumElements = 1;
     bufferProps.myIsShaderWritable = true;
     myBuffer = RenderCore::CreateBuffer(
         bufferProps, StaticString< 128 >( "%s_%s_buffer", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS" ) );
-    ASSERT( myBuffer != nullptr );
+    ASSERT( myBuffer.IsValid() );
 
     // Actually build the BVH
     GpuBufferProperties tempBufferProps;
-    tempBufferProps.myBindFlags = (uint) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT;
+    tempBufferProps.myBindFlags = ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT;
     tempBufferProps.myIsShaderWritable = true;
     tempBufferProps.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
     tempBufferProps.myNumElements = 1;
     tempBufferProps.myElementSizeBytes = asPrebuildInfo.ScratchDataSizeInBytes;
-    SharedPtr< GpuBuffer > buildTempBuffer =
+    GpuBufferHandle buildTempBufferHandle =
         RenderCore::CreateBuffer( tempBufferProps, StaticString< 128 >( "%s_%s_tempBuffer", aName ? aName : "Unnamed",
                                                                         isBLAS ? "BLAS" : "TLAS" ) );
-    ASSERT( buildTempBuffer != nullptr );
+    ASSERT( buildTempBufferHandle.IsValid() );
+    GpuBuffer * buildTempBuffer = RenderCore::GetBuffer( buildTempBufferHandle );
 
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC asBuildDesc = {};
     asBuildDesc.Inputs = asInputs;
-    asBuildDesc.DestAccelerationStructureData = myBuffer->GetDeviceAddress();
+    asBuildDesc.DestAccelerationStructureData = RenderCore::GetBuffer( myBuffer )->GetDeviceAddress();
     asBuildDesc.ScratchAccelerationStructureData = buildTempBuffer->GetDeviceAddress();
 
     ID3D12GraphicsCommandList6 * dx12CmdList = static_cast< CommandListDX12 * >( cmdList )->GetDX12CommandList();
     dx12CmdList->BuildRaytracingAccelerationStructure( &asBuildDesc, 0, nullptr );
-    const GpuResource * res = myBuffer.get();
+    const GpuResource * res = RenderCore::GetBuffer( myBuffer );
     cmdList->ResourceUAVbarrier( &res, 1 );
     RenderCore::ExecuteAndFreeCommandList( cmdList, SyncMode::BLOCKING );
+    RenderCore::DeleteBuffer( buildTempBufferHandle );
 
     if ( !isBLAS ) {
       GpuBufferViewProperties viewProps;
       viewProps.myFormat = DataFormat::UNKNOWN;
       viewProps.myIsRtAccelerationStructure = true;
       viewProps.myIsShaderWritable = false;
-      myTopLevelBufferRead = RenderCore::CreateBufferView(
-          myBuffer, viewProps, StaticString< 128 >( "%s_TLAS_bufferView", aName ? aName : "Unnamed" ) );
-      ASSERT( myTopLevelBufferRead != nullptr );
+      myTopLevelBufferRead =
+          RenderCore::CreateBufferView( RenderCore::GetBuffer( myBuffer ), viewProps,
+                                        StaticString< 128 >( "%s_TLAS_bufferView", aName ? aName : "Unnamed" ) );
+      ASSERT( myTopLevelBufferRead.IsValid() );
     }
   }
   //---------------------------------------------------------------------------//

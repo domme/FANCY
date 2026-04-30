@@ -22,7 +22,7 @@ Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage( Fancy::AssetManage
   props.myNumElements = kNumBufferElements;
   props.myIsShaderWritable = true;
   props.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
-  props.myBindFlags = (uint) GpuBufferBindFlags::SHADER_BUFFER;
+  props.myBindFlags = ( uint ) GpuBufferBindFlags::SHADER_BUFFER;
 
   eastl::vector< uint > initialData;
   initialData.resize( props.myNumElements, 0u );
@@ -38,8 +38,8 @@ Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage( Fancy::AssetManage
   myBufferRead = RenderCore::CreateBufferView( myBuffer, viewProps, "Shared Queue Test Buffer SRV" );
 
   ShaderPipelineDesc pipelineDesc;
-  ShaderDesc & shaderDesc = pipelineDesc.myShader[ (uint) ShaderStage::SHADERSTAGE_COMPUTE ];
-  shaderDesc.myShaderStage = (uint) ShaderStage::SHADERSTAGE_COMPUTE;
+  ShaderDesc & shaderDesc = pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
+  shaderDesc.myShaderStage = ( uint ) ShaderStage::SHADERSTAGE_COMPUTE;
   shaderDesc.myPath = "fancy/resources/shaders/Tests/ModifyBuffer.hlsl";
   shaderDesc.myMainFunction = "main_increment";
   myWriteBufferShader = RenderCore::CreateShaderPipeline( pipelineDesc );

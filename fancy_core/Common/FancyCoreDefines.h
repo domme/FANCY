@@ -16,7 +16,7 @@ using FixedShortString = eastl::fixed_string< char, 32 >;
 #define SAFE_DELETE_ARR( p )                                                                                           \
   if ( p[ 0 ] )                                                                                                        \
     delete[] p;
-#define BUFFER_OFFSET( i ) ( (char *) NULL + ( i ) )
+#define BUFFER_OFFSET( i ) ( ( char * ) NULL + ( i ) )
 #define SIZE_MB ( 1024 * 1024 )
 #define SIZE_KB ( 1024 )
 #define BITS_TO_BYTES( bits ) ( bits / 8 )

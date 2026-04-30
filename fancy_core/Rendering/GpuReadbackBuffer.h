@@ -2,6 +2,7 @@
 
 #include "GpuBuffer.h"
 #include "Common/GrowingList.h"
+#include "ResourceHandle.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -26,7 +27,7 @@ namespace Fancy {
     };
 
     GrowingList< Block, 64 > myUsedBlocks;
-    SharedPtr< GpuBuffer > myBuffer;
+    GpuBufferHandle myBuffer;
     uint64 myNextFree = 0u;
     uint64 myFreeSize = 0u;
   };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common/Ptr.h"
+#include "Rendering/ResourceHandle.h"
 #include "EASTL/fixed_vector.h"
 #include "EASTL/string.h"
 
@@ -14,10 +14,11 @@ namespace Fancy {
   };
 
   struct ImGuiMippedDebugImage {
-    ImGuiMippedDebugImage( SharedPtr< Texture > & aTexture, const char * aName );
+    ImGuiMippedDebugImage( Texture * aTexture, const char * aName );
+    ~ImGuiMippedDebugImage();
 
-    SharedPtr< Texture > myTexture;
-    eastl::fixed_vector< SharedPtr< TextureView >, 16 > myMipViews;
+    Texture * myTexture = nullptr;
+    eastl::fixed_vector< TextureViewHandle, 16 > myMipViews;
     eastl::string myName;
 
     float myZoom = 1.0f;

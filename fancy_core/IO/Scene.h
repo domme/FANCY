@@ -4,6 +4,7 @@
 #include "Common/Ptr.h"
 #include "Material.h"
 #include "Mesh.h"
+#include "Rendering/ResourceHandle.h"
 
 namespace Fancy {
   class Assets;
@@ -29,7 +30,7 @@ namespace Fancy {
     eastl::vector< SceneMeshInstance > myInstances;
     eastl::vector< SharedPtr< Mesh > > myMeshes;
     eastl::vector< SharedPtr< Material > > myMaterials;
-    SharedPtr< VertexInputLayout > myVertexInputLayout;
+    VertexInputLayoutHandle myVertexInputLayout;
   };
   //---------------------------------------------------------------------------//
 

@@ -9,18 +9,19 @@ namespace Fancy {
     const GpuBufferProperties & newProps = someProps.myBufferProperties;
     ASSERT( !someProps.myIsShaderWritable || newProps.myIsShaderWritable );
 
-    bool needsCreate = myBuffer == nullptr || ( someProps.myIsShaderResource == ( myReadView == nullptr ) ) ||
-                       ( someProps.myIsShaderWritable == ( myWriteView == nullptr ) );
+    bool needsCreate = !myBuffer.IsValid() || ( someProps.myIsShaderResource == !myReadView.IsValid() ) ||
+                       ( someProps.myIsShaderWritable == !myWriteView.IsValid() );
 
     if ( !needsCreate ) {
-      const GpuBufferProperties & currProps = myBuffer->GetProperties();
+      const GpuBufferProperties & currProps = RenderCore::GetBuffer( myBuffer )->GetProperties();
       needsCreate = newProps.myElementSizeBytes != currProps.myElementSizeBytes ||
                     newProps.myNumElements != currProps.myNumElements ||
                     newProps.myCpuAccess != currProps.myCpuAccess || newProps.myBindFlags != currProps.myBindFlags;
 
-      if ( myReadView != nullptr || myWriteView != nullptr ) {
-        const GpuBufferViewProperties & currViewProps =
-            myReadView != nullptr ? myReadView->GetProperties() : myWriteView->GetProperties();
+      if ( myReadView.IsValid() || myWriteView.IsValid() ) {
+        const GpuBufferViewProperties & currViewProps = myReadView.IsValid()
+                                                            ? RenderCore::GetBufferView( myReadView )->GetProperties()
+                                                            : RenderCore::GetBufferView( myWriteView )->GetProperties();
 
         needsCreate |= currViewProps.myIsRaw != someProps.myIsRaw || currViewProps.myFormat != someProps.myFormat ||
                        currViewProps.myIsStructured != someProps.myIsStructured;
@@ -29,7 +30,7 @@ namespace Fancy {
 
     if ( needsCreate ) {
       myBuffer = RenderCore::CreateBuffer( newProps, aName );
-      ASSERT( myBuffer );
+      ASSERT( myBuffer.IsValid() );
 
       GpuBufferViewProperties viewProps;
       viewProps.myFormat = someProps.myFormat;
@@ -37,18 +38,18 @@ namespace Fancy {
       viewProps.myIsStructured = someProps.myIsStructured;
 
       if ( someProps.myIsShaderResource ) {
-        myReadView = RenderCore::CreateBufferView( myBuffer, viewProps );
-        ASSERT( myReadView );
+        myReadView = RenderCore::CreateBufferView( RenderCore::GetBuffer( myBuffer ), viewProps );
+        ASSERT( myReadView.IsValid() );
       }
 
       if ( someProps.myIsShaderWritable ) {
         viewProps.myIsShaderWritable = true;
-        myWriteView = RenderCore::CreateBufferView( myBuffer, viewProps );
-        ASSERT( myWriteView );
+        myWriteView = RenderCore::CreateBufferView( RenderCore::GetBuffer( myBuffer ), viewProps );
+        ASSERT( myWriteView.IsValid() );
       }
     }
 
-    myBuffer->SetName( aName );
+    RenderCore::GetBuffer( myBuffer )->SetName( aName );
   }
   //---------------------------------------------------------------------------//
 
@@ -56,12 +57,12 @@ namespace Fancy {
   void TextureResource::Update( const TextureResourceProperties & someProps, const char * aName ) {
     const TextureProperties & texProps = someProps.myTextureProperties;
 
-    bool needsCreate = myTexture == nullptr || ( someProps.myIsTexture == ( myReadView == nullptr ) ) ||
-                       ( someProps.myIsRenderTarget == ( myRenderTargetView == nullptr ) ) ||
-                       ( someProps.myIsShaderWritable == ( myWriteView == nullptr ) );
+    bool needsCreate = !myTexture.IsValid() || ( someProps.myIsTexture == !myReadView.IsValid() ) ||
+                       ( someProps.myIsRenderTarget == !myRenderTargetView.IsValid() ) ||
+                       ( someProps.myIsShaderWritable == !myWriteView.IsValid() );
 
     if ( !needsCreate ) {
-      const TextureProperties & currTexProps = myTexture->GetProperties();
+      const TextureProperties & currTexProps = RenderCore::GetTexture( myTexture )->GetProperties();
       needsCreate = texProps.myWidth != currTexProps.myWidth || texProps.myHeight != currTexProps.myHeight ||
                     texProps.GetDepthSize() != currTexProps.GetDepthSize() ||
                     texProps.GetArraySize() != currTexProps.GetArraySize() ||
@@ -76,12 +77,12 @@ namespace Fancy {
       createProps.myIsRenderTarget = someProps.myIsRenderTarget;
 
       myTexture = RenderCore::CreateTexture( createProps, aName );
-      ASSERT( myTexture );
+      ASSERT( myTexture.IsValid() );
 
       if ( someProps.myIsTexture ) {
         const TextureViewProperties viewProps;
-        myReadView = RenderCore::CreateTextureView( myTexture, viewProps );
-        ASSERT( myReadView );
+        myReadView = RenderCore::CreateTextureView( RenderCore::GetTexture( myTexture ), viewProps );
+        ASSERT( myReadView.IsValid() );
       }
 
       if ( someProps.myIsRenderTarget ) {
@@ -89,8 +90,8 @@ namespace Fancy {
         viewProps.myIsRenderTarget = true;
         viewProps.mySubresourceRange.myFirstMipLevel = 0u;
         viewProps.mySubresourceRange.myNumMipLevels = 1u;
-        myRenderTargetView = RenderCore::CreateTextureView( myTexture, viewProps );
-        ASSERT( myRenderTargetView );
+        myRenderTargetView = RenderCore::CreateTextureView( RenderCore::GetTexture( myTexture ), viewProps );
+        ASSERT( myRenderTargetView.IsValid() );
       }
 
       if ( someProps.myIsShaderWritable ) {
@@ -99,12 +100,12 @@ namespace Fancy {
         viewProps.mySubresourceRange.myFirstMipLevel = 0u;
         viewProps.mySubresourceRange.myNumMipLevels = 1u;
         viewProps.myFormat = DataFormatInfo::GetNonSRGBformat( someProps.myTextureProperties.myFormat );
-        myWriteView = RenderCore::CreateTextureView( myTexture, viewProps );
-        ASSERT( myWriteView );
+        myWriteView = RenderCore::CreateTextureView( RenderCore::GetTexture( myTexture ), viewProps );
+        ASSERT( myWriteView.IsValid() );
       }
     }
 
-    myTexture->SetName( aName );
+    RenderCore::GetTexture( myTexture )->SetName( aName );
   }
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

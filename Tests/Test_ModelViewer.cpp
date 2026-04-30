@@ -35,13 +35,13 @@ static SharedPtr< ShaderPipeline > locLoadShader( const char * aShaderPath, cons
 
   ShaderPipelineDesc pipelineDesc;
 
-  ShaderDesc * shaderDesc = &pipelineDesc.myShader[ (uint) ShaderStage::SHADERSTAGE_VERTEX ];
+  ShaderDesc * shaderDesc = &pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_VERTEX ];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainVtxFunction;
   for ( const eastl::string & str : defines )
     shaderDesc->myDefines.push_back( str );
 
-  shaderDesc = &pipelineDesc.myShader[ (uint) ShaderStage::SHADERSTAGE_FRAGMENT ];
+  shaderDesc = &pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_FRAGMENT ];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainFragmentFunction;
   for ( const eastl::string & str : defines )
@@ -85,8 +85,8 @@ Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy:
   myCamera.myFovDeg = 60.0f;
   myCamera.myNear = 1.0f;
   myCamera.myFar = 10000.0f;
-  myCamera.myWidth = (float) myWindow->GetWidth();
-  myCamera.myHeight = (float) myWindow->GetHeight();
+  myCamera.myWidth = ( float ) myWindow->GetWidth();
+  myCamera.myHeight = ( float ) myWindow->GetHeight();
   myCamera.myIsOrtho = false;
 
   myCamera.UpdateView();
@@ -122,7 +122,7 @@ Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy:
             glm::float3( x * offsetBetweenInstances, y * offsetBetweenInstances, z * offsetBetweenInstances ) );
 
   GpuBufferProperties bufferProps;
-  bufferProps.myBindFlags = (uint) GpuBufferBindFlags::VERTEX_BUFFER;
+  bufferProps.myBindFlags = ( uint ) GpuBufferBindFlags::VERTEX_BUFFER;
   bufferProps.myElementSizeBytes = sizeof( glm::float3 );
   bufferProps.myNumElements = numInstances;
   myInstancePositions =
@@ -152,7 +152,7 @@ void Test_ModelViewer::OnUpdate( bool aDrawProperties ) {
 
 void Test_ModelViewer::OnRender() {
   CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
-  ctx->ClearDepthStencilTarget( myDepthStencilDsv.get(), 1.0f, 0u, (uint) DepthStencilClearFlags::CLEAR_ALL );
+  ctx->ClearDepthStencilTarget( myDepthStencilDsv.get(), 1.0f, 0u, ( uint ) DepthStencilClearFlags::CLEAR_ALL );
 
   RenderGrid( ctx );
   RenderScene( ctx );
@@ -241,7 +241,7 @@ void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
   ctx->SetTopologyType( TopologyType::TRIANGLE_LIST );
   ctx->SetShaderPipeline( ourDrawInstanced ? myInstancedUnlitTexturedShader.get() : myUnlitTexturedShader.get() );
 
-  const uint numInstances = ourDrawInstanced ? (uint) myNumInstances : 1u;
+  const uint numInstances = ourDrawInstanced ? ( uint ) myNumInstances : 1u;
 
   auto RenderMesh = [ ctx, numInstances, this ]( Mesh * mesh ) {
     for ( SharedPtr< MeshPart > & meshPart : mesh->myParts ) {
@@ -272,7 +272,7 @@ void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
     Cbuffer_PerObject cbuffer_perObject{ myCamera.myViewProj * transform, UINT_MAX,
                                          mySampler->GetGlobalDescriptorIndex() };
 
-    const GpuResourceView * diffuseTex = material->myTextures[ (uint) MaterialTextureType::BASE_COLOR ].get();
+    const GpuResourceView * diffuseTex = material->myTextures[ ( uint ) MaterialTextureType::BASE_COLOR ].get();
     if ( diffuseTex ) {
       ctx->PrepareResourceShaderAccess( diffuseTex );
       cbuffer_perObject.myTextureIndex = diffuseTex->GetGlobalDescriptorIndex();

@@ -47,13 +47,13 @@ namespace Fancy {
       if ( !fileStream.is_open() )
         return false;
 
-      const size_t fileSize = (size_t) fileStream.tellg();
+      const size_t fileSize = ( size_t ) fileStream.tellg();
       if ( fileSize == 0 )
         return false;
 
       someDataOut.resize( fileSize );
       fileStream.seekg( 0 );
-      fileStream.read( (char *) someDataOut.data(), fileSize );
+      fileStream.read( ( char * ) someDataOut.data(), fileSize );
       return true;
     }
     //---------------------------------------------------------------------------//

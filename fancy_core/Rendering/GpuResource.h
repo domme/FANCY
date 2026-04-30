@@ -10,8 +10,17 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
+  struct GpuResourceDestructor {
+    template < typename T > void operator()( T * ptr ) const {
+      delete static_cast< GpuResource * >( ptr );
+    }
+  };
+  //---------------------------------------------------------------------------//
   class GpuResource {
   public:
+    friend struct GpuResourceDestructor;
+    friend class RenderOutputDX12;
+
     GpuResource( GpuResource && anOther ) = default;
 
     explicit GpuResource( GpuResourceType aType ) : mySubresources( 0, 1u, 0u, 1u, 0u, 1u ), myType( aType ) {}
@@ -57,7 +66,6 @@ namespace Fancy {
       return myType;
     }
 
-    virtual ~GpuResource() = default;
     virtual bool IsValid() const {
       return false;
     }
@@ -72,6 +80,8 @@ namespace Fancy {
 #if FANCY_ENABLE_DX12
     GpuResourceDataDX12 myDx12Data;
 #endif
+  protected:
+    virtual ~GpuResource() = default;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

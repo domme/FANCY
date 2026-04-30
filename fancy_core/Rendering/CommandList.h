@@ -163,8 +163,8 @@ namespace Fancy {
       return myViewportParams;
     }  /// x, y, width, height
     void SetShaderPipeline( const ShaderPipeline * aShaderPipeline );
-    void SetBlendState( const SharedPtr< BlendState > & aBlendState );
-    void SetDepthStencilState( const SharedPtr< DepthStencilState > & aDepthStencilState );
+    void SetBlendState( BlendState * aBlendState );
+    void SetDepthStencilState( DepthStencilState * aDepthStencilState );
     void SetFillMode( const FillMode eFillMode );
     void SetCullMode( const CullMode eCullMode );
     void SetWindingOrder( const WindingOrder eWindingOrder );
@@ -231,7 +231,7 @@ namespace Fancy {
       uint myNumQueries = 0u;
       uint myNumUsedQueries = 0u;
     };
-    GpuQueryRange myQueryRanges[ (uint) GpuQueryType::NUM ];
+    GpuQueryRange myQueryRanges[ ( uint ) GpuQueryType::NUM ];
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

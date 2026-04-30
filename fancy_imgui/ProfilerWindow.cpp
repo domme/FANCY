@@ -53,7 +53,7 @@ namespace Fancy {
     va_start( args, aFmt );
 
     const int neededSize = vsnprintf( nullptr, 0u, aFmt, args ) + 1;
-    ASSERT( neededSize < (int) ARRAY_LENGTH( TextBuf ) );
+    ASSERT( neededSize < ( int ) ARRAY_LENGTH( TextBuf ) );
     const int offset = vsnprintf( TextBuf, static_cast< size_t >( ARRAY_LENGTH( TextBuf ) ), aFmt, args );
     TextBuf[ offset + 1 ] = '\0';
     va_end( args );
@@ -87,7 +87,7 @@ namespace Fancy {
     float64 minStart = DBL_MAX;
     float64 maxEnd = 0.0;
     for ( uint i = 0u; i < Profiler::TIMELINE_NUM; ++i ) {
-      const auto & frames = Profiler::GetRecordedFrames( (Profiler::Timeline) i );
+      const auto & frames = Profiler::GetRecordedFrames( ( Profiler::Timeline ) i );
       if ( frames.Size() == 0 )
         continue;
 
@@ -111,7 +111,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   static bool RenderSample( const Profiler::SampleNode & aNode, const ImVec2 & aPosLocal, ImVec2 aSize ) {
     const Profiler::SampleNodeInfo & nodeInfo = Profiler::GetSampleInfo( aNode.myNodeInfo );
-    const char * aLabel = FormatString( "%s: %.3f", nodeInfo.myName, (float) aNode.myDuration );
+    const char * aLabel = FormatString( "%s: %.3f", nodeInfo.myName, ( float ) aNode.myDuration );
 
     const ImVec2 labelSize = ImGui::CalcTextSize( aLabel );
     if ( labelSize.x > aSize.x * 0.75f )
@@ -202,8 +202,8 @@ namespace Fancy {
       text = FormatString( "Frame %d - %.3fms\n"
                            "Start: %.3fms\n"
                            "End: %.3fms",
-                           aFrameData.myFrame, aFrameData.myDuration, (float) aFrameData.myStart.myTime,
-                           (float) aFrameData.myEnd.myTime );
+                           aFrameData.myFrame, aFrameData.myDuration, ( float ) aFrameData.myStart.myTime,
+                           ( float ) aFrameData.myEnd.myTime );
 
       ImGui::SetTooltip( text );
     }
@@ -245,7 +245,7 @@ namespace Fancy {
       }
     }
 
-    const float itemWidth = (float) ImGui::GetWindowWidth() / numGraphFrames;
+    const float itemWidth = ( float ) ImGui::GetWindowWidth() / numGraphFrames;
     const float itemHeightScale = aMaxFrameTimePixelHeight / aMaxFrameTime;
 
     const ImVec4 kWindowFrameColor = ImVec4( 0.6f, 0.59f, 0.98f, 0.40f );
@@ -362,7 +362,7 @@ namespace Fancy {
     posGlobal.y += kLabelVerticalOffset * 4.0f;
 
     const float expectedLabelSize = 40.0f;
-    const int labelFrequency = glm::max( 1, (int) glm::ceil( expectedLabelSize / mainMarkerSize ) );
+    const int labelFrequency = glm::max( 1, ( int ) glm::ceil( expectedLabelSize / mainMarkerSize ) );
 
     float64 currMainMarkerTime = firstMarkerTime;
     posGlobal.x =
@@ -391,7 +391,7 @@ namespace Fancy {
         if ( labelIndex == 0 ) {
           labelIndex -= labelFrequency;
           const char * label =
-              FormatString( "%d%s", (int) ( currMainMarkerTime - firstMarkerTime ), mainMarkerTimeUnitLabel );
+              FormatString( "%d%s", ( int ) ( currMainMarkerTime - firstMarkerTime ), mainMarkerTimeUnitLabel );
           const float textWidth = ImGui::CalcTextSize( label ).x;
           const ImVec2 labelPos( markerLineEndG.x - textWidth * 0.5f, markerLineEndG.y + kLabelVerticalOffset );
           window->DrawList->AddText( labelPos, kRulerMarkerColor, label );
@@ -482,7 +482,7 @@ namespace Fancy {
     ImGui::PushStyleColor( ImGuiCol_WindowBg, ToVec4Color( kWindowBgColor ) );
     ImGui::Begin( "Profiler" );
 
-    if ( !Profiler::GetRecordedFrames( (Profiler::Timeline) 0 ).IsEmpty() ) {
+    if ( !Profiler::GetRecordedFrames( ( Profiler::Timeline ) 0 ).IsEmpty() ) {
       float64 minStartTime, maxEndTime;
       GetTimeRange( minStartTime, maxEndTime );
       const float maxOffset = static_cast< float >(

@@ -17,7 +17,7 @@ namespace Fancy {
     virtual ~ShaderPipeline();
 
     ShaderPipelineDesc GetDescription() const;
-    void Create( const eastl::span< SharedPtr< Shader >, SHADERSTAGE_NUM > & someShaders );
+    void Create( const eastl::span< Shader *, SHADERSTAGE_NUM > & someShaders );
     void Recreate();
 
     uint64 GetHash() const {
@@ -30,18 +30,18 @@ namespace Fancy {
       return myShaders[ SHADERSTAGE_COMPUTE ] != nullptr;
     }
     const Shader * GetShader( ShaderStage aStage ) const {
-      return myShaders[ (uint) aStage ].get();
+      return myShaders[ ( uint ) aStage ];
     }
     const Shader * GetShader( uint aStage ) const {
       ASSERT( aStage < SHADERSTAGE_NUM );
-      return myShaders[ aStage ].get();
+      return myShaders[ aStage ];
     }
 
   protected:
     virtual void CreateFromShaders() = 0;
     void UpdateShaderByteCodeHash();
 
-    SharedPtr< Shader > myShaders[ SHADERSTAGE_NUM ];
+    Shader * myShaders[ SHADERSTAGE_NUM ];
     uint64 myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
   };
   //---------------------------------------------------------------------------//

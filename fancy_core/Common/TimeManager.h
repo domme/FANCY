@@ -34,7 +34,7 @@ namespace Fancy {
     }
 
     Slot< void() > & GetTimedUpdateSlot( TimedUpdateInterval anInterval ) {
-      return myOnTimeIntervalElapsed[ (uint) anInterval ];
+      return myOnTimeIntervalElapsed[ ( uint ) anInterval ];
     }
 
     static uint64 ourFrameIdx;
@@ -43,9 +43,9 @@ namespace Fancy {
     float myElapsedTime;
     float myTimeScale;
     float myDerivedDeltaTime;
-    float myLastUpdateTimes[ (uint) TimedUpdateInterval::NUM ];
+    float myLastUpdateTimes[ ( uint ) TimedUpdateInterval::NUM ];
 
-    Slot< void() > myOnTimeIntervalElapsed[ (uint) TimedUpdateInterval::NUM ];
+    Slot< void() > myOnTimeIntervalElapsed[ ( uint ) TimedUpdateInterval::NUM ];
   };
   //---------------------------------------------------------------------------//
 }  // end of namespace Fancy

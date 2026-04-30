@@ -188,7 +188,7 @@ namespace Fancy {
     D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
     gpuHandle.ptr = myGlobalDescriptorGpuHeapStart[ aType ].ptr + offset * GetHandleIncementSize( aType );
 
-    return DescriptorDX12( cpuHandle, gpuHandle, GetHeapType( aType ), aType, (uint) offset, true, true );
+    return DescriptorDX12( cpuHandle, gpuHandle, GetHeapType( aType ), aType, ( uint ) offset, true, true );
   }
   //---------------------------------------------------------------------------//
   void ShaderVisibleDescriptorHeapDX12::FreeDescriptorAfterFrameDone( const DescriptorDX12 & aDescriptor ) {

@@ -195,7 +195,7 @@ namespace Fancy {
       aiMaterial * aiMaterial = myScene->mMaterials[ aiMatIndex ];
 
       SceneMeshInstance meshInstance;
-      meshInstance.myMeshIndex = CreateMesh( meshList.data(), (uint) meshList.size(), aResultOut );
+      meshInstance.myMeshIndex = CreateMesh( meshList.data(), ( uint ) meshList.size(), aResultOut );
       meshInstance.myMaterialIndex = CreateMaterial( aiMaterial, aResultOut );
       meshInstance.myTransform = aTransform;
       aResultOut.myInstances.push_back( meshInstance );
@@ -315,9 +315,9 @@ namespace Fancy {
             if ( stream.myDataSize > expectedSize )
               LOG_WARNING( "Vertex attribute size for semantic %d in model is larger than the expected size. Only the "
                            "expected size will be copied per vertex: Expected %d bytes - has %d bytes",
-                           (uint) expectedAttribute.mySemantic, expectedSize, stream.myDataSize );
+                           ( uint ) expectedAttribute.mySemantic, expectedSize, stream.myDataSize );
 
-            importStreamForAttribute[ i ] = (int) k;
+            importStreamForAttribute[ i ] = ( int ) k;
             break;
           }
         }
@@ -353,7 +353,7 @@ namespace Fancy {
 #endif  // FANCY_IMPORTER_USE_VALIDATION
 
       partData.myIndexData.resize( sizeof( uint ) * aiMesh->mNumFaces * 3u );
-      uint * indices = (uint *) partData.myIndexData.data();
+      uint * indices = ( uint * ) partData.myIndexData.data();
 
       for ( uint i = 0u; i < aiMesh->mNumFaces; ++i ) {
         const aiFace & aFace = aiMesh->mFaces[ i ];
@@ -366,7 +366,7 @@ namespace Fancy {
     CreateMeshDesc( assimpMeshListHash, meshData.myDesc );
     aResultOut.myMeshes.push_back( std::move( meshData ) );
 
-    uint index = (uint) aResultOut.myMeshes.size() - 1;
+    uint index = ( uint ) aResultOut.myMeshes.size() - 1;
     myMeshCache[ assimpMeshListHash ] = index;
     return index;
   }
@@ -429,17 +429,17 @@ namespace Fancy {
     // 0u, mySourcePath);
 
     MaterialDesc matDesc;
-    matDesc.myTextures[ (uint) MaterialTextureType::BASE_COLOR ] = diffuseTexPath;
-    matDesc.myTextures[ (uint) MaterialTextureType::NORMAL ] = normalTexPath;
-    matDesc.myTextures[ (uint) MaterialTextureType::MATERIAL ] = specPowerTexPath;
-    matDesc.myParameters[ (uint) MaterialParameterType::COLOR ] =
+    matDesc.myTextures[ ( uint ) MaterialTextureType::BASE_COLOR ] = diffuseTexPath;
+    matDesc.myTextures[ ( uint ) MaterialTextureType::NORMAL ] = normalTexPath;
+    matDesc.myTextures[ ( uint ) MaterialTextureType::MATERIAL ] = specPowerTexPath;
+    matDesc.myParameters[ ( uint ) MaterialParameterType::COLOR ] =
         glm::float4( color_diffuse.r, color_diffuse.g, color_diffuse.b, 1.0f );
-    matDesc.myParameters[ (uint) MaterialParameterType::SPECULAR_REFLECTIVITY ] = glm::float4( specular );
-    matDesc.myParameters[ (uint) MaterialParameterType::SPECULAR_POWER ] = glm::float4( specularPower );
-    matDesc.myParameters[ (uint) MaterialParameterType::OPACITY ] = glm::float4( opacity );
+    matDesc.myParameters[ ( uint ) MaterialParameterType::SPECULAR_REFLECTIVITY ] = glm::float4( specular );
+    matDesc.myParameters[ ( uint ) MaterialParameterType::SPECULAR_POWER ] = glm::float4( specularPower );
+    matDesc.myParameters[ ( uint ) MaterialParameterType::OPACITY ] = glm::float4( opacity );
 
     aResultOut.myMaterials.push_back( std::move( matDesc ) );
-    uint index = (uint) aResultOut.myMaterials.size() - 1;
+    uint index = ( uint ) aResultOut.myMaterials.size() - 1;
 
     myMaterialCache[ anAiMaterial ] = index;
     return index;

@@ -8,9 +8,9 @@
 
 namespace Fancy {
   namespace {
-    uint locAddUniqueShaderGetIndex( const SharedPtr< Shader > & aShader, const char * aType,
+    uint locAddUniqueShaderGetIndex( ShaderHandle aShader, const char * aType,
                                      eastl::vector< RtPipelineStateProperties::ShaderEntry > & someShaders ) {
-      if ( !aShader )
+      if ( !aShader.IsValid() )
         return UINT_MAX;
 
       RtPipelineStateProperties::ShaderEntry * it =
@@ -22,20 +22,21 @@ namespace Fancy {
       if ( it != someShaders.end() )
         return uint( it - someShaders.begin() );
 
-      const uint index = (uint) someShaders.size();
+      const uint index = ( uint ) someShaders.size();
       RtPipelineStateProperties::ShaderEntry & entry = someShaders.push_back();
       entry.myShader = aShader;
-      entry.myUniqueMainFunctionName = StringUtil::ToWideString( aShader->GetDescription().myMainFunction.c_str() );
+      entry.myUniqueMainFunctionName =
+          StringUtil::ToWideString( RenderCore::GetShader( aShader )->GetDescription().myMainFunction.c_str() );
 
       eastl::wstring wType = StringUtil::ToWideString( aType );
       entry.myUniqueMainFunctionName.append_sprintf( L"_%ls_%d", wType.c_str(), index );
       return index;
     }
 
-    SharedPtr< Shader > locLoadShader( const char * aPath, const char * aMainFunction, const char * someDefines,
-                                       ShaderStage aShaderStage ) {
+    ShaderHandle locLoadShader( const char * aPath, const char * aMainFunction, const char * someDefines,
+                                ShaderStage aShaderStage ) {
       if ( aPath == nullptr || aPath[ 0 ] == '\0' )
-        return nullptr;
+        return {};
 
       ShaderDesc desc;
       desc.myPath = aPath;
@@ -51,7 +52,7 @@ namespace Fancy {
     return AddRayGenShader( locLoadShader( aPath, aMainFunction, someDefines, SHADERSTAGE_RAYGEN ) );
   }
 
-  uint RtPipelineStateProperties::AddRayGenShader( const SharedPtr< Shader > & aShader ) {
+  uint RtPipelineStateProperties::AddRayGenShader( ShaderHandle aShader ) {
     return locAddUniqueShaderGetIndex( aShader, "RayGen", myRaygenShaders );
   }
 
@@ -60,15 +61,14 @@ namespace Fancy {
     return AddMissShader( locLoadShader( aPath, aMainFunction, someDefines, SHADERSTAGE_MISS ) );
   }
 
-  uint RtPipelineStateProperties::AddMissShader( const SharedPtr< Shader > & aShader ) {
+  uint RtPipelineStateProperties::AddMissShader( ShaderHandle aShader ) {
     return locAddUniqueShaderGetIndex( aShader, "Miss", myMissShaders );
   }
 
   uint RtPipelineStateProperties::AddHitGroup( const wchar_t * aName, RtHitGroupType aType,
-                                               const SharedPtr< Shader > & anIntersectionShader,
-                                               const SharedPtr< Shader > & anAnyHitShader,
-                                               const SharedPtr< Shader > & aClosestHitShader ) {
-    ASSERT( anIntersectionShader || anAnyHitShader || aClosestHitShader,
+                                               ShaderHandle anIntersectionShader, ShaderHandle anAnyHitShader,
+                                               ShaderHandle aClosestHitShader ) {
+    ASSERT( anIntersectionShader.IsValid() || anAnyHitShader.IsValid() || aClosestHitShader.IsValid(),
             "At least one hit shader needs to be non-null" );
     ASSERT( eastl::find_if( myHitGroups.begin(), myHitGroups.end(),
                             [ aName ]( const HitGroup & aHitGroup ) { return aHitGroup.myName == aName; } ) ==
@@ -82,7 +82,7 @@ namespace Fancy {
     group.myAnyHitShaderIdx = locAddUniqueShaderGetIndex( anAnyHitShader, "AnyHit", myHitShaders );
     group.myClosestHitShaderIdx = locAddUniqueShaderGetIndex( aClosestHitShader, "ClosestHit", myHitShaders );
 
-    return (uint) myHitGroups.size() - 1;
+    return ( uint ) myHitGroups.size() - 1;
   }
 
   uint RtPipelineStateProperties::AddHitGroup( const wchar_t * aName, RtHitGroupType aType,
@@ -108,23 +108,26 @@ namespace Fancy {
 
     for ( const ShaderEntry & entry : myHitShaders ) {
       hasher.Add( entry.myUniqueMainFunctionName );
-      hasher.Add( entry.myShader->GetNativeBytecodeHash() );
+      hasher.Add( entry.myShader.myIndex );
+      hasher.Add( RenderCore::GetShader( entry.myShader )->GetNativeBytecodeHash() );
     }
 
     for ( const ShaderEntry & entry : myMissShaders ) {
       hasher.Add( entry.myUniqueMainFunctionName );
-      hasher.Add( entry.myShader->GetNativeBytecodeHash() );
+      hasher.Add( entry.myShader.myIndex );
+      hasher.Add( RenderCore::GetShader( entry.myShader )->GetNativeBytecodeHash() );
     }
 
     for ( const ShaderEntry & entry : myRaygenShaders ) {
       hasher.Add( entry.myUniqueMainFunctionName );
-      hasher.Add( entry.myShader->GetNativeBytecodeHash() );
+      hasher.Add( entry.myShader.myIndex );
+      hasher.Add( RenderCore::GetShader( entry.myShader )->GetNativeBytecodeHash() );
     }
 
     hasher.Add( myMaxPayloadSizeBytes );
     hasher.Add( myMaxAttributeSizeBytes );
     hasher.Add( myMaxRecursionDepth );
-    hasher.Add( (uint) myPipelineFlags );
+    hasher.Add( ( uint ) myPipelineFlags );
 
     return hasher.GetHashValue();
   }
@@ -135,16 +138,16 @@ namespace Fancy {
 
     if ( aShader->myProperties.myShaderStage == SHADERSTAGE_RAYGEN ) {
       for ( const auto & shader : myProperties.myRaygenShaders )
-        if ( shader.myShader.get() == aShader )
+        if ( RenderCore::GetShader( shader.myShader ) == aShader )
           return true;
     } else if ( aShader->myProperties.myShaderStage == SHADERSTAGE_MISS ) {
       for ( const auto & shader : myProperties.myMissShaders )
-        if ( shader.myShader.get() == aShader )
+        if ( RenderCore::GetShader( shader.myShader ) == aShader )
           return true;
     }
 
     for ( const auto & shader : myProperties.myHitShaders )
-      if ( shader.myShader.get() == aShader )
+      if ( RenderCore::GetShader( shader.myShader ) == aShader )
         return true;
 
     return false;
@@ -161,7 +164,7 @@ namespace Fancy {
       \-----------/
    */
   RtShaderIdentifier RtPipelineState::GetRayGenShaderIdentifier( uint anIndex ) {
-    ASSERT( (uint) myProperties.myRaygenShaders.size() > anIndex );
+    ASSERT( ( uint ) myProperties.myRaygenShaders.size() > anIndex );
     RtShaderIdentifier record;
     record.myType = RtShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_RAYGEN;
 
@@ -171,22 +174,22 @@ namespace Fancy {
   }
 
   RtShaderIdentifier RtPipelineState::GetMissShaderIdentifier( uint anIndex ) {
-    ASSERT( (uint) myProperties.myMissShaders.size() > anIndex );
+    ASSERT( ( uint ) myProperties.myMissShaders.size() > anIndex );
     RtShaderIdentifier record;
     record.myType = RtShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_MISS;
 
-    uint shaderIndexInRtPso = (uint) myProperties.myRaygenShaders.size() + anIndex;
+    uint shaderIndexInRtPso = ( uint ) myProperties.myRaygenShaders.size() + anIndex;
     GetShaderIdentifierDataInternal( shaderIndexInRtPso, myProperties.myMissShaders[ anIndex ], record );
     return record;
   }
 
   RtShaderIdentifier RtPipelineState::GetHitShaderIdentifier( uint anIndex ) {
-    ASSERT( (uint) myProperties.myHitGroups.size() > anIndex );
+    ASSERT( ( uint ) myProperties.myHitGroups.size() > anIndex );
     RtShaderIdentifier record;
     record.myType = RtShaderIdentifierType::RT_SHADER_IDENTIFIER_TYPE_HIT;
 
     uint shaderIndexInRtPso =
-        (uint) myProperties.myRaygenShaders.size() + (uint) myProperties.myMissShaders.size() + anIndex;
+        ( uint ) myProperties.myRaygenShaders.size() + ( uint ) myProperties.myMissShaders.size() + anIndex;
     GetShaderIdentifierDataInternal( shaderIndexInRtPso, myProperties.myHitGroups[ anIndex ], record );
     return record;
   }

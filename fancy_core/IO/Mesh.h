@@ -2,6 +2,7 @@
 
 #include "Common/FancyCoreDefines.h"
 #include "Rendering/VertexInputLayoutProperties.h"
+#include "Rendering/ResourceHandle.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -15,9 +16,9 @@ namespace Fancy {
   };
   //---------------------------------------------------------------------------//
   struct MeshPart {
-    SharedPtr< GpuBuffer > myVertexBuffer;
-    SharedPtr< GpuBuffer > myIndexBuffer;
-    SharedPtr< VertexInputLayout > myVertexInputLayout;
+    GpuBufferHandle myVertexBuffer;
+    GpuBufferHandle myIndexBuffer;
+    VertexInputLayoutHandle myVertexInputLayout;
   };
   //---------------------------------------------------------------------------//
   struct MeshDesc {

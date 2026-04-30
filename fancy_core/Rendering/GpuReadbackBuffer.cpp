@@ -5,7 +5,7 @@
 namespace Fancy {
   GpuReadbackBuffer::GpuReadbackBuffer( uint64 aSize ) {
     GpuBufferProperties props;
-    props.myBindFlags = (uint) GpuBufferBindFlags::NONE;
+    props.myBindFlags = ( uint ) GpuBufferBindFlags::NONE;
     props.myCpuAccess = CpuMemoryAccessType::CPU_READ;
     props.myNumElements = 1u;
     props.myElementSizeBytes = aSize;
@@ -13,14 +13,14 @@ namespace Fancy {
 
     static int bufferCounter = 0;
     myBuffer = RenderCore::CreateBuffer( props, StaticString< 32 >( "Readback buffer %d", bufferCounter++ ) );
-    ASSERT( myBuffer != nullptr );
+    ASSERT( myBuffer.IsValid() );
 
     myFreeSize = aSize;
   }
 
   GpuReadbackBuffer::~GpuReadbackBuffer() {
     ASSERT( myUsedBlocks.IsEmpty(), "Destructing readback-buffer %s while there are still %d blocks in use",
-            myBuffer->myName.c_str(), myUsedBlocks.Size() );
+            RenderCore::GetBuffer( myBuffer )->myName.c_str(), myUsedBlocks.Size() );
   }
 
   GpuBuffer * GpuReadbackBuffer::AllocateBlock( uint64 aSize, uint anOffsetAlignment, uint64 & anOffsetOut ) {
@@ -39,11 +39,11 @@ namespace Fancy {
     myNextFree = alignedNextFree + aSize;
     myFreeSize -= requiredSize;
 
-    return myBuffer.get();
+    return RenderCore::GetBuffer( myBuffer );
   }
 
   bool GpuReadbackBuffer::FreeBlock( GpuBuffer * aBuffer, uint64 anOffsetToBlock, uint64 aBlockSize ) {
-    if ( myBuffer.get() != aBuffer )
+    if ( RenderCore::GetBuffer( myBuffer ) != aBuffer )
       return false;
 
     for ( auto it = myUsedBlocks.Begin(); it != myUsedBlocks.Invalid(); ++it ) {
@@ -57,7 +57,7 @@ namespace Fancy {
     }
 
     ASSERT( false, "Unable to free block (offset %d, size %d) from buffer %s", anOffsetToBlock, aBlockSize,
-            myBuffer->myName.c_str() );
+            RenderCore::GetBuffer( myBuffer )->myName.c_str() );
     return false;
   }
 }  // namespace Fancy

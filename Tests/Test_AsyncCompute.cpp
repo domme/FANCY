@@ -22,7 +22,7 @@ Test_AsyncCompute::Test_AsyncCompute( Fancy::AssetManager * anAssetManager, Fanc
   props.myNumElements = kNumBufferElements;
   props.myIsShaderWritable = true;
   props.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
-  props.myBindFlags = (uint) GpuBufferBindFlags::SHADER_BUFFER;
+  props.myBindFlags = ( uint ) GpuBufferBindFlags::SHADER_BUFFER;
 
   eastl::vector< uint > initialData;
   initialData.resize( props.myNumElements );
@@ -44,8 +44,8 @@ Test_AsyncCompute::Test_AsyncCompute( Fancy::AssetManager * anAssetManager, Fanc
   ASSERT( myReadbackBuffer );
 
   ShaderPipelineDesc pipelineDesc;
-  ShaderDesc & shaderDesc = pipelineDesc.myShader[ (uint) ShaderStage::SHADERSTAGE_COMPUTE ];
-  shaderDesc.myShaderStage = (uint) ShaderStage::SHADERSTAGE_COMPUTE;
+  ShaderDesc & shaderDesc = pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
+  shaderDesc.myShaderStage = ( uint ) ShaderStage::SHADERSTAGE_COMPUTE;
   shaderDesc.myPath = "fancy/resources/shaders/Tests/ModifyBuffer.hlsl";
   shaderDesc.myMainFunction = "main_increment";
   myIncrementBufferShader = RenderCore::CreateShaderPipeline( pipelineDesc );
@@ -81,8 +81,8 @@ void Test_AsyncCompute::OnUpdate( bool aDrawProperties ) {
         uint myDstBufferIndex;
         uint mySrcBufferIndex;
       };
-      myExpectedBufferValue = (uint) Time::ourFrameIdx;
-      CBuffer cbuf = { (uint) myExpectedBufferValue, myBufferUAV->GetGlobalDescriptorIndex(), 0 };
+      myExpectedBufferValue = ( uint ) Time::ourFrameIdx;
+      CBuffer cbuf = { ( uint ) myExpectedBufferValue, myBufferUAV->GetGlobalDescriptorIndex(), 0 };
       graphicsContext->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
       graphicsContext->PrepareResourceShaderAccess( myBufferUAV.get() );
       graphicsContext->Dispatch( glm::int3( kNumBufferElements, 1, 1 ) );
@@ -109,7 +109,7 @@ void Test_AsyncCompute::OnUpdate( bool aDrawProperties ) {
     case Stage::COPY_DONE: {
       const uint expectedValue = myExpectedBufferValue + 1;
 
-      uint * bufferData = (uint *) myReadbackBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
+      uint * bufferData = ( uint * ) myReadbackBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
       bool hasExpectedData = true;
       uint bufferValue = 0;
       for ( uint i = 0; hasExpectedData && i < kNumBufferElements; ++i ) {

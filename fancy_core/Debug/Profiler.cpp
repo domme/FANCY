@@ -136,8 +136,8 @@ namespace Fancy {
     const uint timeStampDataSize = RenderCore::GetQueryTypeDataSize( GpuQueryType::TIMESTAMP );
     ASSERT( timeStampDataSize == sizeof( uint64 ) );  // Code below assumes this...
 
-    const float64 timeTicksToMs[] = { (float64) RenderCore::GetGpuTicksToMsFactor( CommandListType::Graphics ),
-                                      (float64) RenderCore::GetGpuTicksToMsFactor( CommandListType::Compute ) };
+    const float64 timeTicksToMs[] = { ( float64 ) RenderCore::GetGpuTicksToMsFactor( CommandListType::Graphics ),
+                                      ( float64 ) RenderCore::GetGpuTicksToMsFactor( CommandListType::Compute ) };
 
     const auto ReadQueryTime = [ timeStampDataSize, &timeTicksToMs ]( const uint8 * aQueryDataBuf,
                                                                       TimeSample & aSample ) {
@@ -224,7 +224,7 @@ namespace Fancy {
     ASSERT( aCommandList->IsOpen() );
     const GpuQuery timestamp = aCommandList->InsertTimestamp();
     newSample.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
-    newSample.myStart.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
+    newSample.myStart.myQueryInfo.myCommandListType = ( uint ) timestamp.myCommandListType;
 
     uint color = Annotations::GetTagData( aTag ).myColor;
     aCommandList->BeginMarkerRegion( aName, color );
@@ -239,7 +239,7 @@ namespace Fancy {
     ASSERT( aCommandList->IsOpen() );
     const GpuQuery timestamp = aCommandList->InsertTimestamp();
     closedSample.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
-    closedSample.myEnd.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
+    closedSample.myEnd.myQueryInfo.myCommandListType = ( uint ) timestamp.myCommandListType;
 
     aCommandList->EndMarkerRegion();
   }
@@ -313,7 +313,7 @@ namespace Fancy {
     RenderCore::ExecuteAndFreeCommandList( ctx );
 
     currFrame.myStart.myQueryInfo.myIndex = timestamp.myIndexInHeap;
-    currFrame.myStart.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
+    currFrame.myStart.myQueryInfo.myCommandListType = ( uint ) timestamp.myCommandListType;
   }
   //---------------------------------------------------------------------------//
   void Profiler::EndFrameGPU() {
@@ -339,7 +339,7 @@ namespace Fancy {
       RenderCore::ExecuteAndFreeCommandList( ctx );
 
       currFrame.myEnd.myQueryInfo.myIndex = timestamp.myIndexInHeap;
-      currFrame.myEnd.myQueryInfo.myCommandListType = (uint) timestamp.myCommandListType;
+      currFrame.myEnd.myQueryInfo.myCommandListType = ( uint ) timestamp.myCommandListType;
 
       recordedFrames.Add( currFrame );
 

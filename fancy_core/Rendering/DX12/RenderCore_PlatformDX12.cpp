@@ -94,7 +94,7 @@ namespace {
       case D3D12_COMMAND_LIST_TYPE_COPY:
         return CommandListType::DMA;
       default:
-        ASSERT( "Command list type %d not supported", (uint) aType );
+        ASSERT( "Command list type %d not supported", ( uint ) aType );
         return CommandListType::Graphics;
     }
   }
@@ -834,12 +834,12 @@ D3D12_HIT_GROUP_TYPE RenderCore_PlatformDX12::GetRaytracingHitGroupType( RtHitGr
     D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE,
   };
 
-  ASSERT( (uint) aType < (uint) ARRAY_LENGTH( toNativeType ) );
+  ASSERT( ( uint ) aType < ( uint ) ARRAY_LENGTH( toNativeType ) );
   return toNativeType[ aType ];
 }
 //---------------------------------------------------------------------------//
 D3D12_RAYTRACING_PIPELINE_FLAGS RenderCore_PlatformDX12::GetRaytracingPipelineFlags( RtPipelineFlags someFlags ) {
-  D3D12_RAYTRACING_PIPELINE_FLAGS dstFlags = (D3D12_RAYTRACING_PIPELINE_FLAGS) 0u;
+  D3D12_RAYTRACING_PIPELINE_FLAGS dstFlags = ( D3D12_RAYTRACING_PIPELINE_FLAGS ) 0u;
   if ( someFlags & RT_PIPELINE_FLAG_SKIP_TRIANGLES )
     dstFlags |= D3D12_RAYTRACING_PIPELINE_FLAG_SKIP_TRIANGLES;
 
@@ -962,7 +962,7 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
   myCaps.mySupportsRaytracing = result == S_OK && options.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED &&
                                 !CommandLine::GetInstance()->HasArgument( "noRT" );
   if ( myCaps.mySupportsRaytracing )
-    LOG_INFO( "DXR Raytracing is supported with RT tier %i", (int) options.RaytracingTier );
+    LOG_INFO( "DXR Raytracing is supported with RT tier %i", ( int ) options.RaytracingTier );
   else
     LOG_INFO( "DXR Raytracing is NOT supported" );
 }
@@ -972,31 +972,31 @@ void RenderCore_PlatformDX12::BeginFrame() {
 }
 //---------------------------------------------------------------------------//
 bool RenderCore_PlatformDX12::InitInternalResources() {
-  ourCommandAllocatorPools[ (uint) CommandListType::Graphics ].reset(
+  ourCommandAllocatorPools[ ( uint ) CommandListType::Graphics ].reset(
       new CommandAllocatorPoolDX12( CommandListType::Graphics ) );
   if ( myCaps.myHasAsyncCompute )
-    ourCommandAllocatorPools[ (uint) CommandListType::Compute ].reset(
+    ourCommandAllocatorPools[ ( uint ) CommandListType::Compute ].reset(
         new CommandAllocatorPoolDX12( CommandListType::Compute ) );
 
-  myGpuMemoryAllocators[ (uint) GpuMemoryType::BUFFER ][ (uint) CpuMemoryAccessType::NO_CPU_ACCESS ].reset(
+  myGpuMemoryAllocators[ ( uint ) GpuMemoryType::BUFFER ][ ( uint ) CpuMemoryAccessType::NO_CPU_ACCESS ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::BUFFER, CpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB ) );
-  myGpuMemoryAllocators[ (uint) GpuMemoryType::BUFFER ][ (uint) CpuMemoryAccessType::CPU_WRITE ].reset(
+  myGpuMemoryAllocators[ ( uint ) GpuMemoryType::BUFFER ][ ( uint ) CpuMemoryAccessType::CPU_WRITE ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::BUFFER, CpuMemoryAccessType::CPU_WRITE, 64 * SIZE_MB ) );
-  myGpuMemoryAllocators[ (uint) GpuMemoryType::BUFFER ][ (uint) CpuMemoryAccessType::CPU_READ ].reset(
+  myGpuMemoryAllocators[ ( uint ) GpuMemoryType::BUFFER ][ ( uint ) CpuMemoryAccessType::CPU_READ ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::BUFFER, CpuMemoryAccessType::CPU_READ, 64 * SIZE_MB ) );
 
-  myGpuMemoryAllocators[ (uint) GpuMemoryType::TEXTURE ][ (uint) CpuMemoryAccessType::NO_CPU_ACCESS ].reset(
+  myGpuMemoryAllocators[ ( uint ) GpuMemoryType::TEXTURE ][ ( uint ) CpuMemoryAccessType::NO_CPU_ACCESS ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::TEXTURE, CpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB ) );
-  myGpuMemoryAllocators[ (uint) GpuMemoryType::TEXTURE ][ (uint) CpuMemoryAccessType::CPU_WRITE ].reset(
+  myGpuMemoryAllocators[ ( uint ) GpuMemoryType::TEXTURE ][ ( uint ) CpuMemoryAccessType::CPU_WRITE ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::TEXTURE, CpuMemoryAccessType::CPU_WRITE, 16 * SIZE_MB ) );
-  myGpuMemoryAllocators[ (uint) GpuMemoryType::TEXTURE ][ (uint) CpuMemoryAccessType::CPU_READ ].reset(
+  myGpuMemoryAllocators[ ( uint ) GpuMemoryType::TEXTURE ][ ( uint ) CpuMemoryAccessType::CPU_READ ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::TEXTURE, CpuMemoryAccessType::CPU_READ, 16 * SIZE_MB ) );
 
-  myGpuMemoryAllocators[ (uint) GpuMemoryType::RENDERTARGET ][ (uint) CpuMemoryAccessType::NO_CPU_ACCESS ].reset(
+  myGpuMemoryAllocators[ ( uint ) GpuMemoryType::RENDERTARGET ][ ( uint ) CpuMemoryAccessType::NO_CPU_ACCESS ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::RENDERTARGET, CpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB ) );
-  myGpuMemoryAllocators[ (uint) GpuMemoryType::RENDERTARGET ][ (uint) CpuMemoryAccessType::CPU_WRITE ].reset(
+  myGpuMemoryAllocators[ ( uint ) GpuMemoryType::RENDERTARGET ][ ( uint ) CpuMemoryAccessType::CPU_WRITE ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::RENDERTARGET, CpuMemoryAccessType::CPU_WRITE, 16 * SIZE_MB ) );
-  myGpuMemoryAllocators[ (uint) GpuMemoryType::RENDERTARGET ][ (uint) CpuMemoryAccessType::CPU_READ ].reset(
+  myGpuMemoryAllocators[ ( uint ) GpuMemoryType::RENDERTARGET ][ ( uint ) CpuMemoryAccessType::CPU_READ ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::RENDERTARGET, CpuMemoryAccessType::CPU_READ, 16 * SIZE_MB ) );
 
   myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ].reset(
@@ -1020,10 +1020,10 @@ bool RenderCore_PlatformDX12::InitInternalResources() {
 void RenderCore_PlatformDX12::InitNullDescriptors() {
   // Create null descriptors to use as binding-dummies in descriptor tables where some elements are optimized away (e.g.
   // because of unused resources)
-  for ( uint i = 0; i < (uint) GpuResourceDimension::NUM; ++i ) {
+  for ( uint i = 0; i < ( uint ) GpuResourceDimension::NUM; ++i ) {
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    if ( i == (uint) GpuResourceDimension::UNKONWN || i == (uint) GpuResourceDimension::BUFFER )
+    if ( i == ( uint ) GpuResourceDimension::UNKONWN || i == ( uint ) GpuResourceDimension::BUFFER )
       srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
     else
       srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -1090,7 +1090,7 @@ void RenderCore_PlatformDX12::InitNullDescriptors() {
     D3D12_UAV_DIMENSION uavDimension;
     if ( TryGetUAVDimension( static_cast< GpuResourceDimension >( i ), uavDimension ) ) {
       D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-      if ( i == (uint) GpuResourceDimension::UNKONWN || i == (uint) GpuResourceDimension::BUFFER )
+      if ( i == ( uint ) GpuResourceDimension::UNKONWN || i == ( uint ) GpuResourceDimension::BUFFER )
         uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
       else
         uavDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -1165,11 +1165,11 @@ void RenderCore_PlatformDX12::Shutdown() {
   for ( uint i = 0u; i < ARRAY_LENGTH( myStaticDescriptorAllocators ); ++i )
     myStaticDescriptorAllocators[ i ].reset();
 
-  for ( uint i = 0u; i < (uint) GpuMemoryType::NUM; ++i )
-    for ( uint k = 0u; k < (uint) CpuMemoryAccessType::NUM; ++k )
+  for ( uint i = 0u; i < ( uint ) GpuMemoryType::NUM; ++i )
+    for ( uint k = 0u; k < ( uint ) CpuMemoryAccessType::NUM; ++k )
       myGpuMemoryAllocators[ i ][ k ].reset();
 
-  for ( uint i = 0u; i < (uint) CommandListType::NUM; ++i )
+  for ( uint i = 0u; i < ( uint ) CommandListType::NUM; ++i )
     ourCommandAllocatorPools[ i ].reset();
 
   myShaderVisibleDescriptorHeap.reset();
@@ -1184,17 +1184,17 @@ RenderCore_PlatformDX12::~RenderCore_PlatformDX12() {
 }
 //---------------------------------------------------------------------------//
 ID3D12CommandAllocator * RenderCore_PlatformDX12::GetCommandAllocator( CommandListType aCmdListType ) {
-  return ourCommandAllocatorPools[ (uint) aCmdListType ]->GetNewAllocator();
+  return ourCommandAllocatorPools[ ( uint ) aCmdListType ]->GetNewAllocator();
 }
 //---------------------------------------------------------------------------//
 void RenderCore_PlatformDX12::ReleaseCommandAllocator( ID3D12CommandAllocator * anAllocator, uint64 aFenceVal ) {
   CommandListType type = CommandQueue::GetCommandListType( aFenceVal );
-  ourCommandAllocatorPools[ (uint) type ]->ReleaseAllocator( anAllocator, aFenceVal );
+  ourCommandAllocatorPools[ ( uint ) type ]->ReleaseAllocator( anAllocator, aFenceVal );
 }
 //---------------------------------------------------------------------------//
 DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE aHeapType,
                                                             const char * aDebugName /* = nullptr*/ ) {
-  return myStaticDescriptorAllocators[ (uint) aHeapType ]->AllocateDescriptor( aDebugName );
+  return myStaticDescriptorAllocators[ ( uint ) aHeapType ]->AllocateDescriptor( aDebugName );
 }
 //---------------------------------------------------------------------------//
 DescriptorDX12
@@ -1220,14 +1220,14 @@ GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory( GpuMemoryTyp
                                                                     CpuMemoryAccessType anAccessType, uint64 aSize,
                                                                     uint anAlignment,
                                                                     const char * aDebugName /*= nullptr*/ ) {
-  return myGpuMemoryAllocators[ (uint) aType ][ (uint) anAccessType ]->Allocate( aSize, anAlignment, aDebugName );
+  return myGpuMemoryAllocators[ ( uint ) aType ][ ( uint ) anAccessType ]->Allocate( aSize, anAlignment, aDebugName );
 }
 //---------------------------------------------------------------------------//
 void RenderCore_PlatformDX12::ReleaseGpuMemory( GpuMemoryAllocationDX12 & anAllocation ) {
   GpuMemoryType type = Adapter::ResolveGpuMemoryType( anAllocation.myHeap->GetDesc().Flags );
   CpuMemoryAccessType accessType =
       Adapter::ResolveGpuMemoryAccessType( anAllocation.myHeap->GetDesc().Properties.Type );
-  myGpuMemoryAllocators[ (uint) type ][ (uint) accessType ]->Free( anAllocation );
+  myGpuMemoryAllocators[ ( uint ) type ][ ( uint ) accessType ]->Free( anAllocation );
 }
 //---------------------------------------------------------------------------//
 RenderOutput * RenderCore_PlatformDX12::CreateRenderOutput( void * aNativeInstanceHandle,
@@ -1267,13 +1267,13 @@ CommandQueue * RenderCore_PlatformDX12::CreateCommandQueue( CommandListType aTyp
   return new CommandQueueDX12( aType );
 }
 //---------------------------------------------------------------------------//
-TextureView * RenderCore_PlatformDX12::CreateTextureView( const SharedPtr< Texture > & aTexture,
+TextureView * RenderCore_PlatformDX12::CreateTextureView( Texture * aTexture,
                                                           const TextureViewProperties & someProperties,
                                                           const char * aDebugName /* = nullptr */ ) {
   return new TextureViewDX12( aTexture, someProperties, aDebugName );
 }
 //---------------------------------------------------------------------------//
-GpuBufferView * RenderCore_PlatformDX12::CreateBufferView( const SharedPtr< GpuBuffer > & aBuffer,
+GpuBufferView * RenderCore_PlatformDX12::CreateBufferView( GpuBuffer * aBuffer,
                                                            const GpuBufferViewProperties & someProperties,
                                                            const char * aDebugName /* = nullptr */ ) {
   return new GpuBufferViewDX12( aBuffer, someProperties, aDebugName );
@@ -1335,9 +1335,9 @@ const DescriptorDX12 & RenderCore_PlatformDX12::GetNullDescriptor( D3D12_DESCRIP
                                                                    GpuResourceDimension aResouceDimension ) const {
   switch ( aType ) {
     case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
-      return mySRVNullDescriptors[ (uint) aResouceDimension ];
+      return mySRVNullDescriptors[ ( uint ) aResouceDimension ];
     case D3D12_DESCRIPTOR_RANGE_TYPE_UAV:
-      return myUAVNullDescriptors[ (uint) aResouceDimension ];
+      return myUAVNullDescriptors[ ( uint ) aResouceDimension ];
     case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
       return myCBVNullDescriptor;
     case D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER:

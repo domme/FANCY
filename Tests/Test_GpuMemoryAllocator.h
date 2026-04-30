@@ -15,7 +15,7 @@ public:
 
 private:
   void RenderMemoryAllocatorLayouts();
-  bool myAllocatorTypeVisible[ (uint) Fancy::GpuMemoryType::NUM ][ (uint) Fancy::CpuMemoryAccessType::NUM ];
+  bool myAllocatorTypeVisible[ ( uint ) Fancy::GpuMemoryType::NUM ][ ( uint ) Fancy::CpuMemoryAccessType::NUM ];
 
   int myBufferToAllocSizeMb;
   float myScale;

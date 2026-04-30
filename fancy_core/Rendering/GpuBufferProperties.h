@@ -9,7 +9,7 @@ namespace Fancy {
   struct GpuBufferProperties {
     GpuBufferProperties()
         : myNumElements( 0u ), myElementSizeBytes( 0u ), myCpuAccess( CpuMemoryAccessType::NO_CPU_ACCESS ),
-          myBindFlags( (uint) GpuBufferBindFlags::NONE ), myIsShaderWritable( false ) {}
+          myBindFlags( ( uint ) GpuBufferBindFlags::NONE ), myIsShaderWritable( false ) {}
 
     // TODO: Change this to only work with byte size instead of elements+elementSize
     uint64 myNumElements;

@@ -13,19 +13,19 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
     Hasher::Hasher( uint64 aSeed /* = 0u */ ) : myState( nullptr ) {
       myState = XXH64_createState();
-      XXH64_reset( (XXH64_state_t *) myState, aSeed );
+      XXH64_reset( ( XXH64_state_t * ) myState, aSeed );
     }
     //---------------------------------------------------------------------------//
     Hasher::~Hasher() {
-      XXH64_freeState( (XXH64_state_t *) myState );
+      XXH64_freeState( ( XXH64_state_t * ) myState );
     }
     //---------------------------------------------------------------------------//
     void Hasher::Add( const void * aValue, uint64 aSize ) {
-      XXH64_update( (XXH64_state_t *) myState, aValue, aSize );
+      XXH64_update( ( XXH64_state_t * ) myState, aValue, aSize );
     }
     //---------------------------------------------------------------------------//
     uint64 Hasher::GetHashValue() const {
-      return XXH64_digest( (XXH64_state_t *) myState );
+      return XXH64_digest( ( XXH64_state_t * ) myState );
     }
     //---------------------------------------------------------------------------//
     void BeginMultiHash() {

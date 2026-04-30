@@ -2,6 +2,7 @@
 
 #include "ShaderDesc.h"
 #include "Shader.h"
+#include "ResourceHandle.h"
 #include "DxcShaderCompiler.h"
 
 #if FANCY_ENABLE_DX12
@@ -19,7 +20,7 @@ namespace Fancy {
     ShaderProperties myProperties;
     eastl::fixed_vector< VertexShaderAttributeDesc, 16 > myVertexAttributes;
     eastl::fixed_vector< eastl::string, 16 > myIncludedFilePaths;
-    SharedPtr< VertexInputLayout > myDefaultVertexInputLayout;
+    VertexInputLayoutHandle myDefaultVertexInputLayout;
 
 #if FANCY_ENABLE_DX12
     ShaderCompiledDataDX12 myDx12Data;

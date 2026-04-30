@@ -19,8 +19,8 @@ Test_GpuMemoryAllocator::Test_GpuMemoryAllocator( Fancy::AssetManager * anAssetM
                                                   Fancy::InputState * anInputState )
     : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "GPU Memory Allocations" ),
       myBufferToAllocSizeMb( 64 ), myScale( 10.0f ) {
-  for ( uint memType = 0; memType < (uint) Fancy::GpuMemoryType::NUM; ++memType )
-    for ( uint accessType = 0; accessType < (uint) Fancy::CpuMemoryAccessType::NUM; ++accessType )
+  for ( uint memType = 0; memType < ( uint ) Fancy::GpuMemoryType::NUM; ++memType )
+    for ( uint accessType = 0; accessType < ( uint ) Fancy::CpuMemoryAccessType::NUM; ++accessType )
       myAllocatorTypeVisible[ memType ][ accessType ] = false;
 }
 
@@ -109,7 +109,7 @@ void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12,
   ImVec2 pos = startPos;
   for ( uint i = 0u; i < allocator.myPages.size(); ++i ) {
     const auto & page = allocator.myPages[ i ];
-    const float pixelWidth = aMemoryToPixelScale * (float) ( page.myEnd - page.myStart );
+    const float pixelWidth = aMemoryToPixelScale * ( float ) ( page.myEnd - page.myStart );
     if ( pixelWidth >= 2 ) {
       ImGui::SetCursorPos( pos );
       ImGui::Button( stringBuffer.Format( "Heap %d", i ), ImVec2( pixelWidth - 1, elementHeight ) );
@@ -129,12 +129,12 @@ void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12,
   for ( auto freeBlockIt = allocator.myFreeList.Begin(); freeBlockIt != allocator.myFreeList.Invalid();
         ++freeBlockIt ) {
     const uint64 freeMemory = freeBlockIt->myEnd - freeBlockIt->myStart;
-    const float pixelWidth = aMemoryToPixelScale * (float) freeMemory;
+    const float pixelWidth = aMemoryToPixelScale * ( float ) freeMemory;
     if ( pixelWidth < 2 )
       continue;
 
     ImVec2 currPos = pos;
-    currPos.x = startPos.x + (float) ( freeBlockIt->myStart * aMemoryToPixelScale );
+    currPos.x = startPos.x + ( float ) ( freeBlockIt->myStart * aMemoryToPixelScale );
     ImGui::SetCursorPos( currPos );
     ImGui::Button( stringBuffer.Format( "%s", locGetMemoryLabel( freeMemory, stringBuffer ) ),
                    ImVec2( pixelWidth - 1, elementHeight ) );
@@ -148,12 +148,12 @@ void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12,
   ImGui::PushStyleColor( ImGuiCol_Button, 0xFFFFAAAA );
   for ( const auto & debugInfo : allocator.myAllocDebugInfos ) {
     const uint64 allocatedMemory = debugInfo.myEnd - debugInfo.myStart;
-    const float pixelWidth = aMemoryToPixelScale * (float) allocatedMemory;
+    const float pixelWidth = aMemoryToPixelScale * ( float ) allocatedMemory;
     if ( pixelWidth < 2 )
       continue;
 
     ImVec2 currPos = pos;
-    currPos.x = startPos.x + (float) ( debugInfo.myStart * aMemoryToPixelScale );
+    currPos.x = startPos.x + ( float ) ( debugInfo.myStart * aMemoryToPixelScale );
     ImGui::SetCursorPos( currPos );
     ImGui::Button( stringBuffer.Format( "%s", locGetMemoryLabel( allocatedMemory, stringBuffer ) ),
                    ImVec2( pixelWidth - 1, elementHeight ) );
@@ -178,10 +178,10 @@ void Test_GpuMemoryAllocator::RenderMemoryAllocatorLayouts() {
 
   ImGui::BeginChildFrame( 1, ImVec2( ImGui::GetWindowWidth(), 512 ),
                           ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground );
-  for ( uint memType = 0; memType < (uint) Fancy::GpuMemoryType::NUM; ++memType ) {
-    if ( ImGui::TreeNode( locMemoryTypeToString( (GpuMemoryType) memType ) ) ) {
-      for ( uint accessType = 0; accessType < (uint) Fancy::CpuMemoryAccessType::NUM; ++accessType ) {
-        ImGui::Text( locCpuAccessTypeToString( (CpuMemoryAccessType) accessType ) );
+  for ( uint memType = 0; memType < ( uint ) Fancy::GpuMemoryType::NUM; ++memType ) {
+    if ( ImGui::TreeNode( locMemoryTypeToString( ( GpuMemoryType ) memType ) ) ) {
+      for ( uint accessType = 0; accessType < ( uint ) Fancy::CpuMemoryAccessType::NUM; ++accessType ) {
+        ImGui::Text( locCpuAccessTypeToString( ( CpuMemoryAccessType ) accessType ) );
         GpuMemoryAllocatorDX12 * allocatorDx12 = platformDx12->myGpuMemoryAllocators[ memType ][ accessType ].get();
         locDebugPrintMemoryAllocatorDx12( allocatorDx12, myScale / SIZE_MB );
       }

@@ -5,7 +5,7 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   CommandQueue::CommandQueue( CommandListType aType )
-      : myType( aType ), myLastCompletedFenceVal( ( ( (uint64) aType ) << 61ULL ) ),
+      : myType( aType ), myLastCompletedFenceVal(( ( ( uint64 ) aType ) << 61ULL )),
         myNextFenceVal( myLastCompletedFenceVal + 1u ) {}
   //---------------------------------------------------------------------------//
   CommandQueue::~CommandQueue() {
@@ -48,9 +48,9 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   CommandListType CommandQueue::GetCommandListType( uint64 aFenceVal ) {
     uint listTypeVal = aFenceVal >> 61;
-    ASSERT( listTypeVal < (uint) CommandListType::NUM );
+    ASSERT( listTypeVal < ( uint ) CommandListType::NUM );
 
-    return (CommandListType) listTypeVal;
+    return ( CommandListType ) listTypeVal;
   }
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

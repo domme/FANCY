@@ -72,7 +72,7 @@ void Test_Mipmapping::OnUpdate( bool aDrawProperties ) {
   if ( !aDrawProperties )
     return;
 
-  const uint numTextures = (uint) myImageDatas.size();
+  const uint numTextures = ( uint ) myImageDatas.size();
   ImGui::Checkbox( "Update every frame", &myUpdateAlways );
 
   for ( uint i = 0u; i < numTextures; ++i ) {
@@ -89,11 +89,11 @@ void Test_Mipmapping::OnUpdate( bool aDrawProperties ) {
                                         ARRAY_LENGTH( locResampleFilterNames ) );
 
       if ( data.myIsDirty | myUpdateAlways ) {
-        myAssetManager->ComputeMipmaps( data.myTexture, (AssetManager::ResampleFilter) data.mySelectedFilter );
+        myAssetManager->ComputeMipmaps( data.myTexture, ( AssetManager::ResampleFilter ) data.mySelectedFilter );
         data.myIsDirty = false;
       }
 
-      ImGui::Image( (ImTextureID) data.myMipLevelReadViews[ data.mySelectedMipLevel ].get(),
+      ImGui::Image( ( ImTextureID ) data.myMipLevelReadViews[ data.mySelectedMipLevel ].get(),
                     ImVec2( static_cast< float >( texProps.myWidth ), static_cast< float >( texProps.myHeight ) ) );
       ImGui::End();
     }

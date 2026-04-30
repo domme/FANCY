@@ -1,6 +1,7 @@
 #pragma once
 #include <EASTL/string.h>
 
+#include "Common/Ptr.h"
 #include "DebugImage.h"
 
 namespace Fancy {

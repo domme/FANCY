@@ -2,6 +2,7 @@
 #include "TempResourcePool.h"
 
 #include "Common/MathUtil.h"
+#include "RenderCore.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -53,7 +54,7 @@ namespace Fancy {
     std::list< TextureResource * > & availableList = myAvailableTextureBuckets[ key ];
     if ( !availableList.empty() ) {
       auto it = std::find_if( availableList.begin(), availableList.end(), [ & ]( const TextureResource * aResource ) {
-        const TextureProperties & texProps = aResource->myTexture->GetProperties();
+        const TextureProperties & texProps = RenderCore::GetTexture( aResource->myTexture )->GetProperties();
 
         if ( someFlags & FORCE_SIZE )
           return texProps.myWidth == someProps.myTextureProperties.myWidth &&
@@ -70,10 +71,11 @@ namespace Fancy {
         availableList.erase( it );
 
         TempTextureResource returnRes;
-        returnRes.myTexture = res->myTexture.get();
-        returnRes.myReadView = res->myReadView.get();
-        returnRes.myWriteView = res->myWriteView.get();
-        returnRes.myRenderTargetView = res->myRenderTargetView.get();
+        returnRes.myTexture = RenderCore::GetTexture( res->myTexture );
+        returnRes.myReadView = res->myReadView.IsValid() ? RenderCore::GetTextureView( res->myReadView ) : nullptr;
+        returnRes.myWriteView = res->myWriteView.IsValid() ? RenderCore::GetTextureView( res->myWriteView ) : nullptr;
+        returnRes.myRenderTargetView =
+            res->myRenderTargetView.IsValid() ? RenderCore::GetTextureView( res->myRenderTargetView ) : nullptr;
         returnRes.myKeepAlive.reset( new TempResourceKeepAlive( this, returnRes.myTexture, key ) );
         ++myNumOpenTextureAllocs;
         return returnRes;
@@ -83,13 +85,14 @@ namespace Fancy {
     // Create resource
     TextureResource res;
     res.Update( someProps, aName );
-    myTexturePool[ res.myTexture.get() ] = res;
+    myTexturePool[ RenderCore::GetTexture( res.myTexture ) ] = res;
 
     TempTextureResource returnRes;
-    returnRes.myTexture = res.myTexture.get();
-    returnRes.myReadView = res.myReadView.get();
-    returnRes.myWriteView = res.myWriteView.get();
-    returnRes.myRenderTargetView = res.myRenderTargetView.get();
+    returnRes.myTexture = RenderCore::GetTexture( res.myTexture );
+    returnRes.myReadView = res.myReadView.IsValid() ? RenderCore::GetTextureView( res.myReadView ) : nullptr;
+    returnRes.myWriteView = res.myWriteView.IsValid() ? RenderCore::GetTextureView( res.myWriteView ) : nullptr;
+    returnRes.myRenderTargetView =
+        res.myRenderTargetView.IsValid() ? RenderCore::GetTextureView( res.myRenderTargetView ) : nullptr;
     returnRes.myKeepAlive.reset( new TempResourceKeepAlive( this, returnRes.myTexture, key ) );
     ++myNumOpenTextureAllocs;
     return returnRes;
@@ -106,7 +109,7 @@ namespace Fancy {
       auto it =
           std::find_if( availableList.begin(), availableList.end(),
                         [ desiredSize, someFlags ]( const GpuBufferResource * aResource ) {
-                          const uint64 currSize = aResource->myBuffer->GetByteSize();
+                          const uint64 currSize = RenderCore::GetBuffer( aResource->myBuffer )->GetByteSize();
                           return ( someFlags & FORCE_SIZE ) > 0 ? currSize == desiredSize : currSize >= desiredSize;
                         } );
 
@@ -115,9 +118,9 @@ namespace Fancy {
         availableList.erase( it );
 
         TempBufferResource returnRes;
-        returnRes.myBuffer = res->myBuffer.get();
-        returnRes.myReadView = res->myReadView.get();
-        returnRes.myWriteView = res->myWriteView.get();
+        returnRes.myBuffer = RenderCore::GetBuffer( res->myBuffer );
+        returnRes.myReadView = res->myReadView.IsValid() ? RenderCore::GetBufferView( res->myReadView ) : nullptr;
+        returnRes.myWriteView = res->myWriteView.IsValid() ? RenderCore::GetBufferView( res->myWriteView ) : nullptr;
         returnRes.myKeepAlive.reset( new TempResourceKeepAlive( this, returnRes.myBuffer, key ) );
         ++myNumOpenBufferAllocs;
         return returnRes;
@@ -127,12 +130,12 @@ namespace Fancy {
     // Create resource
     GpuBufferResource res;
     res.Update( someProps, aName );
-    myBufferPool[ res.myBuffer.get() ] = res;
+    myBufferPool[ RenderCore::GetBuffer( res.myBuffer ) ] = res;
 
     TempBufferResource returnRes;
-    returnRes.myBuffer = res.myBuffer.get();
-    returnRes.myReadView = res.myReadView.get();
-    returnRes.myWriteView = res.myWriteView.get();
+    returnRes.myBuffer = RenderCore::GetBuffer( res.myBuffer );
+    returnRes.myReadView = res.myReadView.IsValid() ? RenderCore::GetBufferView( res.myReadView ) : nullptr;
+    returnRes.myWriteView = res.myWriteView.IsValid() ? RenderCore::GetBufferView( res.myWriteView ) : nullptr;
     returnRes.myKeepAlive.reset( new TempResourceKeepAlive( this, returnRes.myBuffer, key ) );
     ++myNumOpenBufferAllocs;
     return returnRes;

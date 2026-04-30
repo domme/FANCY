@@ -86,8 +86,8 @@ namespace Fancy {
     resourceDesc.Alignment = 0;
     resourceDesc.Width = glm::max( 1u, static_cast< uint >( myProperties.myWidth ) );
     resourceDesc.Height = glm::max( 1u, static_cast< uint >( myProperties.myHeight ) );
-    resourceDesc.DepthOrArraySize = (uint16) glm::max( 1u, static_cast< uint >( myProperties.myDepthOrArraySize ) );
-    resourceDesc.MipLevels = (uint16) myProperties.myNumMipLevels;
+    resourceDesc.DepthOrArraySize = ( uint16 ) glm::max( 1u, static_cast< uint >( myProperties.myDepthOrArraySize ) );
+    resourceDesc.MipLevels = ( uint16 ) myProperties.myNumMipLevels;
     resourceDesc.SampleDesc.Count = 1;
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -153,14 +153,14 @@ namespace Fancy {
 
     RenderCore_PlatformDX12 * dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device * device = dx12Platform->GetDevice();
-    const CpuMemoryAccessType gpuMemAccess = (CpuMemoryAccessType) myProperties.myAccessType;
+    const CpuMemoryAccessType gpuMemAccess = ( CpuMemoryAccessType ) myProperties.myAccessType;
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo( 0u, 1u, &resourceDesc );
 
     const GpuMemoryType memoryType = ( myProperties.myIsRenderTarget || myProperties.bIsDepthStencil )
                                          ? GpuMemoryType::RENDERTARGET
                                          : GpuMemoryType::TEXTURE;
     const GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(
-        memoryType, gpuMemAccess, allocInfo.SizeInBytes, (uint) allocInfo.Alignment, myName.c_str() );
+        memoryType, gpuMemAccess, allocInfo.SizeInBytes, ( uint ) allocInfo.Alignment, myName.c_str() );
     ASSERT( gpuMemory.myHeap != nullptr );
 
     const uint64 alignedHeapOffset = MathUtil::Align( gpuMemory.myOffsetInHeap, allocInfo.Alignment );
@@ -230,7 +230,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
 
   //---------------------------------------------------------------------------//
-  TextureViewDX12::TextureViewDX12( const SharedPtr< Texture > & aTexture, const TextureViewProperties & someProperties,
+  TextureViewDX12::TextureViewDX12( Texture * aTexture, const TextureViewProperties & someProperties,
                                     const char * aName )
       : TextureView::TextureView( aTexture, someProperties, aName ) {
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( someProperties.myFormat );
@@ -246,12 +246,12 @@ namespace Fancy {
         myType = GpuResourceViewType::DSV;
         name.append( " DSV" );
         nativeData.myDescriptor = platformDx12->AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE_DSV, name.c_str() );
-        success = CreateDSV( aTexture.get(), someProperties, nativeData.myDescriptor );
+        success = CreateDSV( aTexture, someProperties, nativeData.myDescriptor );
       } else {
         myType = GpuResourceViewType::RTV;
         name.append( " RTV" );
         nativeData.myDescriptor = platformDx12->AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, name.c_str() );
-        success = CreateRTV( aTexture.get(), someProperties, nativeData.myDescriptor );
+        success = CreateRTV( aTexture, someProperties, nativeData.myDescriptor );
       }
     } else {
       const GlobalResourceType globalResourceType = GetGlobalResourceType( someProperties );
@@ -262,14 +262,14 @@ namespace Fancy {
         nativeData.myDescriptor =
             platformDx12->AllocateShaderVisibleDescriptorForGlobalResource( globalResourceType, name.c_str() );
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
-        success = CreateUAV( aTexture.get(), someProperties, nativeData.myDescriptor );
+        success = CreateUAV( aTexture, someProperties, nativeData.myDescriptor );
       } else {
         myType = GpuResourceViewType::SRV;
         name.append( " SRV" );
         nativeData.myDescriptor =
             platformDx12->AllocateShaderVisibleDescriptorForGlobalResource( globalResourceType, name.c_str() );
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
-        success = CreateSRV( aTexture.get(), someProperties, nativeData.myDescriptor );
+        success = CreateSRV( aTexture, someProperties, nativeData.myDescriptor );
       }
     }
 

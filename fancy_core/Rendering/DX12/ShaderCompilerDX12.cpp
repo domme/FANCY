@@ -169,7 +169,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   bool ShaderCompilerDX12::Compile_Internal( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc,
                                              ShaderCompilerResult * anOutput ) const {
-    DxcShaderCompiler::Config config = { true, GetHLSLprofileString( (ShaderStage) aDesc.myShaderStage ).c_str() };
+    DxcShaderCompiler::Config config = { true, GetHLSLprofileString( ( ShaderStage ) aDesc.myShaderStage ).c_str() };
 
     DxcShaderCompiler::IncludeInfo includeInfo;
     Microsoft::WRL::ComPtr< IDxcBlob > compiledShaderBytecode;

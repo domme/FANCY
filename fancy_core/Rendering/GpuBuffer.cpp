@@ -27,8 +27,8 @@ namespace Fancy {
     // this data (yet?)
     const bool needsWait = aMapMode == GpuResourceMapMode::READ || aMapMode == GpuResourceMapMode::WRITE;
     if ( needsWait ) {
-      for ( uint i = 0u; i < (uint) CommandListType::NUM; ++i )
-        RenderCore::WaitForIdle( (CommandListType) i );
+      for ( uint i = 0u; i < ( uint ) CommandListType::NUM; ++i )
+        RenderCore::WaitForIdle( ( CommandListType ) i );
     }
 
     return Map_Internal( anOffset, aSize );
@@ -44,9 +44,9 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
 
   //---------------------------------------------------------------------------//
-  GpuBufferView::GpuBufferView( const SharedPtr< GpuBuffer > & aBuffer, const GpuBufferViewProperties & someProperties,
+  GpuBufferView::GpuBufferView( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
                                 const char * aName )
-      : GpuResourceView( eastl::static_pointer_cast< GpuResource >( aBuffer ), aName ), myProperties( someProperties ) {
+      : GpuResourceView( aBuffer, aName ), myProperties( someProperties ) {
     if ( someProperties.myIsConstantBuffer ) {
       myType = GpuResourceViewType::CBV;
     } else if ( someProperties.myIsShaderWritable ) {

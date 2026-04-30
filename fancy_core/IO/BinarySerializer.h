@@ -46,14 +46,14 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   inline void BinarySerializer::Serialize( uint8 * someData, uint64 aDataSize ) {
     if ( IsReading() )
-      myStream.read( (char *) someData, aDataSize );
+      myStream.read( ( char * ) someData, aDataSize );
     else
-      myStream.write( (const char *) someData, aDataSize );
+      myStream.write( ( const char * ) someData, aDataSize );
   }
   //---------------------------------------------------------------------------//
   template < class T > void BinarySerializer::Serialize( T & aVal ) {
     if ( std::is_trivially_copyable< T >::value )
-      Serialize( (uint8 *) &aVal, sizeof( T ) );
+      Serialize( ( uint8 * ) &aVal, sizeof( T ) );
     else
       GetSerializeFunc< T >()( aVal, *this );
   }
@@ -69,7 +69,7 @@ namespace Fancy {
     }
 
     if ( std::is_trivially_copyable< T >::value ) {
-      Serialize( (uint8 *) aVal.data(), aVal.size() * sizeof( T ) );
+      Serialize( ( uint8 * ) aVal.data(), aVal.size() * sizeof( T ) );
     } else {
       for ( T & element : aVal )
         Serialize( element );
@@ -87,7 +87,7 @@ namespace Fancy {
     }
 
     if ( std::is_trivially_copyable< T >::value ) {
-      Serialize( (uint8 *) aVal.data(), aVal.size() * sizeof( T ) );
+      Serialize( ( uint8 * ) aVal.data(), aVal.size() * sizeof( T ) );
     } else {
       for ( T & element : aVal )
         Serialize( element );
@@ -96,7 +96,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   template < class T, uint N > void BinarySerializer::Serialize( T ( &aVal )[ N ] ) {
     if ( std::is_trivially_copyable< T >::value ) {
-      Serialize( (uint8 *) aVal, sizeof( T ) * N );
+      Serialize( ( uint8 * ) aVal, sizeof( T ) * N );
     } else {
       for ( T & element : aVal )
         Serialize( element );
@@ -115,7 +115,7 @@ namespace Fancy {
       if ( name_size > kExpectedMaxLength )
         name_cstr = new char[ name_size ];
 
-      Serialize( (uint8 *) name_cstr, name_size );
+      Serialize( ( uint8 * ) name_cstr, name_size );
       aString = name_cstr;
 
       if ( name_size > kExpectedMaxLength )
@@ -124,7 +124,7 @@ namespace Fancy {
       const char * name_cstr = aString.c_str();
       const uint name_size = static_cast< uint >( aString.size() ) + 1u;  // size + '/0'
       Serialize( name_size );
-      Serialize( (uint8 *) name_cstr, name_size );
+      Serialize( ( uint8 * ) name_cstr, name_size );
     }
   }
   //---------------------------------------------------------------------------//
@@ -140,7 +140,7 @@ namespace Fancy {
       if ( name_size > kExpectedMaxLength )
         name_cstr = new char[ name_size ];
 
-      Serialize( (uint8 *) name_cstr, name_size );
+      Serialize( ( uint8 * ) name_cstr, name_size );
       aString = name_cstr;
 
       if ( name_size > kExpectedMaxLength )
@@ -149,7 +149,7 @@ namespace Fancy {
       const char * name_cstr = aString.c_str();
       const uint name_size = static_cast< uint >( aString.size() ) + 1u;  // size + '/0'
       Serialize( name_size );
-      Serialize( (uint8 *) name_cstr, name_size );
+      Serialize( ( uint8 * ) name_cstr, name_size );
     }
   }
   //---------------------------------------------------------------------------//

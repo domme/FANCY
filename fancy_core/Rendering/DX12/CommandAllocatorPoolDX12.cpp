@@ -22,7 +22,7 @@ namespace Fancy {
     while ( it != myReleasedWaitingAllocators.end() ) {
       const uint64 waitingFenceVal = it->first;
       ID3D12CommandAllocator * allocator = it->second;
-      CommandQueueDX12 * queue = (CommandQueueDX12 *) RenderCore::GetCommandQueue( myCommandListType );
+      CommandQueueDX12 * queue = ( CommandQueueDX12 * ) RenderCore::GetCommandQueue( myCommandListType );
 
       if ( queue->IsFenceDone( waitingFenceVal ) ) {
         if ( waitingFenceVal != 0 )

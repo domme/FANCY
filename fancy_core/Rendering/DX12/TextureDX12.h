@@ -34,8 +34,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   class TextureViewDX12 final : public TextureView {
   public:
-    TextureViewDX12( const SharedPtr< Texture > & aTexture, const TextureViewProperties & someProperties,
-                     const char * aName );
+    TextureViewDX12( Texture * aTexture, const TextureViewProperties & someProperties, const char * aName );
     ~TextureViewDX12() override;
 
   private:

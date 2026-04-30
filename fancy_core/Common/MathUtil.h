@@ -101,7 +101,7 @@ namespace Fancy {
     inline float Halton( uint i, uint aBase ) {
       float64 f = 1.0;
       float64 r = 0.0;
-      float64 b = (float64) aBase;
+      float64 b = ( float64 ) aBase;
 
       while ( i > 0 ) {
         f = f / b;
@@ -109,7 +109,7 @@ namespace Fancy {
         i /= aBase;
       }
 
-      return (float) r;
+      return ( float ) r;
     }
     //---------------------------------------------------------------------------//
     template < class T > T DivideRoundUp( const T dividend, const T divisor ) {

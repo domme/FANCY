@@ -9,8 +9,8 @@ namespace Fancy {
   GpuRingBuffer::GpuRingBuffer() : myData( nullptr ), myOffset( 0u ) {}
   //---------------------------------------------------------------------------//
   GpuRingBuffer::~GpuRingBuffer() {
-    if ( myBuffer != nullptr && myData != nullptr )
-      myBuffer->Unmap( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
+    if ( myBuffer.IsValid() && myData != nullptr )
+      RenderCore::GetBuffer( myBuffer )->Unmap( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
     myData = nullptr;
   }
   //---------------------------------------------------------------------------//
@@ -18,20 +18,20 @@ namespace Fancy {
                               const void * pInitialData ) {
     Reset();
 
-    if ( myBuffer != nullptr && myData != nullptr )
-      myBuffer->Unmap( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
+    if ( myBuffer.IsValid() && myData != nullptr )
+      RenderCore::GetBuffer( myBuffer )->Unmap( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
     myData = nullptr;
 
     myBuffer = RenderCore::CreateBuffer( someParameters, aName, pInitialData );
-    ASSERT( myBuffer != nullptr );
+    ASSERT( myBuffer.IsValid() );
 
-    myData = (uint8 *) myBuffer->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
+    myData = ( uint8 * ) RenderCore::GetBuffer( myBuffer )->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
     ASSERT( myData != nullptr );
   }
   //---------------------------------------------------------------------------//
   uint64 GpuRingBuffer::GetFreeDataSize( uint64 anAlignment /*= 0*/ ) const {
     const uint64 alignedOffset = MathUtil::Align( myOffset, anAlignment );
-    const uint64 bufferSize = myBuffer->GetByteSize();
+    const uint64 bufferSize = RenderCore::GetBuffer( myBuffer )->GetByteSize();
     if ( alignedOffset >= bufferSize )
       return 0;
 
@@ -48,7 +48,7 @@ namespace Fancy {
     const uint64 alignedOffset = MathUtil::Align( myOffset, anAlignment );
     anOffsetOut = alignedOffset;
     memcpy( myData + alignedOffset, someData, aDataSize );
-    myOffset += MathUtil::Align( aDataSize, myBuffer->GetAlignment() );
+    myOffset += MathUtil::Align( aDataSize, RenderCore::GetBuffer( myBuffer )->GetAlignment() );
     return true;
   }
   //---------------------------------------------------------------------------//
@@ -58,8 +58,12 @@ namespace Fancy {
 
     const uint64 alignedOffset = MathUtil::Align( myOffset, anAlignment );
     anOffsetOut = alignedOffset;
-    myOffset += MathUtil::Align( aDataSize, myBuffer->GetAlignment() );
+    myOffset += MathUtil::Align( aDataSize, RenderCore::GetBuffer( myBuffer )->GetAlignment() );
     return true;
+  }
+  //---------------------------------------------------------------------------//
+  GpuBuffer * GpuRingBuffer::GetBuffer() const {
+    return RenderCore::GetBuffer( myBuffer );
   }
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

@@ -2,6 +2,7 @@
 #include "GpuBuffer.h"
 #include "GpuRingBuffer.h"
 #include "RtPipelineState.h"
+#include "ResourceHandle.h"
 
 namespace Fancy {
   struct RtShaderBindingTableProperties {
@@ -39,7 +40,7 @@ namespace Fancy {
     RtShaderBindingTableRange GetRange( RtShaderIdentifierType aType ) const;
 
     RtShaderBindingTableProperties myProperties;
-    SharedPtr< GpuBuffer > mySbtBuffer;
+    GpuBufferHandle mySbtBuffer;
 
     uint8 * myMappedSbtData;
     uint myAlignedShaderRecordSizeBytes;

@@ -5,7 +5,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   uint64 Time::ourFrameIdx( 0u );
   //---------------------------------------------------------------------------//
-  static float locUpdateFrequencies[ (uint) TimedUpdateInterval::NUM ] = {
+  static float locUpdateFrequencies[ ( uint ) TimedUpdateInterval::NUM ] = {
     0.0f,
     1.0f,
   };
@@ -16,7 +16,7 @@ namespace Fancy {
     myDerivedDeltaTime = fDt * myTimeScale;
     myElapsedTime += myDerivedDeltaTime;
 
-    for ( uint i = 0u; i < (uint) TimedUpdateInterval::NUM; ++i ) {
+    for ( uint i = 0u; i < ( uint ) TimedUpdateInterval::NUM; ++i ) {
       if ( myElapsedTime - myLastUpdateTimes[ i ] >= locUpdateFrequencies[ i ] - FLT_MIN ) {
         myLastUpdateTimes[ i ] = myElapsedTime;
         myOnTimeIntervalElapsed[ i ]();

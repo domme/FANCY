@@ -3,6 +3,7 @@
 
 #include "RenderCore_PlatformDX12.h"
 #include "Rendering/RenderCore.h"
+#include "Rendering/GpuResource.h"
 #include "Common/Window.h"
 #include "TextureDX12.h"
 #include "CommandListDX12.h"
@@ -70,7 +71,7 @@ namespace Fancy {
       backbufferProps.myDepthOrArraySize = 1u;
       backbufferProps.myNumMipLevels = 1u;
 
-      myBackbufferTextures[ i ].reset( new TextureDX12( std::move( resource ), backbufferProps, true ) );
+      myBackbufferTextures[ i ] = new TextureDX12( std::move( resource ), backbufferProps, true );
     }
   }
   //---------------------------------------------------------------------------//
@@ -93,7 +94,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void RenderOutputDX12::DestroyBackbufferResources() {
     for ( uint i = 0u; i < kBackbufferCount; ++i ) {
-      myBackbufferTextures[ i ].reset();
+      GpuResourceDestructor{}( myBackbufferTextures[ i ] );
+      myBackbufferTextures[ i ] = nullptr;
     }
   }
   //---------------------------------------------------------------------------//

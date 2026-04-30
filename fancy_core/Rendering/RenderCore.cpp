@@ -62,22 +62,38 @@ UniquePtr< TempResourcePool > RenderCore::ourTempResourcePool;
 UniquePtr< FileWatcher > RenderCore::ourShaderFileWatcher;
 UniquePtr< ShaderCompiler > RenderCore::ourShaderCompiler;
 
-SharedPtr< TextureSampler > RenderCore::ourLinearClampSampler;
+TextureSamplerHandle RenderCore::ourLinearClampSampler;
 
-SharedPtr< DepthStencilState > RenderCore::ourDefaultDepthStencilState;
-SharedPtr< BlendState > RenderCore::ourDefaultBlendState;
-SharedPtr< Texture > RenderCore::ourDefaultDiffuseTexture;
-SharedPtr< Texture > RenderCore::ourDefaultNormalTexture;
-SharedPtr< Texture > RenderCore::ourDefaultSpecularTexture;
+DepthStencilStateHandle RenderCore::ourDefaultDepthStencilState;
+BlendStateHandle RenderCore::ourDefaultBlendState;
+TextureHandle RenderCore::ourDefaultDiffuseTexture;
+TextureHandle RenderCore::ourDefaultNormalTexture;
+TextureHandle RenderCore::ourDefaultSpecularTexture;
+TextureHandle RenderCore::ourMissingTexture;
+
+ResourcePool< Texture, 2048 > RenderCore::ourTexturePool;
+ResourcePool< GpuBuffer, 2048 > RenderCore::ourBufferPool;
+ResourcePool< TextureView, 2048 > RenderCore::ourTextureViewPool;
+ResourcePool< GpuBufferView, 2048 > RenderCore::ourBufferViewPool;
+ResourcePool< Shader, 1024 > RenderCore::ourShaderPool;
+ResourcePool< ShaderPipeline, 1024 > RenderCore::ourShaderPipelinePool;
+ResourcePool< BlendState, 1024 > RenderCore::ourBlendStatePool;
+ResourcePool< DepthStencilState, 1024 > RenderCore::ourDepthStencilStatePool;
+ResourcePool< TextureSampler, 1024 > RenderCore::ourSamplerPool;
+ResourcePool< VertexInputLayout, 1024 > RenderCore::ourVertexInputLayoutPool;
+ResourcePool< RtAccelerationStructure, 1024 > RenderCore::ourRtAccelerationStructurePool;
+ResourcePool< RtPipelineState, 1024 > RenderCore::ourRtPipelineStatePool;
+ResourcePool< RtShaderBindingTable, 1024 > RenderCore::ourRtShaderBindingTablePool;
+ResourcePool< RenderOutput, 1024 > RenderCore::ourRenderOutputPool;
 
 eastl::hash_map< eastl::string, eastl::vector< eastl::string > > RenderCore::ourShaderIncludeHeaderToShaderPaths;
-eastl::hash_map< uint64, SharedPtr< Shader > > RenderCore::ourShaderCache;
-eastl::hash_map< uint64, SharedPtr< ShaderPipeline > > RenderCore::ourShaderPipelineCache;
-eastl::hash_map< uint64, SharedPtr< BlendState > > RenderCore::ourBlendStateCache;
-eastl::hash_map< uint64, SharedPtr< DepthStencilState > > RenderCore::ourDepthStencilStateCache;
-eastl::hash_map< uint64, SharedPtr< TextureSampler > > RenderCore::ourSamplerCache;
-eastl::hash_map< uint64, SharedPtr< VertexInputLayout > > RenderCore::ourVertexInputLayoutCache;
-eastl::hash_map< uint64, SharedPtr< RtPipelineState > > RenderCore::ourRtPipelineStateCache;
+eastl::hash_map< uint64, ShaderHandle > RenderCore::ourShaderCache;
+eastl::hash_map< uint64, ShaderPipelineHandle > RenderCore::ourShaderPipelineCache;
+eastl::hash_map< uint64, BlendStateHandle > RenderCore::ourBlendStateCache;
+eastl::hash_map< uint64, DepthStencilStateHandle > RenderCore::ourDepthStencilStateCache;
+eastl::hash_map< uint64, TextureSamplerHandle > RenderCore::ourSamplerCache;
+eastl::hash_map< uint64, VertexInputLayoutHandle > RenderCore::ourVertexInputLayoutCache;
+eastl::hash_map< uint64, RtPipelineStateHandle > RenderCore::ourRtPipelineStateCache;
 
 eastl::vector< UniquePtr< GpuRingBuffer > > RenderCore::ourRingBufferPool;
 eastl::fixed_list< GpuRingBuffer *, 128 > RenderCore::ourAvailableRingBuffers;
@@ -85,22 +101,22 @@ eastl::fixed_list< eastl::pair< uint64, GpuRingBuffer * >, 128 > RenderCore::our
 
 eastl::fixed_vector< UniquePtr< GpuReadbackBuffer >, 64 > RenderCore::ourReadbackBuffers;
 
-UniquePtr< CommandQueue > RenderCore::ourCommandQueues[ (uint) CommandListType::NUM ];
+UniquePtr< CommandQueue > RenderCore::ourCommandQueues[ ( uint ) CommandListType::NUM ];
 
 StaticCircularArray< uint64, RenderCore::NUM_QUEUED_FRAMES > RenderCore::ourQueuedFrameDoneFences;
 StaticCircularArray< eastl::pair< uint64, uint64 >, 256 > RenderCore::ourLastFrameDoneFences;
 
-UniquePtr< GpuQueryHeap > RenderCore::ourQueryHeaps[ NUM_QUEUED_FRAMES ][ (uint) GpuQueryType::NUM ];
+UniquePtr< GpuQueryHeap > RenderCore::ourQueryHeaps[ NUM_QUEUED_FRAMES ][ ( uint ) GpuQueryType::NUM ];
 uint RenderCore::ourCurrQueryHeapIdx = 0;
 
-eastl::fixed_vector< eastl::pair< uint, uint >, 64 > RenderCore::ourUsedQueryRanges[ (uint) GpuQueryType::NUM ];
+eastl::fixed_vector< eastl::pair< uint, uint >, 64 > RenderCore::ourUsedQueryRanges[ ( uint ) GpuQueryType::NUM ];
 
-UniquePtr< GpuBuffer > RenderCore::ourQueryBuffers[ NUM_QUERY_BUFFERS ][ (uint) GpuQueryType::NUM ];
+UniquePtr< GpuBuffer > RenderCore::ourQueryBuffers[ NUM_QUERY_BUFFERS ][ ( uint ) GpuQueryType::NUM ];
 uint64 RenderCore::ourQueryBufferFrames[ NUM_QUERY_BUFFERS ] = { UINT64_MAX };
 uint RenderCore::ourCurrQueryBufferIdx = 0u;
 
-const uint8 * RenderCore::ourMappedQueryBufferData[ (uint) GpuQueryType::NUM ] = { nullptr };
-uint RenderCore::ourMappedQueryBufferIdx[ (uint) GpuQueryType::NUM ] = { 0u };
+const uint8 * RenderCore::ourMappedQueryBufferData[ ( uint ) GpuQueryType::NUM ] = { nullptr };
+uint RenderCore::ourMappedQueryBufferIdx[ ( uint ) GpuQueryType::NUM ] = { 0u };
 
 eastl::vector< eastl::string > RenderCore::ourChangedShaderFiles;
 //---------------------------------------------------------------------------//
@@ -108,16 +124,16 @@ bool RenderCore::IsInitialized() {
   return ourPlatformImpl != nullptr && ourPlatformImpl->IsInitialized();
 }
 
-const Texture * RenderCore::GetDefaultDiffuseTexture() {
-  return ourDefaultDiffuseTexture.get();
+TextureHandle RenderCore::GetDefaultDiffuseTexture() {
+  return ourDefaultDiffuseTexture;
 }
 
-const Texture * RenderCore::GetDefaultNormalTexture() {
-  return ourDefaultNormalTexture.get();
+TextureHandle RenderCore::GetDefaultNormalTexture() {
+  return ourDefaultNormalTexture;
 }
 
-const Texture * RenderCore::GetDefaultMaterialTexture() {
-  return ourDefaultSpecularTexture.get();
+TextureHandle RenderCore::GetDefaultMaterialTexture() {
+  return ourDefaultSpecularTexture;
 }
 
 const ShaderCompiler * RenderCore::GetShaderCompiler() {
@@ -179,7 +195,7 @@ void RenderCore::BeginFrame() {
   ourTempResourcePool->Reset();
 
   ourCurrQueryHeapIdx = ( ourCurrQueryHeapIdx + 1 ) % NUM_QUEUED_FRAMES;
-  for ( uint i = 0u; i < (uint) GpuQueryType::NUM; ++i ) {
+  for ( uint i = 0u; i < ( uint ) GpuQueryType::NUM; ++i ) {
     const uint64 lastUsedFrame = ourQueryHeaps[ ourCurrQueryHeapIdx ][ i ]->myLastUsedFrame;
     ASSERT( lastUsedFrame == UINT64_MAX || IsFrameDone( lastUsedFrame ) );
     ourQueryHeaps[ ourCurrQueryHeapIdx ][ i ]->Reset( Time::ourFrameIdx );
@@ -200,7 +216,7 @@ void RenderCore::BeginFrame() {
 }
 //---------------------------------------------------------------------------//
 void RenderCore::EndFrame() {
-  for ( uint i = 0u; i < (uint) GpuQueryType::NUM; ++i )
+  for ( uint i = 0u; i < ( uint ) GpuQueryType::NUM; ++i )
     ASSERT( ourMappedQueryBufferData[ i ] == nullptr, "Open query readback detected at end of frame" );
 
   ResolveUsedQueryData();
@@ -377,7 +393,7 @@ TextureReadbackTask RenderCore::ReadbackTexture( Texture * aTexture, const Subre
         BITS_TO_BYTES( width * dataFormatInfo.myCopyableBitsPerPixelPerPlane[ subResource.myPlaneIndex ] ),
         caps.myTextureRowAlignment );
     const uint64 subresourceSize =
-        MathUtil::Align( rowSize * height * depth, (uint64) caps.myTextureSubresourceBufferAlignment );
+        MathUtil::Align( rowSize * height * depth, ( uint64 ) caps.myTextureSubresourceBufferAlignment );
     alignedSubresourceSizes[ i++ ] = subresourceSize;
 
     requiredBufferSize += subresourceSize;
@@ -435,10 +451,10 @@ void RenderCore::Init_0_Platform( const RenderPlatformProperties & somePropertie
 
   ourPlatformImpl = eastl::make_unique< RenderCore_PlatformDX12 >( someProperties );
 
-  ourCommandQueues[ (uint) CommandListType::Graphics ].reset(
+  ourCommandQueues[ ( uint ) CommandListType::Graphics ].reset(
       ourPlatformImpl->CreateCommandQueue( CommandListType::Graphics ) );
   if ( GetPlatformCaps().myHasAsyncCopy )
-    ourCommandQueues[ (uint) CommandListType::Compute ].reset(
+    ourCommandQueues[ ( uint ) CommandListType::Compute ].reset(
         ourPlatformImpl->CreateCommandQueue( CommandListType::Compute ) );
 
   // From here, resources can be created that depend on ourPlatformImpl
@@ -468,6 +484,9 @@ void RenderCore::Init_2_Resources() {
   // TODO: Rework this so that it can load actual textures
 
   ASSERT( ourPlatformImpl != nullptr );
+
+  ourDefaultDepthStencilState = CreateDepthStencilState( DepthStencilStateProperties() );
+  ourDefaultBlendState = CreateBlendState( BlendStateProperties() );
 
   // Linear clamp sampler
   {
@@ -510,30 +529,27 @@ void RenderCore::Init_2_Resources() {
     ourDefaultNormalTexture = CreateTexture( props, "Default_Normal", &data, 1 );
   }
 
-  ourDefaultDepthStencilState = CreateDepthStencilState( DepthStencilStateProperties() );
-  ourDefaultBlendState = CreateBlendState( BlendStateProperties() );
-
   ourTempResourcePool.reset( new TempResourcePool );
 
   const uint numQueriesPerType[] = {
     4096,  // Timestamp
     2048   // Occlusion
   };
-  static_assert( ARRAYSIZE( numQueriesPerType ) == (uint) GpuQueryType::NUM, "Missing values for numQueriesPerType" );
+  static_assert( ARRAYSIZE( numQueriesPerType ) == ( uint ) GpuQueryType::NUM, "Missing values for numQueriesPerType" );
 
   for ( uint i = 0u; i < NUM_QUEUED_FRAMES; ++i ) {
-    for ( uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType )
+    for ( uint queryType = 0u; queryType < ( uint ) GpuQueryType::NUM; ++queryType )
       ourQueryHeaps[ i ][ queryType ].reset(
-          ourPlatformImpl->CreateQueryHeap( (GpuQueryType) queryType, numQueriesPerType[ queryType ] ) );
+          ourPlatformImpl->CreateQueryHeap( ( GpuQueryType ) queryType, numQueriesPerType[ queryType ] ) );
   }
 
   GpuBufferProperties bufferProps;
   bufferProps.myCpuAccess = CpuMemoryAccessType::CPU_READ;
   for ( uint i = 0u; i < NUM_QUERY_BUFFERS; ++i ) {
-    for ( uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType ) {
-      bufferProps.myElementSizeBytes = GetQueryTypeDataSize( (GpuQueryType) queryType );
+    for ( uint queryType = 0u; queryType < ( uint ) GpuQueryType::NUM; ++queryType ) {
+      bufferProps.myElementSizeBytes = GetQueryTypeDataSize( ( GpuQueryType ) queryType );
       bufferProps.myNumElements = numQueriesPerType[ queryType ];
-      eastl::string name( StaticString< 64 >( "QueryHeap %s", locGetQueryTypeName( (GpuQueryType) queryType ) ) );
+      eastl::string name( StaticString< 64 >( "QueryHeap %s", locGetQueryTypeName( ( GpuQueryType ) queryType ) ) );
 
       GpuBuffer * buffer = ourPlatformImpl->CreateBuffer();
       if ( buffer )
@@ -551,24 +567,39 @@ void RenderCore::Shutdown_0_Resources() {
   ourAvailableRingBuffers.clear();
   ourRingBufferPool.clear();
 
-  ourDefaultDiffuseTexture.reset();
-  ourDefaultNormalTexture.reset();
-  ourDefaultSpecularTexture.reset();
-
-  ourDefaultDepthStencilState.reset();
-  ourDefaultBlendState.reset();
-
+  // Clear caches (the pools own the actual memory)
   ourShaderPipelineCache.clear();
   ourShaderCache.clear();
   ourBlendStateCache.clear();
   ourDepthStencilStateCache.clear();
+  ourSamplerCache.clear();
+  ourVertexInputLayoutCache.clear();
+  ourRtPipelineStateCache.clear();
+
+  // Delete all pooled resources
+  ourRtShaderBindingTablePool.DeleteAll();
+  ourRtAccelerationStructurePool.DeleteAll();
+  ourRtPipelineStatePool.DeleteAll();
+  ourTextureViewPool.DeleteAll();
+  ourBufferViewPool.DeleteAll();
+  ourTexturePool.DeleteAll();
+  ourBufferPool.DeleteAll();
+  ourShaderPipelinePool.DeleteAll();
+  ourShaderPool.DeleteAll();
+  ourBlendStatePool.DeleteAll();
+  ourDepthStencilStatePool.DeleteAll();
+  ourSamplerPool.DeleteAll();
+  ourVertexInputLayoutPool.DeleteAll();
+  ourRenderOutputPool.DeleteAll();
+
+  ourLinearClampSampler = TextureSamplerHandle();
 
   for ( uint i = 0u; i < NUM_QUERY_BUFFERS; ++i )
-    for ( uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType )
+    for ( uint queryType = 0u; queryType < ( uint ) GpuQueryType::NUM; ++queryType )
       ourQueryBuffers[ i ][ queryType ].reset();
 
   for ( uint i = 0u; i < NUM_QUEUED_FRAMES; ++i )
-    for ( uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType )
+    for ( uint queryType = 0u; queryType < ( uint ) GpuQueryType::NUM; ++queryType )
       ourQueryHeaps[ i ][ queryType ].reset();
 
   ourReadbackBuffers.clear();
@@ -579,7 +610,7 @@ void RenderCore::Shutdown_1_Services() {
 }
 //---------------------------------------------------------------------------//
 void RenderCore::Shutdown_2_Platform() {
-  for ( uint i = 0u; i < (uint) CommandListType::NUM; ++i )
+  for ( uint i = 0u; i < ( uint ) CommandListType::NUM; ++i )
     if ( ourCommandQueues[ i ] != nullptr )
       ourCommandQueues[ i ]->WaitForIdle();
 
@@ -611,13 +642,13 @@ void RenderCore::ResolveUsedQueryData() {
     return;
 
   CommandList * commandList = BeginCommandList( CommandListType::Graphics );
-  for ( uint queryType = 0u; queryType < (uint) GpuQueryType::NUM; ++queryType ) {
+  for ( uint queryType = 0u; queryType < ( uint ) GpuQueryType::NUM; ++queryType ) {
     if ( ourUsedQueryRanges[ queryType ].empty() )
       continue;
 
-    const uint numUsedQueryRanges = (uint) ourUsedQueryRanges[ queryType ].size();
+    const uint numUsedQueryRanges = ( uint ) ourUsedQueryRanges[ queryType ].size();
     eastl::pair< uint, uint > * mergedRanges =
-        (eastl::pair< uint, uint > *) alloca( sizeof( eastl::pair< uint, uint > ) * numUsedQueryRanges );
+        ( eastl::pair< uint, uint > * ) alloca( sizeof( eastl::pair< uint, uint > ) * numUsedQueryRanges );
     uint numUsedMergedRanges = 0u;
 
     eastl::pair< uint, uint > currMergedRange = ourUsedQueryRanges[ queryType ][ 0 ];
@@ -634,7 +665,7 @@ void RenderCore::ResolveUsedQueryData() {
 
     const GpuQueryHeap * heap = ourQueryHeaps[ ourCurrQueryHeapIdx ][ queryType ].get();
     const GpuBuffer * readbackBuffer = ourQueryBuffers[ ourCurrQueryBufferIdx ][ queryType ].get();
-    const uint queryDataSize = GetQueryTypeDataSize( (GpuQueryType) queryType );
+    const uint queryDataSize = GetQueryTypeDataSize( ( GpuQueryType ) queryType );
     for ( uint i = 0u; i < numUsedMergedRanges; ++i ) {
       const eastl::pair< uint, uint > & mergedRange = mergedRanges[ i ];
       const uint numQueries = mergedRange.second - mergedRange.first;
@@ -651,7 +682,7 @@ void RenderCore::UpdateChangedShaders() {
   for ( const eastl::string & shaderFile : ourChangedShaderFiles ) {
     // Find GpuPrograms for this file
     for ( auto it = ourShaderCache.begin(); it != ourShaderCache.end(); ++it ) {
-      Shader * program = it->second.get();
+      Shader * program = ourShaderPool.Get( it->second );
 
       const ShaderDesc & desc = program->GetDescription();
       eastl::string actualShaderPath = Path::GetAbsolutePath( desc.myPath.c_str() );
@@ -662,7 +693,7 @@ void RenderCore::UpdateChangedShaders() {
   }
   ourChangedShaderFiles.clear();
 
-  for ( uint i = 0u; i < (uint) shadersToRecompile.size(); ++i ) {
+  for ( uint i = 0u; i < ( uint ) shadersToRecompile.size(); ++i ) {
     Shader * shader = shadersToRecompile[ i ];
 
     ShaderCompilerResult compiledOutput;
@@ -675,9 +706,9 @@ void RenderCore::UpdateChangedShaders() {
   // Check which pipelines need to be updated...
   eastl::fixed_vector< ShaderPipeline *, 8 > changedPipelines;
   for ( auto it = ourShaderPipelineCache.begin(); it != ourShaderPipelineCache.end(); ++it ) {
-    ShaderPipeline * pipeline = it->second.get();
+    ShaderPipeline * pipeline = ourShaderPipelinePool.Get( it->second );
 
-    for ( uint i = 0u; i < (uint) shadersToRecompile.size(); ++i ) {
+    for ( uint i = 0u; i < ( uint ) shadersToRecompile.size(); ++i ) {
       Shader * changedShader = shadersToRecompile[ i ];
       const uint stage = static_cast< uint >( changedShader->myProperties.myShaderStage );
       if ( changedShader == pipeline->GetShader( stage ) ) {
@@ -687,7 +718,7 @@ void RenderCore::UpdateChangedShaders() {
     }
   }
 
-  for ( uint i = 0u; i < (uint) changedPipelines.size(); ++i ) {
+  for ( uint i = 0u; i < ( uint ) changedPipelines.size(); ++i ) {
     ShaderPipeline * pipeline = changedPipelines[ i ];
     pipeline->Recreate();
     ourOnShaderPipelineRecompiled( pipeline );
@@ -700,8 +731,8 @@ void RenderCore::UpdateChangedShaders() {
       continue;
 
     for ( const auto & rtPso : ourRtPipelineStateCache )
-      if ( rtPso.second->HasShader( shader ) )
-        changedRtPsos.push_back( rtPso.second.get() );
+      if ( ourRtPipelineStatePool.Get( rtPso.second )->HasShader( shader ) )
+        changedRtPsos.push_back( ourRtPipelineStatePool.Get( rtPso.second ) );
   }
 
   for ( RtPipelineState * rtPso : changedRtPsos ) {
@@ -710,13 +741,13 @@ void RenderCore::UpdateChangedShaders() {
   }
 }
 //---------------------------------------------------------------------------//
-SharedPtr< RenderOutput > RenderCore::CreateRenderOutput( void * aNativeInstanceHandle,
-                                                          const WindowParameters & someWindowParams ) {
-  SharedPtr< RenderOutput > output( ourPlatformImpl->CreateRenderOutput( aNativeInstanceHandle, someWindowParams ) );
-  return output;
+RenderOutputHandle RenderCore::CreateRenderOutput( void * aNativeInstanceHandle,
+                                                   const WindowParameters & someWindowParams ) {
+  RenderOutput * output = ourPlatformImpl->CreateRenderOutput( aNativeInstanceHandle, someWindowParams );
+  return ourRenderOutputPool.Add( output );
 }
 //---------------------------------------------------------------------------//
-SharedPtr< Shader > RenderCore::CreateShader( const ShaderDesc & aDesc ) {
+ShaderHandle RenderCore::CreateShader( const ShaderDesc & aDesc ) {
   uint64 hash = aDesc.GetHash();
 
   auto it = ourShaderCache.find( hash );
@@ -725,12 +756,13 @@ SharedPtr< Shader > RenderCore::CreateShader( const ShaderDesc & aDesc ) {
 
   ShaderCompilerResult compilerOutput;
   if ( !ourShaderCompiler->Compile( aDesc, &compilerOutput ) )
-    return nullptr;
+    return ShaderHandle{};
 
-  SharedPtr< Shader > program( ourPlatformImpl->CreateShader() );
+  Shader * program = ourPlatformImpl->CreateShader();
   program->SetFromCompilerOutput( compilerOutput );
 
-  ourShaderCache.insert( eastl::make_pair( hash, program ) );
+  ShaderHandle handle = ourShaderPool.Add( program );
+  ourShaderCache.insert( eastl::make_pair( hash, handle ) );
 
   const eastl::string actualShaderPath = Path::GetAbsolutePath( aDesc.myPath.c_str() );
 
@@ -741,47 +773,50 @@ SharedPtr< Shader > RenderCore::CreateShader( const ShaderDesc & aDesc ) {
     ourShaderIncludeHeaderToShaderPaths[ includeFile ].push_back( actualShaderPath );
   }
 
-  return program;
+  return handle;
 }
 //---------------------------------------------------------------------------//
-SharedPtr< ShaderPipeline > RenderCore::CreateShaderPipeline( const ShaderPipelineDesc & aDesc ) {
+ShaderPipelineHandle RenderCore::CreateShaderPipeline( const ShaderPipelineDesc & aDesc ) {
   uint64 hash = aDesc.GetHash();
 
   auto it = ourShaderPipelineCache.find( hash );
   if ( it != ourShaderPipelineCache.end() )
     return it->second;
 
-  SharedPtr< Shader > pipelinePrograms[ (uint) ShaderStage::SHADERSTAGE_NUM ];
-  for ( uint i = 0u; i < (uint) ShaderStage::SHADERSTAGE_NUM; ++i ) {
-    if ( !aDesc.myShader[ i ].myPath.empty() )
-      pipelinePrograms[ i ] = CreateShader( aDesc.myShader[ i ] );
+  Shader * pipelinePrograms[ ( uint ) ShaderStage::SHADERSTAGE_NUM ] = {};
+  for ( uint i = 0u; i < ( uint ) ShaderStage::SHADERSTAGE_NUM; ++i ) {
+    if ( !aDesc.myShader[ i ].myPath.empty() ) {
+      ShaderHandle sh = CreateShader( aDesc.myShader[ i ] );
+      pipelinePrograms[ i ] = sh.IsValid() ? ourShaderPool.Get( sh ) : nullptr;
+    }
   }
 
-  SharedPtr< ShaderPipeline > pipeline( ourPlatformImpl->CreateShaderPipeline() );
+  ShaderPipeline * pipeline = ourPlatformImpl->CreateShaderPipeline();
   pipeline->Create( pipelinePrograms );
 
-  ourShaderPipelineCache.insert( eastl::make_pair( hash, pipeline ) );
+  ShaderPipelineHandle handle = ourShaderPipelinePool.Add( pipeline );
+  ourShaderPipelineCache.insert( eastl::make_pair( hash, handle ) );
 
-  return pipeline;
+  return handle;
 }
 
-SharedPtr< ShaderPipeline > RenderCore::CreateVertexPixelShaderPipeline( const char * aShaderPath,
-                                                                         const char * aMainVtxFunction,
-                                                                         const char * aMainFragmentFunction,
-                                                                         const char * someDefines ) {
+ShaderPipelineHandle RenderCore::CreateVertexPixelShaderPipeline( const char * aShaderPath,
+                                                                  const char * aMainVtxFunction,
+                                                                  const char * aMainFragmentFunction,
+                                                                  const char * someDefines ) {
   eastl::vector< eastl::string > defines;
   if ( someDefines )
     StringUtil::Tokenize( someDefines, ",", defines );
 
   ShaderPipelineDesc pipelineDesc;
 
-  ShaderDesc * shaderDesc = &pipelineDesc.myShader[ (uint) ShaderStage::SHADERSTAGE_VERTEX ];
+  ShaderDesc * shaderDesc = &pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_VERTEX ];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainVtxFunction;
   for ( const eastl::string & str : defines )
     shaderDesc->myDefines.push_back( str );
 
-  shaderDesc = &pipelineDesc.myShader[ (uint) ShaderStage::SHADERSTAGE_FRAGMENT ];
+  shaderDesc = &pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_FRAGMENT ];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainFragmentFunction;
   for ( const eastl::string & str : defines )
@@ -790,16 +825,15 @@ SharedPtr< ShaderPipeline > RenderCore::CreateVertexPixelShaderPipeline( const c
   return CreateShaderPipeline( pipelineDesc );
 }
 
-SharedPtr< ShaderPipeline > RenderCore::CreateComputeShaderPipeline( const char * aShaderPath,
-                                                                     const char * aMainFunction,
-                                                                     const char * someDefines ) {
+ShaderPipelineHandle RenderCore::CreateComputeShaderPipeline( const char * aShaderPath, const char * aMainFunction,
+                                                              const char * someDefines ) {
   eastl::vector< eastl::string > defines;
   if ( someDefines )
     StringUtil::Tokenize( someDefines, ",", defines );
 
   ShaderPipelineDesc pipelineDesc;
 
-  ShaderDesc * shaderDesc = &pipelineDesc.myShader[ (uint) ShaderStage::SHADERSTAGE_COMPUTE ];
+  ShaderDesc * shaderDesc = &pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
   shaderDesc->myPath = aShaderPath;
   shaderDesc->myMainFunction = aMainFunction;
   for ( const eastl::string & str : defines )
@@ -809,77 +843,76 @@ SharedPtr< ShaderPipeline > RenderCore::CreateComputeShaderPipeline( const char 
 }
 
 //---------------------------------------------------------------------------//
-SharedPtr< Shader > RenderCore::GetShader( uint64 aDescHash ) {
+ShaderHandle RenderCore::GetShader( uint64 aDescHash ) {
   auto it = ourShaderCache.find( aDescHash );
   if ( it != ourShaderCache.end() )
     return it->second;
 
-  return nullptr;
+  return ShaderHandle{};
 }
 //---------------------------------------------------------------------------//
-SharedPtr< ShaderPipeline > RenderCore::GetShaderPipeline( uint64 aDescHash ) {
+ShaderPipelineHandle RenderCore::GetShaderPipeline( uint64 aDescHash ) {
   auto it = ourShaderPipelineCache.find( aDescHash );
   if ( it != ourShaderPipelineCache.end() )
     return it->second;
 
-  return nullptr;
+  return ShaderPipelineHandle{};
 }
 //---------------------------------------------------------------------------//
-SharedPtr< BlendState > RenderCore::CreateBlendState( const BlendStateProperties & aProperties ) {
+BlendStateHandle RenderCore::CreateBlendState( const BlendStateProperties & aProperties ) {
   const uint64 hash = MathUtil::ByteHash( aProperties );
 
   auto it = ourBlendStateCache.find( hash );
   if ( it != ourBlendStateCache.end() )
     return it->second;
 
-  SharedPtr< BlendState > blendState( new BlendState( aProperties ) );
-
-  ourBlendStateCache.insert( eastl::make_pair( hash, blendState ) );
-  return blendState;
+  BlendStateHandle handle = ourBlendStatePool.Add( new BlendState( aProperties ) );
+  ourBlendStateCache.insert( eastl::make_pair( hash, handle ) );
+  return handle;
 }
 //---------------------------------------------------------------------------//
-SharedPtr< DepthStencilState > RenderCore::CreateDepthStencilState( const DepthStencilStateProperties & aDesc ) {
+DepthStencilStateHandle RenderCore::CreateDepthStencilState( const DepthStencilStateProperties & aDesc ) {
   const uint64 hash = MathUtil::ByteHash( aDesc );
 
   auto it = ourDepthStencilStateCache.find( hash );
   if ( it != ourDepthStencilStateCache.end() )
     return it->second;
 
-  SharedPtr< DepthStencilState > depthStencilState( new DepthStencilState( aDesc ) );
-  ourDepthStencilStateCache.insert( eastl::make_pair( hash, depthStencilState ) );
-  return depthStencilState;
+  DepthStencilStateHandle handle = ourDepthStencilStatePool.Add( new DepthStencilState( aDesc ) );
+  ourDepthStencilStateCache.insert( eastl::make_pair( hash, handle ) );
+  return handle;
 }
 //---------------------------------------------------------------------------//
-SharedPtr< TextureSampler > RenderCore::CreateTextureSampler( const TextureSamplerProperties & someProperties ) {
+TextureSamplerHandle RenderCore::CreateTextureSampler( const TextureSamplerProperties & someProperties ) {
   const uint64 hash = MathUtil::ByteHash( someProperties );
 
   auto it = ourSamplerCache.find( hash );
   if ( it != ourSamplerCache.end() )
     return it->second;
 
-  SharedPtr< TextureSampler > sampler( ourPlatformImpl->CreateTextureSampler( someProperties ) );
-  ourSamplerCache.insert( eastl::make_pair( hash, sampler ) );
-  return sampler;
+  TextureSamplerHandle handle = ourSamplerPool.Add( ourPlatformImpl->CreateTextureSampler( someProperties ) );
+  ourSamplerCache.insert( eastl::make_pair( hash, handle ) );
+  return handle;
 }
 //---------------------------------------------------------------------------//
-SharedPtr< VertexInputLayout > RenderCore::CreateVertexInputLayout( const VertexInputLayoutProperties & aDesc ) {
+VertexInputLayoutHandle RenderCore::CreateVertexInputLayout( const VertexInputLayoutProperties & aDesc ) {
   const uint64 hash = aDesc.GetHash();
 
   auto it = ourVertexInputLayoutCache.find( hash );
   if ( it != ourVertexInputLayoutCache.end() )
     return it->second;
 
-  SharedPtr< VertexInputLayout > layout( new VertexInputLayout( aDesc ) );
-  ourVertexInputLayoutCache.insert( eastl::make_pair( hash, layout ) );
-  return layout;
+  VertexInputLayoutHandle handle = ourVertexInputLayoutPool.Add( new VertexInputLayout( aDesc ) );
+  ourVertexInputLayoutCache.insert( eastl::make_pair( hash, handle ) );
+  return handle;
 }
 //---------------------------------------------------------------------------//
-const SharedPtr< BlendState > & RenderCore::GetDefaultBlendState() {
-  return ourDefaultBlendState;
+BlendState * RenderCore::GetDefaultBlendState() {
+  return ourBlendStatePool.Get( ourDefaultBlendState );
 }
 //---------------------------------------------------------------------------//
-const SharedPtr< DepthStencilState > & RenderCore::GetDefaultDepthStencilState() {
-  return ourDefaultDepthStencilState;
+DepthStencilState * RenderCore::GetDefaultDepthStencilState() {
+  return ourDepthStencilStatePool.Get( ourDefaultDepthStencilState );
 }
 //---------------------------------------------------------------------------//
 RenderPlatformType RenderCore::GetPlatformType() {
@@ -894,31 +927,36 @@ RenderCore_Platform * RenderCore::GetPlatform() {
   return ourPlatformImpl.get();
 }
 //---------------------------------------------------------------------------//
-SharedPtr< Texture > RenderCore::CreateTexture( const TextureProperties & someProperties,
-                                                const char * aName /*= nullptr*/, TextureSubData * someUploadDatas,
-                                                uint aNumUploadDatas ) {
-  SharedPtr< Texture > tex( ourPlatformImpl->CreateTexture() );
+TextureHandle RenderCore::CreateTexture( const TextureProperties & someProperties, const char * aName /*= nullptr*/,
+                                         TextureSubData * someUploadDatas, uint aNumUploadDatas ) {
+  Texture * tex = ourPlatformImpl->CreateTexture();
   if ( !tex )
-    return nullptr;
+    return TextureHandle{};
 
   tex->Create( someProperties, aName, someUploadDatas, aNumUploadDatas );
-  return tex->IsValid() ? tex : nullptr;
+  if ( !tex->IsValid() ) {
+    delete tex;
+    return TextureHandle{};
+  }
+  return ourTexturePool.Add( tex );
 }
 //---------------------------------------------------------------------------//
-SharedPtr< GpuBuffer > RenderCore::CreateBuffer( const GpuBufferProperties & someProperties,
-                                                 const char * aName /*= nullptr*/,
-                                                 const void * someInitialData /* = nullptr */ ) {
-  SharedPtr< GpuBuffer > buffer( ourPlatformImpl->CreateBuffer() );
+GpuBufferHandle RenderCore::CreateBuffer( const GpuBufferProperties & someProperties, const char * aName /*= nullptr*/,
+                                          const void * someInitialData /* = nullptr */ ) {
+  GpuBuffer * buffer = ourPlatformImpl->CreateBuffer();
   if ( !buffer )
-    return nullptr;
+    return GpuBufferHandle{};
 
   buffer->Create( someProperties, aName, someInitialData );
-  return buffer->IsValid() ? buffer : nullptr;
+  if ( !buffer->IsValid() ) {
+    delete buffer;
+    return GpuBufferHandle{};
+  }
+  return ourBufferPool.Add( buffer );
 }
 //---------------------------------------------------------------------------//
-SharedPtr< TextureView > RenderCore::CreateTextureView( const SharedPtr< Texture > & aTexture,
-                                                        const TextureViewProperties & someProperties,
-                                                        const char * aName /*= nullptr*/ ) {
+TextureViewHandle RenderCore::CreateTextureView( Texture * aTexture, const TextureViewProperties & someProperties,
+                                                 const char * aName /*= nullptr*/ ) {
   const TextureProperties & texProps = aTexture->GetProperties();
   TextureViewProperties viewProps = someProperties;
   viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.myFormat;
@@ -934,23 +972,14 @@ SharedPtr< TextureView > RenderCore::CreateTextureView( const SharedPtr< Texture
   const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( viewProps.myFormat );
   ASSERT( viewProps.mySubresourceRange.myFirstPlane < formatInfo.myNumPlanes );
   ASSERT( !viewProps.myIsShaderWritable || !viewProps.myIsRenderTarget, "UAV and RTV are mutually exclusive" );
-  return SharedPtr< TextureView >( ourPlatformImpl->CreateTextureView( aTexture, viewProps, aName ) );
+  TextureView * view = ourPlatformImpl->CreateTextureView( aTexture, viewProps, aName );
+  return ourTextureViewPool.Add( view );
 }
 //---------------------------------------------------------------------------//
-SharedPtr< TextureView > RenderCore::CreateTextureView( const TextureProperties & someProperties,
-                                                        const TextureViewProperties & someViewProperties,
-                                                        const char * aName /*= nullptr*/,
-                                                        TextureSubData * someUploadDatas, uint aNumUploadDatas ) {
-  SharedPtr< Texture > texture = CreateTexture( someProperties, aName, someUploadDatas, aNumUploadDatas );
-  if ( texture == nullptr )
-    return nullptr;
 
-  return CreateTextureView( texture, someViewProperties, aName );
-}
 //---------------------------------------------------------------------------//
-SharedPtr< GpuBufferView > RenderCore::CreateBufferView( const SharedPtr< GpuBuffer > & aBuffer,
-                                                         GpuBufferViewProperties someProperties,
-                                                         const char * aName /*=nullptr*/ ) {
+GpuBufferViewHandle RenderCore::CreateBufferView( GpuBuffer * aBuffer, GpuBufferViewProperties someProperties,
+                                                  const char * aName /*=nullptr*/ ) {
   if ( someProperties.mySize == UINT64_MAX )
     someProperties.mySize = aBuffer->GetByteSize() - someProperties.myOffset;
 
@@ -977,59 +1006,121 @@ SharedPtr< GpuBufferView > RenderCore::CreateBufferView( const SharedPtr< GpuBuf
   ASSERT( !someProperties.myIsRtAccelerationStructure || format == DataFormat::UNKNOWN,
           "Rt acceleration structures can't have formats" );
 
-  return SharedPtr< GpuBufferView >( ourPlatformImpl->CreateBufferView( aBuffer, someProperties, aName ) );
+  GpuBufferView * view = ourPlatformImpl->CreateBufferView( aBuffer, someProperties, aName );
+  return ourBufferViewPool.Add( view );
 }
 //---------------------------------------------------------------------------//
-SharedPtr< GpuBufferView > RenderCore::CreateBufferView( const GpuBufferProperties & someParams,
-                                                         GpuBufferViewProperties someViewProperties,
-                                                         const char * aName /*= nullptr*/,
-                                                         const void * someInitialData ) {
-  SharedPtr< GpuBuffer > buffer = CreateBuffer( someParams, aName, someInitialData );
-  if ( buffer == nullptr )
-    return nullptr;
 
-  return CreateBufferView( buffer, someViewProperties, aName );
-}
 //---------------------------------------------------------------------------//
-SharedPtr< RtAccelerationStructure >
+RtAccelerationStructureHandle
 RenderCore::CreateRtBottomLevelAccelerationStructure( const RtAccelerationStructureGeometryData * someGeometries,
                                                       uint aNumGeometries, uint aSomeFlags, const char * aName ) {
   if ( !GetPlatformCaps().mySupportsRaytracing )
-    return nullptr;
+    return RtAccelerationStructureHandle{};
 
-  return SharedPtr< RtAccelerationStructure >(
-      ourPlatformImpl->CreateRtBottomLevelAccelerationStructure( someGeometries, aNumGeometries, aSomeFlags, aName ) );
+  RtAccelerationStructure * as =
+      ourPlatformImpl->CreateRtBottomLevelAccelerationStructure( someGeometries, aNumGeometries, aSomeFlags, aName );
+  return ourRtAccelerationStructurePool.Add( as );
 }
 //---------------------------------------------------------------------------//
-SharedPtr< RtAccelerationStructure >
+RtAccelerationStructureHandle
 RenderCore::CreateRtTopLevelAccelerationStructure( const RtAccelerationStructureInstanceData * someInstances,
                                                    uint aNumInstances, uint someFlags, const char * aName ) {
   if ( !GetPlatformCaps().mySupportsRaytracing )
-    return nullptr;
+    return RtAccelerationStructureHandle{};
 
-  return SharedPtr< RtAccelerationStructure >(
-      ourPlatformImpl->CreateRtTopLevelAccelerationStructure( someInstances, aNumInstances, someFlags, aName ) );
+  RtAccelerationStructure * as =
+      ourPlatformImpl->CreateRtTopLevelAccelerationStructure( someInstances, aNumInstances, someFlags, aName );
+  return ourRtAccelerationStructurePool.Add( as );
 }
 //---------------------------------------------------------------------------//
-SharedPtr< RtPipelineState > RenderCore::CreateRtPipelineState( const RtPipelineStateProperties & someProps ) {
+RtPipelineStateHandle RenderCore::CreateRtPipelineState( const RtPipelineStateProperties & someProps ) {
   if ( !GetPlatformCaps().mySupportsRaytracing )
-    return nullptr;
+    return RtPipelineStateHandle{};
 
   const uint64 hash = someProps.GetHash();
   auto it = ourRtPipelineStateCache.find( hash );
   if ( it != ourRtPipelineStateCache.end() )
     return it->second;
 
-  SharedPtr< RtPipelineState > state( ourPlatformImpl->CreateRtPipelineState( someProps ) );
-  ourRtPipelineStateCache[ hash ] = state;
-  return state;
+  RtPipelineStateHandle handle = ourRtPipelineStatePool.Add( ourPlatformImpl->CreateRtPipelineState( someProps ) );
+  ourRtPipelineStateCache[ hash ] = handle;
+  return handle;
 }
 //---------------------------------------------------------------------------//
-SharedPtr< RtShaderBindingTable > RenderCore::CreateRtShaderTable( const RtShaderBindingTableProperties & someProps ) {
+RtShaderBindingTableHandle RenderCore::CreateRtShaderTable( const RtShaderBindingTableProperties & someProps ) {
   if ( !GetPlatformCaps().mySupportsRaytracing )
-    return nullptr;
+    return RtShaderBindingTableHandle{};
 
-  return SharedPtr< RtShaderBindingTable >( new RtShaderBindingTable( someProps ) );
+  return ourRtShaderBindingTablePool.Add( new RtShaderBindingTable( someProps ) );
+}
+//---------------------------------------------------------------------------//
+void RenderCore::DeleteTexture( TextureHandle aHandle ) {
+  ourTexturePool.Delete( aHandle );
+}
+void RenderCore::DeleteBuffer( GpuBufferHandle aHandle ) {
+  ourBufferPool.Delete( aHandle );
+}
+void RenderCore::DeleteTextureView( TextureViewHandle aHandle ) {
+  ourTextureViewPool.Delete( aHandle );
+}
+void RenderCore::DeleteBufferView( GpuBufferViewHandle aHandle ) {
+  ourBufferViewPool.Delete( aHandle );
+}
+void RenderCore::DeleteRtAccelerationStructure( RtAccelerationStructureHandle aHandle ) {
+  ourRtAccelerationStructurePool.Delete( aHandle );
+}
+void RenderCore::DeleteRtPipelineState( RtPipelineStateHandle aHandle ) {
+  ourRtPipelineStatePool.Delete( aHandle );
+}
+void RenderCore::DeleteRtShaderBindingTable( RtShaderBindingTableHandle aHandle ) {
+  ourRtShaderBindingTablePool.Delete( aHandle );
+}
+void RenderCore::DeleteRenderOutput( RenderOutputHandle aHandle ) {
+  ourRenderOutputPool.Delete( aHandle );
+}
+//---------------------------------------------------------------------------//
+Texture * RenderCore::GetTexture( TextureHandle aHandle ) {
+  return ourTexturePool.Get( aHandle );
+}
+GpuBuffer * RenderCore::GetBuffer( GpuBufferHandle aHandle ) {
+  return ourBufferPool.Get( aHandle );
+}
+TextureView * RenderCore::GetTextureView( TextureViewHandle aHandle ) {
+  return ourTextureViewPool.Get( aHandle );
+}
+GpuBufferView * RenderCore::GetBufferView( GpuBufferViewHandle aHandle ) {
+  return ourBufferViewPool.Get( aHandle );
+}
+Shader * RenderCore::GetShader( ShaderHandle aHandle ) {
+  return ourShaderPool.Get( aHandle );
+}
+ShaderPipeline * RenderCore::GetShaderPipeline( ShaderPipelineHandle aHandle ) {
+  return ourShaderPipelinePool.Get( aHandle );
+}
+BlendState * RenderCore::GetBlendState( BlendStateHandle aHandle ) {
+  return ourBlendStatePool.Get( aHandle );
+}
+DepthStencilState * RenderCore::GetDepthStencilState( DepthStencilStateHandle aHandle ) {
+  return ourDepthStencilStatePool.Get( aHandle );
+}
+TextureSampler * RenderCore::GetTextureSampler( TextureSamplerHandle aHandle ) {
+  return ourSamplerPool.Get( aHandle );
+}
+VertexInputLayout * RenderCore::GetVertexInputLayout( VertexInputLayoutHandle aHandle ) {
+  return ourVertexInputLayoutPool.Get( aHandle );
+}
+RtAccelerationStructure * RenderCore::GetRtAccelerationStructure( RtAccelerationStructureHandle aHandle ) {
+  return ourRtAccelerationStructurePool.Get( aHandle );
+}
+RtPipelineState * RenderCore::GetRtPipelineState( RtPipelineStateHandle aHandle ) {
+  return ourRtPipelineStatePool.Get( aHandle );
+}
+RtShaderBindingTable * RenderCore::GetRtShaderBindingTable( RtShaderBindingTableHandle aHandle ) {
+  return ourRtShaderBindingTablePool.Get( aHandle );
+}
+RenderOutput * RenderCore::GetRenderOutput( RenderOutputHandle aHandle ) {
+  return ourRenderOutputPool.Get( aHandle );
 }
 //---------------------------------------------------------------------------//
 uint RenderCore::GetQueryTypeDataSize( GpuQueryType aType ) {
@@ -1038,7 +1129,7 @@ uint RenderCore::GetQueryTypeDataSize( GpuQueryType aType ) {
 //---------------------------------------------------------------------------//
 CommandList * RenderCore::BeginCommandList( CommandListType aType ) {
   ASSERT( aType == CommandListType::Graphics || aType == CommandListType::Compute,
-          "CommandList type %d not implemented", (uint) aType );
+          "CommandList type %d not implemented", ( uint ) aType );
 
   CommandQueue * queue = GetCommandQueue( aType );
   return queue->BeginCommandList();
@@ -1047,7 +1138,7 @@ CommandList * RenderCore::BeginCommandList( CommandListType aType ) {
 uint64 RenderCore::ExecuteAndFreeCommandList( class CommandList * aCommandList, SyncMode aSyncMode ) {
   CommandListType type = aCommandList->GetType();
   ASSERT( type == CommandListType::Graphics || type == CommandListType::Compute, "CommandList type %d not implemented",
-          (uint) type );
+          ( uint ) type );
 
   ASSERT( aCommandList->IsOpen(), "CommandList is not open (already executed?)" );
 
@@ -1058,7 +1149,7 @@ uint64 RenderCore::ExecuteAndFreeCommandList( class CommandList * aCommandList, 
 uint64 RenderCore::ExecuteAndResetCommandList( CommandList * aCommandList, SyncMode aSyncMode ) {
   CommandListType type = aCommandList->GetType();
   ASSERT( type == CommandListType::Graphics || type == CommandListType::Compute, "CommandList type %d not implemented",
-          (uint) type );
+          ( uint ) type );
 
   ASSERT( aCommandList->IsOpen(), "CommandList is not open (already executed?)" );
 
@@ -1077,12 +1168,12 @@ TempBufferResource RenderCore::AllocateTempBuffer( const GpuBufferResourceProper
 }
 //---------------------------------------------------------------------------//
 uint RenderCore::AllocateQueryRange( GpuQueryType aType, uint aNumQueries ) {
-  GpuQueryHeap * heap = ourQueryHeaps[ ourCurrQueryHeapIdx ][ (uint) aType ].get();
+  GpuQueryHeap * heap = ourQueryHeaps[ ourCurrQueryHeapIdx ][ ( uint ) aType ].get();
   return heap->Allocate( aNumQueries );
 }
 //---------------------------------------------------------------------------//
 void RenderCore::FreeQueryRange( GpuQueryType aType, uint aFirstQuery, uint aNumQueries, uint aNumUsedQueries ) {
-  GpuQueryHeap * heap = ourQueryHeaps[ ourCurrQueryHeapIdx ][ (uint) aType ].get();
+  GpuQueryHeap * heap = ourQueryHeaps[ ourCurrQueryHeapIdx ][ ( uint ) aType ].get();
 
   // Is this the last query-range that was allocated? Then deallocate the range in the storage again so it can be used
   // again
@@ -1090,7 +1181,7 @@ void RenderCore::FreeQueryRange( GpuQueryType aType, uint aFirstQuery, uint aNum
     heap->myNextFreeQuery = aFirstQuery + aNumUsedQueries;
 
   if ( aNumUsedQueries > 0u )
-    ourUsedQueryRanges[ (uint) aType ].push_back( { aFirstQuery, aFirstQuery + aNumUsedQueries } );
+    ourUsedQueryRanges[ ( uint ) aType ].push_back( { aFirstQuery, aFirstQuery + aNumUsedQueries } );
 }
 //---------------------------------------------------------------------------//
 bool RenderCore::BeginQueryDataReadback( GpuQueryType aType, uint64 aFrameIdx,
@@ -1098,7 +1189,7 @@ bool RenderCore::BeginQueryDataReadback( GpuQueryType aType, uint64 aFrameIdx,
   if ( !IsFrameDone( aFrameIdx ) )
     return false;
 
-  const uint type = (uint) aType;
+  const uint type = ( uint ) aType;
   if ( ourMappedQueryBufferData[ type ] != nullptr &&
        ourQueryBufferFrames[ ourMappedQueryBufferIdx[ type ] ] == aFrameIdx ) {
     if ( aDataPtrOut != nullptr )
@@ -1117,9 +1208,9 @@ bool RenderCore::BeginQueryDataReadback( GpuQueryType aType, uint64 aFrameIdx,
     return false;
 
   GpuBuffer * buffer = ourQueryBuffers[ bufferIdx ][ type ].get();
-  ourMappedQueryBufferData[ type ] = (const uint8 *) buffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
+  ourMappedQueryBufferData[ type ] = ( const uint8 * ) buffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
   ASSERT( ourMappedQueryBufferData[ type ] != nullptr );
-  ourMappedQueryBufferIdx[ type ] = (uint) bufferIdx;
+  ourMappedQueryBufferIdx[ type ] = ( uint ) bufferIdx;
 
   if ( aDataPtrOut != nullptr )
     *aDataPtrOut = ourMappedQueryBufferData[ type ];
@@ -1128,7 +1219,7 @@ bool RenderCore::BeginQueryDataReadback( GpuQueryType aType, uint64 aFrameIdx,
 }
 //---------------------------------------------------------------------------//
 bool RenderCore::ReadQueryData( const GpuQuery & aQuery, uint8 * aData ) {
-  const uint type = (uint) aQuery.myType;
+  const uint type = ( uint ) aQuery.myType;
   const uint8 * mappedData = ourMappedQueryBufferData[ type ];
   if ( mappedData == nullptr )
     return false;
@@ -1137,16 +1228,16 @@ bool RenderCore::ReadQueryData( const GpuQuery & aQuery, uint8 * aData ) {
   if ( aQuery.myFrame != ourQueryBufferFrames[ bufferIdx ] )
     return false;
 
-  const uint queryTypeDataSize = GetQueryTypeDataSize( (GpuQueryType) type );
+  const uint queryTypeDataSize = GetQueryTypeDataSize( ( GpuQueryType ) type );
   const uint8 byteOffset = aQuery.myIndexInHeap * queryTypeDataSize;
   ASSERT( ourQueryBuffers[ bufferIdx ][ type ]->GetByteSize() >= byteOffset + queryTypeDataSize );
 
-  memcpy( aData, mappedData + byteOffset, (size_t) queryTypeDataSize );
+  memcpy( aData, mappedData + byteOffset, ( size_t ) queryTypeDataSize );
   return true;
 }
 //---------------------------------------------------------------------------//
 void RenderCore::EndQueryDataReadback( GpuQueryType aType ) {
-  const uint type = (uint) aType;
+  const uint type = ( uint ) aType;
   if ( ourMappedQueryBufferData[ type ] == nullptr )
     return;
 
@@ -1216,7 +1307,7 @@ void RenderCore::WaitForIdle( CommandListType aType ) {
 //---------------------------------------------------------------------------//
 CommandQueue * RenderCore::GetCommandQueue( CommandListType aType ) {
   const CommandListType commandListType = ResolveSupportedCommandListType( aType );
-  return ourCommandQueues[ (uint) commandListType ].get();
+  return ourCommandQueues[ ( uint ) commandListType ].get();
 }
 //---------------------------------------------------------------------------//
 CommandQueue * RenderCore::GetCommandQueue( uint64 aFenceVal ) {

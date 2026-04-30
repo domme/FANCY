@@ -66,7 +66,7 @@ Test_Profiler::Test_Profiler( Fancy::AssetManager * anAssetManager, Fancy::Windo
   props.myElementSizeBytes = 50 * SIZE_MB;
   props.myNumElements = 1u;
   props.myIsShaderWritable = false;
-  props.myBindFlags = (uint) GpuBufferBindFlags::SHADER_BUFFER;
+  props.myBindFlags = ( uint ) GpuBufferBindFlags::SHADER_BUFFER;
   myDummyGpuBuffer1 = RenderCore::CreateBuffer( props, "TestItem_Profiler_DummyBuffer1" );
   ASSERT( myDummyGpuBuffer1 != nullptr, "Test Profiler failed: Unable to create gpu dummy buffer" );
   myDummyGpuBuffer2 = RenderCore::CreateBuffer( props, "TestItem_Profiler_DummyBuffer1" );

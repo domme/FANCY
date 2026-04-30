@@ -62,11 +62,12 @@ namespace Fancy {
     AllocatedPage * myLastAllocatedPage;
     //---------------------------------------------------------------------------//
     void AllocateNewPage() {
-      AllocatedPage * newPage = (AllocatedPage *) malloc( sizeof( AllocatedPage ) + ( sizeof( Entry ) * myPageSize ) );
+      AllocatedPage * newPage =
+          ( AllocatedPage * ) malloc( sizeof( AllocatedPage ) + ( sizeof( Entry ) * myPageSize ) );
       newPage->myNext = myLastAllocatedPage;
       myLastAllocatedPage = newPage;
 
-      Entry * newEntries = (Entry *) ( (uint8) newPage + sizeof( AllocatedPage ) );
+      Entry * newEntries = ( Entry * ) ( ( uint8 ) newPage + sizeof( AllocatedPage ) );
       for ( uint i = 0u; i < myPageSize - 1u; ++i ) {
         newEntries[ i ].myNext = &newEntries[ i + 1 ];
       }

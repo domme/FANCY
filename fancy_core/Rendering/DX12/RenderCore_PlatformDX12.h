@@ -93,11 +93,9 @@ namespace Fancy {
     TextureSampler * CreateTextureSampler( const TextureSamplerProperties & someProperties ) override;
     CommandList * CreateCommandList( CommandListType aType ) override;
     CommandQueue * CreateCommandQueue( CommandListType aType ) override;
-    TextureView * CreateTextureView( const SharedPtr< Texture > & aTexture,
-                                     const TextureViewProperties & someProperties,
+    TextureView * CreateTextureView( Texture * aTexture, const TextureViewProperties & someProperties,
                                      const char * aDebugName = nullptr ) override;
-    GpuBufferView * CreateBufferView( const SharedPtr< GpuBuffer > & aBuffer,
-                                      const GpuBufferViewProperties & someProperties,
+    GpuBufferView * CreateBufferView( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
                                       const char * aDebugName = nullptr ) override;
     RtAccelerationStructure *
     CreateRtBottomLevelAccelerationStructure( const RtAccelerationStructureGeometryData * someGeometries,
@@ -132,14 +130,14 @@ namespace Fancy {
 
     UniquePtr< StaticDescriptorAllocatorDX12 > myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
     UniquePtr< ShaderVisibleDescriptorHeapDX12 > myShaderVisibleDescriptorHeap;
-    UniquePtr< GpuMemoryAllocatorDX12 > myGpuMemoryAllocators[ (uint) GpuMemoryType::NUM ]
-                                                             [ (uint) CpuMemoryAccessType::NUM ];
-    UniquePtr< CommandAllocatorPoolDX12 > ourCommandAllocatorPools[ (uint) CommandListType::NUM ];
+    UniquePtr< GpuMemoryAllocatorDX12 > myGpuMemoryAllocators[ ( uint ) GpuMemoryType::NUM ]
+                                                             [ ( uint ) CpuMemoryAccessType::NUM ];
+    UniquePtr< CommandAllocatorPoolDX12 > ourCommandAllocatorPools[ ( uint ) CommandListType::NUM ];
     UniquePtr< RootSignatureDX12 > myRootSignature;
-    float64 myGpuTicksToMsFactor[ (uint) CommandListType::NUM ];
+    float64 myGpuTicksToMsFactor[ ( uint ) CommandListType::NUM ];
 
-    DescriptorDX12 mySRVNullDescriptors[ (uint) GpuResourceDimension::NUM ];
-    DescriptorDX12 myUAVNullDescriptors[ (uint) GpuResourceDimension::NUM ];
+    DescriptorDX12 mySRVNullDescriptors[ ( uint ) GpuResourceDimension::NUM ];
+    DescriptorDX12 myUAVNullDescriptors[ ( uint ) GpuResourceDimension::NUM ];
     DescriptorDX12 mySamplerNullDescriptor;
     DescriptorDX12 myCBVNullDescriptor;
 

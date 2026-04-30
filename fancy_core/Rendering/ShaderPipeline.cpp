@@ -13,8 +13,8 @@ namespace Fancy {
   ShaderPipelineDesc ShaderPipeline::GetDescription() const {
     ShaderPipelineDesc desc;
 
-    for ( uint i = 0u; i < (uint) ShaderStage::SHADERSTAGE_NUM; ++i ) {
-      const Shader * pProgram = myShaders[ i ].get();
+    for ( uint i = 0u; i < ( uint ) ShaderStage::SHADERSTAGE_NUM; ++i ) {
+      const Shader * pProgram = myShaders[ i ];
       if ( pProgram )
         desc.myShader[ i ] = pProgram->GetDescription();
     }
@@ -22,9 +22,8 @@ namespace Fancy {
     return desc;
   }
   //---------------------------------------------------------------------------//
-  void ShaderPipeline::Create(
-      const eastl::span< SharedPtr< Shader >, (uint) ShaderStage::SHADERSTAGE_NUM > & someShaders ) {
-    for ( uint i = 0u; i < (uint) ShaderStage::SHADERSTAGE_NUM; ++i )
+  void ShaderPipeline::Create( const eastl::span< Shader *, ( uint ) ShaderStage::SHADERSTAGE_NUM > & someShaders ) {
+    for ( uint i = 0u; i < ( uint ) ShaderStage::SHADERSTAGE_NUM; ++i )
       myShaders[ i ] = someShaders[ i ];
 
     Recreate();
@@ -37,8 +36,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void ShaderPipeline::UpdateShaderByteCodeHash() {
     myShaderByteCodeHash = 0u;
-    for ( uint i = 0u; i < (uint) ShaderStage::SHADERSTAGE_NUM; ++i ) {
-      Shader * shader = myShaders[ i ].get();
+    for ( uint i = 0u; i < ( uint ) ShaderStage::SHADERSTAGE_NUM; ++i ) {
+      Shader * shader = myShaders[ i ];
       MathUtil::hash_combine( myShaderByteCodeHash, reinterpret_cast< uint64 >( shader ) );
       if ( shader != nullptr )
         MathUtil::hash_combine( myShaderByteCodeHash, shader->GetNativeBytecodeHash() );

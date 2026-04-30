@@ -21,8 +21,8 @@ namespace Fancy {
     for ( DataFormat & rtvFormat : myRTVformats )
       rtvFormat = DataFormat::UNKNOWN;
 
-    myDepthStencilState = RenderCore::GetDefaultDepthStencilState().get();
-    myBlendState = RenderCore::GetDefaultBlendState().get();
+    myDepthStencilState = RenderCore::GetDefaultDepthStencilState();
+    myBlendState = RenderCore::GetDefaultBlendState();
   }
   //---------------------------------------------------------------------------//
   uint64 GraphicsPipelineState::GetHash() const {
@@ -142,7 +142,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   GpuQuery CommandList::AllocateQuery( GpuQueryType aType ) {
-    const uint type = (uint) aType;
+    const uint type = ( uint ) aType;
 
     GpuQueryRange & range = myQueryRanges[ type ];
     if ( range.myNumQueries > 0u && range.myNumUsedQueries == range.myNumQueries )
@@ -176,24 +176,24 @@ namespace Fancy {
       case GpuBufferUsage::STAGING_UPLOAD_RT_BUILD_INPUT: {
         name += "STAGING_UPLOAD_RT_BUILD_INPUT";
         ringBufferList = &myRtUploadRingBuffers;
-        bindFlags |= (uint) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT;
+        bindFlags |= ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_BUILD_INPUT;
       } break;
       case GpuBufferUsage::CONSTANT_BUFFER: {
         name += "CONSTANT_BUFFER";
         ringBufferList = &myConstantRingBuffers;
-        bindFlags |= (uint) GpuBufferBindFlags::CONSTANT_BUFFER;
+        bindFlags |= ( uint ) GpuBufferBindFlags::CONSTANT_BUFFER;
       } break;
       case GpuBufferUsage::VERTEX_BUFFER: {
         name += "VERTEX_BUFFER";
         ringBufferList = &myVertexRingBuffers;
         sizeStep = 1 * SIZE_MB;
-        bindFlags |= (uint) GpuBufferBindFlags::VERTEX_BUFFER;
+        bindFlags |= ( uint ) GpuBufferBindFlags::VERTEX_BUFFER;
       } break;
       case GpuBufferUsage::INDEX_BUFFER: {
         name += "INDEX_BUFFER";
         ringBufferList = &myIndexRingBuffers;
         sizeStep = 1 * SIZE_MB;
-        bindFlags |= (uint) GpuBufferBindFlags::INDEX_BUFFER;
+        bindFlags |= ( uint ) GpuBufferBindFlags::INDEX_BUFFER;
       } break;
       default: {
         ASSERT( false, "Buffertype not implemented as a ringBuffer" );
@@ -203,7 +203,7 @@ namespace Fancy {
 
     if ( ringBufferList->empty() || ringBufferList->back()->GetFreeDataSize( anAlignment ) < aDataSize )
       ringBufferList->push_back( RenderCore::AllocateRingBuffer(
-          CpuMemoryAccessType::CPU_WRITE, bindFlags, (uint) MathUtil::Align( aDataSize, sizeStep ), name.c_str() ) );
+          CpuMemoryAccessType::CPU_WRITE, bindFlags, ( uint ) MathUtil::Align( aDataSize, sizeStep ), name.c_str() ) );
 
     GpuRingBuffer * ringBuffer = ringBufferList->back();
     uint64 offset = 0;
@@ -349,10 +349,10 @@ namespace Fancy {
       RenderCore::ReleaseRingBuffer( buf, aFenceVal );
     myIndexRingBuffers.clear();
 
-    for ( uint i = 0u; i < (uint) GpuQueryType::NUM; ++i ) {
+    for ( uint i = 0u; i < ( uint ) GpuQueryType::NUM; ++i ) {
       GpuQueryRange & range = myQueryRanges[ i ];
       if ( range.myNumUsedQueries > 0 )
-        RenderCore::FreeQueryRange( (GpuQueryType) i, range.myFirstQueryIdx, range.myNumQueries,
+        RenderCore::FreeQueryRange( ( GpuQueryType ) i, range.myFirstQueryIdx, range.myNumQueries,
                                     range.myNumUsedQueries );
       range = { 0u, 0u, 0u };
     }
@@ -385,28 +385,28 @@ namespace Fancy {
     myViewportDirty = true;
   }
   //---------------------------------------------------------------------------//
-  void CommandList::SetBlendState( const SharedPtr< BlendState > & aBlendState ) {
-    const SharedPtr< BlendState > & stateToSet = aBlendState ? aBlendState : RenderCore::GetDefaultBlendState();
+  void CommandList::SetBlendState( BlendState * aBlendState ) {
+    BlendState * stateToSet = aBlendState ? aBlendState : RenderCore::GetDefaultBlendState();
 
     GraphicsPipelineState & pipelineState = myGraphicsPipelineState;
 
-    if ( pipelineState.myBlendState == stateToSet.get() )
+    if ( pipelineState.myBlendState == stateToSet )
       return;
 
-    pipelineState.myBlendState = stateToSet.get();
+    pipelineState.myBlendState = stateToSet;
     pipelineState.myIsDirty = true;
   }
   //---------------------------------------------------------------------------//
-  void CommandList::SetDepthStencilState( const SharedPtr< DepthStencilState > & aDepthStencilState ) {
-    const SharedPtr< DepthStencilState > & stateToSet =
+  void CommandList::SetDepthStencilState( DepthStencilState * aDepthStencilState ) {
+    DepthStencilState * stateToSet =
         aDepthStencilState ? aDepthStencilState : RenderCore::GetDefaultDepthStencilState();
 
     GraphicsPipelineState & pipelineState = myGraphicsPipelineState;
 
-    if ( pipelineState.myDepthStencilState == stateToSet.get() )
+    if ( pipelineState.myDepthStencilState == stateToSet )
       return;
 
-    pipelineState.myDepthStencilState = stateToSet.get();
+    pipelineState.myDepthStencilState = stateToSet;
     pipelineState.myIsDirty = true;
   }
   //---------------------------------------------------------------------------//

@@ -7,6 +7,7 @@
 #include "Common/FancyCoreDefines.h"
 #include "EASTL/string.h"
 #include "Common/Ptr.h"
+#include "Rendering/ResourceHandle.h"
 
 struct ImGuiContext;
 
@@ -42,7 +43,7 @@ namespace Fancy {
     SharedPtr< Time > myRealTimeClock;
     InputState myInputState;
     Camera myCamera;
-    SharedPtr< RenderOutput > myRenderOutput;
+    RenderOutputHandle myRenderOutput;
   };
 
 }  // namespace Fancy

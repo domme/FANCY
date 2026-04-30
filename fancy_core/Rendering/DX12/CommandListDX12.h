@@ -124,8 +124,8 @@ namespace Fancy {
       SubresourceHazardData() : myWasWritten( false ), myWasUsed( false ), myIsSharedReadState( false ) {}
 
       // TODO: Those two could be reduced to only 24 bits
-      D3D12_RESOURCE_STATES myFirstDstStates = (D3D12_RESOURCE_STATES) 0;
-      D3D12_RESOURCE_STATES myStates = (D3D12_RESOURCE_STATES) 0;
+      D3D12_RESOURCE_STATES myFirstDstStates = ( D3D12_RESOURCE_STATES ) 0;
+      D3D12_RESOURCE_STATES myStates = ( D3D12_RESOURCE_STATES ) 0;
       uint myWasWritten : 1;
       uint myWasUsed : 1;
       uint myIsSharedReadState : 1;

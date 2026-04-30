@@ -29,7 +29,7 @@ Test_HazardTracking::Test_HazardTracking( Fancy::AssetManager * anAssetManager, 
   }
 
   GpuBufferProperties bufProps;
-  bufProps.myBindFlags = (uint) GpuBufferBindFlags::SHADER_BUFFER;
+  bufProps.myBindFlags = ( uint ) GpuBufferBindFlags::SHADER_BUFFER;
   bufProps.myIsShaderWritable = true;
   bufProps.myNumElements = ( 32 * 32 ) + ( 16 * 16 ) + ( 8 * 8 );
   bufProps.myElementSizeBytes = 4u;
@@ -59,8 +59,8 @@ Test_HazardTracking::Test_HazardTracking( Fancy::AssetManager * anAssetManager, 
   }
 
   ShaderPipelineDesc pipelineDesc;
-  ShaderDesc * shaderDesc = &pipelineDesc.myShader[ (uint) ShaderStage::SHADERSTAGE_COMPUTE ];
-  shaderDesc->myShaderStage = (uint) ShaderStage::SHADERSTAGE_COMPUTE;
+  ShaderDesc * shaderDesc = &pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
+  shaderDesc->myShaderStage = ( uint ) ShaderStage::SHADERSTAGE_COMPUTE;
   shaderDesc->myMainFunction = "main";
   shaderDesc->myPath = "fancy/resources/shaders/Tests/HazardTracking.hlsl";
 

@@ -13,7 +13,7 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
     template < class VectorT >
     void Tokenize( const char * aString, const char * someDelimiters, VectorT & someTokensOut ) {
-      uint len = aString == nullptr ? 0 : (uint) strlen( aString );
+      uint len = aString == nullptr ? 0 : ( uint ) strlen( aString );
       if ( len == 0 )
         return;
 

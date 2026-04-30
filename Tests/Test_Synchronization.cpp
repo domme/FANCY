@@ -46,7 +46,7 @@ void Test_Synchronization::OnUpdate( bool aDrawProperties ) {
   switch ( myStage ) {
     case Stage::IDLE: {
       myExpectedBufferValue = Time::ourFrameIdx;
-      uint * bufferData = (uint *) myUploadBuffer->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
+      uint * bufferData = ( uint * ) myUploadBuffer->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
       for ( uint i = 0; i < kNumBufferElements; ++i )
         bufferData[ i ] = myExpectedBufferValue;
       myUploadBuffer->Unmap( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
@@ -62,7 +62,7 @@ void Test_Synchronization::OnUpdate( bool aDrawProperties ) {
         myStage = Stage::COPY_DONE;
     } break;
     case Stage::COPY_DONE: {
-      uint * bufferData = (uint *) myReadbackBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
+      uint * bufferData = ( uint * ) myReadbackBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
       bool hasExpectedData = true;
       uint bufferValue = 0;
       for ( uint i = 0; hasExpectedData && i < kNumBufferElements; ++i ) {

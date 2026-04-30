@@ -36,7 +36,7 @@ namespace Fancy {
         case CommandListType::DMA:
           return D3D12_COMMAND_LIST_TYPE_COPY;
         default:
-          ASSERT( false, "CommandListType %d not implemented", (uint) aCommandListType );
+          ASSERT( false, "CommandListType %d not implemented", ( uint ) aCommandListType );
           return D3D12_COMMAND_LIST_TYPE_DIRECT;
       }
     }
@@ -83,7 +83,7 @@ namespace Fancy {
     D3D12_RESOURCE_STATES locGetResourceStatesForContext( CommandListType aCommandListType ) {
       switch ( aCommandListType ) {
         case CommandListType::Graphics:
-          return (D3D12_RESOURCE_STATES) UINT_MAX;
+          return ( D3D12_RESOURCE_STATES ) UINT_MAX;
         case CommandListType::Compute:
           return D3D12_RESOURCE_STATE_COMMON | D3D12_RESOURCE_STATE_UNORDERED_ACCESS |
                  D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT |
@@ -92,7 +92,7 @@ namespace Fancy {
         case CommandListType::DMA:
           return D3D12_RESOURCE_STATE_COMMON | D3D12_RESOURCE_STATE_COPY_DEST | D3D12_RESOURCE_STATE_COPY_SOURCE;
         default:
-          return (D3D12_RESOURCE_STATES) 0u;
+          return ( D3D12_RESOURCE_STATES ) 0u;
       }
     }
     //---------------------------------------------------------------------------//
@@ -126,13 +126,13 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   D3D12_DESCRIPTOR_HEAP_TYPE CommandListDX12::ResolveDescriptorHeapTypeFromMask( uint aDescriptorTypeMask ) {
-    if ( aDescriptorTypeMask & (uint) GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER )
+    if ( aDescriptorTypeMask & ( uint ) GpuDescriptorTypeFlags::BUFFER_TEXTURE_CONSTANT_BUFFER )
       return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    else if ( aDescriptorTypeMask & (uint) GpuDescriptorTypeFlags::SAMPLER )
+    else if ( aDescriptorTypeMask & ( uint ) GpuDescriptorTypeFlags::SAMPLER )
       return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
 
     ASSERT( false, "unsupported descriptor type mask" );
-    return (D3D12_DESCRIPTOR_HEAP_TYPE) -1;
+    return ( D3D12_DESCRIPTOR_HEAP_TYPE ) -1;
   }
   //---------------------------------------------------------------------------//
   void CommandListDX12::PrepareForRecord( bool aResetCommandList ) {
@@ -200,7 +200,7 @@ namespace Fancy {
       uint64 dstSubResourceRowSize = destLayouts[ i ].Footprint.RowPitch;
       uint64 dstSubResourceSliceSize = dstSubResourceRowSize * destRowNums[ i ];
 
-      uint8 * srcSubResourceData = (uint8 *) someSubresourceDatas[ i ].pData;
+      uint8 * srcSubResourceData = ( uint8 * ) someSubresourceDatas[ i ].pData;
       uint64 srcSubResourceRowSize = someSubresourceDatas[ i ].RowPitch;
       uint64 srcSubResourceSliceSize = someSubresourceDatas[ i ].SlicePitch;
 
@@ -258,8 +258,8 @@ namespace Fancy {
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( format );
     ASSERT( formatInfo.myIsDepthStencil );
 
-    const bool clearDepth = someClearFlags & (uint) DepthStencilClearFlags::CLEAR_DEPTH;
-    const bool clearStencil = someClearFlags & (uint) DepthStencilClearFlags::CLEAR_STENCIL;
+    const bool clearDepth = someClearFlags & ( uint ) DepthStencilClearFlags::CLEAR_DEPTH;
+    const bool clearStencil = someClearFlags & ( uint ) DepthStencilClearFlags::CLEAR_STENCIL;
 
     const SubresourceRange & subresources = aTextureView->GetSubresourceRange();
 
@@ -279,10 +279,10 @@ namespace Fancy {
     TrackResourceTransition( aTextureView->GetTexture(), D3D12_RESOURCE_STATE_DEPTH_WRITE );
     FlushBarriers();
 
-    D3D12_CLEAR_FLAGS clearFlags = (D3D12_CLEAR_FLAGS) 0;
-    if ( someClearFlags & (uint) DepthStencilClearFlags::CLEAR_DEPTH )
+    D3D12_CLEAR_FLAGS clearFlags = ( D3D12_CLEAR_FLAGS ) 0;
+    if ( someClearFlags & ( uint ) DepthStencilClearFlags::CLEAR_DEPTH )
       clearFlags |= D3D12_CLEAR_FLAG_DEPTH;
-    if ( someClearFlags & (uint) DepthStencilClearFlags::CLEAR_STENCIL )
+    if ( someClearFlags & ( uint ) DepthStencilClearFlags::CLEAR_STENCIL )
       clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
 
     myCommandList->ClearDepthStencilView( viewDataDx12.myDescriptor.myCpuHandle, clearFlags, aDepthClear, aStencilClear,
@@ -349,10 +349,10 @@ namespace Fancy {
     footprint.Offset = 0;
     footprint.Footprint.Format = RenderCore_PlatformDX12::GetCopyableFormat( formatDx12, aSrcSubresource.myPlaneIndex );
     footprint.Footprint.Width = aSrcRegion.mySize.x;
-    footprint.Footprint.RowPitch = (uint) MathUtil::Align(
-        (uint64) BITS_TO_BYTES( aSrcRegion.mySize.x *
-                                formatInfo.myCopyableBitsPerPixelPerPlane[ aSrcSubresource.myPlaneIndex ] ),
-        (uint64) RenderCore::GetPlatformCaps().myTextureRowAlignment );
+    footprint.Footprint.RowPitch = ( uint ) MathUtil::Align(
+        ( uint64 ) BITS_TO_BYTES( aSrcRegion.mySize.x *
+                                  formatInfo.myCopyableBitsPerPixelPerPlane[ aSrcSubresource.myPlaneIndex ] ),
+        ( uint64 ) RenderCore::GetPlatformCaps().myTextureRowAlignment );
     footprint.Footprint.Height = aSrcRegion.mySize.y;
     footprint.Footprint.Depth = aSrcRegion.mySize.z;
 
@@ -450,7 +450,7 @@ namespace Fancy {
     footprint.Footprint.Format = RenderCore_PlatformDX12::GetCopyableFormat( formatDx12, aDstSubresource.myPlaneIndex );
     footprint.Footprint.Width = aDstRegion.mySize.x;
     footprint.Footprint.RowPitch =
-        (uint) MathUtil::Align( rowPitch, RenderCore::GetPlatformCaps().myTextureRowAlignment );
+        ( uint ) MathUtil::Align( rowPitch, RenderCore::GetPlatformCaps().myTextureRowAlignment );
     footprint.Footprint.Height = aDstRegion.mySize.y;
     footprint.Footprint.Depth = aDstRegion.mySize.z;
 
@@ -471,10 +471,10 @@ namespace Fancy {
     const uint numSubresources = aSubresourceRange.GetNumSubresources();
     ASSERT( aNumDatas == numSubresources );
 
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT * footprints =
-        (D3D12_PLACED_SUBRESOURCE_FOOTPRINT *) alloca( sizeof( D3D12_PLACED_SUBRESOURCE_FOOTPRINT ) * numSubresources );
-    uint * rowNums = (uint *) alloca( sizeof( uint ) * numSubresources );
-    uint64 * rowSizes = (uint64 *) alloca( sizeof( uint64 ) * numSubresources );
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT * footprints = ( D3D12_PLACED_SUBRESOURCE_FOOTPRINT * ) alloca(
+        sizeof( D3D12_PLACED_SUBRESOURCE_FOOTPRINT ) * numSubresources );
+    uint * rowNums = ( uint * ) alloca( sizeof( uint ) * numSubresources );
+    uint64 * rowSizes = ( uint64 * ) alloca( sizeof( uint64 ) * numSubresources );
     uint64 totalSize = static_cast< const TextureDX12 * >( aDstTexture )
                            ->GetCopyableFootprints( aSubresourceRange, footprints, rowNums, rowSizes );
 
@@ -484,7 +484,7 @@ namespace Fancy {
     ASSERT( uploadBuffer != nullptr );
 
     uint8 * uploadBufferData =
-        (uint8 *) uploadBuffer->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize );
+        ( uint8 * ) uploadBuffer->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize );
 
     for ( uint i = 0; i < aNumDatas; ++i ) {
       const D3D12_PLACED_SUBRESOURCE_FOOTPRINT & footprint = footprints[ i ];
@@ -544,7 +544,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void CommandListDX12::FlushBarriers() {
     if ( !myPendingBarriers.empty() ) {
-      myCommandList->ResourceBarrier( (uint) myPendingBarriers.size(), myPendingBarriers.data() );
+      myCommandList->ResourceBarrier( ( uint ) myPendingBarriers.size(), myPendingBarriers.data() );
       myPendingBarriers.clear();
     }
   }
@@ -652,14 +652,14 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void CommandListDX12::TransitionResource( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
                                             ResourceTransition aTransition, uint /* someUsageFlags = 0u*/ ) {
-    D3D12_RESOURCE_STATES newStates = (D3D12_RESOURCE_STATES) 0;
+    D3D12_RESOURCE_STATES newStates = ( D3D12_RESOURCE_STATES ) 0;
     bool toSharedRead = false;
 
     const GpuResourceHazardDataDX12 & hazardData = aResource->GetDX12Data()->myHazardData;
 
     switch ( aTransition ) {
       case ResourceTransition::TO_SHARED_CONTEXT_READ:
-        newStates = (D3D12_RESOURCE_STATES) hazardData.myReadStates;
+        newStates = ( D3D12_RESOURCE_STATES ) hazardData.myReadStates;
         toSharedRead = true;
         break;
       default:
@@ -700,7 +700,7 @@ namespace Fancy {
       AddBarrier( barrier );
     } else {
       D3D12_RESOURCE_BARRIER * barriers =
-          (D3D12_RESOURCE_BARRIER *) alloca( sizeof( D3D12_RESOURCE_BARRIER ) * aNumResources );
+          ( D3D12_RESOURCE_BARRIER * ) alloca( sizeof( D3D12_RESOURCE_BARRIER ) * aNumResources );
       for ( uint iRes = 0u; iRes < aNumResources; ++iRes ) {
         const GpuResource * resource = someResources[ iRes ];
         ID3D12Resource * resourceDx12 = resource->GetDX12Data()->myResource.Get();
@@ -722,7 +722,7 @@ namespace Fancy {
             ? myGraphicsPipelineState.myShaderPipeline->GetShader( ShaderStage::SHADERSTAGE_VERTEX )
             : nullptr;
     const VertexInputLayout * shaderInputLayout =
-        vertexShader ? vertexShader->myDefaultVertexInputLayout.get() : nullptr;
+        vertexShader ? RenderCore::GetVertexInputLayout( vertexShader->myDefaultVertexInputLayout ) : nullptr;
     const VertexInputLayout * inputLayout = anInputLayout ? anInputLayout : shaderInputLayout;
 
     ASSERT( inputLayout && inputLayout->myProperties.myBufferBindings.size() == aNumBuffers );
@@ -752,7 +752,7 @@ namespace Fancy {
       vertexBufferView.StrideInBytes = inputLayout->myProperties.myBufferBindings[ i ].myStride;
     }
 
-    myCommandList->IASetVertexBuffers( 0, (uint) vertexBufferViews.size(), vertexBufferViews.data() );
+    myCommandList->IASetVertexBuffers( 0, ( uint ) vertexBufferViews.size(), vertexBufferViews.data() );
   }
   //---------------------------------------------------------------------------//
   void CommandListDX12::BindIndexBuffer( const GpuBuffer * aBuffer, uint anIndexSize, uint64 anIndexOffset /* = 0u */,
@@ -889,7 +889,7 @@ namespace Fancy {
       return;
 
     uint rootParamIdx = rootSignature->myRootParamIndex_LocalBuffers;
-    for ( uint i = 0; i < (uint) myLocalBuffersToBind.size(); ++i ) {
+    for ( uint i = 0; i < ( uint ) myLocalBuffersToBind.size(); ++i ) {
       if ( myLocalBuffersToBind[ i ] == UINT64_MAX )
         continue;
 
@@ -901,7 +901,7 @@ namespace Fancy {
     myLocalBuffersToBind.clear();
 
     rootParamIdx = rootSignature->myRootParamIndex_LocalRWBuffers;
-    for ( uint i = 0; i < (uint) myLocalRWBuffersToBind.size(); ++i ) {
+    for ( uint i = 0; i < ( uint ) myLocalRWBuffersToBind.size(); ++i ) {
       if ( myLocalRWBuffersToBind[ i ] == UINT64_MAX )
         continue;
 
@@ -913,7 +913,7 @@ namespace Fancy {
     myLocalRWBuffersToBind.clear();
 
     rootParamIdx = rootSignature->myRootParamIndex_LocalCBuffers;
-    for ( uint i = 0; i < (uint) myLocalCBuffersToBind.size(); ++i ) {
+    for ( uint i = 0; i < ( uint ) myLocalCBuffersToBind.size(); ++i ) {
       if ( myLocalCBuffersToBind[ i ] == UINT64_MAX )
         continue;
 
@@ -994,7 +994,7 @@ namespace Fancy {
     if ( canTransitionAllSubresources ) {
       const D3D12_RESOURCE_STATES firstSrcStates = localData->mySubresources[ 0 ].myStates;
 
-      for ( uint sub = 0u; canTransitionAllSubresources && sub < (uint) localData->mySubresources.size(); ++sub ) {
+      for ( uint sub = 0u; canTransitionAllSubresources && sub < ( uint ) localData->mySubresources.size(); ++sub ) {
         canTransitionAllSubresources &=
             localData->mySubresources[ sub ].myWasUsed && localData->mySubresources[ sub ].myStates == firstSrcStates;
       }
@@ -1082,7 +1082,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   D3D12_RESOURCE_STATES CommandListDX12::ResolveValidateDstStates( const GpuResource * aResource,
                                                                    D3D12_RESOURCE_STATES aDstStates ) {
-    bool wasEmpty = aDstStates == (D3D12_RESOURCE_STATES) 0;
+    bool wasEmpty = aDstStates == ( D3D12_RESOURCE_STATES ) 0;
 
     D3D12_RESOURCE_STATES dstStates = aDstStates & myResourceStateMask;
     ASSERT( wasEmpty || dstStates != 0, "Unsupported resource states for this commandlist type" );
@@ -1102,7 +1102,8 @@ namespace Fancy {
                                                        D3D12_RESOURCE_STATES aDstStates ) {
     const GpuResourceHazardDataDX12 & globalData = aResource->GetDX12Data()->myHazardData;
 
-    D3D12_RESOURCE_STATES currStates = (D3D12_RESOURCE_STATES) globalData.mySubresources[ aSubresourceIndex ].myStates;
+    D3D12_RESOURCE_STATES currStates =
+        ( D3D12_RESOURCE_STATES ) globalData.mySubresources[ aSubresourceIndex ].myStates;
     CommandListType currGlobalContext = globalData.mySubresources[ aSubresourceIndex ].myContext;
 
     auto it = myLocalHazardData.find( aResource );

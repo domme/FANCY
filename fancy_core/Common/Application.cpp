@@ -30,8 +30,12 @@ namespace Fancy {
     ASSERT( RenderCore::IsInitialized() );
 
     myRenderOutput = RenderCore::CreateRenderOutput( anInstanceHandle, someWindowParams );
-    myRenderOutput->GetWindow()->myOnResize.Connect( this, &Application::OnWindowResized );
-    myRenderOutput->GetWindow()->myWindowEventHandler.Connect( &myInputState, &InputState::OnWindowEvent );
+    RenderCore::GetRenderOutput( myRenderOutput )
+        ->GetWindow()
+        ->myOnResize.Connect( this, &Application::OnWindowResized );
+    RenderCore::GetRenderOutput( myRenderOutput )
+        ->GetWindow()
+        ->myWindowEventHandler.Connect( &myInputState, &InputState::OnWindowEvent );
 
     Assets::Init();
   }
@@ -51,7 +55,7 @@ namespace Fancy {
     Profiler::BeginFrame();
     RenderCore::BeginFrame();
     Profiler::BeginFrameGPU();
-    myRenderOutput->BeginFrame();
+    RenderCore::GetRenderOutput( myRenderOutput )->BeginFrame();
   }
 
   void Application::Update() {
@@ -63,13 +67,13 @@ namespace Fancy {
     CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
     GPU_BEGIN_PROFILE( ctx, "ClearRenderTarget", 0u );
     float clearColor[] = { 0.3f, 0.3f, 0.3f, 0.0f };
-    ctx->ClearRenderTarget( myRenderOutput->GetBackbufferRtv(), clearColor );
+    ctx->ClearRenderTarget( RenderCore::GetRenderOutput( myRenderOutput )->GetBackbufferRtv(), clearColor );
     GPU_END_PROFILE( ctx );
     RenderCore::ExecuteAndFreeCommandList( ctx );
   }
 
   void Application::EndFrame() {
-    myRenderOutput->EndFrame();
+    RenderCore::GetRenderOutput( myRenderOutput )->EndFrame();
     Profiler::EndFrameGPU();
     RenderCore::EndFrame();
     Profiler::EndFrame();

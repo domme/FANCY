@@ -3,6 +3,7 @@
 #include "Common/FancyCoreDefines.h"
 #include "Common/MathIncludes.h"
 #include "Common/Ptr.h"
+#include "Rendering/ResourceHandle.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -31,15 +32,15 @@ namespace Fancy {
   struct MaterialDesc {
     uint64 GetHash() const;
 
-    eastl::string myTextures[ (uint) MaterialTextureType::NUM ];
-    glm::float4 myParameters[ (uint) MaterialParameterType::NUM ] = {};
+    eastl::string myTextures[ ( uint ) MaterialTextureType::NUM ];
+    glm::float4 myParameters[ ( uint ) MaterialParameterType::NUM ] = {};
   };
   //---------------------------------------------------------------------------//
   struct Material {
     MaterialDesc GetDescription() const;
 
-    SharedPtr< TextureView > myTextures[ (uint) MaterialTextureType::NUM ];
-    glm::float4 myParameters[ (uint) MaterialParameterType::NUM ] = {};
+    TextureViewHandle myTextures[ ( uint ) MaterialTextureType::NUM ];
+    glm::float4 myParameters[ ( uint ) MaterialParameterType::NUM ] = {};
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

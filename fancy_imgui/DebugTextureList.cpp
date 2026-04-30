@@ -4,15 +4,14 @@
 #include "Common/Ptr.h"
 #include "IO/Assets.h"
 #include "Rendering/Texture.h"
+#include "Rendering/RenderCore.h"
 #include "imgui.h"
 
 namespace Fancy {
-  class TextureView;
-
   void DebugTextureList::Update() {
     // ImGui::Begin("Textures", &myIsOpen, ImGuiWindowFlags_NoSavedSettings);
 
-    const eastl::hash_map< uint64, SharedPtr< TextureView > > & textures = Assets::GetTextures();
+    const auto & textures = Assets::GetTextures();
     eastl::vector< const char * > textureNames;
     textureNames.reserve( textures.size() );
 
@@ -21,24 +20,26 @@ namespace Fancy {
 
     int selectedIdx = -1;
     for ( const auto & it : textures ) {
-      const eastl::string & texName = it.second->myName;
+      if ( !it.second.IsValid() )
+        continue;
+      const eastl::string & texName = RenderCore::GetTextureView( it.second )->GetTexture()->myName;
       if ( filterName.empty() || texName.find( filterName ) != eastl::string::npos ) {
         textureNames.push_back( texName.c_str() );
         if ( selectedIdx < 0 && textureNames.back() == mySelectedItem ) {
-          selectedIdx = textureNames.size() - 1;
+          selectedIdx = ( int ) textureNames.size() - 1;
         }
       }
     }
 
-    if ( ImGui::ListBox( "Textures List", &selectedIdx, textureNames.data(), textureNames.size() ) ) {
+    if ( ImGui::ListBox( "Textures List", &selectedIdx, textureNames.data(), ( int ) textureNames.size() ) ) {
       mySelectedDebugImage.reset();
 
       mySelectedItem = textureNames[ selectedIdx ];
-      SharedPtr< TextureView > selectedTexture = Assets::GetTexture( mySelectedItem.c_str() );
+      TextureViewHandle selectedTexture = Assets::GetTexture( mySelectedItem.c_str() );
 
-      if ( selectedTexture ) {
-        mySelectedDebugImage.reset(
-            new ImGuiMippedDebugImage( selectedTexture->GetTexturePtr(), mySelectedItem.c_str() ) );
+      if ( selectedTexture.IsValid() ) {
+        mySelectedDebugImage.reset( new ImGuiMippedDebugImage(
+            RenderCore::GetTextureView( selectedTexture )->GetTexture(), mySelectedItem.c_str() ) );
       }
     }
 

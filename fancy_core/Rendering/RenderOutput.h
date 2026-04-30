@@ -2,6 +2,7 @@
 
 #include "Common/FancyCoreDefines.h"
 #include "Common/Ptr.h"
+#include "ResourceHandle.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -19,14 +20,10 @@ namespace Fancy {
     void EndFrame();
 
     Texture * GetBackbuffer() const {
-      return myBackbufferTextures[ myCurrBackbufferIndex ].get();
+      return myBackbufferTextures[ myCurrBackbufferIndex ];
     }
-    TextureView * GetBackbufferRtv() const {
-      return myBackbufferRtv[ myCurrBackbufferIndex ].get();
-    }
-    TextureView * GetBackbufferSrv() const {
-      return myBackbufferSrv[ myCurrBackbufferIndex ].get();
-    }
+    TextureView * GetBackbufferRtv() const;
+    TextureView * GetBackbufferSrv() const;
     Window * GetWindow() const {
       return myWindow.get();
     }
@@ -51,9 +48,9 @@ namespace Fancy {
     uint myCurrBackbufferIndex;
     SharedPtr< Window > myWindow;
 
-    SharedPtr< Texture > myBackbufferTextures[ kBackbufferCount ];
-    SharedPtr< TextureView > myBackbufferRtv[ kBackbufferCount ];
-    SharedPtr< TextureView > myBackbufferSrv[ kBackbufferCount ];
+    Texture * myBackbufferTextures[ kBackbufferCount ] = {};
+    TextureViewHandle myBackbufferRtv[ kBackbufferCount ];
+    TextureViewHandle myBackbufferSrv[ kBackbufferCount ];
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

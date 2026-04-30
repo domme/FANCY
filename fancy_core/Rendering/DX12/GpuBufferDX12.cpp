@@ -43,7 +43,7 @@ namespace Fancy {
     myName = aName != nullptr ? aName : "GpuBuffer_Unnamed";
 
     myAlignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-    if ( ( someProperties.myBindFlags & (uint) GpuBufferBindFlags::CONSTANT_BUFFER ) != 0u )
+    if ( ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::CONSTANT_BUFFER ) != 0u )
       myAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
 
     const uint64 pitch =
@@ -70,18 +70,18 @@ namespace Fancy {
     if ( someProperties.myIsShaderWritable )
       writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
-    if ( !( someProperties.myBindFlags & (uint) GpuBufferBindFlags::VERTEX_BUFFER ) &&
-         !( someProperties.myBindFlags & (uint) GpuBufferBindFlags::CONSTANT_BUFFER ) )
+    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::VERTEX_BUFFER ) &&
+         !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::CONSTANT_BUFFER ) )
       readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    if ( !( someProperties.myBindFlags & (uint) GpuBufferBindFlags::INDEX_BUFFER ) )
+    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::INDEX_BUFFER ) )
       readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_INDEX_BUFFER;
-    if ( !( someProperties.myBindFlags & (uint) GpuBufferBindFlags::SHADER_BUFFER ) ) {
+    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::SHADER_BUFFER ) ) {
       readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-      if ( !( someProperties.myBindFlags & (uint) GpuBufferBindFlags::RT_SHADER_BINDING_TABLE ) )
+      if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_SHADER_BINDING_TABLE ) )
         readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
     }
-    if ( !( someProperties.myBindFlags & (uint) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE ) )
+    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE ) )
       readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
 
     // In most cases, UAV resources will directly be used as such so start with that as an initial state
@@ -99,7 +99,7 @@ namespace Fancy {
       initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
     }
 
-    if ( someProperties.myBindFlags & (uint) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE ) {
+    if ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE ) {
       initialStates = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
       writeStateMask |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
     }
@@ -170,8 +170,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
 
   //---------------------------------------------------------------------------//
-  GpuBufferViewDX12::GpuBufferViewDX12( const SharedPtr< GpuBuffer > & aBuffer,
-                                        const GpuBufferViewProperties & someProperties, const char * aName )
+  GpuBufferViewDX12::GpuBufferViewDX12( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
+                                        const char * aName )
       : GpuBufferView::GpuBufferView( aBuffer, someProperties, aName ) {
     GpuResourceViewDataDX12 nativeData;
 
@@ -184,7 +184,7 @@ namespace Fancy {
       nativeData.myDescriptor =
           RenderCore::GetPlatformDX12()->AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str() );
       ASSERT( nativeData.myDescriptor.myCpuHandle.ptr != UINT_MAX );
-      success = CreateCBVdescriptor( aBuffer.get(), someProperties, nativeData.myDescriptor );
+      success = CreateCBVdescriptor( aBuffer, someProperties, nativeData.myDescriptor );
     } else {
       GpuBufferViewProperties rawProperties = someProperties;
       rawProperties.myIsRaw = true;
@@ -195,7 +195,7 @@ namespace Fancy {
         ASSERT( myType == GpuResourceViewType::UAV );
         nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(
             GLOBAL_RESOURCE_RWBUFFER, name.c_str() );
-        success = CreateUAVdescriptor( aBuffer.get(), rawProperties, nativeData.myDescriptor );
+        success = CreateUAVdescriptor( aBuffer, rawProperties, nativeData.myDescriptor );
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
       } else {
         if ( someProperties.myIsRtAccelerationStructure ) {
@@ -210,7 +210,7 @@ namespace Fancy {
               GLOBAL_RESOURCE_BUFFER, name.c_str() );
         }
 
-        success = CreateSRVdescriptor( aBuffer.get(), rawProperties, nativeData.myDescriptor );
+        success = CreateSRVdescriptor( aBuffer, rawProperties, nativeData.myDescriptor );
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
       }
     }
@@ -321,7 +321,7 @@ namespace Fancy {
     cbvDesc.BufferLocation = dataDx12->myResource->GetGPUVirtualAddress() + someProperties.myOffset;
 
     ASSERT( someProperties.mySize < UINT_MAX );
-    cbvDesc.SizeInBytes = (uint) someProperties.mySize;
+    cbvDesc.SizeInBytes = ( uint ) someProperties.mySize;
 
     RenderCore::GetPlatformDX12()->GetDevice()->CreateConstantBufferView( &cbvDesc, aDescriptor.myCpuHandle );
     return true;

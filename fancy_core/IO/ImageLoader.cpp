@@ -33,8 +33,8 @@ static bool LoadImage_STB( FILE * file, const char * aPathAbs, uint someLoadFlag
   TextureProperties & props = anImageOut.myProperties;
   props.myDimension = GpuResourceDimension::TEXTURE_2D;
   props.myPath = Path::GetRelativePath( aPathAbs );
-  props.myWidth = (uint) size.x;
-  props.myHeight = (uint) size.y;
+  props.myWidth = ( uint ) size.x;
+  props.myHeight = ( uint ) size.y;
   props.myAccessType = CpuMemoryAccessType::NO_CPU_ACCESS;
   props.myIsShaderWritable = ( someLoadFlags & Assets::TextureLoadFlags::SHADER_WRITABLE ) != 0;
   props.myNumMipLevels = 1u;

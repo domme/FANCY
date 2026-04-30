@@ -10,16 +10,16 @@
 
 namespace Fancy {
   void ImGuiDebugImage::Update( Fancy::TextureView * aTexture, const char * aName ) {
-    glm::float2 size = glm::float2( (float) aTexture->GetTexture()->GetProperties().myWidth,
-                                    (float) aTexture->GetTexture()->GetProperties().myHeight );
+    glm::float2 size = glm::float2( ( float ) aTexture->GetTexture()->GetProperties().myWidth,
+                                    ( float ) aTexture->GetTexture()->GetProperties().myHeight );
     size *= myZoom;
 
     ImGui::Text( aName );
-    ImGui::Image( (ImTextureID) aTexture, { size.x, size.y } );
+    ImGui::Image( ( ImTextureID ) aTexture, { size.x, size.y } );
     ImGui::DragFloat( "Zoom", &myZoom, 0.1f, 0.25f, 10.0f );
   }
 
-  ImGuiMippedDebugImage::ImGuiMippedDebugImage( SharedPtr< Texture > & aTexture, const char * aName )
+  ImGuiMippedDebugImage::ImGuiMippedDebugImage( Texture * aTexture, const char * aName )
       : myTexture( aTexture ), myName( aName ) {
     const TextureProperties & props = aTexture->GetProperties();
     for ( int mip = 0; mip < props.myNumMipLevels; ++mip ) {
@@ -31,9 +31,16 @@ namespace Fancy {
     }
   }
 
+  ImGuiMippedDebugImage::~ImGuiMippedDebugImage() {
+    for ( TextureViewHandle view : myMipViews )
+      if ( view.IsValid() )
+        RenderCore::DeleteTextureView( view );
+    myMipViews.clear();
+  }
+
   void ImGuiMippedDebugImage::Update() {
     glm::float2 textureSize =
-        glm::float2( (float) myTexture->GetProperties().myWidth, (float) myTexture->GetProperties().myHeight );
+        glm::float2( ( float ) myTexture->GetProperties().myWidth, ( float ) myTexture->GetProperties().myHeight );
     float ratio = textureSize.y / textureSize.x;
 
     glm::float2 availableSize( ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y );
@@ -46,13 +53,13 @@ namespace Fancy {
 
     size *= myZoom;
 
-    myMipLevel = glm::min( myMipLevel + 1, (int) myMipViews.size() ) - 1;
+    myMipLevel = glm::min( myMipLevel + 1, ( int ) myMipViews.size() ) - 1;
     if ( myMipLevel >= 0 ) {
-      TextureView * view = myMipViews[ myMipLevel ].get();
+      TextureView * view = RenderCore::GetTextureView( myMipViews[ myMipLevel ] );
       ImGui::Text( myName.c_str() );
-      ImGui::Image( (ImTextureID) view, { size.x, size.y } );
+      ImGui::Image( ( ImTextureID ) view, { size.x, size.y } );
       ImGui::DragFloat( "Zoom", &myZoom, 0.1f, 0.25f, 2.0f );
-      ImGui::DragInt( "Mip", &myMipLevel, 1, 0, (int) myMipViews.size() - 1 );
+      ImGui::DragInt( "Mip", &myMipLevel, 1, 0, ( int ) myMipViews.size() - 1 );
     }
   }
 }  // namespace Fancy

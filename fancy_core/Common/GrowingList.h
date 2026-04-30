@@ -421,8 +421,8 @@ namespace Fancy {
   typename GrowingList< T, PageSize >::Page * GrowingList< T, PageSize >::FindPage( Iterator aPos ) {
     Page * page = myHeadPage;
     while ( page != nullptr ) {
-      if ( (void *) aPos.myElement >= (void *) page->myElements &&
-           (void *) aPos.myElement <= (void *) ( page->myElements + page->myNextFreeElementIdx ) )
+      if ( ( void * ) aPos.myElement >= ( void * ) page->myElements &&
+           ( void * ) aPos.myElement <= ( void * ) ( page->myElements + page->myNextFreeElementIdx ) )
         return page;
 
       page = page->myNext;

@@ -1,11 +1,9 @@
 #pragma once
-#include "Rendering/RenderOutput.h"
-#include "Common/Ptr.h"
+#include "Rendering/ResourceHandle.h"
 
 struct ImDrawData;
 
-namespace Fancy
-{
+namespace Fancy {
   struct VertexInputLayout;
   class TextureSampler;
   class DepthStencilState;
@@ -14,12 +12,10 @@ namespace Fancy
   class RenderOutput;
   class TextureView;
 
-  namespace ImGuiRendering
-  {
-    bool Init(const SharedPtr<RenderOutput>& aRenderOutput);
+  namespace ImGuiRendering {
+    bool Init( RenderOutputHandle aRenderOutput );
     void NewFrame();
-    void RenderDrawLists(ImDrawData* _draw_data);
+    void RenderDrawLists( ImDrawData * _draw_data );
     void Shutdown();
-  };
-} 
-
+  };  // namespace ImGuiRendering
+}  // namespace Fancy

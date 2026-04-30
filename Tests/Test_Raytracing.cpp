@@ -29,11 +29,11 @@ Test_Raytracing::Test_Raytracing( Fancy::AssetManager * anAssetManager, Fancy::W
 
   RtAccelerationStructureGeometryData geometryData;
   geometryData.myType = RtAccelerationStructureGeometryType::TRIANGLES;
-  geometryData.myFlags = (uint) RtAccelerationStructureGeometryFlags::OPAQUE_GEOMETRY;
+  geometryData.myFlags = ( uint ) RtAccelerationStructureGeometryFlags::OPAQUE_GEOMETRY;
   geometryData.myVertexFormat = DataFormat::RGB_32F;
-  geometryData.myNumVertices = (uint) vertices.size();
+  geometryData.myNumVertices = ( uint ) vertices.size();
   geometryData.myIndexFormat = DataFormat::R_16UI;
-  geometryData.myNumIndices = (uint) indices.size();
+  geometryData.myNumIndices = ( uint ) indices.size();
   geometryData.myVertexData.myType = RT_BUFFER_DATA_TYPE_CPU_DATA;
   geometryData.myVertexData.myCpuData.myData = vertices.data();
   geometryData.myVertexData.myCpuData.myDataSize = VECTOR_BYTESIZE( vertices );

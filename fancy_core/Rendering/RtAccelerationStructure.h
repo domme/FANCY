@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ResourceHandle.h"
+
 namespace Fancy {
   class RtAccelerationStructure;
   class CommandList;
@@ -63,28 +65,24 @@ namespace Fancy {
     uint8 myInstanceMask;
     uint mySbtHitGroupOffset : 24;
     uint8 myFlags;
-    SharedPtr< RtAccelerationStructure > myInstanceBLAS;
+    RtAccelerationStructure * myInstanceBLAS = nullptr;
   };
   //---------------------------------------------------------------------------//
   class RtAccelerationStructure {
   public:
     RtAccelerationStructure( RtAccelerationStructureType aType, const char * aName );
-    virtual ~RtAccelerationStructure() = default;
+    virtual ~RtAccelerationStructure();
 
     RtAccelerationStructureType GetType() const {
       return myType;
     }
-    GpuBuffer * GetBuffer() const {
-      return myBuffer.get();
-    }
-    GpuBufferView * GetBufferRead() const {
-      return myTopLevelBufferRead.get();
-    }
+    GpuBuffer * GetBuffer() const;
+    GpuBufferView * GetBufferRead() const;
 
   protected:
     eastl::string myName;
-    SharedPtr< GpuBuffer > myBuffer;
-    SharedPtr< GpuBufferView > myTopLevelBufferRead;
+    GpuBufferHandle myBuffer;
+    GpuBufferViewHandle myTopLevelBufferRead;
     RtAccelerationStructureType myType;
   };
   //---------------------------------------------------------------------------//

@@ -41,7 +41,7 @@ namespace Fancy {
         if ( wcslen( pFilename ) > 1 && pFilename[ 0 ] == '.' && ( pFilename[ 1 ] == '/' || pFilename[ 1 ] == '\\' ) )
           pFilename += 2;
 
-        for ( uint i = 0u; i < (uint) myIncludeSearchPaths.size(); ++i ) {
+        for ( uint i = 0u; i < ( uint ) myIncludeSearchPaths.size(); ++i ) {
           eastl::wstring wPath = myIncludeSearchPaths[ i ] + pFilename;
           if ( !Path::FileExists( wPath.c_str() ) )
             continue;
@@ -89,7 +89,7 @@ namespace Fancy {
 
       ULONG AddRef() override {
         myRefCount++;
-        return (ULONG) myRefCount;
+        return ( ULONG ) myRefCount;
       }
 
       ULONG Release() override {
@@ -97,7 +97,7 @@ namespace Fancy {
         if ( myRefCount == 0 ) {
           delete this;
         }
-        return (ULONG) refCount;
+        return ( ULONG ) refCount;
       }
 
       std::atomic< int > myRefCount = 1;
@@ -124,7 +124,7 @@ namespace Fancy {
     if ( !CompileToBytecode( anHlslSrcPathAbs, aDesc, aConfig, anIncludeInfo, bytecodeBlob ) )
       return false;
 
-    aCompiledBytecodeOut.resize( (size_t) bytecodeBlob->GetBufferSize() );
+    aCompiledBytecodeOut.resize( ( size_t ) bytecodeBlob->GetBufferSize() );
     memcpy( aCompiledBytecodeOut.data(), bytecodeBlob->GetBufferPointer(), bytecodeBlob->GetBufferSize() );
     return true;
   }
@@ -137,7 +137,7 @@ namespace Fancy {
       return false;
 
     IDxcBlobEncoding * sourceBlob;
-    if ( myDxcUtils->CreateBlobFromPinned( shaderFile.c_str(), (uint) shaderFile.size(), CP_UTF8, &sourceBlob ) !=
+    if ( myDxcUtils->CreateBlobFromPinned( shaderFile.c_str(), ( uint ) shaderFile.size(), CP_UTF8, &sourceBlob ) !=
          S_OK )
       return false;
 
@@ -186,9 +186,9 @@ namespace Fancy {
         ShaderCompiler::GetHLSLprofileString( static_cast< ShaderStage >( aDesc.myShaderStage ) ).c_str() );
 
     IDxcOperationResult * compiledResult;
-    HRESULT result =
-        myDxcCompiler->Compile( sourceBlob, sourceName.c_str(), mainFunction.c_str(), hlslProfileString.c_str(), args,
-                                numArgs, defines.data(), (uint) defines.size(), includeHandler.Get(), &compiledResult );
+    HRESULT result = myDxcCompiler->Compile( sourceBlob, sourceName.c_str(), mainFunction.c_str(),
+                                             hlslProfileString.c_str(), args, numArgs, defines.data(),
+                                             ( uint ) defines.size(), includeHandler.Get(), &compiledResult );
 
     IDxcBlobEncoding * errorBlob = nullptr;
     compiledResult->GetErrorBuffer( &errorBlob );

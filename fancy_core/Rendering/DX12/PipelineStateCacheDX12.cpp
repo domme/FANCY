@@ -3,6 +3,7 @@
 #include "Rendering/DepthStencilState.h"
 #include "Rendering/CommandList.h"
 #include "Rendering/BlendState.h"
+#include "Rendering/RenderCore.h"
 
 #include "PipelineStateCacheDX12.h"
 
@@ -183,7 +184,8 @@ namespace Fancy {
     const ShaderDX12 * vertexShader =
         static_cast< const ShaderDX12 * >( aState.myShaderPipeline->GetShader( ShaderStage::SHADERSTAGE_VERTEX ) );
     const VertexInputLayout * inputLayout =
-        aState.myVertexInputLayout ? aState.myVertexInputLayout : vertexShader->myDefaultVertexInputLayout.get();
+        aState.myVertexInputLayout ? aState.myVertexInputLayout
+                                   : RenderCore::GetVertexInputLayout( vertexShader->myDefaultVertexInputLayout );
     ASSERT( inputLayout );
     const VertexInputLayoutProperties & inputLayoutProps = inputLayout->myProperties;
 
@@ -199,7 +201,7 @@ namespace Fancy {
         const VertexInputAttributeDesc & input = inputAttributes[ k ];
         if ( shaderAttribute.mySemantic == input.mySemantic &&
              shaderAttribute.mySemanticIndex == input.mySemanticIndex ) {
-          inputAttributeIndex = (int) k;
+          inputAttributeIndex = ( int ) k;
           break;
         }
       }

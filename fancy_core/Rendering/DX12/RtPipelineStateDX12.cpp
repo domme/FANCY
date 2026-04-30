@@ -1,6 +1,7 @@
 #include "fancy_core_precompile.h"
 #include "RtPipelineStateDX12.h"
 
+#include "Rendering/RenderCore.h"
 #include "RenderCore_PlatformDX12.h"
 #include "ShaderDX12.h"
 
@@ -41,7 +42,7 @@ namespace Fancy {
 
     //---------------------------------------------------------------------------//
     void RtPsoBuilder::AddShaderLibrarySubobject( Shader * aShader, const wchar_t * aMainFunctionRename ) {
-      ShaderDX12 * shaderDx12 = (ShaderDX12 *) aShader;
+      ShaderDX12 * shaderDx12 = ( ShaderDX12 * ) aShader;
 
       D3D12_EXPORT_DESC & exportDesc = myExportDescs.push_back();
       exportDesc = {};
@@ -128,7 +129,7 @@ namespace Fancy {
     bool RtPsoBuilder::BuildRtPso( Microsoft::WRL::ComPtr< ID3D12StateObject > & aStateObjectOut ) {
       D3D12_STATE_OBJECT_DESC aDesc = {};
       aDesc.Type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
-      aDesc.NumSubobjects = (uint) mySubObjects.size();
+      aDesc.NumSubobjects = ( uint ) mySubObjects.size();
       aDesc.pSubobjects = mySubObjects.data();
 
       HRESULT result =
@@ -162,13 +163,15 @@ namespace Fancy {
     RtPsoBuilder builder( numShaders, numHitGroups );
 
     for ( const RtPipelineStateProperties::ShaderEntry & shader : myProperties.myRaygenShaders )
-      builder.AddShaderLibrarySubobject( shader.myShader.get(), shader.myUniqueMainFunctionName.c_str() );
+      builder.AddShaderLibrarySubobject( RenderCore::GetShader( shader.myShader ),
+                                         shader.myUniqueMainFunctionName.c_str() );
 
     for ( const RtPipelineStateProperties::ShaderEntry & shader : myProperties.myMissShaders )
-      builder.AddShaderLibrarySubobject( shader.myShader.get(), shader.myUniqueMainFunctionName.c_str() );
+      builder.AddShaderLibrarySubobject( RenderCore::GetShader( shader.myShader ),
+                                         shader.myUniqueMainFunctionName.c_str() );
 
     for ( const RtPipelineStateProperties::ShaderEntry & it : myProperties.myHitShaders )
-      builder.AddShaderLibrarySubobject( it.myShader.get(), it.myUniqueMainFunctionName.c_str() );
+      builder.AddShaderLibrarySubobject( RenderCore::GetShader( it.myShader ), it.myUniqueMainFunctionName.c_str() );
 
     for ( const RtPipelineStateProperties::HitGroup & hitGroup : myProperties.myHitGroups )
       builder.AddHitGroupSubobject( hitGroup, myProperties.myHitShaders );

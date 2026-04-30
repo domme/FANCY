@@ -3,6 +3,7 @@
 #include "GpuBuffer.h"
 #include "Texture.h"
 #include "Common/Ptr.h"
+#include "ResourceHandle.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -25,9 +26,9 @@ namespace Fancy {
   struct GpuBufferResource {
     void Update( const GpuBufferResourceProperties & someProps, const char * aName = nullptr );
 
-    SharedPtr< GpuBuffer > myBuffer;
-    SharedPtr< GpuBufferView > myReadView;
-    SharedPtr< GpuBufferView > myWriteView;
+    GpuBufferHandle myBuffer;
+    GpuBufferViewHandle myReadView;
+    GpuBufferViewHandle myWriteView;
   };
   //---------------------------------------------------------------------------//
 
@@ -44,10 +45,10 @@ namespace Fancy {
   struct TextureResource {
     void Update( const TextureResourceProperties & someProps, const char * aName = nullptr );
 
-    SharedPtr< Texture > myTexture;
-    SharedPtr< TextureView > myReadView;
-    SharedPtr< TextureView > myWriteView;
-    SharedPtr< TextureView > myRenderTargetView;
+    TextureHandle myTexture;
+    TextureViewHandle myReadView;
+    TextureViewHandle myWriteView;
+    TextureViewHandle myRenderTargetView;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

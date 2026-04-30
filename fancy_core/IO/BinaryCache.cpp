@@ -18,13 +18,13 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   template <> struct GetSerializeFunc< VertexInputAttributeDesc > {
     void operator()( VertexInputAttributeDesc & aVal, BinarySerializer & aSerializer ) {
-      aSerializer.Serialize( (uint8 *) &aVal, sizeof( aVal ) );
+      aSerializer.Serialize( ( uint8 * ) &aVal, sizeof( aVal ) );
     }
   };
   //---------------------------------------------------------------------------//
   template <> struct GetSerializeFunc< VertexBufferBindDesc > {
     void operator()( VertexBufferBindDesc & aVal, BinarySerializer & aSerializer ) {
-      aSerializer.Serialize( (uint8 *) &aVal, sizeof( aVal ) );
+      aSerializer.Serialize( ( uint8 * ) &aVal, sizeof( aVal ) );
     }
   };
   //---------------------------------------------------------------------------//
@@ -67,7 +67,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   template <> struct GetSerializeFunc< SceneMeshInstance > {
     void operator()( SceneMeshInstance & aVal, BinarySerializer & aSerializer ) {
-      aSerializer.Serialize( (uint8 *) &aVal, sizeof( aVal ) );
+      aSerializer.Serialize( ( uint8 * ) &aVal, sizeof( aVal ) );
     }
   };
   //---------------------------------------------------------------------------//

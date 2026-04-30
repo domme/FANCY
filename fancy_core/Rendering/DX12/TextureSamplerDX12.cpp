@@ -79,11 +79,11 @@ namespace Fancy {
         case SamplerBorderColor::FLOAT_OPAQUE_BLACK:
           return glm::vec4( 0.0f, 0.0f, 0.0f, 1.0f );
         case SamplerBorderColor::INT_OPAQUE_BLACK:
-          return glm::vec4( 0.0f, 0.0f, 0.0f, (float) INT_MAX );
+          return glm::vec4( 0.0f, 0.0f, 0.0f, ( float ) INT_MAX );
         case SamplerBorderColor::FLOAT_OPAQUE_WHITE:
           return glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
         case SamplerBorderColor::INT_OPAQUE_WHITE:
-          return glm::vec4( (float) INT_MAX );
+          return glm::vec4( ( float ) INT_MAX );
         default:
           ASSERT( false );
           return glm::vec4( 0.0f );

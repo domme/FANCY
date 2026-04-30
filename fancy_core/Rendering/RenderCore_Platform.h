@@ -68,11 +68,9 @@ namespace Fancy {
     virtual TextureSampler * CreateTextureSampler( const TextureSamplerProperties & someProperties ) = 0;
     virtual CommandList * CreateCommandList( CommandListType aType ) = 0;
     virtual CommandQueue * CreateCommandQueue( CommandListType aType ) = 0;
-    virtual TextureView * CreateTextureView( const SharedPtr< Texture > & aTexture,
-                                             const TextureViewProperties & someProperties,
+    virtual TextureView * CreateTextureView( Texture * aTexture, const TextureViewProperties & someProperties,
                                              const char * aDebugName = nullptr ) = 0;
-    virtual GpuBufferView * CreateBufferView( const SharedPtr< GpuBuffer > & aBuffer,
-                                              const GpuBufferViewProperties & someProperties,
+    virtual GpuBufferView * CreateBufferView( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
                                               const char * aDebugName = nullptr ) = 0;
     virtual RtAccelerationStructure *
     CreateRtBottomLevelAccelerationStructure( const RtAccelerationStructureGeometryData * someGeometries,

@@ -3,6 +3,7 @@
 #include "Common/Ptr.h"
 #include "MeshImporter.h"
 #include "EASTL/hash_map.h"
+#include "Rendering/ResourceHandle.h"
 
 namespace Fancy {
   struct MeshData;
@@ -12,8 +13,6 @@ namespace Fancy {
   struct MaterialDesc;
   struct MeshPartData;
   struct MeshDesc;
-  class TextureView;
-  class Texture;
 
   class Assets {
   public:
@@ -41,21 +40,19 @@ namespace Fancy {
     static SharedPtr< Material > GetMaterial( const MaterialDesc & aDesc );
     static SharedPtr< Material > CreateMaterial( const MaterialDesc & aDesc );
 
-    static const eastl::hash_map< uint64, SharedPtr< TextureView > > & GetTextures() {
+    static const eastl::hash_map< uint64, TextureViewHandle > & GetTextures() {
       return ourTextureCache;
     }
-    static SharedPtr< TextureView > GetTexture( const char * aPath, uint someLoadFlags = 0 );
-    static SharedPtr< TextureView > LoadTexture( const char * aPath, uint someLoadFlags = 0 );
-    static void ComputeMipmaps( const SharedPtr< Texture > & aTexture, ResampleFilter aFilter = FILTER_LANCZOS );
+    static TextureViewHandle GetTexture( const char * aPath, uint someLoadFlags = 0 );
+    static TextureViewHandle LoadTexture( const char * aPath, uint someLoadFlags = 0 );
+    static void ComputeMipmaps( TextureHandle aTexture, ResampleFilter aFilter = FILTER_LANCZOS );
 
-    static const ShaderPipeline * GetMipDownsampleShader() {
-      return ourMipDownsampleShader.get();
-    }
+    static const ShaderPipeline * GetMipDownsampleShader();
 
   private:
-    static eastl::hash_map< uint64, SharedPtr< TextureView > > ourTextureCache;
+    static eastl::hash_map< uint64, TextureViewHandle > ourTextureCache;
     static eastl::hash_map< uint64, SharedPtr< Mesh > > ourMeshCache;
     static eastl::hash_map< uint64, SharedPtr< Material > > ourMaterialCache;
-    static SharedPtr< ShaderPipeline > ourMipDownsampleShader;
+    static ShaderPipelineHandle ourMipDownsampleShader;
   };
 }  // namespace Fancy

@@ -58,7 +58,7 @@ struct DDS_PIXELFORMAT {
 
 #ifndef DDSGLOBALCONST
 #if defined( __GNUC__ ) && !defined( __MINGW32__ )
-#define DDSGLOBALCONST extern const __attribute__( ( weak ) )
+#define DDSGLOBALCONST extern const __attribute__(( weak ))
 #else
 #define DDSGLOBALCONST extern const __declspec( selectany )
 #endif

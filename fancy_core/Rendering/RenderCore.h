@@ -11,6 +11,10 @@
 #include "Common/CircularArray.h"
 #include "TextureSampler.h"
 #include "TextureReadbackTask.h"
+#include "ResourceHandle.h"
+#include "ResourcePool.h"
+#include "GpuResource.h"
+#include "GpuResourceView.h"
 
 #include "EASTL/fixed_vector.h"
 #include "EASTL/fixed_list.h"
@@ -64,6 +68,7 @@ namespace Fancy {
   struct RtAccelerationStructureProps;
   struct RtAccelerationStructureGeometryData;
   class RtAccelerationStructure;
+  class RenderOutput;
   //---------------------------------------------------------------------------//
   class RenderCore {
   public:
@@ -88,60 +93,75 @@ namespace Fancy {
 
     static bool IsInitialized();
 
-    static const Texture * GetDefaultDiffuseTexture();
-    static const Texture * GetDefaultNormalTexture();
-    static const Texture * GetDefaultMaterialTexture();
+    static TextureHandle GetDefaultDiffuseTexture();
+    static TextureHandle GetDefaultNormalTexture();
+    static TextureHandle GetDefaultMaterialTexture();
     static const ShaderCompiler * GetShaderCompiler();
 
-    static SharedPtr< Shader > GetShader( uint64 aDescHash );
-    static SharedPtr< ShaderPipeline > GetShaderPipeline( uint64 aDescHash );
+    static ShaderHandle GetShader( uint64 aDescHash );
+    static ShaderPipelineHandle GetShaderPipeline( uint64 aDescHash );
 
-    static SharedPtr< RenderOutput > CreateRenderOutput( void * aNativeInstanceHandle,
-                                                         const WindowParameters & someWindowParams );
-    static SharedPtr< Shader > CreateShader( const ShaderDesc & aDesc );
-    static SharedPtr< ShaderPipeline > CreateShaderPipeline( const ShaderPipelineDesc & aDesc );
-    static SharedPtr< ShaderPipeline > CreateVertexPixelShaderPipeline( const char * aShaderPath,
-                                                                        const char * aMainVtxFunction = "main",
-                                                                        const char * aMainFragmentFunction = "main",
-                                                                        const char * someDefines = nullptr );
-    static SharedPtr< ShaderPipeline > CreateComputeShaderPipeline( const char * aShaderPath,
-                                                                    const char * aMainFunction = "main",
-                                                                    const char * someDefines = nullptr );
-    static SharedPtr< Texture > CreateTexture( const TextureProperties & someProperties, const char * aName = nullptr,
-                                               TextureSubData * someUploadDatas = nullptr, uint aNumUploadDatas = 0u );
-    static SharedPtr< GpuBuffer > CreateBuffer( const GpuBufferProperties & someProperties,
-                                                const char * aName = nullptr, const void * someInitialData = nullptr );
-    static SharedPtr< TextureView > CreateTextureView( const SharedPtr< Texture > & aTexture,
-                                                       const TextureViewProperties & someProperties,
-                                                       const char * aName = nullptr );
-    static SharedPtr< TextureView > CreateTextureView( const TextureProperties & someProperties,
-                                                       const TextureViewProperties & someViewProperties,
-                                                       const char * aName = nullptr,
-                                                       TextureSubData * someUploadDatas = nullptr,
-                                                       uint aNumUploadDatas = 0u );
-    static SharedPtr< GpuBufferView > CreateBufferView( const SharedPtr< GpuBuffer > & aBuffer,
-                                                        GpuBufferViewProperties someProperties,
-                                                        const char * aName = nullptr );
-    static SharedPtr< GpuBufferView > CreateBufferView( const GpuBufferProperties & someProperties,
-                                                        GpuBufferViewProperties someViewProperties,
-                                                        const char * aName = nullptr,
-                                                        const void * someInitialData = nullptr );
-    static SharedPtr< RtAccelerationStructure >
+    static RenderOutputHandle CreateRenderOutput( void * aNativeInstanceHandle,
+                                                  const WindowParameters & someWindowParams );
+    static ShaderHandle CreateShader( const ShaderDesc & aDesc );
+    static ShaderPipelineHandle CreateShaderPipeline( const ShaderPipelineDesc & aDesc );
+    static ShaderPipelineHandle CreateVertexPixelShaderPipeline( const char * aShaderPath,
+                                                                 const char * aMainVtxFunction = "main",
+                                                                 const char * aMainFragmentFunction = "main",
+                                                                 const char * someDefines = nullptr );
+    static ShaderPipelineHandle CreateComputeShaderPipeline( const char * aShaderPath,
+                                                             const char * aMainFunction = "main",
+                                                             const char * someDefines = nullptr );
+    static TextureHandle CreateTexture( const TextureProperties & someProperties, const char * aName = nullptr,
+                                        TextureSubData * someUploadDatas = nullptr, uint aNumUploadDatas = 0u );
+    static GpuBufferHandle CreateBuffer( const GpuBufferProperties & someProperties, const char * aName = nullptr,
+                                         const void * someInitialData = nullptr );
+    static TextureViewHandle CreateTextureView( Texture * aTexture, const TextureViewProperties & someProperties,
+                                                const char * aName = nullptr );
+    static GpuBufferViewHandle CreateBufferView( GpuBuffer * aBuffer, GpuBufferViewProperties someProperties,
+                                                 const char * aName = nullptr );
+    static RtAccelerationStructureHandle
     CreateRtBottomLevelAccelerationStructure( const RtAccelerationStructureGeometryData * someGeometries,
                                               uint aNumGeometries, uint aSomeFlags = 0, const char * aName = nullptr );
-    static SharedPtr< RtAccelerationStructure >
+    static RtAccelerationStructureHandle
     CreateRtTopLevelAccelerationStructure( const RtAccelerationStructureInstanceData * someInstances,
                                            uint aNumInstances, uint someFlags = 0, const char * aName = nullptr );
-    static SharedPtr< RtPipelineState > CreateRtPipelineState( const RtPipelineStateProperties & someProps );
-    static SharedPtr< RtShaderBindingTable > CreateRtShaderTable( const RtShaderBindingTableProperties & someProps );
+    static RtPipelineStateHandle CreateRtPipelineState( const RtPipelineStateProperties & someProps );
+    static RtShaderBindingTableHandle CreateRtShaderTable( const RtShaderBindingTableProperties & someProps );
     static uint GetQueryTypeDataSize( GpuQueryType aType );
 
-    static SharedPtr< BlendState > CreateBlendState( const BlendStateProperties & aProperties );
-    static SharedPtr< DepthStencilState > CreateDepthStencilState( const DepthStencilStateProperties & aDesc );
-    static SharedPtr< TextureSampler > CreateTextureSampler( const TextureSamplerProperties & someProperties );
-    static SharedPtr< VertexInputLayout > CreateVertexInputLayout( const VertexInputLayoutProperties & aDesc );
-    static const SharedPtr< BlendState > & GetDefaultBlendState();
-    static const SharedPtr< DepthStencilState > & GetDefaultDepthStencilState();
+    static BlendStateHandle CreateBlendState( const BlendStateProperties & aProperties );
+    static DepthStencilStateHandle CreateDepthStencilState( const DepthStencilStateProperties & aDesc );
+    static TextureSamplerHandle CreateTextureSampler( const TextureSamplerProperties & someProperties );
+    static VertexInputLayoutHandle CreateVertexInputLayout( const VertexInputLayoutProperties & aDesc );
+    static BlendState * GetDefaultBlendState();
+    static DepthStencilState * GetDefaultDepthStencilState();
+
+    // Delete methods - release ownership back to pool
+    static void DeleteTexture( TextureHandle aHandle );
+    static void DeleteBuffer( GpuBufferHandle aHandle );
+    static void DeleteTextureView( TextureViewHandle aHandle );
+    static void DeleteBufferView( GpuBufferViewHandle aHandle );
+    static void DeleteRtAccelerationStructure( RtAccelerationStructureHandle aHandle );
+    static void DeleteRtPipelineState( RtPipelineStateHandle aHandle );
+    static void DeleteRtShaderBindingTable( RtShaderBindingTableHandle aHandle );
+    static void DeleteRenderOutput( RenderOutputHandle aHandle );
+
+    // Get methods - resolve handle to raw pointer (valid until deleted)
+    static Texture * GetTexture( TextureHandle aHandle );
+    static GpuBuffer * GetBuffer( GpuBufferHandle aHandle );
+    static TextureView * GetTextureView( TextureViewHandle aHandle );
+    static GpuBufferView * GetBufferView( GpuBufferViewHandle aHandle );
+    static Shader * GetShader( ShaderHandle aHandle );
+    static ShaderPipeline * GetShaderPipeline( ShaderPipelineHandle aHandle );
+    static BlendState * GetBlendState( BlendStateHandle aHandle );
+    static DepthStencilState * GetDepthStencilState( DepthStencilStateHandle aHandle );
+    static TextureSampler * GetTextureSampler( TextureSamplerHandle aHandle );
+    static VertexInputLayout * GetVertexInputLayout( VertexInputLayoutHandle aHandle );
+    static RtAccelerationStructure * GetRtAccelerationStructure( RtAccelerationStructureHandle aHandle );
+    static RtPipelineState * GetRtPipelineState( RtPipelineStateHandle aHandle );
+    static RtShaderBindingTable * GetRtShaderBindingTable( RtShaderBindingTableHandle aHandle );
+    static RenderOutput * GetRenderOutput( RenderOutputHandle aHandle );
 
     static RenderPlatformType GetPlatformType();
     static const RenderPlatformCaps & GetPlatformCaps();
@@ -170,7 +190,7 @@ namespace Fancy {
                                                   const char * aName );
 
     static GpuQueryHeap * GetQueryHeap( GpuQueryType aType ) {
-      return ourQueryHeaps[ ourCurrQueryHeapIdx ][ (uint) aType ].get();
+      return ourQueryHeaps[ ourCurrQueryHeapIdx ][ ( uint ) aType ].get();
     }
     static uint AllocateQueryRange( GpuQueryType aType, uint aNumQueries );
     static void FreeQueryRange( GpuQueryType aType, uint aFirstQuery, uint aNumQueries, uint aNumUsedQueries );
@@ -193,7 +213,7 @@ namespace Fancy {
     static bool ourDebugLogResourceBarriers;
     static bool ourDebugWaitAfterEachSubmit;
 
-    static SharedPtr< TextureSampler > ourLinearClampSampler;
+    static TextureSamplerHandle ourLinearClampSampler;
 
   protected:
     RenderCore() = default;
@@ -218,21 +238,38 @@ namespace Fancy {
     static UniquePtr< ShaderCompiler > ourShaderCompiler;
     static UniquePtr< FileWatcher > ourShaderFileWatcher;
 
-    static SharedPtr< DepthStencilState > ourDefaultDepthStencilState;
-    static SharedPtr< BlendState > ourDefaultBlendState;
-    static SharedPtr< Texture > ourDefaultDiffuseTexture;
-    static SharedPtr< Texture > ourDefaultNormalTexture;
-    static SharedPtr< Texture > ourDefaultSpecularTexture;
-    static SharedPtr< Texture > ourMissingTexture;
+    // Resource pools
+    static ResourcePool< Texture, 2048 > ourTexturePool;
+    static ResourcePool< GpuBuffer, 2048 > ourBufferPool;
+    static ResourcePool< TextureView, 2048 > ourTextureViewPool;
+    static ResourcePool< GpuBufferView, 2048 > ourBufferViewPool;
+    static ResourcePool< Shader, 1024 > ourShaderPool;
+    static ResourcePool< ShaderPipeline, 1024 > ourShaderPipelinePool;
+    static ResourcePool< BlendState, 1024 > ourBlendStatePool;
+    static ResourcePool< DepthStencilState, 1024 > ourDepthStencilStatePool;
+    static ResourcePool< TextureSampler, 1024 > ourSamplerPool;
+    static ResourcePool< VertexInputLayout, 1024 > ourVertexInputLayoutPool;
+    static ResourcePool< RtAccelerationStructure, 1024 > ourRtAccelerationStructurePool;
+    static ResourcePool< RtPipelineState, 1024 > ourRtPipelineStatePool;
+    static ResourcePool< RtShaderBindingTable, 1024 > ourRtShaderBindingTablePool;
+    static ResourcePool< RenderOutput, 1024 > ourRenderOutputPool;
+
+    // Handles to default/cached resources
+    static DepthStencilStateHandle ourDefaultDepthStencilState;
+    static BlendStateHandle ourDefaultBlendState;
+    static TextureHandle ourDefaultDiffuseTexture;
+    static TextureHandle ourDefaultNormalTexture;
+    static TextureHandle ourDefaultSpecularTexture;
+    static TextureHandle ourMissingTexture;
 
     static eastl::hash_map< eastl::string, eastl::vector< eastl::string > > ourShaderIncludeHeaderToShaderPaths;
-    static eastl::hash_map< uint64, SharedPtr< Shader > > ourShaderCache;
-    static eastl::hash_map< uint64, SharedPtr< ShaderPipeline > > ourShaderPipelineCache;
-    static eastl::hash_map< uint64, SharedPtr< BlendState > > ourBlendStateCache;
-    static eastl::hash_map< uint64, SharedPtr< DepthStencilState > > ourDepthStencilStateCache;
-    static eastl::hash_map< uint64, SharedPtr< TextureSampler > > ourSamplerCache;
-    static eastl::hash_map< uint64, SharedPtr< VertexInputLayout > > ourVertexInputLayoutCache;
-    static eastl::hash_map< uint64, SharedPtr< RtPipelineState > > ourRtPipelineStateCache;
+    static eastl::hash_map< uint64, ShaderHandle > ourShaderCache;
+    static eastl::hash_map< uint64, ShaderPipelineHandle > ourShaderPipelineCache;
+    static eastl::hash_map< uint64, BlendStateHandle > ourBlendStateCache;
+    static eastl::hash_map< uint64, DepthStencilStateHandle > ourDepthStencilStateCache;
+    static eastl::hash_map< uint64, TextureSamplerHandle > ourSamplerCache;
+    static eastl::hash_map< uint64, VertexInputLayoutHandle > ourVertexInputLayoutCache;
+    static eastl::hash_map< uint64, RtPipelineStateHandle > ourRtPipelineStateCache;
 
     static eastl::vector< UniquePtr< GpuRingBuffer > > ourRingBufferPool;
     static eastl::fixed_list< GpuRingBuffer *, 128 > ourAvailableRingBuffers;
@@ -241,22 +278,22 @@ namespace Fancy {
     static eastl::fixed_vector< UniquePtr< GpuReadbackBuffer >, 64 > ourReadbackBuffers;
 
     static UniquePtr< CommandQueue >
-        ourCommandQueues[ (uint) CommandListType::NUM ];  // TODO: Move into RenderCore_Platform
+        ourCommandQueues[ ( uint ) CommandListType::NUM ];  // TODO: Move into RenderCore_Platform
 
     static StaticCircularArray< uint64, NUM_QUEUED_FRAMES > ourQueuedFrameDoneFences;
     static StaticCircularArray< eastl::pair< uint64, uint64 >, 256 > ourLastFrameDoneFences;
 
-    static UniquePtr< GpuQueryHeap > ourQueryHeaps[ NUM_QUEUED_FRAMES ][ (uint) GpuQueryType::NUM ];
+    static UniquePtr< GpuQueryHeap > ourQueryHeaps[ NUM_QUEUED_FRAMES ][ ( uint ) GpuQueryType::NUM ];
     static uint ourCurrQueryHeapIdx;
 
-    static eastl::fixed_vector< eastl::pair< uint, uint >, 64 > ourUsedQueryRanges[ (uint) GpuQueryType::NUM ];
+    static eastl::fixed_vector< eastl::pair< uint, uint >, 64 > ourUsedQueryRanges[ ( uint ) GpuQueryType::NUM ];
 
-    static UniquePtr< GpuBuffer > ourQueryBuffers[ NUM_QUERY_BUFFERS ][ (uint) GpuQueryType::NUM ];
+    static UniquePtr< GpuBuffer > ourQueryBuffers[ NUM_QUERY_BUFFERS ][ ( uint ) GpuQueryType::NUM ];
     static uint64 ourQueryBufferFrames[ NUM_QUERY_BUFFERS ];
     static uint ourCurrQueryBufferIdx;
 
-    static const uint8 * ourMappedQueryBufferData[ (uint) GpuQueryType::NUM ];
-    static uint ourMappedQueryBufferIdx[ (uint) GpuQueryType::NUM ];
+    static const uint8 * ourMappedQueryBufferData[ ( uint ) GpuQueryType::NUM ];
+    static uint ourMappedQueryBufferIdx[ ( uint ) GpuQueryType::NUM ];
 
     static eastl::vector< eastl::string > ourChangedShaderFiles;
     static eastl::vector< eastl::string > ourChangedShaderIncludeFiles;

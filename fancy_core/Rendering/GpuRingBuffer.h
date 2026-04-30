@@ -3,6 +3,7 @@
 #include "Common/FancyCoreDefines.h"
 #include "Common/Ptr.h"
 #include "GpuBuffer.h"
+#include "ResourceHandle.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -20,15 +21,13 @@ namespace Fancy {
     void Reset() {
       myOffset = 0u;
     }
-    GpuBuffer * GetBuffer() const {
-      return myBuffer.get();
-    }
+    GpuBuffer * GetBuffer() const;
     uint8 * GetData() const {
       return myData;
     }
 
   protected:
-    SharedPtr< GpuBuffer > myBuffer;
+    GpuBufferHandle myBuffer;
     uint8 * myData;
     uint64 myOffset;
   };

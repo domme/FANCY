@@ -15,20 +15,20 @@
 #include "Common/CommandLine.h"
 
 namespace Fancy {
-  eastl::hash_map< uint64, SharedPtr< TextureView > > Assets::ourTextureCache;
+  eastl::hash_map< uint64, TextureViewHandle > Assets::ourTextureCache;
   eastl::hash_map< uint64, SharedPtr< Mesh > > Assets::ourMeshCache;
   eastl::hash_map< uint64, SharedPtr< Material > > Assets::ourMaterialCache;
-  SharedPtr< ShaderPipeline > Assets::ourMipDownsampleShader;
+  ShaderPipelineHandle Assets::ourMipDownsampleShader;
   //---------------------------------------------------------------------------//
   void Assets::Init() {
     ShaderPipelineDesc pipelineDesc;
-    ShaderDesc & shaderDesc = pipelineDesc.myShader[ (uint) ShaderStage::SHADERSTAGE_COMPUTE ];
+    ShaderDesc & shaderDesc = pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
     shaderDesc.myPath = "fancy/resources/shaders/Downsample.hlsl";
-    shaderDesc.myShaderStage = (uint) ShaderStage::SHADERSTAGE_COMPUTE;
+    shaderDesc.myShaderStage = ( uint ) ShaderStage::SHADERSTAGE_COMPUTE;
     shaderDesc.myMainFunction = "main";
 
     ourMipDownsampleShader = RenderCore::CreateShaderPipeline( pipelineDesc );
-    ASSERT( ourMipDownsampleShader != nullptr );
+    ASSERT( ourMipDownsampleShader.IsValid() );
   }
   //---------------------------------------------------------------------------//
   SharedPtr< Mesh > Assets::GetMesh( const MeshDesc & aDesc ) {
@@ -61,7 +61,7 @@ namespace Fancy {
       ;
 
       GpuBufferProperties bufferParams;
-      bufferParams.myBindFlags = (uint) GpuBufferBindFlags::VERTEX_BUFFER;
+      bufferParams.myBindFlags = ( uint ) GpuBufferBindFlags::VERTEX_BUFFER;
       bufferParams.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
       bufferParams.myNumElements = numVertices;
       bufferParams.myElementSizeBytes = overallVertexSize;
@@ -74,7 +74,7 @@ namespace Fancy {
       const uint64 numIndices = ( partData.myIndexData.size() * sizeof( uint8 ) ) / sizeof( uint );
 
       GpuBufferProperties indexBufParams;
-      indexBufParams.myBindFlags = (uint) GpuBufferBindFlags::INDEX_BUFFER;
+      indexBufParams.myBindFlags = ( uint ) GpuBufferBindFlags::INDEX_BUFFER;
       indexBufParams.myCpuAccess = CpuMemoryAccessType::NO_CPU_ACCESS;
       indexBufParams.myNumElements = numIndices;
       indexBufParams.myElementSizeBytes = sizeof( uint );
@@ -117,7 +117,7 @@ namespace Fancy {
 
     mat.reset( new Material() );
 
-    for ( uint i = 0u; i < (uint) MaterialTextureType::NUM; ++i )
+    for ( uint i = 0u; i < ( uint ) MaterialTextureType::NUM; ++i )
       if ( !aDesc.myTextures[ i ].empty() )
         mat->myTextures[ i ] = LoadTexture( aDesc.myTextures[ i ].c_str() );
 
@@ -128,7 +128,7 @@ namespace Fancy {
     return mat;
   }
   //---------------------------------------------------------------------------//
-  SharedPtr< TextureView > Assets::GetTexture( const char * aPath, uint someFlags ) {
+  TextureViewHandle Assets::GetTexture( const char * aPath, uint someFlags ) {
     eastl::string texPathAbs = aPath;
     eastl::string texPathRel = aPath;
     if ( !Path::IsPathAbsolute( texPathAbs ) )
@@ -137,18 +137,18 @@ namespace Fancy {
       texPathRel = Path::GetRelativePath( texPathAbs );
 
     uint64 texPathRelHash = MathUtil::Hash( texPathRel );
-    MathUtil::hash_combine( texPathRelHash, ( (uint64) someFlags & SHADER_WRITABLE ) );
+    MathUtil::hash_combine( texPathRelHash, ( ( uint64 ) someFlags & SHADER_WRITABLE ) );
 
     auto it = ourTextureCache.find( texPathRelHash );
     if ( it != ourTextureCache.end() )
       return it->second;
 
-    return nullptr;
+    return TextureViewHandle{};
   }
   //---------------------------------------------------------------------------//
-  SharedPtr< TextureView > Assets::LoadTexture( const char * aPath, uint someLoadFlags /* = 0 */ ) {
+  TextureViewHandle Assets::LoadTexture( const char * aPath, uint someLoadFlags /* = 0 */ ) {
     if ( strlen( aPath ) == 0 )
-      return nullptr;
+      return TextureViewHandle{};
 
     eastl::string texPathAbs = aPath;
     eastl::string texPathRel = aPath;
@@ -157,56 +157,59 @@ namespace Fancy {
     else
       texPathRel = Path::GetRelativePath( texPathAbs );
 
-    if ( ( someLoadFlags & NO_MEM_CACHE ) == 0 )
-      if ( SharedPtr< TextureView > texFromMemCache = GetTexture( texPathRel.c_str() ) )
-        if ( texFromMemCache->GetProperties().myIsShaderWritable == ( ( someLoadFlags & SHADER_WRITABLE ) != 0 ) )
-          return texFromMemCache;
+    if ( ( someLoadFlags & NO_MEM_CACHE ) == 0 ) {
+      TextureViewHandle cached = GetTexture( texPathRel.c_str() );
+      if ( cached.IsValid() && RenderCore::GetTextureView( cached )->GetProperties().myIsShaderWritable ==
+                                   ( ( someLoadFlags & SHADER_WRITABLE ) != 0 ) )
+        return cached;
+    }
 
     uint64 texPathRelHash = MathUtil::Hash( texPathRel );
-    MathUtil::hash_combine( texPathRelHash, ( (uint64) someLoadFlags & SHADER_WRITABLE ) );
+    MathUtil::hash_combine( texPathRelHash, ( ( uint64 ) someLoadFlags & SHADER_WRITABLE ) );
 
-    SharedPtr< Texture > tex;
-
-    {
-      ImageData image;
-      if ( !ImageLoader::Load( texPathAbs.c_str(), someLoadFlags, image ) ) {
-        LOG_ERROR( "Failed to load texture at path %s", texPathAbs.c_str() );
-        return nullptr;
-      }
-
-      tex = RenderCore::CreateTexture( image.myProperties, texPathRel.c_str(), image.myData.mySubDatas.data(),
-                                       image.myData.mySubDatas.size() );
+    ImageData image;
+    if ( !ImageLoader::Load( texPathAbs.c_str(), someLoadFlags, image ) ) {
+      LOG_ERROR( "Failed to load texture at path %s", texPathAbs.c_str() );
+      return TextureViewHandle{};
     }
 
-    if ( tex == nullptr ) {
+    TextureHandle texHandle = RenderCore::CreateTexture(
+        image.myProperties, texPathRel.c_str(), image.myData.mySubDatas.data(), image.myData.mySubDatas.size() );
+    if ( !texHandle.IsValid() ) {
       LOG_ERROR( "Failed to create loaded texture at path %s", texPathAbs.c_str() );
-      return nullptr;
+      return TextureViewHandle{};
     }
 
-    if ( tex->GetProperties().myNumMipLevels == 1 && ( someLoadFlags & NO_MIP_GENERATION ) == 0 ) {
-      ComputeMipmaps( tex );
-    }
+    if ( RenderCore::GetTexture( texHandle )->GetProperties().myNumMipLevels == 1 &&
+         ( someLoadFlags & NO_MIP_GENERATION ) == 0 )
+      ComputeMipmaps( texHandle );
 
+    Texture * tex = RenderCore::GetTexture( texHandle );
     TextureViewProperties viewProps;
     viewProps.mySubresourceRange = tex->mySubresources;
     viewProps.myFormat = tex->GetProperties().myFormat;
-    SharedPtr< TextureView > texView = RenderCore::CreateTextureView( tex, viewProps, aPath );
+    TextureViewHandle texViewHandle = RenderCore::CreateTextureView( tex, viewProps, aPath );
 
-    ourTextureCache[ texPathRelHash ] = texView;
-    return texView;
+    ourTextureCache[ texPathRelHash ] = texViewHandle;
+    return texViewHandle;
   }
   //---------------------------------------------------------------------------//
-  void Assets::ComputeMipmaps( const SharedPtr< Texture > & aTexture, Assets::ResampleFilter /*aFilter*/ ) {
+  void Assets::ComputeMipmaps( TextureHandle aTextureHandle, Assets::ResampleFilter /*aFilter*/ ) {
+    if ( !aTextureHandle.IsValid() )
+      return;
+
+    Texture * aTexture = RenderCore::GetTexture( aTextureHandle );
     const TextureProperties & texProps = aTexture->GetProperties();
     const uint numMips = texProps.myNumMipLevels;
 
-    SharedPtr< Texture > texture = aTexture;
+    TextureHandle textureHandle = aTextureHandle;
     if ( !texProps.myIsShaderWritable ) {
-      TextureProperties props = aTexture->GetProperties();
+      TextureProperties props = texProps;
       props.myIsRenderTarget = false;
       props.myIsShaderWritable = true;
-      texture = RenderCore::CreateTexture( props, "Mipmap target UAV copy" );
+      textureHandle = RenderCore::CreateTexture( props, "Mipmap target UAV copy" );
     }
+    Texture * texture = RenderCore::GetTexture( textureHandle );
 
     TextureResourceProperties tempTexProps;
     tempTexProps.myIsShaderWritable = true;
@@ -218,9 +221,8 @@ namespace Fancy {
     tempTexProps.myTextureProperties.myNumMipLevels = 1u;
     TempTextureResource tempTexture = RenderCore::AllocateTempTexture( tempTexProps, 0u, "Temp mipmapping texture" );
 
-    eastl::fixed_vector< SharedPtr< TextureView >, 10 > readViews;
-    eastl::fixed_vector< SharedPtr< TextureView >, 10 > writeViews;
-
+    eastl::fixed_vector< TextureViewHandle, 10 > readViews;
+    eastl::fixed_vector< TextureViewHandle, 10 > writeViews;
     readViews.resize( numMips );
     writeViews.resize( numMips );
 
@@ -238,10 +240,10 @@ namespace Fancy {
     }
 
     CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
-    if ( texture != aTexture )
-      ctx->CopyTexture( texture.get(), SubresourceLocation( 0 ), aTexture.get(), SubresourceLocation( 0 ) );
+    if ( textureHandle != aTextureHandle )
+      ctx->CopyTexture( texture, SubresourceLocation( 0 ), aTexture, SubresourceLocation( 0 ) );
 
-    ctx->SetShaderPipeline( ourMipDownsampleShader.get() );
+    ctx->SetShaderPipeline( RenderCore::GetShaderPipeline( ourMipDownsampleShader ) );
 
     struct CBuffer {
       glm::int2 mySrcTextureSize;
@@ -255,21 +257,23 @@ namespace Fancy {
 
     const glm::int2 fullSize( texProps.myWidth, texProps.myHeight );
     for ( uint mip = 1u; mip < numMips; ++mip ) {
-      const glm::int2 srcSize = fullSize >> (int) ( mip - 1 );
-      const glm::int2 dstSize = fullSize >> (int) mip;
+      const glm::int2 srcSize = fullSize >> ( int ) ( mip - 1 );
+      const glm::int2 dstSize = fullSize >> ( int ) mip;
 
-      cBuffer.mySrcTextureIdx = readViews[ mip - 1 ]->GetGlobalDescriptorIndex();
-      cBuffer.myDstTextureIdx = writeViews[ mip ]->GetGlobalDescriptorIndex();
-      cBuffer.mySrcTextureSize = glm::int2( (int) srcSize.x, (int) srcSize.y );
+      TextureView * readView = RenderCore::GetTextureView( readViews[ mip - 1 ] );
+      TextureView * writeView = RenderCore::GetTextureView( writeViews[ mip ] );
+      cBuffer.mySrcTextureIdx = readView->GetGlobalDescriptorIndex();
+      cBuffer.myDstTextureIdx = writeView->GetGlobalDescriptorIndex();
+      cBuffer.mySrcTextureSize = glm::int2( ( int ) srcSize.x, ( int ) srcSize.y );
       ctx->BindConstantBuffer( &cBuffer, sizeof( cBuffer ), 0 );
-      ctx->PrepareResourceShaderAccess( readViews[ mip - 1 ].get() );
-      ctx->PrepareResourceShaderAccess( writeViews[ mip ].get() );
+      ctx->PrepareResourceShaderAccess( readView );
+      ctx->PrepareResourceShaderAccess( writeView );
       ctx->Dispatch( glm::int3( dstSize.x, dstSize.y, 1 ) );
       ctx->ResourceUAVbarrier();
     }
 
-    if ( aTexture != texture )
-      ctx->CopyResource( aTexture.get(), texture.get() );
+    if ( aTextureHandle != textureHandle )
+      ctx->CopyResource( aTexture, texture );
 
     RenderCore::ExecuteAndFreeCommandList( ctx, SyncMode::BLOCKING );
   }

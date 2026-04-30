@@ -3,6 +3,7 @@
 #include "Common/FancyCoreDefines.h"
 #include "ShaderDesc.h"
 #include "VertexInputLayoutProperties.h"
+#include "ResourceHandle.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -36,7 +37,7 @@ namespace Fancy {
     ShaderDesc myDesc;
     ShaderProperties myProperties;
     eastl::fixed_vector< VertexShaderAttributeDesc, 16 > myVertexAttributes;
-    SharedPtr< VertexInputLayout > myDefaultVertexInputLayout;
+    VertexInputLayoutHandle myDefaultVertexInputLayout;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

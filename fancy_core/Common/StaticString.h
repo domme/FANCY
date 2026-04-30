@@ -63,7 +63,7 @@ namespace Fancy {
     }
 
     bool operator==( const char * aStr ) const {
-      uint len = (uint) strlen( aStr );
+      uint len = ( uint ) strlen( aStr );
       if ( len != Size() )
         return false;
 
@@ -115,7 +115,7 @@ namespace Fancy {
       ASSERT( remainingSize > 0 );
       const int numCharsNeeded =
           vsnprintf( myBuffer + myNextFree, static_cast< size_t >( remainingSize ), aFormatString, args ) + 1;
-      ASSERT( numCharsNeeded - 1 <= (int) remainingSize );
+      ASSERT( numCharsNeeded - 1 <= ( int ) remainingSize );
       myNextFree += numCharsNeeded - 1;
     }
 

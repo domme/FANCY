@@ -1,6 +1,7 @@
 #include "fancy_core_precompile.h"
 #include "Material.h"
 #include "Rendering/Texture.h"
+#include "Rendering/RenderCore.h"
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -17,9 +18,10 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   MaterialDesc Material::GetDescription() const {
     MaterialDesc desc;
-    for ( uint i = 0; i < ARRAY_LENGTH( myTextures ); ++i )
-      if ( myTextures[ i ] )
-        desc.myTextures[ i ] = myTextures[ i ]->GetTexture()->GetProperties().myPath;
+    for ( uint i = 0; i < ARRAY_LENGTH( myTextures ); ++i ) {
+      if ( myTextures[ i ].IsValid() )
+        desc.myTextures[ i ] = RenderCore::GetTextureView( myTextures[ i ] )->GetTexture()->GetProperties().myPath;
+    }
 
     for ( uint i = 0; i < ARRAY_LENGTH( myParameters ); ++i )
       desc.myParameters[ i ] = myParameters[ i ];

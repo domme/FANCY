@@ -2,6 +2,7 @@
 
 #include "RtShaderIdentifier.h"
 #include "Common/MathIncludes.h"
+#include "ResourceHandle.h"
 
 namespace Fancy {
   class Shader;
@@ -9,11 +10,11 @@ namespace Fancy {
   class RtPipelineStateProperties {
   public:
     uint AddRayGenShader( const char * aPath, const char * aMainFunction, const char * someDefines = nullptr );
-    uint AddRayGenShader( const SharedPtr< Shader > & aShader );
+    uint AddRayGenShader( ShaderHandle aShader );
     uint AddMissShader( const char * aPath, const char * aMainFunction, const char * someDefines = nullptr );
-    uint AddMissShader( const SharedPtr< Shader > & aShader );
-    uint AddHitGroup( const wchar_t * aName, RtHitGroupType aType, const SharedPtr< Shader > & anIntersectionShader,
-                      const SharedPtr< Shader > & anAnyHitShader, const SharedPtr< Shader > & aClosestHitShader );
+    uint AddMissShader( ShaderHandle aShader );
+    uint AddHitGroup( const wchar_t * aName, RtHitGroupType aType, ShaderHandle anIntersectionShader,
+                      ShaderHandle anAnyHitShader, ShaderHandle aClosestHitShader );
     uint AddHitGroup( const wchar_t * aName, RtHitGroupType aType, const char * anIntersectionPath,
                       const char * anIntersectionMainFunction, const char * anAnyHitPath,
                       const char * anAnyHitMainFunction, const char * aClosestHitPath,
@@ -34,7 +35,7 @@ namespace Fancy {
 
     struct ShaderEntry {
       eastl::wstring myUniqueMainFunctionName;
-      SharedPtr< Shader > myShader;
+      ShaderHandle myShader;
     };
 
     struct HitGroup {

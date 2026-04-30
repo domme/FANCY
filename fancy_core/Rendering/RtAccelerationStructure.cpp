@@ -2,6 +2,7 @@
 #include "RtAccelerationStructure.h"
 #include "CommandList.h"
 #include "GpuBuffer.h"
+#include "RenderCore.h"
 
 namespace Fancy {
   uint64 RtBufferData::GetGpuBufferAddress( CommandList * aCommandList, uint anAlingment ) const {
@@ -23,4 +24,19 @@ namespace Fancy {
 
   RtAccelerationStructure::RtAccelerationStructure( RtAccelerationStructureType aType, const char * aName )
       : myType( aType ), myName( aName ? aName : "" ) {}
+
+  RtAccelerationStructure::~RtAccelerationStructure() {
+    if ( myTopLevelBufferRead.IsValid() )
+      RenderCore::DeleteBufferView( myTopLevelBufferRead );
+    if ( myBuffer.IsValid() )
+      RenderCore::DeleteBuffer( myBuffer );
+  }
+
+  GpuBuffer * RtAccelerationStructure::GetBuffer() const {
+    return myBuffer.IsValid() ? RenderCore::GetBuffer( myBuffer ) : nullptr;
+  }
+
+  GpuBufferView * RtAccelerationStructure::GetBufferRead() const {
+    return myTopLevelBufferRead.IsValid() ? RenderCore::GetBufferView( myTopLevelBufferRead ) : nullptr;
+  }
 }  // namespace Fancy

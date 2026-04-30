@@ -60,8 +60,14 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void RenderOutput::DestroyViews() {
     for ( uint i = 0u; i < kBackbufferCount; ++i ) {
-      myBackbufferSrv[ i ].reset();
-      myBackbufferRtv[ i ].reset();
+      if ( myBackbufferSrv[ i ].IsValid() ) {
+        RenderCore::DeleteTextureView( myBackbufferSrv[ i ] );
+        myBackbufferSrv[ i ] = TextureViewHandle{};
+      }
+      if ( myBackbufferRtv[ i ].IsValid() ) {
+        RenderCore::DeleteTextureView( myBackbufferRtv[ i ] );
+        myBackbufferRtv[ i ] = TextureViewHandle{};
+      }
     }
   }
   //---------------------------------------------------------------------------//
@@ -80,7 +86,7 @@ namespace Fancy {
         props.myFormat = myBackbufferTextures[ i ]->GetProperties().myFormat;
         props.myIsRenderTarget = true;
         myBackbufferRtv[ i ] = RenderCore::CreateTextureView( myBackbufferTextures[ i ], props );
-        ASSERT( myBackbufferRtv[ i ] != nullptr );
+        ASSERT( myBackbufferRtv[ i ].IsValid() );
       }
 
       // Backbuffer SRV
@@ -89,9 +95,17 @@ namespace Fancy {
         props.myDimension = GpuResourceDimension::TEXTURE_2D;
         props.myFormat = myBackbufferTextures[ i ]->GetProperties().myFormat;
         myBackbufferSrv[ i ] = RenderCore::CreateTextureView( myBackbufferTextures[ i ], props );
-        ASSERT( myBackbufferSrv[ i ] != nullptr );
+        ASSERT( myBackbufferSrv[ i ].IsValid() );
       }
     }
+  }
+  //---------------------------------------------------------------------------//
+  TextureView * RenderOutput::GetBackbufferRtv() const {
+    return RenderCore::GetTextureView( myBackbufferRtv[ myCurrBackbufferIndex ] );
+  }
+  //---------------------------------------------------------------------------//
+  TextureView * RenderOutput::GetBackbufferSrv() const {
+    return RenderCore::GetTextureView( myBackbufferSrv[ myCurrBackbufferIndex ] );
   }
   //---------------------------------------------------------------------------//
 }  // namespace Fancy
