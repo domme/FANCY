@@ -10,11 +10,14 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   struct ShaderDesc {
-    uint64 GetHash() const;
+    uint64        GetHash() const;
+    static uint64 Hash( const ShaderDesc & aDesc ) {
+      return aDesc.GetHash();
+    }
 
-    eastl::string myPath;
-    eastl::string myMainFunction = "main";
-    uint myShaderStage = ( uint ) SHADERSTAGE_NONE;
+    eastl::string                           myPath;
+    eastl::string                           myMainFunction = "main";
+    uint                                    myShaderStage = ( uint ) SHADERSTAGE_NONE;
     eastl::fixed_vector< eastl::string, 8 > myDefines;
   };
   //---------------------------------------------------------------------------//

@@ -20,7 +20,7 @@ namespace Fancy {
         : myProperties( someProperties ), myGlobalDescriptorIndex( UINT_MAX ) {}
 
     TextureSamplerProperties myProperties;
-    uint myGlobalDescriptorIndex;
+    uint                     myGlobalDescriptorIndex;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

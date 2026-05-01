@@ -113,7 +113,7 @@ namespace Fancy {
     return Import( aPath, vertexShader->myVertexAttributes, aResultOut, someImportOptions );
   }
   //---------------------------------------------------------------------------//
-  bool MeshImporter::Import( const char * aPath,
+  bool MeshImporter::Import( const char *                                                 aPath,
                              const eastl::fixed_vector< VertexShaderAttributeDesc, 16 > & someVertexAttributes,
                              SceneData & aResultOut, ImportOptions someImportOptions ) {
 #if FANCY_USE_BINARY_CACHE
@@ -127,7 +127,7 @@ namespace Fancy {
     eastl::string pathAbs = Path::GetAbsolutePath( aPath );
 
     Assimp::Importer importer;
-    const aiScene * importedScene =
+    const aiScene *  importedScene =
         importer.ReadFile( pathAbs.c_str(), Priv_MeshImporter::GetAiImportOptions( someImportOptions ) );
 
     if ( !importedScene )
@@ -141,7 +141,7 @@ namespace Fancy {
     aResultOut.myVertexInputLayoutProperties = myVertexInputLayout;
 
     aiNode * rootNode = importedScene->mRootNode;
-    bool success =
+    bool     success =
         ProcessNodeRecursive( rootNode, Priv_MeshImporter::MatFromAiMat( rootNode->mTransformation ), aResultOut );
 
 #if FANCY_USE_BINARY_CACHE
@@ -190,7 +190,7 @@ namespace Fancy {
 
     for ( auto it = materialMeshMap.begin(); it != materialMeshMap.end(); ++it ) {
       eastl::fixed_vector< aiMesh *, 32 > & meshList = it->second;
-      const uint aiMatIndex = it->first;
+      const uint                            aiMatIndex = it->first;
 
       aiMaterial * aiMaterial = myScene->mMaterials[ aiMatIndex ];
 
@@ -214,18 +214,18 @@ namespace Fancy {
     if ( it != myMeshCache.end() )
       return it->second;
 
-    MeshData meshData;
+    MeshData                        meshData;
     eastl::vector< MeshPartData > & meshPartDatas = meshData.myParts;
     for ( uint iAiMesh = 0; iAiMesh < aMeshCount; ++iAiMesh ) {
       const aiMesh * aiMesh = someMeshes[ iAiMesh ];
 
       struct ImportVertexStream {
-        const uint8 * mySourceData;
-        uint mySourceDataStride;
-        uint myDataSize;
+        const uint8 *           mySourceData;
+        uint                    mySourceDataStride;
+        uint                    myDataSize;
         VertexAttributeSemantic mySourceSemantic;
-        uint mySourceSemanticIndex;
-        uint myReadOffset = 0u;
+        uint                    mySourceSemanticIndex;
+        uint                    myReadOffset = 0u;
       };
       eastl::vector< ImportVertexStream > importStreams;
 
@@ -298,8 +298,8 @@ namespace Fancy {
       ASSERT( importStreams.size() <= RenderCore::GetPlatformCaps().myMaxNumVertexAttributes );
 
       const eastl::fixed_vector< VertexShaderAttributeDesc, 16 > & expectedAttributes = myVertexAttributes;
-      uint attributeSizes[ 16 ] = { 0u };
-      int importStreamForAttribute[ 16 ];
+      uint                                                         attributeSizes[ 16 ] = { 0u };
+      int                                                          importStreamForAttribute[ 16 ];
       for ( uint i = 0u; i < 16; ++i )
         importStreamForAttribute[ i ] = -1;
       uint overallVertexSize = 0u;
@@ -387,34 +387,34 @@ namespace Fancy {
     }
 
     // Retrieve the material properties most relevant for us
-    aiString szAname;
+    aiString   szAname;
     const bool hasName = anAiMaterial->Get( AI_MATKEY_NAME, szAname ) == AI_SUCCESS;
 
-    aiColor3D color_diffuse;
+    aiColor3D  color_diffuse;
     const bool hasColor = anAiMaterial->Get( AI_MATKEY_COLOR_DIFFUSE, color_diffuse ) == AI_SUCCESS;
 
-    aiColor3D color_specular;
+    aiColor3D  color_specular;
     const bool hasSpecularColor = anAiMaterial->Get( AI_MATKEY_COLOR_SPECULAR, color_specular ) == AI_SUCCESS;
 
-    aiColor3D color_ambient;
+    aiColor3D  color_ambient;
     const bool hasAmbientColor = anAiMaterial->Get( AI_MATKEY_COLOR_AMBIENT, color_ambient ) == AI_SUCCESS;
 
-    aiColor3D color_emissive;
+    aiColor3D  color_emissive;
     const bool hasEmissiveColor = anAiMaterial->Get( AI_MATKEY_COLOR_EMISSIVE, color_emissive ) == AI_SUCCESS;
 
-    aiColor3D color_transparent;
+    aiColor3D  color_transparent;
     const bool hasTransparentColor = anAiMaterial->Get( AI_MATKEY_COLOR_TRANSPARENT, color_transparent ) == AI_SUCCESS;
 
     aiBlendMode blend_func;
-    const bool hasBlendFunc = anAiMaterial->Get( AI_MATKEY_BLEND_FUNC, blend_func ) == AI_SUCCESS;
+    const bool  hasBlendFunc = anAiMaterial->Get( AI_MATKEY_BLEND_FUNC, blend_func ) == AI_SUCCESS;
 
-    float opacity;
+    float      opacity;
     const bool hasOpacity = anAiMaterial->Get( AI_MATKEY_OPACITY, opacity ) == AI_SUCCESS;
 
-    float specularPower;
+    float      specularPower;
     const bool hasSpecularPower = anAiMaterial->Get( AI_MATKEY_SHININESS, specularPower ) == AI_SUCCESS;
 
-    float specular;
+    float      specular;
     const bool hasSpecular = anAiMaterial->Get( AI_MATKEY_SHININESS_STRENGTH, specular ) == AI_SUCCESS;
 
     const eastl::string & diffuseTexPath =

@@ -11,7 +11,7 @@ namespace Fancy {
   void DebugTextureList::Update() {
     // ImGui::Begin("Textures", &myIsOpen, ImGuiWindowFlags_NoSavedSettings);
 
-    const auto & textures = Assets::GetTextures();
+    const auto &                  textures = Assets::GetTextures();
     eastl::vector< const char * > textureNames;
     textureNames.reserve( textures.size() );
 

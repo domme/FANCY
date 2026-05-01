@@ -30,17 +30,17 @@ private:
   void RenderGrid( Fancy::CommandList * ctx );
   void RenderScene( Fancy::CommandList * ctx );
 
-  Fancy::Camera myCamera;
-  Fancy::CameraController myCameraController;
+  Fancy::Camera                    myCamera;
+  Fancy::CameraController          myCameraController;
   Fancy::SharedPtr< Fancy::Scene > myScene;
 
-  Fancy::SharedPtr< Fancy::ShaderPipeline > myUnlitTexturedShader;
-  Fancy::SharedPtr< Fancy::ShaderPipeline > myInstancedUnlitTexturedShader;
-  Fancy::SharedPtr< Fancy::ShaderPipeline > myUnlitVertexColorShader;
-  Fancy::SharedPtr< Fancy::ShaderPipeline > myDebugGeoShader;
-  Fancy::SharedPtr< Fancy::TextureSampler > mySampler;
+  Fancy::SharedPtr< Fancy::ShaderPipeline >    myUnlitTexturedShader;
+  Fancy::SharedPtr< Fancy::ShaderPipeline >    myInstancedUnlitTexturedShader;
+  Fancy::SharedPtr< Fancy::ShaderPipeline >    myUnlitVertexColorShader;
+  Fancy::SharedPtr< Fancy::ShaderPipeline >    myDebugGeoShader;
+  Fancy::SharedPtr< Fancy::TextureSampler >    mySampler;
   Fancy::SharedPtr< Fancy::VertexInputLayout > myInstancedVertexLayout;
-  Fancy::SharedPtr< Fancy::GpuBuffer > myInstancePositions;
-  Fancy::SharedPtr< Fancy::TextureView > myDepthStencilDsv;
-  int myNumInstances;
+  Fancy::SharedPtr< Fancy::GpuBuffer >         myInstancePositions;
+  Fancy::SharedPtr< Fancy::TextureView >       myDepthStencilDsv;
+  int                                          myNumInstances;
 };

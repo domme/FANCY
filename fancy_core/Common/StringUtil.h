@@ -9,7 +9,7 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
     eastl::wstring ToWideString( const char * aStr );
     eastl::wstring ToWideString( const eastl::string & aStr );
-    eastl::string ToNarrowString( const std::wstring & aStr );
+    eastl::string  ToNarrowString( const std::wstring & aStr );
     //---------------------------------------------------------------------------//
     template < class VectorT >
     void Tokenize( const char * aString, const char * someDelimiters, VectorT & someTokensOut ) {
@@ -18,7 +18,7 @@ namespace Fancy {
         return;
 
       eastl::fixed_vector< char, 512 > tempStrBuf( len + 1 );
-      char * tempStr = tempStrBuf.data();
+      char *                           tempStr = tempStrBuf.data();
       memcpy( tempStr, aString, len );
       tempStr[ len ] = '\0';
 

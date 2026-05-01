@@ -47,8 +47,8 @@ namespace Fancy {
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( myTextureProperties.myFormat );
 
     const RenderPlatformCaps & caps = RenderCore::GetPlatformCaps();
-    const uint64 rowAlignment = caps.myTextureRowAlignment;
-    const uint64 subresourceAlignment = caps.myTextureSubresourceBufferAlignment;
+    const uint64               rowAlignment = caps.myTextureRowAlignment;
+    const uint64               subresourceAlignment = caps.myTextureSubresourceBufferAlignment;
 
     uint64 overallSizeBytes = 0u;
     uint64 expectedBufferSize = 0u;
@@ -80,11 +80,11 @@ namespace Fancy {
     ASSERT( srcSubResourceStart != nullptr );
 
     uint8 * dstSubResourceStart = aDataOut.myData.data();
-    uint subResourceIndex = 0u;
+    uint    subResourceIndex = 0u;
     for ( SubresourceIterator it = mySubresourceRange.Begin(), end = mySubresourceRange.End(); it != end;
           ++it, ++subResourceIndex ) {
       const SubresourceLocation & subResource = *it;
-      uint width, height, depth;
+      uint                        width, height, depth;
       myTextureProperties.GetSize( subResource.myMipLevel, width, height, depth );
 
       const uint64 dstRowSizeBytes =
@@ -105,10 +105,10 @@ namespace Fancy {
           MathUtil::Align( dstSliceSizeBytes * depth, caps.myTextureSubresourceBufferAlignment );
 
       const uint8 * srcSliceStart = srcSubResourceStart;
-      uint8 * dstSliceStart = dstSubResourceStart;
+      uint8 *       dstSliceStart = dstSubResourceStart;
       for ( uint d = 0u; d < depth; ++d ) {
         const uint8 * srcRowStart = srcSliceStart;
-        uint8 * dstRowStart = dstSliceStart;
+        uint8 *       dstRowStart = dstSliceStart;
         for ( uint h = 0u; h < height; ++h ) {
           memcpy( dstRowStart, srcRowStart, dstRowSizeBytes );
 

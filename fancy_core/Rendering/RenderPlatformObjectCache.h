@@ -9,7 +9,7 @@ namespace Fancy {
     virtual void Clear() = 0;
 
   protected:
-    std::mutex myCacheMutex;
+    std::mutex                   myCacheMutex;
     eastl::hash_map< uint64, T > myCache;
   };
 }  // namespace Fancy

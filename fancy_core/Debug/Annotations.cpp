@@ -34,7 +34,7 @@ namespace Fancy {
     ~AnnotationDataHolder() = default;
 
     AnnotationTagData myData[ UINT16_MAX ];
-    uint myNextFreeIdx = 1u;  // 0 is the default tag set in the constructor of AnnotationTagData
+    uint              myNextFreeIdx = 1u;  // 0 is the default tag set in the constructor of AnnotationTagData
   };
   //---------------------------------------------------------------------------//
 

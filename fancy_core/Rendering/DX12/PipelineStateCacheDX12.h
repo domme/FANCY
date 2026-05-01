@@ -20,7 +20,7 @@ namespace Fancy {
     void Clear();
 
   private:
-    std::mutex myCacheMutex;
+    std::mutex                                       myCacheMutex;
     eastl::hash_map< uint64, ID3D12PipelineState * > myGraphicsPsoCache;
     eastl::hash_map< uint64, ID3D12PipelineState * > myComputePsoCache;
   };

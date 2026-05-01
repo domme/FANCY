@@ -16,7 +16,7 @@ using namespace Fancy;
 
 Test_GpuMemoryAllocator::Test_GpuMemoryAllocator( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow,
                                                   Fancy::RenderOutput * aRenderOutput,
-                                                  Fancy::InputState * anInputState )
+                                                  Fancy::InputState *   anInputState )
     : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "GPU Memory Allocations" ),
       myBufferToAllocSizeMb( 64 ), myScale( 10.0f ) {
   for ( uint memType = 0; memType < ( uint ) Fancy::GpuMemoryType::NUM; ++memType )
@@ -102,14 +102,14 @@ const char * locGetMemoryLabel( uint64 aMemorySize, CircularStringBuffer & aStri
 void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12, float aMemoryToPixelScale ) {
   PagedLinearAllocator & allocator = *anAllocatorDx12;
 
-  const float elementHeight = 20.0f;
+  const float          elementHeight = 20.0f;
   CircularStringBuffer stringBuffer;
 
   const ImVec2 startPos = ImGui::GetCursorPos();
-  ImVec2 pos = startPos;
+  ImVec2       pos = startPos;
   for ( uint i = 0u; i < allocator.myPages.size(); ++i ) {
     const auto & page = allocator.myPages[ i ];
-    const float pixelWidth = aMemoryToPixelScale * ( float ) ( page.myEnd - page.myStart );
+    const float  pixelWidth = aMemoryToPixelScale * ( float ) ( page.myEnd - page.myStart );
     if ( pixelWidth >= 2 ) {
       ImGui::SetCursorPos( pos );
       ImGui::Button( stringBuffer.Format( "Heap %d", i ), ImVec2( pixelWidth - 1, elementHeight ) );
@@ -129,7 +129,7 @@ void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12,
   for ( auto freeBlockIt = allocator.myFreeList.Begin(); freeBlockIt != allocator.myFreeList.Invalid();
         ++freeBlockIt ) {
     const uint64 freeMemory = freeBlockIt->myEnd - freeBlockIt->myStart;
-    const float pixelWidth = aMemoryToPixelScale * ( float ) freeMemory;
+    const float  pixelWidth = aMemoryToPixelScale * ( float ) freeMemory;
     if ( pixelWidth < 2 )
       continue;
 
@@ -148,7 +148,7 @@ void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12,
   ImGui::PushStyleColor( ImGuiCol_Button, 0xFFFFAAAA );
   for ( const auto & debugInfo : allocator.myAllocDebugInfos ) {
     const uint64 allocatedMemory = debugInfo.myEnd - debugInfo.myStart;
-    const float pixelWidth = aMemoryToPixelScale * ( float ) allocatedMemory;
+    const float  pixelWidth = aMemoryToPixelScale * ( float ) allocatedMemory;
     if ( pixelWidth < 2 )
       continue;
 

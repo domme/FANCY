@@ -31,17 +31,17 @@ namespace Fancy {
     void GetSize( uint aMipLevel, uint & aWidthOut, uint & aHeightOut, uint & aDepthOut ) const;
 
     GpuResourceDimension myDimension;
-    eastl::string myPath;
-    uint myWidth;
-    uint myHeight;
-    uint myDepthOrArraySize;
-    DataFormat myFormat;
-    CpuMemoryAccessType myAccessType;
-    uint myNumMipLevels;
-    bool bIsDepthStencil;
-    bool myIsShaderWritable;
-    bool myIsRenderTarget;
-    bool myPreferTypedFormat;
+    eastl::string        myPath;
+    uint                 myWidth;
+    uint                 myHeight;
+    uint                 myDepthOrArraySize;
+    DataFormat           myFormat;
+    CpuMemoryAccessType  myAccessType;
+    uint                 myNumMipLevels;
+    bool                 bIsDepthStencil;
+    bool                 myIsShaderWritable;
+    bool                 myIsRenderTarget;
+    bool                 myPreferTypedFormat;
   };
   //---------------------------------------------------------------------------//
   struct TextureViewProperties {
@@ -50,16 +50,16 @@ namespace Fancy {
           myIsRenderTarget( false ), myIsDepthReadOnly( false ), myIsStencilReadOnly( false ), myMinLodClamp( 0.0f ),
           myFirstZindex( 0u ), myZSize( 1u ) {}
 
-    SubresourceRange mySubresourceRange;
+    SubresourceRange     mySubresourceRange;
     GpuResourceDimension myDimension;
-    DataFormat myFormat;
-    bool myIsShaderWritable;
-    bool myIsRenderTarget;
-    bool myIsDepthReadOnly;
-    bool myIsStencilReadOnly;
-    float myMinLodClamp;
-    uint myFirstZindex;  // Only rendertargets
-    uint myZSize;        // Only rendertargets
+    DataFormat           myFormat;
+    bool                 myIsShaderWritable;
+    bool                 myIsRenderTarget;
+    bool                 myIsDepthReadOnly;
+    bool                 myIsStencilReadOnly;
+    float                myMinLodClamp;
+    uint                 myFirstZindex;  // Only rendertargets
+    uint                 myZSize;        // Only rendertargets
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

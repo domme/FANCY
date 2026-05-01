@@ -24,8 +24,8 @@ namespace Fancy {
     virtual void StallForFence( uint64 aFenceVal ) = 0;
 
     CommandList * BeginCommandList();
-    uint64 ExecuteAndFreeCommandList( CommandList * aContext, SyncMode aSyncMode = SyncMode::ASYNC );
-    uint64 ExecuteAndResetCommandList( CommandList * aContext, SyncMode aSyncMode = SyncMode::ASYNC );
+    uint64        ExecuteAndFreeCommandList( CommandList * aContext, SyncMode aSyncMode = SyncMode::ASYNC );
+    uint64        ExecuteAndResetCommandList( CommandList * aContext, SyncMode aSyncMode = SyncMode::ASYNC );
 
     uint64 GetLastRequestedFenceVal() const {
       return myNextFenceVal - 1u;
@@ -34,15 +34,15 @@ namespace Fancy {
   protected:
     virtual uint64 ExecuteCommandListInternal( CommandList * aContext, SyncMode aSyncMode = SyncMode::ASYNC ) = 0;
     virtual uint64 ExecuteAndResetCommandListInternal( CommandList * aContext,
-                                                       SyncMode aSyncMode = SyncMode::ASYNC ) = 0;
+                                                       SyncMode      aSyncMode = SyncMode::ASYNC ) = 0;
 
     void FreeCommandList( CommandList * aCommandList );
 
     eastl::vector< UniquePtr< CommandList > > myCommandListPool;
-    eastl::fixed_list< CommandList *, 128 > myAvailableCommandLists;
+    eastl::fixed_list< CommandList *, 128 >   myAvailableCommandLists;
 
     CommandListType myType;
-    uint64 myLastCompletedFenceVal;
-    uint64 myNextFenceVal;
+    uint64          myLastCompletedFenceVal;
+    uint64          myNextFenceVal;
   };
 }  // namespace Fancy

@@ -17,8 +17,8 @@ namespace Fancy {
     virtual ~ShaderPipeline();
 
     ShaderPipelineDesc GetDescription() const;
-    void Create( const eastl::span< Shader *, SHADERSTAGE_NUM > & someShaders );
-    void Recreate();
+    void               Create( const eastl::span< Shader *, SHADERSTAGE_NUM > & someShaders );
+    void               Recreate();
 
     uint64 GetHash() const {
       return GetDescription().GetHash();
@@ -39,7 +39,7 @@ namespace Fancy {
 
   protected:
     virtual void CreateFromShaders() = 0;
-    void UpdateShaderByteCodeHash();
+    void         UpdateShaderByteCodeHash();
 
     Shader * myShaders[ SHADERSTAGE_NUM ];
     uint64 myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled

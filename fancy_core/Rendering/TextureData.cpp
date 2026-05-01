@@ -100,7 +100,7 @@ namespace Fancy {
     const uint depth = glm::max( 1u, someProperties.myDepthOrArraySize );
 
     uint64 pitchSizeBytes;
-    uint heightBlocksOrPixels;
+    uint   heightBlocksOrPixels;
     TextureData::ComputeRowPitchSizeAndBlockHeight( someProperties.myFormat, width, height, pitchSizeBytes,
                                                     heightBlocksOrPixels );
 

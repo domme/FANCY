@@ -80,7 +80,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void RenderOutputDX12::Present() {
-    CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
+    CommandList *     ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
     CommandListDX12 * ctxDx12 = static_cast< CommandListDX12 * >( ctx );
     ctxDx12->TrackResourceTransition( GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT );
     RenderCore::ExecuteAndFreeCommandList( ctx );

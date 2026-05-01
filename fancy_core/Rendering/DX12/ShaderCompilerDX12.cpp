@@ -69,7 +69,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void locResolveFormat( const char * aTypeName, uint & aSizeBytesOut, DataFormat & aDataFormatOut ) {
-    uint sizeBytes = 0u;
+    uint       sizeBytes = 0u;
     DataFormat format = DataFormat::NONE;
 
 #define CHECK( str ) strcmp( aTypeName, str ) == 0
@@ -171,13 +171,13 @@ namespace Fancy {
                                              ShaderCompilerResult * anOutput ) const {
     DxcShaderCompiler::Config config = { true, GetHLSLprofileString( ( ShaderStage ) aDesc.myShaderStage ).c_str() };
 
-    DxcShaderCompiler::IncludeInfo includeInfo;
+    DxcShaderCompiler::IncludeInfo     includeInfo;
     Microsoft::WRL::ComPtr< IDxcBlob > compiledShaderBytecode;
     if ( !myDxcCompiler.CompileToBytecode( anHlslSrcPathAbs, aDesc, config, includeInfo, compiledShaderBytecode ) )
       return false;
 
     IDxcContainerReflection * dxcReflection = myDxcCompiler.GetDxcReflector();
-    HRESULT success = dxcReflection->Load( compiledShaderBytecode.Get() );
+    HRESULT                   success = dxcReflection->Load( compiledShaderBytecode.Get() );
     if ( success != S_OK ) {
       LOG_ERROR( "Failed to load the compiled shader bytecode into the dxc reflector" );
       return false;
@@ -225,7 +225,7 @@ namespace Fancy {
         // Create a default vertex input layout that assumes that all vertex attributes come from one interleaved vertex
         // buffer.
         // A custom vertex input layout can be set using using CommandList::SetVertexInputLayout()
-        uint overallVertexSize = 0u;
+        uint                        overallVertexSize = 0u;
         VertexInputLayoutProperties props;
         for ( uint i = 0u; i < vertexAttributes.size(); ++i ) {
           const VertexShaderAttributeDesc & shaderAttribute = vertexAttributes[ i ];

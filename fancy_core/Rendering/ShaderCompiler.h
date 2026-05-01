@@ -16,11 +16,11 @@ namespace Fancy {
   struct ShaderDesc;
   //---------------------------------------------------------------------------//
   struct ShaderCompilerResult {
-    ShaderDesc myDesc;
-    ShaderProperties myProperties;
+    ShaderDesc                                           myDesc;
+    ShaderProperties                                     myProperties;
     eastl::fixed_vector< VertexShaderAttributeDesc, 16 > myVertexAttributes;
-    eastl::fixed_vector< eastl::string, 16 > myIncludedFilePaths;
-    VertexInputLayoutHandle myDefaultVertexInputLayout;
+    eastl::fixed_vector< eastl::string, 16 >             myIncludedFilePaths;
+    VertexInputLayoutHandle                              myDefaultVertexInputLayout;
 
 #if FANCY_ENABLE_DX12
     ShaderCompiledDataDX12 myDx12Data;
@@ -29,7 +29,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   class ShaderCompiler {
   public:
-    static const char * ShaderStageToDefineString( ShaderStage aShaderStage );
+    static const char *     ShaderStageToDefineString( ShaderStage aShaderStage );
     static FixedShortString GetHLSLprofileString( ShaderStage aShaderStage, ShaderModel aShaderModel = SM_LATEST );
     static VertexAttributeSemantic GetVertexAttributeSemantic( const char * aSemanticName );
 

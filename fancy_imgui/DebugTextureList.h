@@ -11,9 +11,9 @@ namespace Fancy {
 
   private:
     eastl::string mySelectedItem;
-    bool myIsOpen = false;
+    bool          myIsOpen = false;
 
-    char myFilterText[ 256 ] = {};
+    char                               myFilterText[ 256 ] = {};
     UniquePtr< ImGuiMippedDebugImage > mySelectedDebugImage;
   };
 }  // namespace Fancy

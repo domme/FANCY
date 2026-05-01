@@ -268,28 +268,28 @@ enum DDS_ALPHA_MODE : uint32_t {
 #endif
 
 struct DDS_HEADER {
-  uint32_t size;
-  uint32_t flags;
-  uint32_t height;
-  uint32_t width;
-  uint32_t pitchOrLinearSize;
-  uint32_t depth;  // only if DDS_HEADER_FLAGS_VOLUME is set in flags
-  uint32_t mipMapCount;
-  uint32_t reserved1[ 11 ];
+  uint32_t        size;
+  uint32_t        flags;
+  uint32_t        height;
+  uint32_t        width;
+  uint32_t        pitchOrLinearSize;
+  uint32_t        depth;  // only if DDS_HEADER_FLAGS_VOLUME is set in flags
+  uint32_t        mipMapCount;
+  uint32_t        reserved1[ 11 ];
   DDS_PIXELFORMAT ddspf;
-  uint32_t caps;
-  uint32_t caps2;
-  uint32_t caps3;
-  uint32_t caps4;
-  uint32_t reserved2;
+  uint32_t        caps;
+  uint32_t        caps2;
+  uint32_t        caps3;
+  uint32_t        caps4;
+  uint32_t        reserved2;
 };
 
 struct DDS_HEADER_DXT10 {
   DXGI_FORMAT dxgiFormat;
-  uint32_t resourceDimension;
-  uint32_t miscFlag;  // see D3D11_RESOURCE_MISC_FLAG
-  uint32_t arraySize;
-  uint32_t miscFlags2;  // see DDS_MISC_FLAGS2
+  uint32_t    resourceDimension;
+  uint32_t    miscFlag;  // see D3D11_RESOURCE_MISC_FLAG
+  uint32_t    arraySize;
+  uint32_t    miscFlags2;  // see DDS_MISC_FLAGS2
 };
 
 #pragma pack( pop )

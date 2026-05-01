@@ -18,7 +18,7 @@ namespace Fancy {
     ~DxcShaderCompiler();
 
     struct Config {
-      bool myDebug = true;
+      bool          myDebug = true;
       eastl::string myProfile;
     };
 
@@ -29,7 +29,7 @@ namespace Fancy {
     bool CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, const Config & aConfig,
                             IncludeInfo & anIncludeInfo, eastl::vector< uint8 > & aCompiledBytecodeOut ) const;
     bool CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, const Config & aConfig,
-                            IncludeInfo & anIncludeInfo,
+                            IncludeInfo &                        anIncludeInfo,
                             Microsoft::WRL::ComPtr< IDxcBlob > & aCompiledBytecodeOut ) const;
 
     IDxcContainerReflection * GetDxcReflector() const {
@@ -37,8 +37,8 @@ namespace Fancy {
     }
 
   private:
-    Microsoft::WRL::ComPtr< IDxcUtils > myDxcUtils;
-    Microsoft::WRL::ComPtr< IDxcCompiler > myDxcCompiler;
+    Microsoft::WRL::ComPtr< IDxcUtils >               myDxcUtils;
+    Microsoft::WRL::ComPtr< IDxcCompiler >            myDxcCompiler;
     Microsoft::WRL::ComPtr< IDxcContainerReflection > myDxcReflector;
   };
 }  // namespace Fancy

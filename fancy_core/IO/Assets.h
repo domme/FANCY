@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Common/Ptr.h"
 #include "MeshImporter.h"
 #include "EASTL/hash_map.h"
 #include "Rendering/ResourceHandle.h"
+#include "Rendering/ResourcePool.h"
 
 namespace Fancy {
   struct MeshData;
@@ -13,6 +13,10 @@ namespace Fancy {
   struct MaterialDesc;
   struct MeshPartData;
   struct MeshDesc;
+
+  // Handle declarations for Mesh and Material (high-level asset concepts)
+  using MeshHandle = ResourceHandle< Mesh >;
+  using MaterialHandle = ResourceHandle< Material >;
 
   class Assets {
   public:
@@ -33,26 +37,25 @@ namespace Fancy {
     Assets() = delete;  // Static-only class
 
     static void Init();
-    static SharedPtr< Mesh > GetMesh( const MeshDesc & aDesc );
-    static SharedPtr< Mesh > CreateMesh( const MeshData & aMeshData );
-    static uint64 ComputeMeshVertexHash( const MeshPartData * someMeshPartDatas, uint aNumParts );
 
-    static SharedPtr< Material > GetMaterial( const MaterialDesc & aDesc );
-    static SharedPtr< Material > CreateMaterial( const MaterialDesc & aDesc );
+    static Mesh *     GetMesh( MeshHandle aHandle );
+    static MeshHandle GetMeshHandle( const MeshDesc & aDesc );
+    static MeshHandle CreateMeshHandle( const MeshData & aMeshData );
+    static uint64     ComputeMeshVertexHash( const MeshPartData * someMeshPartDatas, uint aNumParts );
 
-    static const eastl::hash_map< uint64, TextureViewHandle > & GetTextures() {
-      return ourTextureCache;
-    }
+    static Material *     GetMaterial( MaterialHandle aHandle );
+    static MaterialHandle GetMaterialHandle( const MaterialDesc & aDesc );
+    static MaterialHandle CreateMaterialHandle( const MaterialDesc & aDesc );
+
+    static const eastl::hash_map< uint64, TextureViewHandle > & GetTextures();
     static TextureViewHandle GetTexture( const char * aPath, uint someLoadFlags = 0 );
     static TextureViewHandle LoadTexture( const char * aPath, uint someLoadFlags = 0 );
-    static void ComputeMipmaps( TextureHandle aTexture, ResampleFilter aFilter = FILTER_LANCZOS );
+    static void              ComputeMipmaps( TextureHandle aTexture, ResampleFilter aFilter = FILTER_LANCZOS );
 
     static const ShaderPipeline * GetMipDownsampleShader();
 
   private:
-    static eastl::hash_map< uint64, TextureViewHandle > ourTextureCache;
-    static eastl::hash_map< uint64, SharedPtr< Mesh > > ourMeshCache;
-    static eastl::hash_map< uint64, SharedPtr< Material > > ourMaterialCache;
-    static ShaderPipelineHandle ourMipDownsampleShader;
+    static ResourcePool< Mesh, 2048, MeshDesc >           ourMeshPool;
+    static ResourcePool< Material, 2048, MaterialDesc >   ourMaterialPool;
   };
 }  // namespace Fancy

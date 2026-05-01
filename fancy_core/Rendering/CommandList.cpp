@@ -91,7 +91,7 @@ namespace Fancy {
   void CommandList::CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture,
                                          const SubresourceLocation & aSrcSubresource ) {
     const TextureProperties & srcProps = aSrcTexture->GetProperties();
-    uint srcWidth, srcHeight, srcDepth;
+    uint                      srcWidth, srcHeight, srcDepth;
     srcProps.GetSize( aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth );
 
     CopyTextureToBuffer( aDstBuffer, aDstOffset, aSrcTexture, aSrcSubresource,
@@ -101,11 +101,11 @@ namespace Fancy {
   void CommandList::CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
                                  const Texture * aSrcTexture, const SubresourceLocation & aSrcSubresource ) {
     const TextureProperties & srcProps = aSrcTexture->GetProperties();
-    uint srcWidth, srcHeight, srcDepth;
+    uint                      srcWidth, srcHeight, srcDepth;
     srcProps.GetSize( aSrcSubresource.myMipLevel, srcWidth, srcHeight, srcDepth );
 
     const TextureProperties & dstProps = aDstTexture->GetProperties();
-    uint dstWidth, dstHeight, dstDepth;
+    uint                      dstWidth, dstHeight, dstDepth;
     dstProps.GetSize( aDstSubresource.myMipLevel, dstWidth, dstHeight, dstDepth );
 
     CopyTexture( aDstTexture, aDstSubresource,
@@ -116,7 +116,7 @@ namespace Fancy {
   void CommandList::CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
                                          const GpuBuffer * aSrcBuffer, uint64 aSrcOffset ) {
     const TextureProperties & dstProps = aDstTexture->GetProperties();
-    uint dstWidth, dstHeight, dstDepth;
+    uint                      dstWidth, dstHeight, dstDepth;
     dstProps.GetSize( aDstSubresource.myMipLevel, dstWidth, dstHeight, dstDepth );
 
     CopyBufferToTexture( aDstTexture, aDstSubresource,
@@ -164,8 +164,8 @@ namespace Fancy {
                                                          const void * someData, uint64 aDataSize,
                                                          uint64 anAlignment /* = 0 */ ) {
     eastl::vector< GpuRingBuffer * > * ringBufferList = nullptr;
-    uint64 sizeStep = 2 * SIZE_MB;
-    eastl::string name = "RingBuffer_";
+    uint64                             sizeStep = 2 * SIZE_MB;
+    eastl::string                      name = "RingBuffer_";
 
     uint bindFlags = 0u;
     switch ( aType ) {
@@ -206,8 +206,8 @@ namespace Fancy {
           CpuMemoryAccessType::CPU_WRITE, bindFlags, ( uint ) MathUtil::Align( aDataSize, sizeStep ), name.c_str() ) );
 
     GpuRingBuffer * ringBuffer = ringBufferList->back();
-    uint64 offset = 0;
-    bool success = true;
+    uint64          offset = 0;
+    bool            success = true;
     if ( someData != nullptr )
       success = ringBuffer->AllocateAndWrite( someData, aDataSize, offset, anAlignment );
     else
@@ -234,21 +234,21 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void CommandList::BindVertexBuffer( void * someData, uint64 aDataSize ) {
-    uint64 offset = 0u;
+    uint64            offset = 0u;
     const GpuBuffer * buffer = GetBuffer( offset, GpuBufferUsage::VERTEX_BUFFER, someData, aDataSize );
 
     BindVertexBuffers( &buffer, &offset, &aDataSize, 1u );
   }
   //---------------------------------------------------------------------------//
   void CommandList::BindIndexBuffer( void * someData, uint64 aDataSize, uint anIndexSize ) {
-    uint64 offset = 0u;
+    uint64            offset = 0u;
     const GpuBuffer * buffer = GetBuffer( offset, GpuBufferUsage::INDEX_BUFFER, someData, aDataSize );
 
     BindIndexBuffer( buffer, anIndexSize, offset, aDataSize );
   }
   //---------------------------------------------------------------------------//
   void CommandList::BindConstantBuffer( void * someData, uint64 aDataSize, uint aRegisterIndex ) {
-    uint64 offset = 0u;
+    uint64            offset = 0u;
     const GpuBuffer * buffer = GetBuffer( offset, GpuBufferUsage::CONSTANT_BUFFER, someData, aDataSize );
 
     GpuBufferViewProperties viewProperties;
@@ -450,7 +450,7 @@ namespace Fancy {
     myGraphicsPipelineState.myNumRenderTargets = static_cast< uint8 >( aNumColorTargets );
 
     for ( uint i = 0u; i < aNumColorTargets; ++i ) {
-      TextureView * colorTarget = someColorTargets[ i ];
+      TextureView *    colorTarget = someColorTargets[ i ];
       const DataFormat colorFormat = colorTarget ? colorTarget->GetProperties().myFormat : DataFormat::NONE;
 
       pipelineStateDirty |= myGraphicsPipelineState.myRTVformats[ i ] != colorFormat;
@@ -500,7 +500,7 @@ namespace Fancy {
                                       uint64 aByteSize ) {
     ASSERT( aDestOffset + aByteSize <= aDestBuffer->GetByteSize() );
 
-    uint64 srcOffset = 0u;
+    uint64            srcOffset = 0u;
     const GpuBuffer * uploadBuffer = GetBuffer( srcOffset, GpuBufferUsage::STAGING_UPLOAD, aDataPtr, aByteSize );
     CopyBuffer( aDestBuffer, aDestOffset, uploadBuffer, srcOffset, aByteSize );
   }
@@ -592,11 +592,11 @@ RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeTo
     ASSERT( hasWritableStencil || !dsNeedsWritableStencil );
   }
   //---------------------------------------------------------------------------//
-  void CommandList::ValidateTextureCopy( const TextureProperties & aDstProps,
+  void CommandList::ValidateTextureCopy( const TextureProperties &   aDstProps,
                                          const SubresourceLocation & aDstSubresrource, const TextureRegion & aDstRegion,
-                                         const TextureProperties & aSrcProps,
+                                         const TextureProperties &   aSrcProps,
                                          const SubresourceLocation & aSrcSubresource,
-                                         const TextureRegion & aSrcRegion ) const {
+                                         const TextureRegion &       aSrcRegion ) const {
     ASSERT( aSrcRegion.mySize == aDstRegion.mySize );
     ASSERT( aSrcRegion.mySize != glm::uvec3( 0 ) && aDstRegion.mySize != glm::uvec3( 0 ) );
 
@@ -614,9 +614,9 @@ RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeTo
   }
   //---------------------------------------------------------------------------//
   void CommandList::ValidateTextureToBufferCopy( const GpuBufferProperties & aDstBufferProps, uint64 aDstBufferOffset,
-                                                 const TextureProperties & aSrcTextureProps,
+                                                 const TextureProperties &   aSrcTextureProps,
                                                  const SubresourceLocation & aSrcSubresource,
-                                                 const TextureRegion & aSrcRegion ) const {
+                                                 const TextureRegion &       aSrcRegion ) const {
     ASSERT( aSrcRegion.mySize != glm::uvec3( 0 ) );
 
     uint subWidth, subHeight, subDepth;
@@ -637,7 +637,7 @@ RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeTo
     ASSERT( bufferCapacity > alignedBufferOffset );
 
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( aSrcTextureProps.myFormat );
-    const uint64 alignedRowSize =
+    const uint64           alignedRowSize =
         MathUtil::Align( BITS_TO_BYTES( aSrcRegion.mySize.x *
                                         formatInfo.myCopyableBitsPerPixelPerPlane[ aSrcSubresource.myPlaneIndex ] ),
                          RenderCore::GetPlatformCaps().myTextureRowAlignment );
@@ -650,11 +650,11 @@ RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeTo
     ASSERT( freeBufferSize >= requiredBufferSize );
   }
   //---------------------------------------------------------------------------//
-  void CommandList::ValidateBufferToTextureCopy( const TextureProperties & aDstTexProps,
+  void CommandList::ValidateBufferToTextureCopy( const TextureProperties &   aDstTexProps,
                                                  const SubresourceLocation & aDstSubresource,
-                                                 const TextureRegion & aDstRegion,
+                                                 const TextureRegion &       aDstRegion,
                                                  const GpuBufferProperties & aSrcBufferProps,
-                                                 uint64 aSrcBufferOffset ) const {
+                                                 uint64                      aSrcBufferOffset ) const {
     ASSERT( aDstRegion.mySize != glm::uvec3( 0 ) );
 
     uint subWidth, subHeight, subDepth;
@@ -669,7 +669,7 @@ RenderCore::ResourceUsageStateToString(aDstState), RenderCore::CommandListTypeTo
           MathUtil::IsAligned( aSrcBufferOffset, RenderCore::GetPlatformCaps().myTextureSubresourceBufferAlignment ) );
 
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( aDstTexProps.myFormat );
-    const uint64 alignedRowSize =
+    const uint64           alignedRowSize =
         MathUtil::Align( BITS_TO_BYTES( aDstRegion.mySize.x *
                                         formatInfo.myCopyableBitsPerPixelPerPlane[ aDstSubresource.myPlaneIndex ] ),
                          RenderCore::GetPlatformCaps().myTextureRowAlignment );

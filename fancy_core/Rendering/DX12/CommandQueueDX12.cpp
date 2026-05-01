@@ -70,7 +70,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   uint64 CommandQueueDX12::ExecuteCommandListInternal( CommandList * aCommandList,
-                                                       SyncMode aSyncMode /* = SyncMode::ASYNC*/ ) {
+                                                       SyncMode      aSyncMode /* = SyncMode::ASYNC*/ ) {
     ASSERT( aCommandList->GetType() == myType );
     ASSERT( aCommandList->IsOpen() );
 
@@ -78,7 +78,7 @@ namespace Fancy {
 
     aCommandList->Close();
 
-    CommandListDX12 * contextDx12 = ( CommandListDX12 * ) aCommandList;
+    CommandListDX12 *   contextDx12 = ( CommandListDX12 * ) aCommandList;
     ID3D12CommandList * cmdList = contextDx12->myCommandList;
     myQueue->ExecuteCommandLists( 1, &cmdList );
 
@@ -105,13 +105,13 @@ namespace Fancy {
     for ( auto it : cmdListDx12->myLocalHazardData ) {
       const GpuResource * resource = it.first;
 
-      GpuResourceHazardDataDX12 & globalHazardData = resource->GetDX12Data()->myHazardData;
+      GpuResourceHazardDataDX12 &              globalHazardData = resource->GetDX12Data()->myHazardData;
       const CommandListDX12::LocalHazardData & localHazardData = it.second;
       ASSERT( globalHazardData.mySubresources.size() == localHazardData.mySubresources.size() );
 
       eastl::fixed_vector< D3D12_RESOURCE_BARRIER, 64 > subresourceTransitions;
       for ( uint subIdx = 0u; subIdx < ( uint ) localHazardData.mySubresources.size(); ++subIdx ) {
-        GpuSubresourceHazardDataDX12 & globalSubData = globalHazardData.mySubresources[ subIdx ];
+        GpuSubresourceHazardDataDX12 &                 globalSubData = globalHazardData.mySubresources[ subIdx ];
         const CommandListDX12::SubresourceHazardData & localSubData = localHazardData.mySubresources[ subIdx ];
 
         if ( !localSubData.myWasUsed )
@@ -178,9 +178,9 @@ namespace Fancy {
             patchingBarriers.push_back( subresourceTransitions[ i ] );
         }
 
-        bool allSubresourcesSameState = true;
+        bool                  allSubresourcesSameState = true;
         D3D12_RESOURCE_STATES firstState = globalHazardData.mySubresources[ 0 ].myStates;
-        CommandListType firstContext = globalHazardData.mySubresources[ 0 ].myContext;
+        CommandListType       firstContext = globalHazardData.mySubresources[ 0 ].myContext;
         for ( uint subIdx = 1u; allSubresourcesSameState && subIdx < globalHazardData.mySubresources.size(); ++subIdx )
           allSubresourcesSameState &= ( firstState == globalHazardData.mySubresources[ subIdx ].myStates &&
                                         firstContext == globalHazardData.mySubresources[ subIdx ].myContext );
@@ -190,7 +190,7 @@ namespace Fancy {
     }
 
     if ( !patchingBarriers.empty() ) {
-      CommandList * ctx = RenderCore::BeginCommandList( myType );
+      CommandList *     ctx = RenderCore::BeginCommandList( myType );
       CommandListDX12 * ctxDx12 = static_cast< CommandListDX12 * >( ctx );
 
       for ( uint i = 0u; i < patchingBarriers.size(); ++i )

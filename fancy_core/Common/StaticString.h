@@ -129,7 +129,7 @@ namespace Fancy {
         myNextFree = 0;  // Wrap around
 
       const uint freeSize = PoolSize - myNextFree;
-      char * bufferStart = myBuffer + myNextFree;
+      char *     bufferStart = myBuffer + myNextFree;
 
       va_list args;
       va_start( args, aFmt );

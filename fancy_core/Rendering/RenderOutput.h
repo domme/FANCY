@@ -24,7 +24,7 @@ namespace Fancy {
     }
     TextureView * GetBackbufferRtv() const;
     TextureView * GetBackbufferSrv() const;
-    Window * GetWindow() const {
+    Window *      GetWindow() const {
       return myWindow.get();
     }
 
@@ -45,10 +45,10 @@ namespace Fancy {
 
     static const uint kBackbufferCount = 2u;
 
-    uint myCurrBackbufferIndex;
+    uint                myCurrBackbufferIndex;
     SharedPtr< Window > myWindow;
 
-    Texture * myBackbufferTextures[ kBackbufferCount ] = {};
+    Texture *         myBackbufferTextures[ kBackbufferCount ] = {};
     TextureViewHandle myBackbufferRtv[ kBackbufferCount ];
     TextureViewHandle myBackbufferSrv[ kBackbufferCount ];
   };

@@ -25,16 +25,16 @@ struct ImageData {
   }
   bool myIsSRGB = false;
 
-  Fancy::SharedPtr< Fancy::Texture > myTexture;
-  Fancy::SharedPtr< Fancy::TextureView > myTextureView;
+  Fancy::SharedPtr< Fancy::Texture >                      myTexture;
+  Fancy::SharedPtr< Fancy::TextureView >                  myTextureView;
   eastl::vector< Fancy::SharedPtr< Fancy::TextureView > > myMipLevelReadViews;
   eastl::vector< Fancy::SharedPtr< Fancy::TextureView > > myMipLevelWriteViews;
 
   eastl::string myName;
-  bool myIsWindowOpen;
-  bool myIsDirty;
-  int mySelectedMipLevel;
-  int mySelectedFilter;
+  bool          myIsWindowOpen;
+  bool          myIsDirty;
+  int           mySelectedMipLevel;
+  int           mySelectedFilter;
 };
 
 class Test_Mipmapping : public Test {
@@ -48,6 +48,6 @@ private:
   void OnShaderPipelineRecompiled( const Fancy::ShaderPipeline * aShader );
 
   eastl::vector< ImageData > myImageDatas;
-  int mySelectedMipLevel = 0;
-  bool myUpdateAlways = false;
+  int                        mySelectedMipLevel = 0;
+  bool                       myUpdateAlways = false;
 };

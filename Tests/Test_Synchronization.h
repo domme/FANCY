@@ -15,9 +15,9 @@ private:
 
   enum class Stage { IDLE = 0, WAITING_FOR_COPY, COPY_DONE };
 
-  Stage myStage = Stage::IDLE;
-  uint64 myExpectedBufferValue = 0ull;
-  uint64 myBufferCopyFence = 0ull;
+  Stage                                myStage = Stage::IDLE;
+  uint64                               myExpectedBufferValue = 0ull;
+  uint64                               myBufferCopyFence = 0ull;
   Fancy::SharedPtr< Fancy::GpuBuffer > myUploadBuffer;
   Fancy::SharedPtr< Fancy::GpuBuffer > myReadbackBuffer;
 };

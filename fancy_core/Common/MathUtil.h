@@ -9,8 +9,8 @@ namespace Fancy {
   namespace MathUtil {
     //---------------------------------------------------------------------------//
     // Deprecated: Use Hasher instead:
-    void BeginMultiHash();
-    void AddToMultiHash( const void * aValue, uint64 aSize );
+    void                      BeginMultiHash();
+    void                      AddToMultiHash( const void * aValue, uint64 aSize );
     template < class T > void AddToMultiHash( const T & aValue ) {
       AddToMultiHash( &aValue, sizeof( T ) );
     }
@@ -71,7 +71,7 @@ namespace Fancy {
     inline uint FloatBitsToUint( float aValue ) {
       union UnionType {
         float fVal;
-        uint uVal;
+        uint  uVal;
       };
 
       UnionType helper;

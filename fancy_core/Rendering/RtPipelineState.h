@@ -31,29 +31,32 @@ namespace Fancy {
     void AddPipelineFlag( RtPipelineFlags aFlag ) {
       myPipelineFlags = RtPipelineFlags( myPipelineFlags | aFlag );
     }
-    uint64 GetHash() const;
+    uint64        GetHash() const;
+    static uint64 Hash( const RtPipelineStateProperties & aDesc ) {
+      return aDesc.GetHash();
+    }
 
     struct ShaderEntry {
       eastl::wstring myUniqueMainFunctionName;
-      ShaderHandle myShader;
+      ShaderHandle   myShader;
     };
 
     struct HitGroup {
       RtHitGroupType myType;
       eastl::wstring myName;
-      uint myIntersectionShaderIdx;
-      uint myAnyHitShaderIdx;
-      uint myClosestHitShaderIdx;
+      uint           myIntersectionShaderIdx;
+      uint           myAnyHitShaderIdx;
+      uint           myClosestHitShaderIdx;
     };
 
-    eastl::vector< HitGroup > myHitGroups;
+    eastl::vector< HitGroup >    myHitGroups;
     eastl::vector< ShaderEntry > myHitShaders;
     eastl::vector< ShaderEntry > myMissShaders;
     eastl::vector< ShaderEntry > myRaygenShaders;
-    uint myMaxPayloadSizeBytes = sizeof( glm::float4 );
-    uint myMaxAttributeSizeBytes = 32;
-    uint myMaxRecursionDepth = 1;
-    RtPipelineFlags myPipelineFlags = RT_PIPELINE_FLAG_NONE;
+    uint                         myMaxPayloadSizeBytes = sizeof( glm::float4 );
+    uint                         myMaxAttributeSizeBytes = 32;
+    uint                         myMaxRecursionDepth = 1;
+    RtPipelineFlags              myPipelineFlags = RT_PIPELINE_FLAG_NONE;
   };
 
   class RtPipelineState {
@@ -72,11 +75,11 @@ namespace Fancy {
     RtPipelineStateProperties myProperties;
 
   protected:
-    virtual void GetShaderIdentifierDataInternal( uint aShaderIndexInRtPso,
+    virtual void GetShaderIdentifierDataInternal( uint                                           aShaderIndexInRtPso,
                                                   const RtPipelineStateProperties::ShaderEntry & aShaderEntry,
-                                                  RtShaderIdentifier & someDataOut ) = 0;
-    virtual void GetShaderIdentifierDataInternal( uint aShaderIndexInRtPso,
+                                                  RtShaderIdentifier &                           someDataOut ) = 0;
+    virtual void GetShaderIdentifierDataInternal( uint                                        aShaderIndexInRtPso,
                                                   const RtPipelineStateProperties::HitGroup & aShaderEntry,
-                                                  RtShaderIdentifier & someDataOut ) = 0;
+                                                  RtShaderIdentifier &                        someDataOut ) = 0;
   };
 }  // namespace Fancy

@@ -40,7 +40,7 @@ namespace Fancy {
 
     for ( const glm::float3 & v : verts ) {
       glm::float4 vWorld = viewProjInv * glm::float4( v, 1.0f );
-      float div = 1.0f / vWorld.w;
+      float       div = 1.0f / vWorld.w;
       vWorld.x *= div;
       vWorld.y *= div;
       vWorld.z *= div;

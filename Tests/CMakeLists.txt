@@ -6,6 +6,9 @@ file(GLOB TESTS_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
 
+# Organize source files into filters based on directory structure
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${TESTS_SOURCES})
+
 add_executable(Tests WIN32 ${TESTS_SOURCES})
 
 target_include_directories(Tests

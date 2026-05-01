@@ -24,11 +24,11 @@ using namespace Fancy;
 Fancy::UniquePtr< TestApplication > myTestApp;
 
 _Use_decl_annotations_ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow ) {
-  int numArgs = 0;
+  int      numArgs = 0;
   LPWSTR * commandLineArgs = CommandLineToArgvW( GetCommandLineW(), &numArgs );
 
   eastl::vector< eastl::string > commandLineArgStrings( numArgs );
-  eastl::vector< const char * > cStrings( numArgs );
+  eastl::vector< const char * >  cStrings( numArgs );
   for ( uint i = 0u; i < numArgs; ++i ) {
     commandLineArgStrings[ i ] = StringUtil::ToNarrowString( commandLineArgs[ i ] );
     cStrings[ i ] = commandLineArgStrings[ i ].c_str();
@@ -37,7 +37,7 @@ _Use_decl_annotations_ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR
   LocalFree( commandLineArgs );
 
   RenderPlatformProperties renderProperties;
-  WindowParameters windowParams;
+  WindowParameters         windowParams;
   windowParams.myWidth = 1280;
   windowParams.myHeight = 720;
   myTestApp.reset(

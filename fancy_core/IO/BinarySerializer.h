@@ -34,14 +34,14 @@ namespace Fancy {
 
     template < class T > void Serialize( T & aVal );
 
-    template < class T > void Serialize( eastl::vector< T > & aVal );
+    template < class T > void         Serialize( eastl::vector< T > & aVal );
     template < class T, uint N > void Serialize( eastl::fixed_vector< T, N > & aVal );
     template < class T, uint N > void Serialize( T ( &aVal )[ N ] );
-    void Serialize( eastl::string & aString );
+    void                              Serialize( eastl::string & aString );
     template < class T, uint N > void Serialize( eastl::fixed_string< T, N > & aVal );
 
     SERIALIZE_MODE myMode;
-    std::fstream myStream;
+    std::fstream   myStream;
   };
   //---------------------------------------------------------------------------//
   inline void BinarySerializer::Serialize( uint8 * someData, uint64 aDataSize ) {
@@ -109,8 +109,8 @@ namespace Fancy {
       Serialize( name_size );
 
       const uint kExpectedMaxLength = 64u;
-      char buf[ kExpectedMaxLength ];
-      char * name_cstr = buf;
+      char       buf[ kExpectedMaxLength ];
+      char *     name_cstr = buf;
 
       if ( name_size > kExpectedMaxLength )
         name_cstr = new char[ name_size ];
@@ -122,7 +122,7 @@ namespace Fancy {
         delete[] name_cstr;
     } else {
       const char * name_cstr = aString.c_str();
-      const uint name_size = static_cast< uint >( aString.size() ) + 1u;  // size + '/0'
+      const uint   name_size = static_cast< uint >( aString.size() ) + 1u;  // size + '/0'
       Serialize( name_size );
       Serialize( ( uint8 * ) name_cstr, name_size );
     }
@@ -134,8 +134,8 @@ namespace Fancy {
       Serialize( name_size );
 
       const uint kExpectedMaxLength = 64u;
-      char buf[ kExpectedMaxLength ];
-      char * name_cstr = buf;
+      char       buf[ kExpectedMaxLength ];
+      char *     name_cstr = buf;
 
       if ( name_size > kExpectedMaxLength )
         name_cstr = new char[ name_size ];
@@ -147,7 +147,7 @@ namespace Fancy {
         delete[] name_cstr;
     } else {
       const char * name_cstr = aString.c_str();
-      const uint name_size = static_cast< uint >( aString.size() ) + 1u;  // size + '/0'
+      const uint   name_size = static_cast< uint >( aString.size() ) + 1u;  // size + '/0'
       Serialize( name_size );
       Serialize( ( uint8 * ) name_cstr, name_size );
     }

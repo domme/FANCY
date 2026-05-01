@@ -23,7 +23,7 @@ namespace Fancy {
         AllocateNewPage();
 
       Entry * newFreeEntry = myNextFreeEntry->myNext;
-      T * allocatedVal = new ( myNextFreeEntry->myVal.myBytes ) T;
+      T *     allocatedVal = new ( myNextFreeEntry->myVal.myBytes ) T;
 
       myNextFreeEntry = newFreeEntry;
 
@@ -54,11 +54,11 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
     union Entry {
       AlignedStorage< T > myVal;
-      Entry * myNext;
+      Entry *             myNext;
     };
     //---------------------------------------------------------------------------//
-    uint myPageSize;
-    Entry * myNextFreeEntry;
+    uint            myPageSize;
+    Entry *         myNextFreeEntry;
     AllocatedPage * myLastAllocatedPage;
     //---------------------------------------------------------------------------//
     void AllocateNewPage() {

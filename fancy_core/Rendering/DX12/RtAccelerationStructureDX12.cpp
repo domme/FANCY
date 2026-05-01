@@ -27,7 +27,7 @@ namespace Fancy {
     }
 
     static void GetBLASGeometryDescs( const RtAccelerationStructureGeometryData * someGeometries, uint aNumGeometries,
-                                      CommandList * cmdList,
+                                      CommandList *                                     cmdList,
                                       eastl::vector< D3D12_RAYTRACING_GEOMETRY_DESC > & geometryDescs ) {
       geometryDescs.reserve( aNumGeometries );
 
@@ -44,7 +44,7 @@ namespace Fancy {
         geoDescDx12.Type = RenderCore_PlatformDX12::GetRaytracingBVHGeometryType( geoInfo.myType );
         if ( geoDescDx12.Type == D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES ) {
           const DataFormatInfo & vertexFormatInfo = DataFormatInfo::GetFormatInfo( geoInfo.myVertexFormat );
-          const uint vertexComponentSize =
+          const uint             vertexComponentSize =
               BITS_TO_BYTES( vertexFormatInfo.myBitsPerPixel ) / vertexFormatInfo.myNumComponents;
           const uint vertexStride =
               glm::max( geoInfo.myVertexStride, ( uint ) BITS_TO_BYTES( vertexFormatInfo.myBitsPerPixel ) );
@@ -82,7 +82,7 @@ namespace Fancy {
 
       for ( uint i = 0u; i < aNumInstances; ++i ) {
         const RtAccelerationStructureInstanceData & instanceData = someInstanceDatas[ i ];
-        D3D12_RAYTRACING_INSTANCE_DESC & instanceDescDx12 = someInstanceDescsOut.push_back();
+        D3D12_RAYTRACING_INSTANCE_DESC &            instanceDescDx12 = someInstanceDescsOut.push_back();
         memset( &instanceDescDx12, 0, sizeof( instanceDescDx12 ) );
 
         instanceDescDx12.Flags = 0;
@@ -112,7 +112,7 @@ namespace Fancy {
                                                             uint aNumGeometries, uint someFlags /*= 0*/,
                                                             const char * aName /*= nullptr*/ )
       : RtAccelerationStructure( RtAccelerationStructureType::BOTTOM_LEVEL, aName ) {
-    CommandList * cmdList = RenderCore::BeginCommandList( CommandListType::Graphics );
+    CommandList *                                   cmdList = RenderCore::BeginCommandList( CommandListType::Graphics );
     eastl::vector< D3D12_RAYTRACING_GEOMETRY_DESC > geometryDescs;
     Private::GetBLASGeometryDescs( someGeometries, aNumGeometries, cmdList, geometryDescs );
     BuildInternal( &geometryDescs, nullptr, someFlags, aName, cmdList );
@@ -136,7 +136,7 @@ namespace Fancy {
     ASSERT( isBLAS == ( myType == RtAccelerationStructureType::BOTTOM_LEVEL ) );
 
     const GpuBuffer * instanceDescBuffer = nullptr;
-    uint64 instanceDescBufferOffset = 0;
+    uint64            instanceDescBufferOffset = 0;
     if ( !isBLAS ) {
       uint64 instanceDescBufferSize =
           MathUtil::Align( someInstanceDescs->size() * sizeof( D3D12_RAYTRACING_INSTANCE_DESC ),

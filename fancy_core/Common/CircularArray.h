@@ -144,10 +144,10 @@ namespace Fancy {
         : myBuffer( aBuffer ), myHead( 0u ), myTail( 0u ), mySize( 0u ), myCapacity( aCapacity ),
           myHasBufferOnHeap( false ) {}
 
-    T * myBuffer;
-    uint myHead;
-    uint myTail;
-    uint mySize;
+    T *        myBuffer;
+    uint       myHead;
+    uint       myTail;
+    uint       mySize;
     const uint myCapacity;
     const bool myHasBufferOnHeap;
   };

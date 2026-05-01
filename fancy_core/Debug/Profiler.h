@@ -22,7 +22,7 @@ namespace Fancy {
     enum Timeline { TIMELINE_MAIN = 0, TIMELINE_GPU, TIMELINE_NUM };
 
     struct SampleNodeInfo {
-      char myName[ MAX_NAME_LENGTH ];
+      char   myName[ MAX_NAME_LENGTH ];
       uint16 myTag;
     };
 
@@ -32,27 +32,27 @@ namespace Fancy {
     };
 
     union TimeSample {
-      float64 myTime;
+      float64      myTime;
       GpuQueryInfo myQueryInfo;
     };
 
     struct SampleNode {
-      TimeSample myStart = { 0.0 };
-      TimeSample myEnd = { 0.0 };
-      float64 myDuration = { 0u };
-      uint64 myNodeInfo = 0u;
-      bool myHasValidTimes = true;
+      TimeSample                          myStart = { 0.0 };
+      TimeSample                          myEnd = { 0.0 };
+      float64                             myDuration = { 0u };
+      uint64                              myNodeInfo = 0u;
+      bool                                myHasValidTimes = true;
       CircularArray< SampleNode >::Handle myChild;
       CircularArray< SampleNode >::Handle myNext;
     };
 
     struct FrameData {
-      uint64 myFrame = 0u;
-      TimeSample myStart = { 0u };
-      TimeSample myEnd = { 0u };
-      float64 myDuration = 0.0;
-      bool myHasValidTimes = true;
-      uint myNumSamples = 0u;
+      uint64                              myFrame = 0u;
+      TimeSample                          myStart = { 0u };
+      TimeSample                          myEnd = { 0u };
+      float64                             myDuration = 0.0;
+      bool                                myHasValidTimes = true;
+      uint                                myNumSamples = 0u;
       CircularArray< SampleNode >::Handle myFirstSample;
     };
 
@@ -98,8 +98,8 @@ namespace Fancy {
 
     static void FreeFirstFrame( Timeline aTimeline );
 
-    static CircularArray< FrameData > ourRecordedFrames[ TIMELINE_NUM ];
-    static CircularArray< SampleNode > ourRecordedSamples[ TIMELINE_NUM ];
+    static CircularArray< FrameData >                   ourRecordedFrames[ TIMELINE_NUM ];
+    static CircularArray< SampleNode >                  ourRecordedSamples[ TIMELINE_NUM ];
     static std::unordered_map< uint64, SampleNodeInfo > ourNodeInfoPool;
 
   private:

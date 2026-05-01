@@ -10,8 +10,11 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   struct ShaderPipelineDesc {
     ShaderPipelineDesc();
-    bool operator==( const ShaderPipelineDesc & anOther ) const;
-    uint64 GetHash() const;
+    bool          operator==( const ShaderPipelineDesc & anOther ) const;
+    uint64        GetHash() const;
+    static uint64 Hash( const ShaderPipelineDesc & aDesc ) {
+      return aDesc.GetHash();
+    }
     ShaderDesc myShader[ ( uint ) ShaderStage::SHADERSTAGE_NUM ];
   };
   //---------------------------------------------------------------------------//

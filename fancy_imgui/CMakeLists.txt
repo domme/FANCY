@@ -6,6 +6,9 @@ file(GLOB FANCY_IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 )
 
+# Organize source files into filters based on directory structure
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${FANCY_IMGUI_SOURCES})
+
 add_library(fancy_imgui STATIC ${FANCY_IMGUI_SOURCES})
 
 target_include_directories(fancy_imgui

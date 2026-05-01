@@ -12,9 +12,9 @@
 namespace Fancy {
   namespace Priv_DxcShaderCompiler {
     struct IncludeHandler : IDxcIncludeHandler {
-      eastl::fixed_vector< eastl::string, 16 > myIncludedFilePaths;
+      eastl::fixed_vector< eastl::string, 16 >  myIncludedFilePaths;
       eastl::fixed_vector< eastl::wstring, 16 > myIncludeSearchPaths;
-      IDxcUtils * myDxcUtils;
+      IDxcUtils *                               myDxcUtils;
 
       IncludeHandler( IDxcUtils * aDxcUtils, eastl::string * someIncludeSearchPaths, uint aNumPaths )
           : myDxcUtils( aDxcUtils ) {
@@ -56,7 +56,7 @@ namespace Fancy {
                myIncludedFilePaths.end() ) {
             // Already included, return empty string blob
             IDxcBlobEncoding * pBlobWithEncoding;
-            static const char nullStr[] = " ";
+            static const char  nullStr[] = " ";
             myDxcUtils->CreateBlob( nullStr, ARRAYSIZE( nullStr ), CP_UTF8, &pBlobWithEncoding );
             *ppIncludeSource = pBlobWithEncoding;
             return S_OK;
@@ -65,7 +65,7 @@ namespace Fancy {
           myIncludedFilePaths.push_back( path );
 
           IDxcBlobEncoding * pBlobWithEncoding;
-          HRESULT result = myDxcUtils->LoadFile( wPath.c_str(), nullptr, &pBlobWithEncoding );
+          HRESULT            result = myDxcUtils->LoadFile( wPath.c_str(), nullptr, &pBlobWithEncoding );
           ASSERT( result == S_OK );
           *ppIncludeSource = pBlobWithEncoding;
           return S_OK;
@@ -142,7 +142,7 @@ namespace Fancy {
       return false;
 
     LPCWSTR args[ 32 ];
-    uint numArgs = 0u;
+    uint    numArgs = 0u;
 
     auto AddArgument = [ & ]( LPCWSTR anArg ) {
       ASSERT( numArgs < ARRAY_LENGTH( args ) );
@@ -159,7 +159,7 @@ namespace Fancy {
     }
 
     eastl::fixed_vector< eastl::wstring, 32 > defineNames;
-    eastl::fixed_vector< DxcDefine, 32 > defines;
+    eastl::fixed_vector< DxcDefine, 32 >      defines;
     for ( const eastl::string & define : aDesc.myDefines ) {
       defineNames.push_back( StringUtil::ToWideString( define.c_str() ) );
       defines.push_back( { defineNames[ defineNames.size() - 1 ].c_str(), nullptr } );

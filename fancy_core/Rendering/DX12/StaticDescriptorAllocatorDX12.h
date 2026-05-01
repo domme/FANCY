@@ -14,7 +14,7 @@ namespace Fancy {
   class StaticDescriptorAllocatorDX12 : public PagedLinearAllocator {
   public:
     struct Heap {
-      D3D12_CPU_DESCRIPTOR_HANDLE myCpuHeapStart;
+      D3D12_CPU_DESCRIPTOR_HANDLE                    myCpuHeapStart;
       Microsoft::WRL::ComPtr< ID3D12DescriptorHeap > myHeap;
     };
 
@@ -22,13 +22,13 @@ namespace Fancy {
     ~StaticDescriptorAllocatorDX12();
 
     DescriptorDX12 AllocateDescriptor( const char * aDebugName = nullptr );
-    void FreeDescriptor( const DescriptorDX12 & aDescriptor );
+    void           FreeDescriptor( const DescriptorDX12 & aDescriptor );
 
   private:
     bool CreatePageData( uint64 aSize, eastl::any & aPageData ) override;
     void DestroyPageData( eastl::any & aPageData ) override;
 
-    uint myHandleIncrementSize;
+    uint                       myHandleIncrementSize;
     D3D12_DESCRIPTOR_HEAP_TYPE myType;
   };
   //---------------------------------------------------------------------------//

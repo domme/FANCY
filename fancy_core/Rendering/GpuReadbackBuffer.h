@@ -12,8 +12,8 @@ namespace Fancy {
     ~GpuReadbackBuffer();
 
     GpuBuffer * AllocateBlock( uint64 aSize, uint anOffsetAlignment, uint64 & anOffsetOut );
-    bool FreeBlock( GpuBuffer * aBuffer, uint64 anOffsetToBlock, uint64 aBlockSize );
-    bool IsEmpty() const {
+    bool        FreeBlock( GpuBuffer * aBuffer, uint64 anOffsetToBlock, uint64 aBlockSize );
+    bool        IsEmpty() const {
       return myUsedBlocks.IsEmpty();
     }
     const uint64 GetFreeSize() const {
@@ -27,9 +27,9 @@ namespace Fancy {
     };
 
     GrowingList< Block, 64 > myUsedBlocks;
-    GpuBufferHandle myBuffer;
-    uint64 myNextFree = 0u;
-    uint64 myFreeSize = 0u;
+    GpuBufferHandle          myBuffer;
+    uint64                   myNextFree = 0u;
+    uint64                   myFreeSize = 0u;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

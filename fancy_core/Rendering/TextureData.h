@@ -82,13 +82,13 @@ namespace Fancy {
       return &myCurrentLocation;
     }
     const SubresourceLocation & operator++();
-    bool operator==( const SubresourceIterator & anOther ) const;
-    bool operator!=( const SubresourceIterator & anOther ) const;
+    bool                        operator==( const SubresourceIterator & anOther ) const;
+    bool                        operator!=( const SubresourceIterator & anOther ) const;
 
   private:
     bool IsEnd() const;
 
-    SubresourceRange myRange;
+    SubresourceRange    myRange;
     SubresourceLocation myCurrentLocation;
     SubresourceLocation myEndLocation;
   };
@@ -108,9 +108,9 @@ namespace Fancy {
     TextureSubData( const TextureProperties & someProperties );
 
     uint8 * myData;
-    uint64 myRowSizeBytes;
-    uint64 mySliceSizeBytes;
-    uint64 myTotalSizeBytes;
+    uint64  myRowSizeBytes;
+    uint64  mySliceSizeBytes;
+    uint64  myTotalSizeBytes;
   };
   //---------------------------------------------------------------------------//
   struct TextureData {
@@ -121,7 +121,7 @@ namespace Fancy {
     static void ComputeRowPitchSizeAndBlockHeight( DataFormat aFormat, uint aWidth, uint aHeight, uint64 & rowPitchSize,
                                                    uint & aHeightBlocksOrPixels, uint aPlane = 0 );
 
-    eastl::vector< uint8 > myData;
+    eastl::vector< uint8 >          myData;
     eastl::vector< TextureSubData > mySubDatas;
   };
   //---------------------------------------------------------------------------//

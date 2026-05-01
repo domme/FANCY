@@ -35,11 +35,11 @@ namespace Fancy {
     myRootParamIndex_LocalBuffers = usedParams;
     myNumLocalBuffers = someProperties.myNumLocalBuffers;
 
-    uint registerSpace = 0;
+    uint                    registerSpace = 0;
     D3D12_ROOT_PARAMETER1 * param = nullptr;
 
     constexpr D3D12_DESCRIPTOR_RANGE_FLAGS bindlessRangeFlags = D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE;
-    constexpr D3D12_ROOT_DESCRIPTOR_FLAGS localRootDescFlags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE;
+    constexpr D3D12_ROOT_DESCRIPTOR_FLAGS  localRootDescFlags = D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE;
 
     // Local Buffers
     for ( uint i = 0; i < someProperties.myNumLocalBuffers; ++i ) {

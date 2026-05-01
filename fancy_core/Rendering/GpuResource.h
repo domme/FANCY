@@ -38,8 +38,8 @@ namespace Fancy {
                                       uint aPlaneIndex );
     static uint CalcNumSubresources( uint aNumMips, uint aNumArraySlices, uint aNumPlanes );
 
-    uint GetSubresourceIndex( const SubresourceLocation & aSubresourceLocation ) const;
-    SubresourceLocation GetSubresourceLocation( uint aSubresourceIndex ) const;
+    uint                     GetSubresourceIndex( const SubresourceLocation & aSubresourceLocation ) const;
+    SubresourceLocation      GetSubresourceLocation( uint aSubresourceIndex ) const;
     const SubresourceRange & GetSubresources() const {
       return mySubresources;
     }
@@ -74,8 +74,8 @@ namespace Fancy {
     }
 
     SubresourceRange mySubresources;
-    eastl::string myName;
-    GpuResourceType myType;
+    eastl::string    myName;
+    GpuResourceType  myType;
 
 #if FANCY_ENABLE_DX12
     GpuResourceDataDX12 myDx12Data;

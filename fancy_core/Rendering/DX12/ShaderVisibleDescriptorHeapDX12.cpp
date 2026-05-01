@@ -175,10 +175,10 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   DescriptorDX12 ShaderVisibleDescriptorHeapDX12::AllocateDescriptor( GlobalResourceType aType,
-                                                                      const char * aDebugName ) {
+                                                                      const char *       aDebugName ) {
     ASSERT( myAllocators[ aType ].GetPageSize() != 0 );
 
-    uint64 offset;
+    uint64                             offset;
     const PagedLinearAllocator::Page * page = myAllocators[ aType ].Allocate( 1, 1, offset, aDebugName );
     ASSERT( page, "Failed allocating shader-visible descriptor. Consider increasing the max Global descriptor sizes" );
 

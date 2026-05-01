@@ -48,9 +48,9 @@ namespace Fancy {
     unsigned int myRaytracingShaderRecordAlignment = 0u;
     unsigned int myRaytracingMaxShaderRecordSize = 0u;
     unsigned int myRaytracingMaxRecursionDepth = 0u;
-    bool myHasAsyncCompute = false;
-    bool myHasAsyncCopy = false;
-    bool mySupportsRaytracing = false;
+    bool         myHasAsyncCompute = false;
+    bool         myHasAsyncCopy = false;
+    bool         mySupportsRaytracing = false;
   };
   //---------------------------------------------------------------------------//
   struct RenderPlatformProperties {

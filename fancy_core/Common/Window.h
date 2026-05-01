@@ -10,9 +10,9 @@ namespace Fancy {
   struct WindowParameters {
     WindowParameters() : myWidth( 0 ), myHeight( 0 ), myCaptureMouse( false ) {}
     eastl::string myTitle;
-    uint myWidth;
-    uint myHeight;
-    bool myCaptureMouse;
+    uint          myWidth;
+    uint          myHeight;
+    bool          myCaptureMouse;
   };
   //---------------------------------------------------------------------------//
   class Window {
@@ -32,7 +32,7 @@ namespace Fancy {
     }
     void SetSize( uint aWidth, uint aHeight );
 
-    Slot< void( uint, uint ) > myOnResize;
+    Slot< void( uint, uint ) >                   myOnResize;
     Slot< void( UINT, WPARAM, LPARAM, bool * ) > myWindowEventHandler;
 
     LRESULT HandleWindowEvent( UINT message, WPARAM wParam, LPARAM lParam );

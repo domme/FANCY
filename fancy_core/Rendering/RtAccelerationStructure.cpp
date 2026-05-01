@@ -15,7 +15,7 @@ namespace Fancy {
       return startAddress;
     }
 
-    uint64 offset;
+    uint64            offset;
     const GpuBuffer * buffer = aCommandList->GetBuffer( offset, GpuBufferUsage::STAGING_UPLOAD_RT_BUILD_INPUT,
                                                         myCpuData.myData, myCpuData.myDataSize, anAlingment );
     ASSERT( buffer != nullptr );

@@ -11,7 +11,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   struct FileWatchEntry {
     eastl::string myPath;
-    uint64 myLastWriteTime;
+    uint64        myLastWriteTime;
   };
   //---------------------------------------------------------------------------//
   class FileWatcher {
@@ -29,7 +29,7 @@ namespace Fancy {
     void UpdateFileInfos();
 
     mutable eastl::vector< FileWatchEntry > myWatchEntries;
-    SharedPtr< Time > myClock;
+    SharedPtr< Time >                       myClock;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

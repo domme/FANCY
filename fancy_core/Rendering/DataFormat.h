@@ -27,20 +27,20 @@ namespace Fancy {
 
     explicit DataFormatInfo( DataFormat aFormat );
 
-    uint myBitsPerPixel;
-    uint myCopyableBitsPerPixelPerPlane[ 2 ];
-    uint myNumComponents;
-    uint myNumPlanes;
-    uint myIsUintInt;  // 0: false, 1: Uint, 2: Iint
+    uint       myBitsPerPixel;
+    uint       myCopyableBitsPerPixelPerPlane[ 2 ];
+    uint       myNumComponents;
+    uint       myNumPlanes;
+    uint       myIsUintInt;  // 0: false, 1: Uint, 2: Iint
     DataFormat myFormat;
-    bool myIsDepthStencil;
-    bool mySRGB;
-    bool myIsCompressed;
-    uint myCompressedBlockSizeBytes;
+    bool       myIsDepthStencil;
+    bool       mySRGB;
+    bool       myIsCompressed;
+    uint       myCompressedBlockSizeBytes;
 
     static const DataFormatInfo & GetFormatInfo( DataFormat aFormat );
-    static DataFormat GetSRGBformat( DataFormat aFormat );
-    static DataFormat GetNonSRGBformat( DataFormat aFormat );
+    static DataFormat             GetSRGBformat( DataFormat aFormat );
+    static DataFormat             GetNonSRGBformat( DataFormat aFormat );
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

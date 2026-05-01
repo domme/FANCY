@@ -10,8 +10,8 @@ namespace Fancy {
   struct ReadbackBufferAllocation {
     ~ReadbackBufferAllocation();
     GpuBuffer * myBuffer = nullptr;
-    uint64 myOffsetToBlock = 0u;
-    uint64 myBlockSize = 0u;
+    uint64      myOffsetToBlock = 0u;
+    uint64      myBlockSize = 0u;
   };
   //---------------------------------------------------------------------------//
 
@@ -21,16 +21,16 @@ namespace Fancy {
     ReadbackTask( SharedPtr< ReadbackBufferAllocation > aBufferAllocation, uint64 aFence )
         : myBufferAllocation( std::move( aBufferAllocation ) ), myFence( std::move( aFence ) ) {}
 
-    void GetRawData( eastl::vector< uint8 > & aDataOut );
-    bool IsCompleted() const;
-    void Wait() const;
+    void        GetRawData( eastl::vector< uint8 > & aDataOut );
+    bool        IsCompleted() const;
+    void        Wait() const;
     GpuBuffer * GetBuffer() const {
       return myBufferAllocation ? myBufferAllocation->myBuffer : nullptr;
     }
 
   protected:
     SharedPtr< ReadbackBufferAllocation > myBufferAllocation;
-    uint64 myFence;
+    uint64                                myFence;
   };
   //---------------------------------------------------------------------------//
   class TextureReadbackTask : public ReadbackTask {
@@ -45,7 +45,7 @@ namespace Fancy {
 
   private:
     TextureProperties myTextureProperties;
-    SubresourceRange mySubresourceRange;
+    SubresourceRange  mySubresourceRange;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

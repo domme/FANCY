@@ -31,16 +31,19 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   struct MaterialDesc {
     uint64 GetHash() const;
+    static uint64 Hash( const MaterialDesc & aDesc ) {
+      return aDesc.GetHash();
+    }
 
     eastl::string myTextures[ ( uint ) MaterialTextureType::NUM ];
-    glm::float4 myParameters[ ( uint ) MaterialParameterType::NUM ] = {};
+    glm::float4   myParameters[ ( uint ) MaterialParameterType::NUM ] = {};
   };
   //---------------------------------------------------------------------------//
   struct Material {
     MaterialDesc GetDescription() const;
 
     TextureViewHandle myTextures[ ( uint ) MaterialTextureType::NUM ];
-    glm::float4 myParameters[ ( uint ) MaterialParameterType::NUM ] = {};
+    glm::float4       myParameters[ ( uint ) MaterialParameterType::NUM ] = {};
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

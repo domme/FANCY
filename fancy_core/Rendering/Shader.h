@@ -11,13 +11,13 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   struct VertexShaderAttributeDesc {
     VertexAttributeSemantic mySemantic;
-    uint mySemanticIndex;
-    DataFormat myFormat;
+    uint                    mySemanticIndex;
+    DataFormat              myFormat;
   };
   //---------------------------------------------------------------------------//
   struct ShaderProperties {
     ShaderStage myShaderStage = SHADERSTAGE_NONE;
-    glm::int3 myNumGroupThreads = { 1, 1, 1 };
+    glm::int3   myNumGroupThreads = { 1, 1, 1 };
   };
   //---------------------------------------------------------------------------//
   class Shader {
@@ -31,13 +31,13 @@ namespace Fancy {
       return myProperties;
     }
 
-    virtual void SetFromCompilerOutput( const ShaderCompilerResult & aCompilerOutput );
+    virtual void   SetFromCompilerOutput( const ShaderCompilerResult & aCompilerOutput );
     virtual uint64 GetNativeBytecodeHash() const = 0;
 
-    ShaderDesc myDesc;
-    ShaderProperties myProperties;
+    ShaderDesc                                           myDesc;
+    ShaderProperties                                     myProperties;
     eastl::fixed_vector< VertexShaderAttributeDesc, 16 > myVertexAttributes;
-    VertexInputLayoutHandle myDefaultVertexInputLayout;
+    VertexInputLayoutHandle                              myDefaultVertexInputLayout;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

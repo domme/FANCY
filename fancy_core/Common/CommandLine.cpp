@@ -14,8 +14,8 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void CommandLine::ParseValue( const char * aValue, Argument & anArgument ) {
-    bool isNumber = true;
-    bool hasDecimalPoint = false;
+    bool         isNumber = true;
+    bool         hasDecimalPoint = false;
     const char * currVal = aValue;
     while ( *currVal != '\0' && isNumber ) {
       const char c = *currVal;

@@ -8,7 +8,7 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
     namespace Priv_MathUtil {
       thread_local XXH64_state_t * ourXXHashState = nullptr;
-      thread_local bool ourMultiHashStarted = false;
+      thread_local bool            ourMultiHashStarted = false;
     }  // namespace Priv_MathUtil
     //---------------------------------------------------------------------------//
     Hasher::Hasher( uint64 aSeed /* = 0u */ ) : myState( nullptr ) {

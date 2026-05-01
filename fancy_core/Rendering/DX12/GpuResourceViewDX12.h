@@ -13,7 +13,7 @@ namespace Fancy {
              myDescriptor.myGpuHandle.ptr == anOther.myDescriptor.myGpuHandle.ptr;
     }
 
-    Type myType = NONE;
+    Type           myType = NONE;
     DescriptorDX12 myDescriptor;
   };
   //---------------------------------------------------------------------------//

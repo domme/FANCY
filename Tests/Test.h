@@ -28,8 +28,8 @@ public:
 
 protected:
   Fancy::AssetManager * myAssetManager;
-  Fancy::Window * myWindow;
+  Fancy::Window *       myWindow;
   Fancy::RenderOutput * myOutput;
-  Fancy::InputState * myInput;
-  eastl::string myName;
+  Fancy::InputState *   myInput;
+  eastl::string         myName;
 };

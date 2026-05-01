@@ -17,6 +17,9 @@ file(GLOB_RECURSE FANCY_CORE_SOURCES
 # Exclude the Vulkan backend
 list(FILTER FANCY_CORE_SOURCES EXCLUDE REGEX ".*/Rendering/Vulkan/.*")
 
+# Organize source files into filters based on directory structure
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${FANCY_CORE_SOURCES})
+
 add_library(fancy_core STATIC ${FANCY_CORE_SOURCES})
 
 target_precompile_headers(fancy_core PRIVATE

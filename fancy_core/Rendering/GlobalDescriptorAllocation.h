@@ -4,7 +4,7 @@
 
 namespace Fancy {
   struct GlobalDescriptorAllocation {
-    uint myIndex = UINT_MAX;
+    uint               myIndex = UINT_MAX;
     GlobalResourceType myResourceType = GLOBAL_RESOURCE_NUM;
   };
 }  // namespace Fancy

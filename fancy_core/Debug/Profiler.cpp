@@ -23,15 +23,15 @@ namespace Fancy {
   float64 locStartTimeCPU = 0.0;
   float64 locStartTimeGPU = 0.0;
 
-  Profiler::FrameHandle locNextGpuFrameToUpdate = { 0u };
-  uint locSampleDepth[ Profiler::TIMELINE_NUM ] = { 0u };
-  Profiler::FrameData locCurrFrame[ Profiler::TIMELINE_NUM ];
+  Profiler::FrameHandle  locNextGpuFrameToUpdate = { 0u };
+  uint                   locSampleDepth[ Profiler::TIMELINE_NUM ] = { 0u };
+  Profiler::FrameData    locCurrFrame[ Profiler::TIMELINE_NUM ];
   Profiler::SampleHandle locSampleStack[ Profiler::TIMELINE_NUM ][ Profiler::MAX_SAMPLE_DEPTH ];
   Profiler::SampleHandle locTailSampleStack[ Profiler::TIMELINE_NUM ][ Profiler::MAX_SAMPLE_DEPTH ];
   //}
 
-  bool Profiler::ourPauseRequested = false;
-  CircularArray< Profiler::FrameData > Profiler::ourRecordedFrames[ TIMELINE_NUM ]{ FRAME_POOL_SIZE, FRAME_POOL_SIZE };
+  bool                                  Profiler::ourPauseRequested = false;
+  CircularArray< Profiler::FrameData >  Profiler::ourRecordedFrames[ TIMELINE_NUM ]{ FRAME_POOL_SIZE, FRAME_POOL_SIZE };
   CircularArray< Profiler::SampleNode > Profiler::ourRecordedSamples[ TIMELINE_NUM ]{ SAMPLE_POOL_SIZE,
                                                                                       SAMPLE_POOL_SIZE };
   std::unordered_map< uint64, Profiler::SampleNodeInfo > Profiler::ourNodeInfoPool;
@@ -89,16 +89,16 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   Profiler::SampleNode & Profiler::CloseMarker( Timeline aTimeline ) {
-    uint & sampleDepth = locSampleDepth[ aTimeline ];
-    auto & recordedSamples = ourRecordedSamples[ aTimeline ];
-    auto & sampleStack = locSampleStack[ aTimeline ];
+    uint &      sampleDepth = locSampleDepth[ aTimeline ];
+    auto &      recordedSamples = ourRecordedSamples[ aTimeline ];
+    auto &      sampleStack = locSampleStack[ aTimeline ];
     FrameData & currFrame = locCurrFrame[ aTimeline ];
-    auto & tailSampleStack = locTailSampleStack[ aTimeline ];
+    auto &      tailSampleStack = locTailSampleStack[ aTimeline ];
 
     ASSERT( sampleDepth > 0u );
 
     const SampleHandle sampleHandle = sampleStack[ --sampleDepth ];
-    SampleNode & sample = recordedSamples[ sampleHandle ];
+    SampleNode &       sample = recordedSamples[ sampleHandle ];
 
     ++currFrame.myNumSamples;
     if ( sampleDepth == 0 && currFrame.myFirstSample == UINT_MAX )  // First child of frame?
@@ -140,7 +140,7 @@ namespace Fancy {
                                       ( float64 ) RenderCore::GetGpuTicksToMsFactor( CommandListType::Compute ) };
 
     const auto ReadQueryTime = [ timeStampDataSize, &timeTicksToMs ]( const uint8 * aQueryDataBuf,
-                                                                      TimeSample & aSample ) {
+                                                                      TimeSample &  aSample ) {
       uint64 timeStampData = 0u;
       memcpy( &timeStampData, aQueryDataBuf + aSample.myQueryInfo.myIndex * timeStampDataSize, timeStampDataSize );
 
@@ -148,9 +148,9 @@ namespace Fancy {
       aSample.myTime = static_cast< float64 >( timeStampData ) * timeTicksToMs[ commandListType ] - locStartTimeGPU;
     };
 
-    const uint frameIdx = recordedFrames.GetElementIndex( locNextGpuFrameToUpdate );
+    const uint  frameIdx = recordedFrames.GetElementIndex( locNextGpuFrameToUpdate );
     FrameData & frame = recordedFrames[ frameIdx ];
-    auto & recordedSamples = ourRecordedSamples[ TIMELINE_GPU ];
+    auto &      recordedSamples = ourRecordedSamples[ TIMELINE_GPU ];
 
     if ( RenderCore::IsFrameDone( frame.myFrame ) ) {
       const uint8 * queryData = nullptr;
@@ -277,8 +277,8 @@ namespace Fancy {
       hasAnySample |= locCurrFrame[ i ].myFirstSample != UINT_MAX;
 
     if ( hasAnySample ) {
-      uint & sampleDepth = locSampleDepth[ TIMELINE_MAIN ];
-      auto & recordedFrames = ourRecordedFrames[ TIMELINE_MAIN ];
+      uint &      sampleDepth = locSampleDepth[ TIMELINE_MAIN ];
+      auto &      recordedFrames = ourRecordedFrames[ TIMELINE_MAIN ];
       FrameData & currFrame = locCurrFrame[ TIMELINE_MAIN ];
       ASSERT( sampleDepth == 0, "There are still open profiling markers at the end of the frame" );
 
@@ -308,7 +308,7 @@ namespace Fancy {
     currFrame.myEnd = { 0u };
     currFrame.myHasValidTimes = false;
 
-    CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
+    CommandList *  ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
     const GpuQuery timestamp = ctx->InsertTimestamp();
     RenderCore::ExecuteAndFreeCommandList( ctx );
 
@@ -326,15 +326,15 @@ namespace Fancy {
       hasAnySample |= locCurrFrame[ i ].myFirstSample != UINT_MAX;
 
     if ( hasAnySample ) {
-      uint & sampleDepth = locSampleDepth[ TIMELINE_GPU ];
-      auto & recordedFrames = ourRecordedFrames[ TIMELINE_GPU ];
+      uint &      sampleDepth = locSampleDepth[ TIMELINE_GPU ];
+      auto &      recordedFrames = ourRecordedFrames[ TIMELINE_GPU ];
       FrameData & currFrame = locCurrFrame[ TIMELINE_GPU ];
       ASSERT( sampleDepth == 0, "There are still open profiling markers at the end of the frame" );
 
       if ( recordedFrames.IsFull() )
         FreeFirstFrame( TIMELINE_GPU );
 
-      CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
+      CommandList *  ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
       const GpuQuery timestamp = ctx->InsertTimestamp();
       RenderCore::ExecuteAndFreeCommandList( ctx );
 

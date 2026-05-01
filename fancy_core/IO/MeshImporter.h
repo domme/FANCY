@@ -43,13 +43,13 @@ namespace Fancy {
 
     uint CreateMaterial( const aiMaterial * anAiMaterial, SceneData & aResultOut );
 
-    eastl::string mySourcePath;
-    const aiScene * myScene = nullptr;
-    uint64 mySceneFileTimeStamp = 0u;
-    VertexInputLayoutProperties myVertexInputLayout;
+    eastl::string                                        mySourcePath;
+    const aiScene *                                      myScene = nullptr;
+    uint64                                               mySceneFileTimeStamp = 0u;
+    VertexInputLayoutProperties                          myVertexInputLayout;
     eastl::fixed_vector< VertexShaderAttributeDesc, 16 > myVertexAttributes;
-    eastl::hash_map< const aiMaterial *, uint > myMaterialCache;
-    eastl::hash_map< uint64, uint > myMeshCache;
+    eastl::hash_map< const aiMaterial *, uint >          myMaterialCache;
+    eastl::hash_map< uint64, uint >                      myMeshCache;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

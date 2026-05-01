@@ -16,9 +16,9 @@ namespace Fancy {
     void RenderTimelines( float64 aMinStartTime, float64 aMaxEndTime, uint & aFirstRenderedFrame,
                           uint & aLastRenderedFrame );
 
-    bool myIsPaused;
-    bool myIsShowingTimeline[ 2 ];
-    uint myFocusedTimeline;
+    bool  myIsPaused;
+    bool  myIsShowingTimeline[ 2 ];
+    uint  myFocusedTimeline;
     float myHorizontalOffset;
     float myTimeToPixelScale;
   };

@@ -20,8 +20,8 @@ namespace Fancy {
 
   template < typename T > struct ResourceHandle {
     static constexpr uint kInvalidIndex = UINT32_MAX;
-    uint myIndex = kInvalidIndex;
-    uint myGeneration = 0u;
+    uint                  myIndex = kInvalidIndex;
+    uint                  myGeneration = 0u;
 
     bool IsValid() const {
       return myIndex != kInvalidIndex;

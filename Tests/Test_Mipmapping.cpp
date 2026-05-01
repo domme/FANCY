@@ -76,7 +76,7 @@ void Test_Mipmapping::OnUpdate( bool aDrawProperties ) {
   ImGui::Checkbox( "Update every frame", &myUpdateAlways );
 
   for ( uint i = 0u; i < numTextures; ++i ) {
-    ImageData & data = myImageDatas[ i ];
+    ImageData &               data = myImageDatas[ i ];
     const TextureProperties & texProps = data.myTexture->GetProperties();
 
     ImGui::Checkbox( data.myName.c_str(), &data.myIsWindowOpen );

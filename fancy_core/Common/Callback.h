@@ -13,7 +13,7 @@ namespace Fancy {
     }
 
     std::function< ReturnT( Args... ) > myFunction;
-    void * myInstance;
+    void *                              myInstance;
   };
   //---------------------------------------------------------------------------//
 
@@ -42,7 +42,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   template < class ClassT, class ReturnT, class Arg1T >
-  Callback< ReturnT( Arg1T ) > Bind( ClassT * anInstance, ReturnT ( ClassT::*aMemFnPtr )( Arg1T ),
+  Callback< ReturnT( Arg1T ) > Bind( ClassT *      anInstance, ReturnT ( ClassT::*aMemFnPtr )( Arg1T ),
                                      const Arg1T & anArg ) {
     std::function< ReturnT( Arg1T ) > func = std::bind( aMemFnPtr, anInstance, anArg );
     return Callback< ReturnT( Arg1T ) >( func, anInstance );
@@ -71,7 +71,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   template < class ClassT, class ReturnT, class Arg1T, class Arg2T >
-  Callback< ReturnT( Arg1T, Arg2T ) > Bind( ClassT * anInstance, ReturnT ( ClassT::*aMemFnPtr )( Arg1T, Arg2T ),
+  Callback< ReturnT( Arg1T, Arg2T ) > Bind( ClassT *      anInstance, ReturnT ( ClassT::*aMemFnPtr )( Arg1T, Arg2T ),
                                             const Arg1T & anArg1, const Arg2T & anArg2 ) {
     std::function< ReturnT( Arg1T, Arg2T ) > func = std::bind( aMemFnPtr, anInstance, anArg1, anArg2 );
     return Callback< ReturnT( Arg1T, Arg2T ) >( func, anInstance );

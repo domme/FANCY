@@ -22,7 +22,7 @@ namespace Fancy {
       if ( it != someShaders.end() )
         return uint( it - someShaders.begin() );
 
-      const uint index = ( uint ) someShaders.size();
+      const uint                               index = ( uint ) someShaders.size();
       RtPipelineStateProperties::ShaderEntry & entry = someShaders.push_back();
       entry.myShader = aShader;
       entry.myUniqueMainFunctionName =

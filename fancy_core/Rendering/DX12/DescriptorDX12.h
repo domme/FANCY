@@ -22,11 +22,11 @@ namespace Fancy {
 
     D3D12_CPU_DESCRIPTOR_HANDLE myCpuHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE myGpuHandle;
-    D3D12_DESCRIPTOR_HEAP_TYPE myHeapType;
-    GlobalResourceType myGlobalResourceType;
-    uint myGlobalResourceIndex;
-    bool myIsManagedByAllocator;
-    bool myIsShaderVisible;
+    D3D12_DESCRIPTOR_HEAP_TYPE  myHeapType;
+    GlobalResourceType          myGlobalResourceType;
+    uint                        myGlobalResourceIndex;
+    bool                        myIsManagedByAllocator;
+    bool                        myIsShaderVisible;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

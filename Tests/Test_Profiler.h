@@ -12,8 +12,8 @@ public:
   void OnRender() override;
 
 private:
-  bool myShowProfilerWindow = false;
-  Fancy::ProfilerWindow myProfilerWindow;
+  bool                                 myShowProfilerWindow = false;
+  Fancy::ProfilerWindow                myProfilerWindow;
   Fancy::SharedPtr< Fancy::GpuBuffer > myDummyGpuBuffer1;
   Fancy::SharedPtr< Fancy::GpuBuffer > myDummyGpuBuffer2;
 };

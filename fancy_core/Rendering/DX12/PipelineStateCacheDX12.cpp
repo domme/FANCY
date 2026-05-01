@@ -47,7 +47,7 @@ namespace Fancy {
 
     {
       std::lock_guard< std::mutex > lock( myCacheMutex );
-      auto it = myGraphicsPsoCache.find( hash );
+      auto                          it = myGraphicsPsoCache.find( hash );
       if ( it != myGraphicsPsoCache.end() )
         return it->second;
     }
@@ -79,7 +79,7 @@ namespace Fancy {
     psoDesc.pRootSignature = RenderCore::GetPlatformDX12()->GetRootSignature()->GetRootSignature();
 
     // BLEND DESC
-    D3D12_BLEND_DESC & blendDesc = psoDesc.BlendState;
+    D3D12_BLEND_DESC &           blendDesc = psoDesc.BlendState;
     const BlendStateProperties & blendProps = aState.myBlendState->GetProperties();
 
     memset( &blendDesc, 0u, sizeof( D3D12_BLEND_DESC ) );
@@ -87,7 +87,7 @@ namespace Fancy {
     blendDesc.IndependentBlendEnable = blendProps.myBlendStatePerRT;
     uint rtCount = blendDesc.IndependentBlendEnable ? RenderConstants::kMaxNumRenderTargets : 1u;
     for ( uint rt = 0u; rt < rtCount; ++rt ) {
-      D3D12_RENDER_TARGET_BLEND_DESC & rtBlendDesc = blendDesc.RenderTarget[ rt ];
+      D3D12_RENDER_TARGET_BLEND_DESC &         rtBlendDesc = blendDesc.RenderTarget[ rt ];
       const BlendStateRenderTargetProperties & rtBlendProps = blendProps.myRendertargetProperties[ rt ];
 
       memset( &rtBlendDesc, 0u, sizeof( D3D12_RENDER_TARGET_BLEND_DESC ) );
@@ -150,7 +150,7 @@ namespace Fancy {
     rasterizerDesc.DepthClipEnable = false;
 
     // DEPTH STENCIL STATE
-    D3D12_DEPTH_STENCIL_DESC & dsState = psoDesc.DepthStencilState;
+    D3D12_DEPTH_STENCIL_DESC &          dsState = psoDesc.DepthStencilState;
     const DepthStencilStateProperties & dsProps = aState.myDepthStencilState->GetProperties();
 
     dsState.DepthEnable = dsProps.myDepthTestEnabled;
@@ -162,7 +162,7 @@ namespace Fancy {
 
     // FrontFace
     {
-      D3D12_DEPTH_STENCILOP_DESC & faceDesc = dsState.FrontFace;
+      D3D12_DEPTH_STENCILOP_DESC &       faceDesc = dsState.FrontFace;
       const DepthStencilFaceProperties & faceProps = dsProps.myFrontFace;
       faceDesc.StencilFunc = RenderCore_PlatformDX12::ResolveCompFunc( faceProps.myStencilCompFunc );
       faceDesc.StencilDepthFailOp = RenderCore_PlatformDX12::ResolveStencilOp( faceProps.myStencilDepthFailOp );
@@ -172,7 +172,7 @@ namespace Fancy {
 
     // BackFace
     {
-      D3D12_DEPTH_STENCILOP_DESC & faceDesc = dsState.BackFace;
+      D3D12_DEPTH_STENCILOP_DESC &       faceDesc = dsState.BackFace;
       const DepthStencilFaceProperties & faceProps = dsProps.myBackFace;
       faceDesc.StencilFunc = RenderCore_PlatformDX12::ResolveCompFunc( faceProps.myStencilCompFunc );
       faceDesc.StencilDepthFailOp = RenderCore_PlatformDX12::ResolveStencilOp( faceProps.myStencilDepthFailOp );
@@ -191,7 +191,7 @@ namespace Fancy {
 
     const eastl::fixed_vector< VertexShaderAttributeDesc, 16 > & shaderAttributes = vertexShader->myVertexAttributes;
 
-    eastl::fixed_vector< D3D12_INPUT_ELEMENT_DESC, 16 > inputElementDescs;
+    eastl::fixed_vector< D3D12_INPUT_ELEMENT_DESC, 16 >        inputElementDescs;
     const eastl::fixed_vector< VertexInputAttributeDesc, 8 > & inputAttributes = inputLayoutProps.myAttributes;
     for ( uint i = 0u; i < shaderAttributes.size(); ++i ) {
       const VertexShaderAttributeDesc & shaderAttribute = shaderAttributes[ i ];
@@ -251,7 +251,7 @@ namespace Fancy {
     psoDesc.NodeMask = 0u;
 
     std::lock_guard< std::mutex > lock( myCacheMutex );
-    auto it = myGraphicsPsoCache.find( hash );
+    auto                          it = myGraphicsPsoCache.find( hash );
     if ( it != myGraphicsPsoCache.end() )
       return it->second;
 
@@ -280,7 +280,7 @@ namespace Fancy {
     const uint64 hash = aState.GetHash();
 
     std::lock_guard< std::mutex > lock( myCacheMutex );
-    auto it = myComputePsoCache.find( hash );
+    auto                          it = myComputePsoCache.find( hash );
     if ( it != myComputePsoCache.end() )
       return it->second;
 

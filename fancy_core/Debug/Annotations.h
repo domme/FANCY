@@ -10,7 +10,7 @@ namespace Fancy {
   };
   //---------------------------------------------------------------------------//
   namespace Annotations {
-    uint16 CreateTag( const char * aName, uint aColor );
+    uint16                    CreateTag( const char * aName, uint aColor );
     const AnnotationTagData & GetTagData( uint16 aTag );
   }  // namespace Annotations
   //---------------------------------------------------------------------------//

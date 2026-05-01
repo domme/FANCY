@@ -52,7 +52,7 @@ Test_Raytracing::Test_Raytracing( Fancy::AssetManager * anAssetManager, Fancy::W
   myTLAS = RenderCore::CreateRtTopLevelAccelerationStructure( &instanceData, 1u );
 
   RtPipelineStateProperties rtPipelineProps;
-  const uint raygenIdx =
+  const uint                raygenIdx =
       rtPipelineProps.AddRayGenShader( "fancy/resources/shaders/Tests/Raytracing/RayGen.hlsl", "RayGen" );
   const uint missIdx = rtPipelineProps.AddMissShader( "fancy/resources/shaders/Tests/Raytracing/Miss.hlsl", "Miss" );
   const uint hitIdx =
@@ -94,7 +94,7 @@ void Test_Raytracing::OnRender() {
 
   struct Consts {
     glm::float3 myCamCenter;
-    uint myIsBGR;
+    uint        myIsBGR;
 
     glm::float4 myPixelToWorldScaleOffset;
 
@@ -125,8 +125,8 @@ void Test_Raytracing::OnRender() {
 
   ctx->ResourceUAVbarrier( rtOutputTex.myTexture );
   SubresourceLocation subresourceLoc;
-  TextureRegion region = { glm::uvec3( 0 ), glm::uvec3( texProps.myTextureProperties.myWidth,
-                                                        texProps.myTextureProperties.myHeight, 1u ) };
+  TextureRegion       region = { glm::uvec3( 0 ), glm::uvec3( texProps.myTextureProperties.myWidth,
+                                                              texProps.myTextureProperties.myHeight, 1u ) };
 
   Texture * backbuffer = myOutput->GetBackbuffer();
   ctx->CopyTexture( backbuffer, subresourceLoc, region, rtOutputTex.myTexture, subresourceLoc, region );

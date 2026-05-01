@@ -24,22 +24,22 @@ ANNOTATION_CREATE_TAG( ANNTAG_IMGUI, "ImGui", 0xFFC17700 );
 
 namespace Fancy {
   namespace ImGuiRendering {
-    TextureHandle ourFontTextureTex;
-    TextureViewHandle ourFontTexture;
-    ShaderPipelineHandle ourProgramPipeline;
-    BlendStateHandle ourBlendState;
+    TextureHandle           ourFontTextureTex;
+    TextureViewHandle       ourFontTexture;
+    ShaderPipelineHandle    ourProgramPipeline;
+    BlendStateHandle        ourBlendState;
     DepthStencilStateHandle ourDepthStencilState;
-    TextureSamplerHandle ourSampler;
-    void * ourHwnd = nullptr;
-    int64 ourTicksPerSecond = 0;
-    int64 ourTime = 0;
-    RenderOutputHandle ourRenderOutput;
+    TextureSamplerHandle    ourSampler;
+    void *                  ourHwnd = nullptr;
+    int64                   ourTicksPerSecond = 0;
+    int64                   ourTime = 0;
+    RenderOutputHandle      ourRenderOutput;
 
     //---------------------------------------------------------------------------//
     struct CBufferData {
       glm::float4x4 myProjectionMatrix;
-      uint myTextureIndex;
-      uint mySamplerIndex;
+      uint          myTextureIndex;
+      uint          mySamplerIndex;
     };
 
     void HandleWindowEvent( UINT msg, WPARAM wParam, LPARAM lParam, bool * aWasHandled ) {
@@ -94,7 +94,7 @@ namespace Fancy {
     bool Init( RenderOutputHandle aRenderOutput ) {
       ourRenderOutput = aRenderOutput;
 
-      RenderOutput * renderOutput = RenderCore::GetRenderOutput( aRenderOutput );
+      RenderOutput *                                        renderOutput = RenderCore::GetRenderOutput( aRenderOutput );
       std::function< void( UINT, WPARAM, LPARAM, bool * ) > fnWindowHandler = &HandleWindowEvent;
       renderOutput->GetWindow()->myWindowEventHandler.Connect( fnWindowHandler );
 
@@ -131,7 +131,7 @@ namespace Fancy {
       // Load the imgui-shader state
       {
         ShaderPipelineDesc pipelineDesc;
-        ShaderDesc * shaderDesc = &pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_VERTEX ];
+        ShaderDesc *       shaderDesc = &pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_VERTEX ];
         shaderDesc->myPath = "fancy/resources/shaders/Imgui.hlsl";
         shaderDesc->myMainFunction = "main";
         shaderDesc->myShaderStage = ( uint ) ShaderStage::SHADERSTAGE_VERTEX;
@@ -145,8 +145,8 @@ namespace Fancy {
 
       // Create the font texture
       {
-        uint8 * fontPixelData = nullptr;
-        int width, height, pixelSizeBytes;
+        uint8 *   fontPixelData = nullptr;
+        int       width, height, pixelSizeBytes;
         ImGuiIO & io = ::ImGui::GetIO();
         io.Fonts->GetTexDataAsRGBA32( &fontPixelData, &width, &height, &pixelSizeBytes );
         ASSERT( fontPixelData != nullptr );
@@ -259,7 +259,7 @@ namespace Fancy {
       ctx->SetTopologyType( TopologyType::TRIANGLE_LIST );
       ctx->SetShaderPipeline( RenderCore::GetShaderPipeline( ourProgramPipeline ) );
 
-      float translate = -0.5f * 2.f;
+      float       translate = -0.5f * 2.f;
       const float L = 0.f;
       const float R = ::ImGui::GetIO().DisplaySize.x;
       const float B = ::ImGui::GetIO().DisplaySize.y;

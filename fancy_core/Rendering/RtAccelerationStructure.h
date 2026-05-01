@@ -16,19 +16,19 @@ namespace Fancy {
   struct RtBufferData {
     struct BufferData {
       const GpuBuffer * myBuffer;
-      uint64 myOffsetBytes;
-      uint64 mySizeBytes;
+      uint64            myOffsetBytes;
+      uint64            mySizeBytes;
     };
     struct CpuData {
       const void * myData;
-      uint64 myDataSize;
+      uint64       myDataSize;
     };
 
     RtBufferDataType myType = RT_BUFFER_DATA_TYPE_NONE;
 
     union {
       BufferData myBuffer;
-      CpuData myCpuData;
+      CpuData    myCpuData;
     };
 
     bool IsEmpty() const {
@@ -43,14 +43,14 @@ namespace Fancy {
     RtBufferData myIndexData;
     RtBufferData myTransformData;
     RtBufferData myProcedural_AABBData;
-    DataFormat myVertexFormat = DataFormat::RGB_32F;
-    DataFormat myIndexFormat = DataFormat::R_32UI;
-    uint myNumVertices = 0;
+    DataFormat   myVertexFormat = DataFormat::RGB_32F;
+    DataFormat   myIndexFormat = DataFormat::R_32UI;
+    uint         myNumVertices = 0;
     uint myVertexStride = 0;  // Byte size between to consecutive position-elements in the vertex-data. Useful for
                               // interleaved vertex data. Can be left 0, in which case it defaults to the format size
-    uint myNumIndices = 0;
-    uint myFlags = 0;  // RtAccelerationStructureGeometryFlags
-    uint myProcedural_NumAABBs = 0;
+    uint                                myNumIndices = 0;
+    uint                                myFlags = 0;  // RtAccelerationStructureGeometryFlags
+    uint                                myProcedural_NumAABBs = 0;
     RtAccelerationStructureGeometryType myType = RtAccelerationStructureGeometryType::TRIANGLES;
   };
   //---------------------------------------------------------------------------//
@@ -60,11 +60,11 @@ namespace Fancy {
           ,
           myInstanceId( 0 ), myInstanceMask( UINT8_MAX ), mySbtHitGroupOffset( 0 ), myFlags( 0 ) {}
 
-    glm::mat3x4 myTransform;
-    uint myInstanceId : 24;
-    uint8 myInstanceMask;
-    uint mySbtHitGroupOffset : 24;
-    uint8 myFlags;
+    glm::mat3x4               myTransform;
+    uint                      myInstanceId : 24;
+    uint8                     myInstanceMask;
+    uint                      mySbtHitGroupOffset : 24;
+    uint8                     myFlags;
     RtAccelerationStructure * myInstanceBLAS = nullptr;
   };
   //---------------------------------------------------------------------------//
@@ -76,13 +76,13 @@ namespace Fancy {
     RtAccelerationStructureType GetType() const {
       return myType;
     }
-    GpuBuffer * GetBuffer() const;
+    GpuBuffer *     GetBuffer() const;
     GpuBufferView * GetBufferRead() const;
 
   protected:
-    eastl::string myName;
-    GpuBufferHandle myBuffer;
-    GpuBufferViewHandle myTopLevelBufferRead;
+    eastl::string               myName;
+    GpuBufferHandle             myBuffer;
+    GpuBufferViewHandle         myTopLevelBufferRead;
     RtAccelerationStructureType myType;
   };
   //---------------------------------------------------------------------------//

@@ -103,7 +103,7 @@ namespace Fancy {
         // The data pointed to by the subdatas might actually point to different sources in memory - not necessarily to
         // the data in TextureData::myData
         uint64 overallSizeBytes = 0ull;
-        bool needsTempData = false;
+        bool   needsTempData = false;
         for ( TextureSubData & subData : aVal.mySubDatas ) {
           if ( !needsTempData &&
                ( overallSizeBytes > aVal.myData.size() || subData.myData != aVal.myData.data() + overallSizeBytes ) )
@@ -114,7 +114,7 @@ namespace Fancy {
 
         if ( needsTempData ) {
           eastl::vector< uint8 > rawTextureData( overallSizeBytes );
-          uint8 * dst = rawTextureData.data();
+          uint8 *                dst = rawTextureData.data();
           for ( TextureSubData & subData : aVal.mySubDatas ) {
             memcpy( dst, subData.myData, subData.myTotalSizeBytes );
             dst += subData.myTotalSizeBytes;

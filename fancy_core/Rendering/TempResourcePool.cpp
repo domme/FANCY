@@ -103,7 +103,7 @@ namespace Fancy {
     const uint64 desiredSize =
         someProps.myBufferProperties.myNumElements * someProps.myBufferProperties.myElementSizeBytes;
 
-    const uint64 key = Priv_TempResourcePool::GetHash( someProps, someFlags );
+    const uint64                       key = Priv_TempResourcePool::GetHash( someProps, someFlags );
     std::list< GpuBufferResource * > & availableList = myAvailableBufferBuckets[ key ];
     if ( !availableList.empty() ) {
       auto it =

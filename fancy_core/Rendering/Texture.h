@@ -35,7 +35,7 @@ namespace Fancy {
     void InitTextureData( const TextureSubData * someInitialDatas, uint aNumInitialDatas );
 
     TextureProperties myProperties;
-    bool myIsSwapChainTexture;
+    bool              myIsSwapChainTexture;
   };
   //---------------------------------------------------------------------------//
   class TextureView : public GpuResourceView {

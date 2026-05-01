@@ -24,7 +24,7 @@ namespace Fancy {
     void Create( const TextureProperties & someProperties, const char * aName = nullptr,
                  const TextureSubData * someInitialDatas = nullptr, uint aNumInitialDatas = 0u ) override;
 
-    uint64 GetCopyableFootprints( const SubresourceRange & aSubresourceRange,
+    uint64 GetCopyableFootprints( const SubresourceRange &             aSubresourceRange,
                                   D3D12_PLACED_SUBRESOURCE_FOOTPRINT * someFootprintsOut, uint * someNumRowsOut,
                                   uint64 * someRowSizesOut ) const;
 

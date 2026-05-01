@@ -23,7 +23,7 @@ namespace Fancy {
     glm::vec3 myPosition;
     glm::quat myOrientation;
 
-    bool myIsOrtho;
+    bool  myIsOrtho;
     float myFovDeg;
     float myFar;
     float myNear;

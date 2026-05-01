@@ -11,12 +11,12 @@ namespace Fancy {
     virtual ~GpuQueryHeap();
 
     virtual void Reset( uint64 aFrame );
-    uint Allocate( uint aNumQueries );
+    uint         Allocate( uint aNumQueries );
 
-    uint64 myLastUsedFrame = UINT64_MAX;
+    uint64       myLastUsedFrame = UINT64_MAX;
     GpuQueryType myType = GpuQueryType::TIMESTAMP;
-    uint myNumQueries = 0u;
-    uint myNextFreeQuery = 0u;
+    uint         myNumQueries = 0u;
+    uint         myNextFreeQuery = 0u;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

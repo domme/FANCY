@@ -60,12 +60,12 @@ namespace Fancy {
                           uint aRegisterIndex ) override;
 
     GpuQuery BeginQuery( GpuQueryType aType ) override;
-    void EndQuery( const GpuQuery & aQuery ) override;
+    void     EndQuery( const GpuQuery & aQuery ) override;
     GpuQuery InsertTimestamp() override;
-    void CopyQueryDataToBuffer( const GpuQueryHeap * aQueryHeap, const GpuBuffer * aBuffer, uint aFirstQueryIndex,
-                                uint aNumQueries, uint64 aBufferOffset ) override;
-    void BeginMarkerRegion( const char * aName, uint aColor ) override;
-    void EndMarkerRegion() override;
+    void     CopyQueryDataToBuffer( const GpuQueryHeap * aQueryHeap, const GpuBuffer * aBuffer, uint aFirstQueryIndex,
+                                    uint aNumQueries, uint64 aBufferOffset ) override;
+    void     BeginMarkerRegion( const char * aName, uint aColor ) override;
+    void     EndMarkerRegion() override;
 
     void TransitionResource( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
                              ResourceTransition aTransition, uint someUsageFlags = 0u ) override;
@@ -105,18 +105,18 @@ namespace Fancy {
     void ApplyTopologyType();
     void ApplyResourceBindings();
 
-    bool GetLocalSubresourceStates( const GpuResource * aResource, SubresourceLocation aSubresource,
-                                    D3D12_RESOURCE_STATES & aStatesOut );
+    bool                  GetLocalSubresourceStates( const GpuResource * aResource, SubresourceLocation aSubresource,
+                                                     D3D12_RESOURCE_STATES & aStatesOut );
     D3D12_RESOURCE_STATES ResolveValidateDstStates( const GpuResource * aResource, D3D12_RESOURCE_STATES aDstStates );
-    bool ValidateSubresourceTransition( const GpuResource * aResource, uint aSubresourceIndex,
-                                        D3D12_RESOURCE_STATES aDstStates );
+    bool                  ValidateSubresourceTransition( const GpuResource * aResource, uint aSubresourceIndex,
+                                                         D3D12_RESOURCE_STATES aDstStates );
 
-    ID3D12GraphicsCommandList6 * myCommandList;
-    ID3D12CommandAllocator * myCommandAllocator;
+    ID3D12GraphicsCommandList6 *                                             myCommandList;
+    ID3D12CommandAllocator *                                                 myCommandAllocator;
     eastl::fixed_vector< D3D12_RESOURCE_BARRIER, kNumCachedBarriers, false > myPendingBarriers;
-    eastl::fixed_vector< uint64, 16 > myLocalBuffersToBind;
-    eastl::fixed_vector< uint64, 16 > myLocalRWBuffersToBind;
-    eastl::fixed_vector< uint64, 16 > myLocalCBuffersToBind;
+    eastl::fixed_vector< uint64, 16 >                                        myLocalBuffersToBind;
+    eastl::fixed_vector< uint64, 16 >                                        myLocalRWBuffersToBind;
+    eastl::fixed_vector< uint64, 16 >                                        myLocalCBuffersToBind;
 
     D3D12_RESOURCE_STATES myResourceStateMask;
 
@@ -126,9 +126,9 @@ namespace Fancy {
       // TODO: Those two could be reduced to only 24 bits
       D3D12_RESOURCE_STATES myFirstDstStates = ( D3D12_RESOURCE_STATES ) 0;
       D3D12_RESOURCE_STATES myStates = ( D3D12_RESOURCE_STATES ) 0;
-      uint myWasWritten : 1;
-      uint myWasUsed : 1;
-      uint myIsSharedReadState : 1;
+      uint                  myWasWritten : 1;
+      uint                  myWasUsed : 1;
+      uint                  myIsSharedReadState : 1;
     };
     struct LocalHazardData {
       eastl::fixed_vector< SubresourceHazardData, 16 > mySubresources;

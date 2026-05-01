@@ -17,8 +17,8 @@ uint Encode_Unorm_RGBA( float4 aVec01 ) {
 
 float Decode_Unorm( uint enc, uint aNumBits, uint aShift ) {
   const uint maxVal = ( ( 1u << aNumBits ) - 1u );
-  float val = (float) ( ( enc >> aShift ) & maxVal );
-  return val / (float) maxVal;
+  float      val = ( float ) ( ( enc >> aShift ) & maxVal );
+  return val / ( float ) maxVal;
 }
 
 float4 Decode_Unorm_RGBA( uint enc ) {

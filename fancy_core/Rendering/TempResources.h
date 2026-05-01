@@ -19,8 +19,8 @@ namespace Fancy {
 
   private:
     TempResourcePool * myPool;
-    void * myResource;
-    uint64 myBucketHash;
+    void *             myResource;
+    uint64             myBucketHash;
   };
   //---------------------------------------------------------------------------//
   struct TempBufferResource {
@@ -48,7 +48,7 @@ namespace Fancy {
       return *this;
     }
 
-    GpuBuffer * myBuffer;
+    GpuBuffer *     myBuffer;
     GpuBufferView * myReadView;
     GpuBufferView * myWriteView;
 
@@ -74,7 +74,7 @@ namespace Fancy {
       return *this;
     }
 
-    Texture * myTexture;
+    Texture *     myTexture;
     TextureView * myReadView;
     TextureView * myWriteView;
     TextureView * myRenderTargetView;

@@ -20,9 +20,9 @@ namespace Fancy {
   CommandAllocatorPoolDX12::UpdateAvailableAllocators( ID3D12CommandAllocator ** aRequestedAllocator /* = nullptr */ ) {
     auto it = myReleasedWaitingAllocators.begin();
     while ( it != myReleasedWaitingAllocators.end() ) {
-      const uint64 waitingFenceVal = it->first;
+      const uint64             waitingFenceVal = it->first;
       ID3D12CommandAllocator * allocator = it->second;
-      CommandQueueDX12 * queue = ( CommandQueueDX12 * ) RenderCore::GetCommandQueue( myCommandListType );
+      CommandQueueDX12 *       queue = ( CommandQueueDX12 * ) RenderCore::GetCommandQueue( myCommandListType );
 
       if ( queue->IsFenceDone( waitingFenceVal ) ) {
         if ( waitingFenceVal != 0 )
@@ -66,7 +66,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void CommandAllocatorPoolDX12::ReleaseAllocator( ID3D12CommandAllocator * anAllocator,
-                                                   uint64 anAllocatorDoneFenceVal ) {
+                                                   uint64                   anAllocatorDoneFenceVal ) {
 #if defined( FANCY_RENDERER_USE_VALIDATION )
     for ( ID3D12CommandAllocator * allocator : myAvailableAllocators )
       ASSERT( allocator != anAllocator );

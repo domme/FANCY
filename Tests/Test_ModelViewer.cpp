@@ -96,9 +96,9 @@ Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy:
   vertexAttributes.push_back( { VertexAttributeSemantic::POSITION, 0u, DataFormat::RGB_32F } );
   vertexAttributes.push_back( { VertexAttributeSemantic::TEXCOORD, 0u, DataFormat::RG_32F } );
 
-  SceneData sceneData;
+  SceneData    sceneData;
   MeshImporter importer;
-  const bool importSuccess = importer.Import( "fancy/resources/models/cube.obj", vertexAttributes, sceneData );
+  const bool   importSuccess = importer.Import( "fancy/resources/models/cube.obj", vertexAttributes, sceneData );
   ASSERT( importSuccess );
 
   myScene = eastl::make_shared< Scene >( sceneData, myAssetManager );
@@ -112,7 +112,7 @@ Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy:
   int numInstancesOneSide = 20;
   int numInstances = numInstancesOneSide * numInstancesOneSide * numInstancesOneSide;
   myNumInstances = numInstances;
-  float offsetBetweenInstances = 7.0f;
+  float                        offsetBetweenInstances = 7.0f;
   eastl::vector< glm::float3 > instancePositions;
   instancePositions.reserve( numInstances );
   for ( int x = -numInstancesOneSide / 2; x < numInstancesOneSide / 2; ++x )
@@ -201,7 +201,7 @@ void Test_ModelViewer::RenderGrid( Fancy::CommandList * ctx ) {
 
   struct Cbuffer_DebugGeo {
     glm::float4x4 myWorldViewProj;
-    glm::float4 myColor;
+    glm::float4   myColor;
   };
   Cbuffer_DebugGeo cbuffer_debugGeo{
     myCamera.myViewProj,
@@ -248,8 +248,8 @@ void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
       const VertexInputLayout * layout = meshPart->myVertexInputLayout.get();
       ctx->SetVertexInputLayout( ourDrawInstanced ? myInstancedVertexLayout.get() : layout );
 
-      uint64 offsets[] = { 0u, 0u };
-      uint64 sizes[] = { meshPart->myVertexBuffer->GetByteSize(), myInstancePositions->GetByteSize() };
+      uint64            offsets[] = { 0u, 0u };
+      uint64            sizes[] = { meshPart->myVertexBuffer->GetByteSize(), myInstancePositions->GetByteSize() };
       const GpuBuffer * buffers[] = { meshPart->myVertexBuffer.get(), myInstancePositions.get() };
       ctx->BindVertexBuffers( buffers, offsets, sizes, ourDrawInstanced ? 2u : 1u );
       ctx->BindIndexBuffer( meshPart->myIndexBuffer.get(),
@@ -260,14 +260,14 @@ void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
   };
 
   for ( SceneMeshInstance & meshInstance : myScene->myInstances ) {
-    Mesh * mesh = myScene->myMeshes[ meshInstance.myMeshIndex ].get();
+    Mesh *        mesh = myScene->myMeshes[ meshInstance.myMeshIndex ].get();
     glm::float4x4 transform = meshInstance.myTransform;
-    Material * material = myScene->myMaterials[ meshInstance.myMaterialIndex ].get();
+    Material *    material = myScene->myMaterials[ meshInstance.myMaterialIndex ].get();
 
     struct Cbuffer_PerObject {
       glm::float4x4 myWorldViewProj;
-      uint myTextureIndex;
-      uint mySamplerIndex;
+      uint          myTextureIndex;
+      uint          mySamplerIndex;
     };
     Cbuffer_PerObject cbuffer_perObject{ myCamera.myViewProj * transform, UINT_MAX,
                                          mySampler->GetGlobalDescriptorIndex() };

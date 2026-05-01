@@ -20,7 +20,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate( const uint64 aSize, const uint anAlignment,
                                                             const char * aDebugName /*= nullptr*/ ) {
-    uint64 offsetInPage;
+    uint64       offsetInPage;
     const Page * page = PagedLinearAllocator::Allocate( aSize, anAlignment, offsetInPage, aDebugName );
     if ( page == nullptr )
       return GpuMemoryAllocationDX12{};
@@ -49,7 +49,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   bool GpuMemoryAllocatorDX12::CreatePageData( uint64 aSize, eastl::any & aPageData ) {
     ID3D12Device * device = RenderCore::GetPlatformDX12()->GetDevice();
-    const uint64 alignedSize = MathUtil::Align( aSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT );
+    const uint64   alignedSize = MathUtil::Align( aSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT );
 
     D3D12_HEAP_DESC heapDesc{ 0u };
     heapDesc.SizeInBytes = alignedSize;

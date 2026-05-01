@@ -16,20 +16,20 @@ namespace Fancy {
                  const void * pInitialData = nullptr );
 
     uint64 GetFreeDataSize( uint64 anAlignment = 0 ) const;
-    bool AllocateAndWrite( const void * someData, uint64 aDataSize, uint64 & anOffsetOut, uint64 anAlignment = 0 );
-    bool Allocate( uint64 aDataSize, uint64 & anOffsetOut, uint64 anAlignment = 0 );
-    void Reset() {
+    bool   AllocateAndWrite( const void * someData, uint64 aDataSize, uint64 & anOffsetOut, uint64 anAlignment = 0 );
+    bool   Allocate( uint64 aDataSize, uint64 & anOffsetOut, uint64 anAlignment = 0 );
+    void   Reset() {
       myOffset = 0u;
     }
     GpuBuffer * GetBuffer() const;
-    uint8 * GetData() const {
+    uint8 *     GetData() const {
       return myData;
     }
 
   protected:
     GpuBufferHandle myBuffer;
-    uint8 * myData;
-    uint64 myOffset;
+    uint8 *         myData;
+    uint64          myOffset;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

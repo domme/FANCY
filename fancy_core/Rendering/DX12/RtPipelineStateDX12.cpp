@@ -12,7 +12,7 @@ namespace Fancy {
       RtPsoBuilder( uint aNumShaders, uint aNumHitGroups );
 
       void AddShaderLibrarySubobject( Shader * aShader, const wchar_t * aMainFunctionRename = nullptr );
-      void AddHitGroupSubobject( const RtPipelineStateProperties::HitGroup & aHitGroup,
+      void AddHitGroupSubobject( const RtPipelineStateProperties::HitGroup &                     aHitGroup,
                                  const eastl::vector< RtPipelineStateProperties::ShaderEntry > & someHitShaders );
       void AddShaderConfig( uint aMaxPayloadSizeBytes, uint aMaxAttributeSizeBytes );
       void AddGlobalRootSignature( ID3D12RootSignature * aRootSignature );
@@ -20,17 +20,17 @@ namespace Fancy {
       void AddSubobject( D3D12_STATE_SUBOBJECT_TYPE aType, void * aSubobject );
       const wchar_t * AddWideString( const char * aString );
       const wchar_t * AddWideString( const eastl::string & aString );
-      bool BuildRtPso( Microsoft::WRL::ComPtr< ID3D12StateObject > & aStateObjectOut );
+      bool            BuildRtPso( Microsoft::WRL::ComPtr< ID3D12StateObject > & aStateObjectOut );
 
-      D3D12_RAYTRACING_PIPELINE_CONFIG1 myPipelineConfig = { UINT_MAX };
-      eastl::vector< D3D12_STATE_SUBOBJECT > mySubObjects;
-      eastl::vector< D3D12_DXIL_LIBRARY_DESC > myLibraryDescs;
-      eastl::vector< D3D12_EXPORT_DESC > myExportDescs;
-      eastl::vector< D3D12_HIT_GROUP_DESC > myHitGroups;
+      D3D12_RAYTRACING_PIPELINE_CONFIG1               myPipelineConfig = { UINT_MAX };
+      eastl::vector< D3D12_STATE_SUBOBJECT >          mySubObjects;
+      eastl::vector< D3D12_DXIL_LIBRARY_DESC >        myLibraryDescs;
+      eastl::vector< D3D12_EXPORT_DESC >              myExportDescs;
+      eastl::vector< D3D12_HIT_GROUP_DESC >           myHitGroups;
       eastl::vector< D3D12_RAYTRACING_SHADER_CONFIG > myShaderConfigs;
-      eastl::vector< D3D12_GLOBAL_ROOT_SIGNATURE > myGlobalRootSigs;
-      eastl::vector< eastl::wstring > myWideStrings;
-      eastl::vector< const wchar_t * > myAllExportNames;
+      eastl::vector< D3D12_GLOBAL_ROOT_SIGNATURE >    myGlobalRootSigs;
+      eastl::vector< eastl::wstring >                 myWideStrings;
+      eastl::vector< const wchar_t * >                myAllExportNames;
     };
 
     RtPsoBuilder::RtPsoBuilder( uint aNumShaders, uint aNumHitGroups ) {
@@ -66,7 +66,7 @@ namespace Fancy {
     }
     //---------------------------------------------------------------------------//
     void RtPsoBuilder::AddHitGroupSubobject(
-        const RtPipelineStateProperties::HitGroup & aHitGroup,
+        const RtPipelineStateProperties::HitGroup &                     aHitGroup,
         const eastl::vector< RtPipelineStateProperties::ShaderEntry > & someHitShaders ) {
       ASSERT( myHitGroups.capacity() > myHitGroups.size(),
               "Vector-grow not allowed. Individual members are being referenced as pointers." );
@@ -159,7 +159,7 @@ namespace Fancy {
 
     const uint numShaders = static_cast< uint >(
         myProperties.myHitShaders.size() + myProperties.myRaygenShaders.size() + myProperties.myMissShaders.size() );
-    const uint numHitGroups = static_cast< uint >( myProperties.myHitGroups.size() );
+    const uint   numHitGroups = static_cast< uint >( myProperties.myHitGroups.size() );
     RtPsoBuilder builder( numShaders, numHitGroups );
 
     for ( const RtPipelineStateProperties::ShaderEntry & shader : myProperties.myRaygenShaders )
@@ -197,7 +197,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void RtPipelineStateDX12::GetShaderIdentifierDataInternal( uint /* aShaderIndexInRtPso */,
                                                              const RtPipelineStateProperties::HitGroup & aShaderEntry,
-                                                             RtShaderIdentifier & someDataOut ) {
+                                                             RtShaderIdentifier &                        someDataOut ) {
     void * shaderIdentifier = myRtPsoProperties->GetShaderIdentifier( aShaderEntry.myName.c_str() );
     ASSERT( shaderIdentifier );
 
@@ -208,7 +208,7 @@ namespace Fancy {
   void
   RtPipelineStateDX12::GetShaderIdentifierDataInternal( uint /* aShaderIndexInRtPso */,
                                                         const RtPipelineStateProperties::ShaderEntry & aShaderEntry,
-                                                        RtShaderIdentifier & someDataOut ) {
+                                                        RtShaderIdentifier &                           someDataOut ) {
     void * shaderIdentifier = myRtPsoProperties->GetShaderIdentifier( aShaderEntry.myUniqueMainFunctionName.c_str() );
     ASSERT( shaderIdentifier );
 

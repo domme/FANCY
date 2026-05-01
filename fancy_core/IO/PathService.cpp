@@ -170,7 +170,7 @@ namespace Fancy {
       RemoveDoubleSlashes( aPath );
 
       const eastl::string kSearchKey = "/../";
-      const size_t kSearchKeyLen = kSearchKey.length();
+      const size_t        kSearchKeyLen = kSearchKey.length();
 
       size_t posDots = aPath.find( kSearchKey );
       while ( posDots != eastl::string::npos ) {
@@ -197,7 +197,7 @@ namespace Fancy {
       if ( hFile == INVALID_HANDLE_VALUE )
         return 0u;
 
-      FILETIME lastWriteTime;
+      FILETIME   lastWriteTime;
       const bool success = GetFileTime( hFile, nullptr, nullptr, &lastWriteTime ) != 0;
       ASSERT( success, "File %s exists with a valid handle but failed to read its file time", aFile.c_str() );
 

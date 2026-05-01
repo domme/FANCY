@@ -14,7 +14,7 @@ public:
 private:
   Fancy::SharedPtr< Fancy::GpuBufferView > myBufferWrite;
   Fancy::SharedPtr< Fancy::GpuBufferView > myBufferRead;
-  Fancy::SharedPtr< Fancy::GpuBuffer > myBuffer;
+  Fancy::SharedPtr< Fancy::GpuBuffer >     myBuffer;
 
   Fancy::SharedPtr< Fancy::ShaderPipeline > myWriteBufferShader;
   Fancy::SharedPtr< Fancy::ShaderPipeline > myCopyBufferShader;

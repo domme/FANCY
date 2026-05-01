@@ -27,7 +27,7 @@ class TestApplication : public Fancy::Application {
 public:
   TestApplication( HINSTANCE anInstanceHandle, const char ** someArguments, uint aNumArguments, const char * aName,
                    const Fancy::RenderPlatformProperties & someRenderProperties,
-                   const Fancy::WindowParameters & someWindowParams );
+                   const Fancy::WindowParameters &         someWindowParams );
 
   ~TestApplication() override;
   void OnWindowResized( uint aWidth, uint aHeight ) override;
@@ -59,16 +59,16 @@ private:
   bool test_hazardTracking = false;
   bool test_raytracing = false;
 
-  Fancy::UniquePtr< Test_Profiler > myProfilerTest;
-  Fancy::UniquePtr< Test_ImGui > myImGuiTest;
-  Fancy::UniquePtr< Test_GpuMemoryAllocator > myGpuMemoryAllocatorTest;
-  Fancy::UniquePtr< Test_Synchronization > mySynchronizationTest;
-  Fancy::UniquePtr< Test_AsyncCompute > myAsyncComputeTest;
-  Fancy::UniquePtr< Test_Mipmapping > myMipmappingTest;
-  Fancy::UniquePtr< Test_ModelViewer > myModelViewerTest;
+  Fancy::UniquePtr< Test_Profiler >                 myProfilerTest;
+  Fancy::UniquePtr< Test_ImGui >                    myImGuiTest;
+  Fancy::UniquePtr< Test_GpuMemoryAllocator >       myGpuMemoryAllocatorTest;
+  Fancy::UniquePtr< Test_Synchronization >          mySynchronizationTest;
+  Fancy::UniquePtr< Test_AsyncCompute >             myAsyncComputeTest;
+  Fancy::UniquePtr< Test_Mipmapping >               myMipmappingTest;
+  Fancy::UniquePtr< Test_ModelViewer >              myModelViewerTest;
   Fancy::UniquePtr< Test_SharedQueueResourceUsage > mySharedQueueResourceUsageTest;
-  Fancy::UniquePtr< Test_HazardTracking > myHazardTrackingTest;
-  Fancy::UniquePtr< Test_Raytracing > myRaytracingTest;
+  Fancy::UniquePtr< Test_HazardTracking >           myHazardTrackingTest;
+  Fancy::UniquePtr< Test_Raytracing >               myRaytracingTest;
 
   eastl::vector< Test * > myTests;
 

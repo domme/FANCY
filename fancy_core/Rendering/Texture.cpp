@@ -12,14 +12,14 @@ namespace Fancy {
         myIsSwapChainTexture( aIsSwapChainTexture ) {}
   //---------------------------------------------------------------------------//
   void Texture::InitTextureData( const TextureSubData * someInitialDatas, uint aNumInitialDatas ) {
-    const uint lastSubresourceIndex = aNumInitialDatas - 1u;
+    const uint                lastSubresourceIndex = aNumInitialDatas - 1u;
     const SubresourceLocation lastSubresourceLocation = GetSubresourceLocation( lastSubresourceIndex );
-    const SubresourceRange subresourceRange( 0, lastSubresourceLocation.myMipLevel + 1u, 0u,
-                                             lastSubresourceLocation.myArrayIndex + 1u, 0u,
-                                             lastSubresourceLocation.myPlaneIndex + 1u );
+    const SubresourceRange    subresourceRange( 0, lastSubresourceLocation.myMipLevel + 1u, 0u,
+                                                lastSubresourceLocation.myArrayIndex + 1u, 0u,
+                                                lastSubresourceLocation.myPlaneIndex + 1u );
 
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( myProperties.myFormat );
-    CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
+    CommandList *          ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
     ctx->UpdateTextureData( this, subresourceRange, someInitialDatas, aNumInitialDatas );
     RenderCore::ExecuteAndFreeCommandList( ctx, SyncMode::BLOCKING );
   }

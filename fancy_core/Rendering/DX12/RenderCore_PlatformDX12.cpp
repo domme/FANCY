@@ -870,17 +870,17 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
   }
 
   IDXGIAdapter1 * selectedAdapter = nullptr;
-  const char * adapterTypeStr = CommandLine::GetInstance()->GetStringValue( "GpuType" );
-  eastl::string adapterType = adapterTypeStr;
+  const char *    adapterTypeStr = CommandLine::GetInstance()->GetStringValue( "GpuType" );
+  eastl::string   adapterType = adapterTypeStr;
   adapterType.make_lower();
 
   {
     Microsoft::WRL::ComPtr< IDXGIFactory4 > dxgiFactory;
     ASSERT_HRESULT( CreateDXGIFactory1( IID_PPV_ARGS( &dxgiFactory ) ) );
 
-    uint i = 0;
+    uint            i = 0;
     IDXGIAdapter1 * adapter;
-    eastl::string defaultAdapterName;
+    eastl::string   defaultAdapterName;
     while ( dxgiFactory->EnumAdapters1( i, &adapter ) != DXGI_ERROR_NOT_FOUND ) {
       DXGI_ADAPTER_DESC1 desc;
       adapter->GetDesc1( &desc );
@@ -910,7 +910,7 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
 
   // Needs to be sorted from highest to lowest.
   D3D_FEATURE_LEVEL supportedFeatureLevels[] = { D3D_FEATURE_LEVEL_12_2, D3D_FEATURE_LEVEL_12_1 };
-  const char * featureLevelStr[] = { "12_2", "12_1" };
+  const char *      featureLevelStr[] = { "12_2", "12_1" };
 
   for ( uint i = 0; i < ARRAY_LENGTH( supportedFeatureLevels ); ++i ) {
     HRESULT result = D3D12CreateDevice( selectedAdapter, supportedFeatureLevels[ i ], IID_PPV_ARGS( &ourDevice ) );
@@ -1135,7 +1135,7 @@ void RenderCore_PlatformDX12::InitNullDescriptors() {
     }
   }
 
-  DescriptorDX12 descriptor = AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV );
+  DescriptorDX12                  descriptor = AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV );
   D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
   cbvDesc.BufferLocation = 0ull;
   cbvDesc.SizeInBytes = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
@@ -1193,13 +1193,13 @@ void RenderCore_PlatformDX12::ReleaseCommandAllocator( ID3D12CommandAllocator * 
 }
 //---------------------------------------------------------------------------//
 DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE aHeapType,
-                                                            const char * aDebugName /* = nullptr*/ ) {
+                                                            const char *               aDebugName /* = nullptr*/ ) {
   return myStaticDescriptorAllocators[ ( uint ) aHeapType ]->AllocateDescriptor( aDebugName );
 }
 //---------------------------------------------------------------------------//
 DescriptorDX12
 RenderCore_PlatformDX12::AllocateShaderVisibleDescriptorForGlobalResource( GlobalResourceType aGlobalResourceType,
-                                                                           const char * aDebugName ) {
+                                                                           const char *       aDebugName ) {
   return myShaderVisibleDescriptorHeap->AllocateDescriptor( aGlobalResourceType, aDebugName );
 }
 //---------------------------------------------------------------------------//
@@ -1216,21 +1216,21 @@ CommandQueueDX12 * RenderCore_PlatformDX12::GetCommandQueueDX12( CommandListType
   return static_cast< CommandQueueDX12 * >( RenderCore::GetCommandQueue( aCommandListType ) );
 }
 //---------------------------------------------------------------------------//
-GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory( GpuMemoryType aType,
+GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory( GpuMemoryType       aType,
                                                                     CpuMemoryAccessType anAccessType, uint64 aSize,
-                                                                    uint anAlignment,
+                                                                    uint         anAlignment,
                                                                     const char * aDebugName /*= nullptr*/ ) {
   return myGpuMemoryAllocators[ ( uint ) aType ][ ( uint ) anAccessType ]->Allocate( aSize, anAlignment, aDebugName );
 }
 //---------------------------------------------------------------------------//
 void RenderCore_PlatformDX12::ReleaseGpuMemory( GpuMemoryAllocationDX12 & anAllocation ) {
-  GpuMemoryType type = Adapter::ResolveGpuMemoryType( anAllocation.myHeap->GetDesc().Flags );
+  GpuMemoryType       type = Adapter::ResolveGpuMemoryType( anAllocation.myHeap->GetDesc().Flags );
   CpuMemoryAccessType accessType =
       Adapter::ResolveGpuMemoryAccessType( anAllocation.myHeap->GetDesc().Properties.Type );
   myGpuMemoryAllocators[ ( uint ) type ][ ( uint ) accessType ]->Free( anAllocation );
 }
 //---------------------------------------------------------------------------//
-RenderOutput * RenderCore_PlatformDX12::CreateRenderOutput( void * aNativeInstanceHandle,
+RenderOutput * RenderCore_PlatformDX12::CreateRenderOutput( void *                   aNativeInstanceHandle,
                                                             const WindowParameters & someWindowParams ) {
   return new RenderOutputDX12( aNativeInstanceHandle, someWindowParams );
 }
@@ -1267,13 +1267,13 @@ CommandQueue * RenderCore_PlatformDX12::CreateCommandQueue( CommandListType aTyp
   return new CommandQueueDX12( aType );
 }
 //---------------------------------------------------------------------------//
-TextureView * RenderCore_PlatformDX12::CreateTextureView( Texture * aTexture,
+TextureView * RenderCore_PlatformDX12::CreateTextureView( Texture *                     aTexture,
                                                           const TextureViewProperties & someProperties,
-                                                          const char * aDebugName /* = nullptr */ ) {
+                                                          const char *                  aDebugName /* = nullptr */ ) {
   return new TextureViewDX12( aTexture, someProperties, aDebugName );
 }
 //---------------------------------------------------------------------------//
-GpuBufferView * RenderCore_PlatformDX12::CreateBufferView( GpuBuffer * aBuffer,
+GpuBufferView * RenderCore_PlatformDX12::CreateBufferView( GpuBuffer *                     aBuffer,
                                                            const GpuBufferViewProperties & someProperties,
                                                            const char * aDebugName /* = nullptr */ ) {
   return new GpuBufferViewDX12( aBuffer, someProperties, aDebugName );

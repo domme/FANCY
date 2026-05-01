@@ -41,12 +41,12 @@ namespace Fancy {
     GpuResourceViewDataDX12 myDX12Data;
 #endif
 
-    SubresourceRange mySubresourceRange;
-    GpuResource * myResource;
-    bool myCoversAllSubresources;
+    SubresourceRange    mySubresourceRange;
+    GpuResource *       myResource;
+    bool                myCoversAllSubresources;
     GpuResourceViewType myType;
-    uint myGlobalDescriptorIndex;
-    eastl::string myName;
+    uint                myGlobalDescriptorIndex;
+    eastl::string       myName;
 
   protected:
     virtual ~GpuResourceView() = default;

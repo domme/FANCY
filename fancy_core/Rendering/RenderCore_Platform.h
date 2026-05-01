@@ -58,20 +58,20 @@ namespace Fancy {
     const RenderPlatformCaps & GetCaps() const {
       return myCaps;
     }
-    virtual RenderOutput * CreateRenderOutput( void * aNativeInstanceHandle,
-                                               const WindowParameters & someWindowParams ) = 0;
+    virtual RenderOutput *   CreateRenderOutput( void *                   aNativeInstanceHandle,
+                                                 const WindowParameters & someWindowParams ) = 0;
     virtual ShaderCompiler * CreateShaderCompiler() = 0;
-    virtual Shader * CreateShader() = 0;
+    virtual Shader *         CreateShader() = 0;
     virtual ShaderPipeline * CreateShaderPipeline() = 0;
-    virtual Texture * CreateTexture() = 0;
-    virtual GpuBuffer * CreateBuffer() = 0;
+    virtual Texture *        CreateTexture() = 0;
+    virtual GpuBuffer *      CreateBuffer() = 0;
     virtual TextureSampler * CreateTextureSampler( const TextureSamplerProperties & someProperties ) = 0;
-    virtual CommandList * CreateCommandList( CommandListType aType ) = 0;
-    virtual CommandQueue * CreateCommandQueue( CommandListType aType ) = 0;
-    virtual TextureView * CreateTextureView( Texture * aTexture, const TextureViewProperties & someProperties,
-                                             const char * aDebugName = nullptr ) = 0;
-    virtual GpuBufferView * CreateBufferView( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
-                                              const char * aDebugName = nullptr ) = 0;
+    virtual CommandList *    CreateCommandList( CommandListType aType ) = 0;
+    virtual CommandQueue *   CreateCommandQueue( CommandListType aType ) = 0;
+    virtual TextureView *    CreateTextureView( Texture * aTexture, const TextureViewProperties & someProperties,
+                                                const char * aDebugName = nullptr ) = 0;
+    virtual GpuBufferView *  CreateBufferView( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
+                                               const char * aDebugName = nullptr ) = 0;
     virtual RtAccelerationStructure *
     CreateRtBottomLevelAccelerationStructure( const RtAccelerationStructureGeometryData * someGeometries,
                                               uint aNumGeometries, uint aSomeFlags = 0,
@@ -79,15 +79,15 @@ namespace Fancy {
     virtual RtAccelerationStructure *
     CreateRtTopLevelAccelerationStructure( const RtAccelerationStructureInstanceData * someInstances,
                                            uint aNumInstances, uint someFlags = 0, const char * aName = nullptr ) = 0;
-    virtual GpuQueryHeap * CreateQueryHeap( GpuQueryType aType, uint aNumQueries ) = 0;
-    virtual uint GetQueryTypeDataSize( GpuQueryType aType ) = 0;
-    virtual float64 GetGpuTicksToMsFactor( CommandListType aCommandListType ) = 0;
+    virtual GpuQueryHeap *    CreateQueryHeap( GpuQueryType aType, uint aNumQueries ) = 0;
+    virtual uint              GetQueryTypeDataSize( GpuQueryType aType ) = 0;
+    virtual float64           GetGpuTicksToMsFactor( CommandListType aCommandListType ) = 0;
     virtual RtPipelineState * CreateRtPipelineState( const RtPipelineStateProperties & someProps ) = 0;
 
   protected:
-    RenderPlatformCaps myCaps;
+    RenderPlatformCaps       myCaps;
     RenderPlatformProperties myProperties;
-    RenderPlatformType myType;
+    RenderPlatformType       myType;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

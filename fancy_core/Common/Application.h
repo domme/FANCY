@@ -37,12 +37,12 @@ namespace Fancy {
     }
 
   protected:
-    HINSTANCE myAppInstanceHandle;
-    eastl::string myName;
-    CameraController myCameraController;
-    SharedPtr< Time > myRealTimeClock;
-    InputState myInputState;
-    Camera myCamera;
+    HINSTANCE          myAppInstanceHandle;
+    eastl::string      myName;
+    CameraController   myCameraController;
+    SharedPtr< Time >  myRealTimeClock;
+    InputState         myInputState;
+    Camera             myCamera;
     RenderOutputHandle myRenderOutput;
   };
 

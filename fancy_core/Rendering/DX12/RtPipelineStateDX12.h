@@ -12,16 +12,16 @@ namespace Fancy {
 
     bool Recompile() override;
 
-    Microsoft::WRL::ComPtr< ID3D12StateObject > myStateObject;
+    Microsoft::WRL::ComPtr< ID3D12StateObject >           myStateObject;
     Microsoft::WRL::ComPtr< ID3D12StateObjectProperties > myRtPsoProperties;
 
   protected:
-    void GetShaderIdentifierDataInternal( uint aShaderIndexInRtPso,
+    void GetShaderIdentifierDataInternal( uint                                        aShaderIndexInRtPso,
                                           const RtPipelineStateProperties::HitGroup & aShaderEntry,
-                                          RtShaderIdentifier & someDataOut ) override;
-    void GetShaderIdentifierDataInternal( uint aShaderIndexInRtPso,
+                                          RtShaderIdentifier &                        someDataOut ) override;
+    void GetShaderIdentifierDataInternal( uint                                           aShaderIndexInRtPso,
                                           const RtPipelineStateProperties::ShaderEntry & aShaderEntry,
-                                          RtShaderIdentifier & someDataOut ) override;
+                                          RtShaderIdentifier &                           someDataOut ) override;
   };
 }  // namespace Fancy
 

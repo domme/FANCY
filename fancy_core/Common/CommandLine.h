@@ -15,7 +15,7 @@ namespace Fancy {
     bool HasFloatValue( const char * anArgument ) const;
 
     const char * GetStringValue( const char * anArgument ) const;
-    float GetFloatValue( const char * anArgument ) const;
+    float        GetFloatValue( const char * anArgument ) const;
 
   private:
     enum {
@@ -28,13 +28,13 @@ namespace Fancy {
     struct Argument {
       StaticString< kMaxArgSize > myName;
       StaticString< kMaxValSize > myString;
-      ArgumentType myType = ARGTYPE_NO_VALUE;
-      float myNumber = 0.0f;
+      ArgumentType                myType = ARGTYPE_NO_VALUE;
+      float                       myNumber = 0.0f;
     };
 
     CommandLine( const char ** someArguments, uint aNumArguments );
     const Argument * FindArgument( const char * aArgument ) const;
-    void ParseValue( const char * aValue, Argument & anArgument );
+    void             ParseValue( const char * aValue, Argument & anArgument );
 
     static CommandLine * ourInstance;
 

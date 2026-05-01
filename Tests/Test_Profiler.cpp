@@ -26,7 +26,7 @@ void MediumFunc() {
   PROFILE_FUNCTION();
 
   uint64 hash = 0u;
-  int i = 0;
+  int    i = 0;
   while ( i < 999 )
     MathUtil::hash_combine( hash, i++ );
 
@@ -37,7 +37,7 @@ void LongFunc() {
   PROFILE_FUNCTION_TAG( ANNTAG_PROFILER_TEST );
 
   uint64 hash = 0u;
-  int i = 0;
+  int    i = 0;
   while ( i < 9999 )
     MathUtil::hash_combine( hash, i++ );
 

@@ -63,8 +63,8 @@ void Test_Synchronization::OnUpdate( bool aDrawProperties ) {
     } break;
     case Stage::COPY_DONE: {
       uint * bufferData = ( uint * ) myReadbackBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
-      bool hasExpectedData = true;
-      uint bufferValue = 0;
+      bool   hasExpectedData = true;
+      uint   bufferValue = 0;
       for ( uint i = 0; hasExpectedData && i < kNumBufferElements; ++i ) {
         bufferValue = bufferData[ i ];
         hasExpectedData &= bufferData[ i ] == myExpectedBufferValue;

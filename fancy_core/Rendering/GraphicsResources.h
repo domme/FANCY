@@ -15,9 +15,9 @@ namespace Fancy {
     GpuBufferProperties myBufferProperties;
 
     DataFormat myFormat;
-    uint myStructureSize;
-    bool myIsStructured;
-    bool myIsRaw;
+    uint       myStructureSize;
+    bool       myIsStructured;
+    bool       myIsRaw;
 
     bool myIsShaderResource;
     bool myIsShaderWritable;
@@ -26,7 +26,7 @@ namespace Fancy {
   struct GpuBufferResource {
     void Update( const GpuBufferResourceProperties & someProps, const char * aName = nullptr );
 
-    GpuBufferHandle myBuffer;
+    GpuBufferHandle     myBuffer;
     GpuBufferViewHandle myReadView;
     GpuBufferViewHandle myWriteView;
   };
@@ -37,15 +37,15 @@ namespace Fancy {
     TextureResourceProperties() : myIsTexture( true ), myIsShaderWritable( false ), myIsRenderTarget( false ) {}
 
     TextureProperties myTextureProperties;
-    bool myIsTexture;
-    bool myIsShaderWritable;
-    bool myIsRenderTarget;
+    bool              myIsTexture;
+    bool              myIsShaderWritable;
+    bool              myIsRenderTarget;
   };
   //---------------------------------------------------------------------------//
   struct TextureResource {
     void Update( const TextureResourceProperties & someProps, const char * aName = nullptr );
 
-    TextureHandle myTexture;
+    TextureHandle     myTexture;
     TextureViewHandle myReadView;
     TextureViewHandle myWriteView;
     TextureViewHandle myRenderTargetView;

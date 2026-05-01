@@ -57,7 +57,7 @@ uint RtShaderBindingTable::AddShaderRecord( const RtShaderIdentifier & aShaderId
   ASSERT( aShaderIdentifier.myData.size() == myAlignedShaderRecordSizeBytes );
 
   const uint recordIdx = myRecordTypeOffset[ type ] + myNumUsedRecords[ type ];
-  uint8 * dst = myMappedSbtData + recordIdx * myAlignedShaderRecordSizeBytes;
+  uint8 *    dst = myMappedSbtData + recordIdx * myAlignedShaderRecordSizeBytes;
   memcpy( dst, aShaderIdentifier.myData.data(), aShaderIdentifier.myData.size() );
   ++myNumUsedRecords[ type ];
 

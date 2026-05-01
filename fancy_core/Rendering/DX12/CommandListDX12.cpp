@@ -180,7 +180,7 @@ namespace Fancy {
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT * destLayouts = static_cast< D3D12_PLACED_SUBRESOURCE_FOOTPRINT * >(
         alloca( sizeof( D3D12_PLACED_SUBRESOURCE_FOOTPRINT ) * aNumSubresources ) );
     uint64 * destRowSizesByte = static_cast< uint64 * >( alloca( sizeof( uint64 ) * aNumSubresources ) );
-    uint * destRowNums = static_cast< uint * >( alloca( sizeof( uint ) * aNumSubresources ) );
+    uint *   destRowNums = static_cast< uint * >( alloca( sizeof( uint ) * aNumSubresources ) );
 
     uint64 destTotalSizeBytes = 0u;
     RenderCore::GetPlatformDX12()->GetDevice()->GetCopyableFootprints( &destDesc, aFirstSubresourceIndex,
@@ -197,18 +197,18 @@ namespace Fancy {
 
     for ( uint i = 0u; i < aNumSubresources; ++i ) {
       uint8 * dstSubResourceData = tempBufferDataPtr + destLayouts[ i ].Offset;
-      uint64 dstSubResourceRowSize = destLayouts[ i ].Footprint.RowPitch;
-      uint64 dstSubResourceSliceSize = dstSubResourceRowSize * destRowNums[ i ];
+      uint64  dstSubResourceRowSize = destLayouts[ i ].Footprint.RowPitch;
+      uint64  dstSubResourceSliceSize = dstSubResourceRowSize * destRowNums[ i ];
 
       uint8 * srcSubResourceData = ( uint8 * ) someSubresourceDatas[ i ].pData;
-      uint64 srcSubResourceRowSize = someSubresourceDatas[ i ].RowPitch;
-      uint64 srcSubResourceSliceSize = someSubresourceDatas[ i ].SlicePitch;
+      uint64  srcSubResourceRowSize = someSubresourceDatas[ i ].RowPitch;
+      uint64  srcSubResourceSliceSize = someSubresourceDatas[ i ].SlicePitch;
 
       for ( uint iSlice = 0u; iSlice < destLayouts[ i ].Footprint.Depth; ++iSlice ) {
-        uint8 * destSliceDataPtr = dstSubResourceData + dstSubResourceSliceSize * iSlice;
+        uint8 *       destSliceDataPtr = dstSubResourceData + dstSubResourceSliceSize * iSlice;
         const uint8 * srcSliceDataPtr = srcSubResourceData + srcSubResourceSliceSize * iSlice;
         for ( uint iRow = 0u; iRow < destRowNums[ i ]; ++iRow ) {
-          uint8 * destDataPtr = destSliceDataPtr + dstSubResourceRowSize * iRow;
+          uint8 *       destDataPtr = destSliceDataPtr + dstSubResourceRowSize * iRow;
           const uint8 * srcDataPtr = srcSliceDataPtr + srcSubResourceRowSize * iRow;
 
           memcpy( destDataPtr, srcDataPtr, destRowSizesByte[ i ] );
@@ -254,7 +254,7 @@ namespace Fancy {
     const GpuResourceViewDataDX12 & viewDataDx12 = aTextureView->myDX12Data;
     ASSERT( aTextureView->myType == GpuResourceViewType::DSV );
 
-    const DataFormat format = aTextureView->GetTexture()->GetProperties().myFormat;
+    const DataFormat       format = aTextureView->GetTexture()->GetProperties().myFormat;
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( format );
     ASSERT( formatInfo.myIsDepthStencil );
 
@@ -341,9 +341,9 @@ namespace Fancy {
     srcLocation.SubresourceIndex = textureSubresourceIndex;
     srcLocation.pResource = textureResourceDX12;
 
-    const DataFormat format = aSrcTexture->GetProperties().myFormat;
+    const DataFormat       format = aSrcTexture->GetProperties().myFormat;
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( format );
-    const DXGI_FORMAT formatDx12 = RenderCore_PlatformDX12::ResolveFormat( format );
+    const DXGI_FORMAT      formatDx12 = RenderCore_PlatformDX12::ResolveFormat( format );
 
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
     footprint.Offset = 0;
@@ -436,12 +436,12 @@ namespace Fancy {
     dstLocation.SubresourceIndex = destSubResourceIndex;
     dstLocation.pResource = dstResource;
 
-    const DataFormat format = aDstTexture->GetProperties().myFormat;
+    const DataFormat       format = aDstTexture->GetProperties().myFormat;
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( format );
-    const DXGI_FORMAT formatDx12 = RenderCore_PlatformDX12::ResolveFormat( format );
+    const DXGI_FORMAT      formatDx12 = RenderCore_PlatformDX12::ResolveFormat( format );
 
     uint64 rowPitch;
-    uint heightBlocksOrPixel;
+    uint   heightBlocksOrPixel;
     TextureData::ComputeRowPitchSizeAndBlockHeight( format, aDstRegion.mySize.x, aDstRegion.mySize.y, rowPitch,
                                                     heightBlocksOrPixel, aDstSubresource.myPlaneIndex );
 
@@ -473,12 +473,12 @@ namespace Fancy {
 
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT * footprints = ( D3D12_PLACED_SUBRESOURCE_FOOTPRINT * ) alloca(
         sizeof( D3D12_PLACED_SUBRESOURCE_FOOTPRINT ) * numSubresources );
-    uint * rowNums = ( uint * ) alloca( sizeof( uint ) * numSubresources );
+    uint *   rowNums = ( uint * ) alloca( sizeof( uint ) * numSubresources );
     uint64 * rowSizes = ( uint64 * ) alloca( sizeof( uint64 ) * numSubresources );
-    uint64 totalSize = static_cast< const TextureDX12 * >( aDstTexture )
-                           ->GetCopyableFootprints( aSubresourceRange, footprints, rowNums, rowSizes );
+    uint64   totalSize = static_cast< const TextureDX12 * >( aDstTexture )
+                             ->GetCopyableFootprints( aSubresourceRange, footprints, rowNums, rowSizes );
 
-    uint64 uploadBufferOffset;
+    uint64            uploadBufferOffset;
     const GpuBuffer * uploadBuffer =
         GetBuffer( uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize );
     ASSERT( uploadBuffer != nullptr );
@@ -488,21 +488,21 @@ namespace Fancy {
 
     for ( uint i = 0; i < aNumDatas; ++i ) {
       const D3D12_PLACED_SUBRESOURCE_FOOTPRINT & footprint = footprints[ i ];
-      uint numRows = rowNums[ i ];
+      uint                                       numRows = rowNums[ i ];
 
       const TextureSubData & srcData = someDatas[ i ];
       ASSERT( rowSizes[ i ] == srcData.myRowSizeBytes );
 
       const uint64 alignedSliceSize = footprint.Footprint.RowPitch * numRows;
 
-      uint8 * dstSubresourceData = uploadBufferData + footprint.Offset;
+      uint8 *       dstSubresourceData = uploadBufferData + footprint.Offset;
       const uint8 * srcSubresourceData = srcData.myData;
       for ( uint iSlice = 0; iSlice < footprint.Footprint.Depth; ++iSlice ) {
-        uint8 * dstSliceData = dstSubresourceData + iSlice * alignedSliceSize;
+        uint8 *       dstSliceData = dstSubresourceData + iSlice * alignedSliceSize;
         const uint8 * srcSliceData = srcSubresourceData + iSlice * srcData.mySliceSizeBytes;
 
         for ( uint iRow = 0; iRow < numRows; ++iRow ) {
-          uint8 * dstRowData = dstSliceData + iRow * footprint.Footprint.RowPitch;
+          uint8 *       dstRowData = dstSliceData + iRow * footprint.Footprint.RowPitch;
           const uint8 * srcRowData = srcSliceData + iRow * srcData.myRowSizeBytes;
 
           memcpy( dstRowData, srcRowData, srcData.myRowSizeBytes );
@@ -552,8 +552,8 @@ namespace Fancy {
   void CommandListDX12::BindLocalBuffer( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someViewProperties,
                                          uint aRegisterIndex ) {
     const RootSignatureDX12 * rootSignature = RenderCore::GetPlatformDX12()->GetRootSignature();
-    const GpuBufferDX12 * bufferDx12 = static_cast< const GpuBufferDX12 * >( aBuffer );
-    const uint64 bufferViewGpuAddress = bufferDx12->GetDeviceAddress() + someViewProperties.myOffset;
+    const GpuBufferDX12 *     bufferDx12 = static_cast< const GpuBufferDX12 * >( aBuffer );
+    const uint64              bufferViewGpuAddress = bufferDx12->GetDeviceAddress() + someViewProperties.myOffset;
 
     if ( someViewProperties.myIsShaderWritable ) {
       ASSERT( aRegisterIndex < rootSignature->myNumLocalRWBuffers );
@@ -594,7 +594,7 @@ namespace Fancy {
     GpuQueryHeap * heap = RenderCore::GetQueryHeap( aType );
 
     const GpuQueryHeapDX12 * queryHeapDx12 = static_cast< const GpuQueryHeapDX12 * >( heap );
-    const D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType( aType );
+    const D3D12_QUERY_TYPE   queryTypeDx12 = Adapter::ResolveQueryType( aType );
 
     myCommandList->BeginQuery( queryHeapDx12->myHeap.Get(), queryTypeDx12, query.myIndexInHeap );
     return query;
@@ -608,10 +608,10 @@ namespace Fancy {
     aQuery.myIsOpen = false;
 
     const GpuQueryType queryType = aQuery.myType;
-    GpuQueryHeap * heap = RenderCore::GetQueryHeap( queryType );
+    GpuQueryHeap *     heap = RenderCore::GetQueryHeap( queryType );
 
     const GpuQueryHeapDX12 * queryHeapDx12 = static_cast< const GpuQueryHeapDX12 * >( heap );
-    const D3D12_QUERY_TYPE queryTypeDx12 = Adapter::ResolveQueryType( queryType );
+    const D3D12_QUERY_TYPE   queryTypeDx12 = Adapter::ResolveQueryType( queryType );
 
     myCommandList->EndQuery( queryHeapDx12->myHeap.Get(), queryTypeDx12, aQuery.myIndexInHeap );
   }
@@ -620,7 +620,7 @@ namespace Fancy {
     const GpuQuery query = AllocateQuery( GpuQueryType::TIMESTAMP );
     query.myIsOpen = false;
 
-    GpuQueryHeap * heap = RenderCore::GetQueryHeap( GpuQueryType::TIMESTAMP );
+    GpuQueryHeap *           heap = RenderCore::GetQueryHeap( GpuQueryType::TIMESTAMP );
     const GpuQueryHeapDX12 * queryHeapDx12 = static_cast< const GpuQueryHeapDX12 * >( heap );
 
     myCommandList->EndQuery( queryHeapDx12->myHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, query.myIndexInHeap );
@@ -630,7 +630,7 @@ namespace Fancy {
   void CommandListDX12::CopyQueryDataToBuffer( const GpuQueryHeap * aQueryHeap, const GpuBuffer * aBuffer,
                                                uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset ) {
     const GpuQueryHeapDX12 * queryHeapDx12 = static_cast< const GpuQueryHeapDX12 * >( aQueryHeap );
-    const GpuBufferDX12 * bufferDx12 = static_cast< const GpuBufferDX12 * >( aBuffer );
+    const GpuBufferDX12 *    bufferDx12 = static_cast< const GpuBufferDX12 * >( aBuffer );
 
     TrackResourceTransition( aBuffer, D3D12_RESOURCE_STATE_COPY_DEST );
     FlushBarriers();
@@ -653,7 +653,7 @@ namespace Fancy {
   void CommandListDX12::TransitionResource( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
                                             ResourceTransition aTransition, uint /* someUsageFlags = 0u*/ ) {
     D3D12_RESOURCE_STATES newStates = ( D3D12_RESOURCE_STATES ) 0;
-    bool toSharedRead = false;
+    bool                  toSharedRead = false;
 
     const GpuResourceHazardDataDX12 & hazardData = aResource->GetDX12Data()->myHazardData;
 
@@ -669,9 +669,9 @@ namespace Fancy {
     TrackSubresourceTransition( aResource, aSubresourceRange, newStates, toSharedRead );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::PrepareResourceShaderAccess( const GpuResource * aResource,
+  void CommandListDX12::PrepareResourceShaderAccess( const GpuResource *      aResource,
                                                      const SubresourceRange & aSubresourceRange,
-                                                     ShaderResourceAccess aTransition ) {
+                                                     ShaderResourceAccess     aTransition ) {
     switch ( aTransition ) {
       case SHADER_RESOURCE_ACCESS_SRV:
         TrackSubresourceTransition( aResource, aSubresourceRange,
@@ -703,7 +703,7 @@ namespace Fancy {
           ( D3D12_RESOURCE_BARRIER * ) alloca( sizeof( D3D12_RESOURCE_BARRIER ) * aNumResources );
       for ( uint iRes = 0u; iRes < aNumResources; ++iRes ) {
         const GpuResource * resource = someResources[ iRes ];
-        ID3D12Resource * resourceDx12 = resource->GetDX12Data()->myResource.Get();
+        ID3D12Resource *    resourceDx12 = resource->GetDX12Data()->myResource.Get();
 
         D3D12_RESOURCE_BARRIER & barrier = barriers[ iRes ];
         barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -741,7 +741,7 @@ namespace Fancy {
       TrackResourceTransition( buffer, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
 
       const GpuResourceDataDX12 * resourceDataDx12 = buffer->GetDX12Data();
-      const uint64 resourceStartAddress = resourceDataDx12->myResource->GetGPUVirtualAddress();
+      const uint64                resourceStartAddress = resourceDataDx12->myResource->GetGPUVirtualAddress();
 
       D3D12_VERTEX_BUFFER_VIEW & vertexBufferView = vertexBufferViews.push_back();
       vertexBufferView.BufferLocation = resourceStartAddress + someOffsets[ i ];
@@ -838,7 +838,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void CommandListDX12::ApplyRenderTargets() {
-    const uint numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
+    const uint                  numRtsToSet = myGraphicsPipelineState.myNumRenderTargets;
     D3D12_CPU_DESCRIPTOR_HANDLE rtDescriptors[ RenderConstants::kMaxNumRenderTargets ];
 
     for ( uint i = 0u; i < numRtsToSet; ++i ) {
@@ -945,10 +945,10 @@ namespace Fancy {
     TrackSubresourceTransition( aResource, aResource->GetSubresources(), aNewState, aIsSharedReadState );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::TrackSubresourceTransition( const GpuResource * aResource,
+  void CommandListDX12::TrackSubresourceTransition( const GpuResource *      aResource,
                                                     const SubresourceRange & aSubresourceRange,
-                                                    D3D12_RESOURCE_STATES aNewState,
-                                                    bool aToSharedReadState /* = false */ ) {
+                                                    D3D12_RESOURCE_STATES    aNewState,
+                                                    bool                     aToSharedReadState /* = false */ ) {
     if ( aResource == nullptr )
       return;
 
@@ -960,7 +960,7 @@ namespace Fancy {
 
     D3D12_RESOURCE_STATES dstStates = ResolveValidateDstStates( aResource, aNewState );
 
-    uint numPossibleSubresourceTransitions = 0u;
+    uint                            numPossibleSubresourceTransitions = 0u;
     eastl::fixed_vector< bool, 64 > subresourceTransitionPossible( aSubresourceRange.GetNumSubresources(), false );
 
     uint i = 0u;
@@ -1045,7 +1045,7 @@ namespace Fancy {
 
     i = 0u;
     for ( SubresourceIterator it = aSubresourceRange.Begin(); it != aSubresourceRange.End(); ++it, ++i ) {
-      const uint subresourceIndex = aResource->GetSubresourceIndex( *it );
+      const uint              subresourceIndex = aResource->GetSubresourceIndex( *it );
       SubresourceHazardData & subData = localData->mySubresources[ subresourceIndex ];
       if ( aToSharedReadState ) {
         subData.myWasWritten = false;
@@ -1080,7 +1080,7 @@ namespace Fancy {
     myPendingBarriers.push_back( aBarrier );
   }
   //---------------------------------------------------------------------------//
-  D3D12_RESOURCE_STATES CommandListDX12::ResolveValidateDstStates( const GpuResource * aResource,
+  D3D12_RESOURCE_STATES CommandListDX12::ResolveValidateDstStates( const GpuResource *   aResource,
                                                                    D3D12_RESOURCE_STATES aDstStates ) {
     bool wasEmpty = aDstStates == ( D3D12_RESOURCE_STATES ) 0;
 
@@ -1106,7 +1106,7 @@ namespace Fancy {
         ( D3D12_RESOURCE_STATES ) globalData.mySubresources[ aSubresourceIndex ].myStates;
     CommandListType currGlobalContext = globalData.mySubresources[ aSubresourceIndex ].myContext;
 
-    auto it = myLocalHazardData.find( aResource );
+    auto       it = myLocalHazardData.find( aResource );
     const bool hasLocalData = it != myLocalHazardData.end();
     if ( hasLocalData )
       currStates = it->second.mySubresources[ aSubresourceIndex ].myStates;
@@ -1116,7 +1116,7 @@ namespace Fancy {
       currStateHasAllDstStates = currStates == D3D12_RESOURCE_STATE_COMMON;
 
     const bool dstIsRead = ( aDstStates & DX12_READ_STATES ) == aDstStates;
-    bool isInSharedReadState = dstIsRead && currGlobalContext == CommandListType::SHARED_READ;
+    bool       isInSharedReadState = dstIsRead && currGlobalContext == CommandListType::SHARED_READ;
     if ( hasLocalData && it->second.mySubresources[ aSubresourceIndex ].myWasWritten ) {
       // The subresource left the shared read state in this command list
       isInSharedReadState = false;
@@ -1182,7 +1182,7 @@ namespace Fancy {
     ASSERT( shader != nullptr );
 
     const glm::int3 & numGroupThreads = shader->GetProperties().myNumGroupThreads;
-    const glm::int3 numGroups = glm::max( glm::int3( 1 ), aNumThreads / numGroupThreads );
+    const glm::int3   numGroups = glm::max( glm::int3( 1 ), aNumThreads / numGroupThreads );
     myCommandList->Dispatch( static_cast< uint >( numGroups.x ), static_cast< uint >( numGroups.y ),
                              static_cast< uint >( numGroups.z ) );
   }

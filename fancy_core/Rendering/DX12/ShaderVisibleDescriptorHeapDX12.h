@@ -28,7 +28,7 @@ namespace Fancy {
     }
 
     DescriptorDX12 AllocateDescriptor( GlobalResourceType aType, const char * aDebugName = nullptr );
-    void FreeDescriptorAfterFrameDone( const DescriptorDX12 & aDescriptor );
+    void           FreeDescriptorAfterFrameDone( const DescriptorDX12 & aDescriptor );
 
     D3D12_GPU_DESCRIPTOR_HANDLE GetResourceHeapStart() const {
       return myResourceHeap->GetGPUDescriptorHandleForHeapStart();
@@ -38,7 +38,7 @@ namespace Fancy {
     }
 
   private:
-    void ProcessGlobalDescriptorFrees();
+    void                       ProcessGlobalDescriptorFrees();
     D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType( GlobalResourceType aResourceType ) const {
       return aResourceType == GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER
                                                       : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -62,10 +62,10 @@ namespace Fancy {
 
     struct DescriptorToFree {
       GlobalResourceType myType;
-      uint myIndex;
+      uint               myIndex;
     };
 
-    static constexpr uint ourNumGlobalFreeLists = RenderCore::Constants::NUM_QUEUED_FRAMES + 1;
+    static constexpr uint                        ourNumGlobalFreeLists = RenderCore::Constants::NUM_QUEUED_FRAMES + 1;
     eastl::fixed_vector< DescriptorToFree, 256 > myDescriptorsToFree[ ourNumGlobalFreeLists ];
   };
   //---------------------------------------------------------------------------//

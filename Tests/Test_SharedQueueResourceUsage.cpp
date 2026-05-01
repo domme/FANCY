@@ -13,9 +13,9 @@ using namespace Fancy;
 static uint kNumBufferElements = 1024;
 
 Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage( Fancy::AssetManager * anAssetManager,
-                                                              Fancy::Window * aWindow,
+                                                              Fancy::Window *       aWindow,
                                                               Fancy::RenderOutput * aRenderOutput,
-                                                              Fancy::InputState * anInputState )
+                                                              Fancy::InputState *   anInputState )
     : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "Shared Queue Resources" ) {
   GpuBufferProperties props;
   props.myElementSizeBytes = sizeof( uint );
@@ -38,7 +38,7 @@ Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage( Fancy::AssetManage
   myBufferRead = RenderCore::CreateBufferView( myBuffer, viewProps, "Shared Queue Test Buffer SRV" );
 
   ShaderPipelineDesc pipelineDesc;
-  ShaderDesc & shaderDesc = pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
+  ShaderDesc &       shaderDesc = pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
   shaderDesc.myShaderStage = ( uint ) ShaderStage::SHADERSTAGE_COMPUTE;
   shaderDesc.myPath = "fancy/resources/shaders/Tests/ModifyBuffer.hlsl";
   shaderDesc.myMainFunction = "main_increment";

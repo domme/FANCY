@@ -88,7 +88,7 @@ namespace Fancy {
     D3D12_RESOURCE_STATES initialStates = someProperties.myIsShaderWritable
                                               ? D3D12_RESOURCE_STATE_UNORDERED_ACCESS
                                               : ( D3D12_RESOURCE_STATE_GENERIC_READ & readStateMask ) & writeStateMask;
-    bool canChangeStates = true;
+    bool                  canChangeStates = true;
     if ( someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE )  // Upload heap
     {
       canChangeStates = false;
@@ -118,7 +118,7 @@ namespace Fancy {
     mySubresources = SubresourceRange( 0u, 1u, 0u, 1u, 0u, 1u );
 
     RenderCore_PlatformDX12 * dx12Platform = RenderCore::GetPlatformDX12();
-    ID3D12Device * device = dx12Platform->GetDevice();
+    ID3D12Device *            device = dx12Platform->GetDevice();
 
     GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(
         GpuMemoryType::BUFFER, someProperties.myCpuAccess, pitch, myAlignment, myName.c_str() );
@@ -226,9 +226,9 @@ namespace Fancy {
     RenderCore::GetPlatformDX12()->FreeDescriptor( myDX12Data.myDescriptor );
   }
   //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateSRVdescriptor( const GpuBuffer * aBuffer,
+  bool GpuBufferViewDX12::CreateSRVdescriptor( const GpuBuffer *               aBuffer,
                                                const GpuBufferViewProperties & someProperties,
-                                               const DescriptorDX12 & aDescriptor ) {
+                                               const DescriptorDX12 &          aDescriptor ) {
     const GpuResourceDataDX12 * dataDx12 = aBuffer->GetDX12Data();
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -257,7 +257,7 @@ namespace Fancy {
     } else {
       ASSERT( someProperties.myFormat != DataFormat::UNKNOWN, "Typed buffer-SRV needs a proper format" );
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-      const DataFormat format = someProperties.myFormat;
+      const DataFormat       format = someProperties.myFormat;
       const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( format );
       srvDesc.Format = RenderCore_PlatformDX12::ResolveFormat( format );
       srvDesc.Buffer.FirstElement = someProperties.myOffset / BITS_TO_BYTES( formatInfo.myBitsPerPixel );
@@ -274,9 +274,9 @@ namespace Fancy {
     return true;
   }
   //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateUAVdescriptor( const GpuBuffer * aBuffer,
+  bool GpuBufferViewDX12::CreateUAVdescriptor( const GpuBuffer *               aBuffer,
                                                const GpuBufferViewProperties & someProperties,
-                                               const DescriptorDX12 & aDescriptor ) {
+                                               const DescriptorDX12 &          aDescriptor ) {
     const GpuResourceDataDX12 * dataDx12 = aBuffer->GetDX12Data();
 
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
@@ -298,7 +298,7 @@ namespace Fancy {
       uavDesc.Buffer.NumElements = static_cast< uint >( someProperties.mySize / someProperties.myStructureSize );
     } else {
       ASSERT( someProperties.myFormat != DataFormat::UNKNOWN, "Typed buffer-UAV needs a proper format" );
-      const DataFormat format = someProperties.myFormat;
+      const DataFormat       format = someProperties.myFormat;
       const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( format );
       uavDesc.Format = RenderCore_PlatformDX12::ResolveFormat( format );
       uavDesc.Buffer.FirstElement = someProperties.myOffset / BITS_TO_BYTES( formatInfo.myBitsPerPixel );
@@ -312,9 +312,9 @@ namespace Fancy {
     return true;
   }
   //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateCBVdescriptor( const GpuBuffer * aBuffer,
+  bool GpuBufferViewDX12::CreateCBVdescriptor( const GpuBuffer *               aBuffer,
                                                const GpuBufferViewProperties & someProperties,
-                                               const DescriptorDX12 & aDescriptor ) {
+                                               const DescriptorDX12 &          aDescriptor ) {
     const GpuResourceDataDX12 * dataDx12 = aBuffer->GetDX12Data();
 
     D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;

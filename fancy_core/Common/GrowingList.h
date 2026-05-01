@@ -63,7 +63,7 @@ namespace Fancy {
     ~GrowingList();
 
     Iterator Begin();
-    T & Back();
+    T &      Back();
     Iterator Last();
     Iterator Invalid();
     Iterator Add( T aData );
@@ -76,15 +76,15 @@ namespace Fancy {
     Iterator FindAtIndex( uint anIndex );
     Iterator ReverseFind( const T & aData );
     Iterator ReverseFind( std::function< bool( const T & ) > aPredicate );
-    bool IsEmpty() const;
-    uint Size() const {
+    bool     IsEmpty() const;
+    uint     Size() const {
       return mySize;
     }
     void DestroyAll();
 
   private:
     struct Element {
-      T myData;
+      T         myData;
       Element * myPrev = nullptr;
       Element * myNext = nullptr;
     };
@@ -94,21 +94,21 @@ namespace Fancy {
       ~Page();
 
       Element * myElements = nullptr;
-      uint myNextFreeElementIdx = 0u;
-      uint myNumUsedElements = 0u;
-      Page * myNext = nullptr;
+      uint      myNextFreeElementIdx = 0u;
+      uint      myNumUsedElements = 0u;
+      Page *    myNext = nullptr;
     };
 
     Element * AllocateElement();
-    Page * FindPage( Iterator aPos );
-    Iterator RemoveInternal( Iterator aPos, bool aReverse );
+    Page *    FindPage( Iterator aPos );
+    Iterator  RemoveInternal( Iterator aPos, bool aReverse );
 
-    Page * myHeadPage = nullptr;
-    Page * myTailPage = nullptr;
+    Page *    myHeadPage = nullptr;
+    Page *    myTailPage = nullptr;
     Element * myHeadElement = nullptr;
     Element * myTailElement = nullptr;
-    uint mySize = 0u;
-    uint myNumPages = 0u;
+    uint      mySize = 0u;
+    uint      myNumPages = 0u;
   };
   //---------------------------------------------------------------------------//
 
@@ -248,7 +248,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   template < class T, uint64 PageSize >
   typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::RemoveInternal( Iterator aPos,
-                                                                                            bool aReverse ) {
+                                                                                            bool     aReverse ) {
     ASSERT( aPos );
     Page * page = FindPage( aPos );
     ASSERT( page != nullptr );

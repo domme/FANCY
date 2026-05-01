@@ -19,9 +19,9 @@ namespace Fancy {
     enum Consts { DEFAULT_PAGESIZE = 64 };
 
     struct Page {
-      uint64 myStart;
-      uint64 myEnd;
-      uint myOpenAllocs;
+      uint64     myStart;
+      uint64     myEnd;
+      uint       myOpenAllocs;
       eastl::any myData;
     };
 
@@ -36,8 +36,8 @@ namespace Fancy {
     const Page * FindPage( eastl::function< bool( const Page & ) > aPredicateFn );
     const Page * Allocate( uint64 aSize, uint anAlignment, uint64 & anOffsetInPageOut,
                            const char * aDebugName = nullptr );
-    void Free( const Block & aBlock );
-    bool IsEmpty() const {
+    void         Free( const Block & aBlock );
+    bool         IsEmpty() const {
       return myPages.empty();
     }
     Page * GetPageAndOffset( uint64 aVirtualOffset, uint64 & anOffsetInPage );
@@ -53,7 +53,7 @@ namespace Fancy {
     }
     virtual void DestroyPageData( eastl::any & /*aPageData*/ ) {};
 
-    bool CreateAndAddPage( uint64 aSize );
+    bool        CreateAndAddPage( uint64 aSize );
     static bool IsBlockInPage( const Block & aBlock, const Page & aPage ) {
       return aBlock.myStart >= aPage.myStart && aBlock.myEnd <= aPage.myEnd;
     }
@@ -66,8 +66,8 @@ namespace Fancy {
 #if CORE_DEBUG_MEMORY_ALLOCATIONS
     struct AllocDebugInfo {
       eastl::string myName;
-      uint64 myStart;
-      uint64 myEnd;
+      uint64        myStart;
+      uint64        myEnd;
     };
     eastl::list< AllocDebugInfo > myAllocDebugInfos;
 #endif  // CORE_DEBUG_MEMORY_ALLOCATIONS

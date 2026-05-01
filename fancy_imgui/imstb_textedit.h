@@ -303,15 +303,15 @@ typedef struct {
   STB_TEXTEDIT_POSITIONTYPE where;
   STB_TEXTEDIT_POSITIONTYPE insert_length;
   STB_TEXTEDIT_POSITIONTYPE delete_length;
-  int char_storage;
+  int                       char_storage;
 } StbUndoRecord;
 
 typedef struct {
   // private data
-  StbUndoRecord undo_rec[ STB_TEXTEDIT_UNDOSTATECOUNT ];
+  StbUndoRecord         undo_rec[ STB_TEXTEDIT_UNDOSTATECOUNT ];
   STB_TEXTEDIT_CHARTYPE undo_char[ STB_TEXTEDIT_UNDOCHARCOUNT ];
-  short undo_point, redo_point;
-  int undo_char_point, redo_char_point;
+  short                 undo_point, redo_point;
+  int                   undo_char_point, redo_char_point;
 } StbUndoState;
 
 typedef struct {
@@ -347,8 +347,8 @@ typedef struct {
   unsigned char has_preferred_x;
   unsigned char single_line;
   unsigned char padding1, padding2, padding3;
-  float preferred_x;  // this determines where the cursor up/down tries to seek to along x
-  StbUndoState undostate;
+  float         preferred_x;  // this determines where the cursor up/down tries to seek to along x
+  StbUndoState  undostate;
 } STB_TexteditState;
 
 ////////////////////////////////////////////////////////////////////////
@@ -363,7 +363,7 @@ typedef struct {
   float x0, x1;            // starting x location, end x location (allows for align=right, etc)
   float baseline_y_delta;  // position of baseline relative to previous row's baseline
   float ymin, ymax;        // height of row above and below baseline
-  int num_chars;
+  int   num_chars;
 } StbTexteditRow;
 #endif  // INCLUDE_STB_TEXTEDIT_H
 
@@ -391,9 +391,9 @@ typedef struct {
 // traverse the layout to locate the nearest character to a display position
 static int stb_text_locate_coord( STB_TEXTEDIT_STRING * str, float x, float y ) {
   StbTexteditRow r;
-  int n = STB_TEXTEDIT_STRINGLEN( str );
-  float base_y = 0, prev_x;
-  int i = 0, k;
+  int            n = STB_TEXTEDIT_STRINGLEN( str );
+  float          base_y = 0, prev_x;
+  int            i = 0, k;
 
   r.x0 = r.x1 = 0;
   r.ymin = r.ymax = 0;
@@ -496,19 +496,19 @@ static void stb_text_makeundo_replace( STB_TEXTEDIT_STRING * str, STB_TexteditSt
                                        int new_length );
 
 typedef struct {
-  float x, y;              // position of n'th character
-  float height;            // height of line
-  int first_char, length;  // first char of row, and length
-  int prev_first;          // first char of previous row
+  float x, y;                // position of n'th character
+  float height;              // height of line
+  int   first_char, length;  // first char of row, and length
+  int   prev_first;          // first char of previous row
 } StbFindState;
 
 // find the x/y location of a character, and remember info about the previous row in
 // case we get a move-up event (for page up, we'll have to rescan)
 static void stb_textedit_find_charpos( StbFindState * find, STB_TEXTEDIT_STRING * str, int n, int single_line ) {
   StbTexteditRow r;
-  int prev_start = 0;
-  int z = STB_TEXTEDIT_STRINGLEN( str );
-  int i = 0, first;
+  int            prev_start = 0;
+  int            z = STB_TEXTEDIT_STRINGLEN( str );
+  int            i = 0, first;
 
   if ( n == z && single_line ) {
     // special case if it's at the end (may not be needed?)
@@ -829,11 +829,11 @@ retry:
     case STB_TEXTEDIT_K_DOWN | STB_TEXTEDIT_K_SHIFT:
     case STB_TEXTEDIT_K_PGDOWN:
     case STB_TEXTEDIT_K_PGDOWN | STB_TEXTEDIT_K_SHIFT: {
-      StbFindState find;
+      StbFindState   find;
       StbTexteditRow row;
-      int i, j, sel = ( key & STB_TEXTEDIT_K_SHIFT ) != 0;
-      int is_page = ( key & ~STB_TEXTEDIT_K_SHIFT ) == STB_TEXTEDIT_K_PGDOWN;
-      int row_count = is_page ? state->row_count_per_page : 1;
+      int            i, j, sel = ( key & STB_TEXTEDIT_K_SHIFT ) != 0;
+      int            is_page = ( key & ~STB_TEXTEDIT_K_SHIFT ) == STB_TEXTEDIT_K_PGDOWN;
+      int            row_count = is_page ? state->row_count_per_page : 1;
 
       if ( !is_page && state->single_line ) {
         // on windows, up&down in single-line behave like left&right
@@ -852,7 +852,7 @@ retry:
 
       for ( j = 0; j < row_count; ++j ) {
         float x, goal_x = state->has_preferred_x ? state->preferred_x : find.x;
-        int start = find.first_char + find.length;
+        int   start = find.first_char + find.length;
 
         if ( find.length == 0 )
           break;
@@ -896,11 +896,11 @@ retry:
     case STB_TEXTEDIT_K_UP | STB_TEXTEDIT_K_SHIFT:
     case STB_TEXTEDIT_K_PGUP:
     case STB_TEXTEDIT_K_PGUP | STB_TEXTEDIT_K_SHIFT: {
-      StbFindState find;
+      StbFindState   find;
       StbTexteditRow row;
-      int i, j, prev_scan, sel = ( key & STB_TEXTEDIT_K_SHIFT ) != 0;
-      int is_page = ( key & ~STB_TEXTEDIT_K_SHIFT ) == STB_TEXTEDIT_K_PGUP;
-      int row_count = is_page ? state->row_count_per_page : 1;
+      int            i, j, prev_scan, sel = ( key & STB_TEXTEDIT_K_SHIFT ) != 0;
+      int            is_page = ( key & ~STB_TEXTEDIT_K_SHIFT ) == STB_TEXTEDIT_K_PGUP;
+      int            row_count = is_page ? state->row_count_per_page : 1;
 
       if ( !is_page && state->single_line ) {
         // on windows, up&down become left&right
@@ -1196,7 +1196,7 @@ static STB_TEXTEDIT_CHARTYPE * stb_text_createundo( StbUndoState * state, int po
 
 static void stb_text_undo( STB_TEXTEDIT_STRING * str, STB_TexteditState * state ) {
   StbUndoState * s = &state->undostate;
-  StbUndoRecord u, *r;
+  StbUndoRecord  u, *r;
   if ( s->undo_point == 0 )
     return;
 
@@ -1316,7 +1316,7 @@ static void stb_text_makeundo_insert( STB_TexteditState * state, int where, int 
 }
 
 static void stb_text_makeundo_delete( STB_TEXTEDIT_STRING * str, STB_TexteditState * state, int where, int length ) {
-  int i;
+  int                     i;
   STB_TEXTEDIT_CHARTYPE * p = stb_text_createundo( &state->undostate, where, length, 0 );
   if ( p ) {
     for ( i = 0; i < length; ++i )
@@ -1326,7 +1326,7 @@ static void stb_text_makeundo_delete( STB_TEXTEDIT_STRING * str, STB_TexteditSta
 
 static void stb_text_makeundo_replace( STB_TEXTEDIT_STRING * str, STB_TexteditState * state, int where, int old_length,
                                        int new_length ) {
-  int i;
+  int                     i;
   STB_TEXTEDIT_CHARTYPE * p = stb_text_createundo( &state->undostate, where, old_length, new_length );
   if ( p ) {
     for ( i = 0; i < old_length; ++i )

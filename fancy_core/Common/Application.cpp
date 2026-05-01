@@ -15,7 +15,7 @@ namespace Fancy {
   Fancy::Application::Application( HINSTANCE anInstanceHandle, const char ** someArguments, uint aNumArguments,
                                    const char * aName, const char * aRelativeRootFolder,
                                    const RenderPlatformProperties & someRenderProperties,
-                                   const WindowParameters & someWindowParams )
+                                   const WindowParameters &         someWindowParams )
       : myAppInstanceHandle( anInstanceHandle ), myName( aName ), myCameraController( &myCamera ),
         myRealTimeClock( new Time ) {
     CommandLine::CreateInstance( someArguments, aNumArguments );

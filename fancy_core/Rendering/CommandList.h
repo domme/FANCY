@@ -27,17 +27,17 @@ namespace Fancy {
     GraphicsPipelineState();
     uint64 GetHash() const;
 
-    FillMode myFillMode;
-    CullMode myCullMode;
-    WindingOrder myWindingOrder;
+    FillMode                  myFillMode;
+    CullMode                  myCullMode;
+    WindingOrder              myWindingOrder;
     const DepthStencilState * myDepthStencilState;
-    const BlendState * myBlendState;
-    const ShaderPipeline * myShaderPipeline;
+    const BlendState *        myBlendState;
+    const ShaderPipeline *    myShaderPipeline;
     const VertexInputLayout * myVertexInputLayout;
-    uint8 myNumRenderTargets;
-    DataFormat myRTVformats[ RenderConstants::kMaxNumRenderTargets ];
-    DataFormat myDSVformat;
-    TopologyType myTopologyType;
+    uint8                     myNumRenderTargets;
+    DataFormat                myRTVformats[ RenderConstants::kMaxNumRenderTargets ];
+    DataFormat                myDSVformat;
+    TopologyType              myTopologyType;
 
     bool myIsDirty : 1;
   };
@@ -47,7 +47,7 @@ namespace Fancy {
     uint64 GetHash() const;
 
     const ShaderPipeline * myShaderPipeline;
-    bool myIsDirty;
+    bool                   myIsDirty;
   };
   //---------------------------------------------------------------------------//
   struct DispatchRaysDesc {
@@ -55,9 +55,9 @@ namespace Fancy {
     RtShaderBindingTableRange myMissShaderTableRange;
     RtShaderBindingTableRange myHitGroupTableRange;
     RtShaderBindingTableRange myCallableShaderTableRange;
-    uint myWidth;
-    uint myHeight;
-    uint myDepth;
+    uint                      myWidth;
+    uint                      myHeight;
+    uint                      myDepth;
   };
   //---------------------------------------------------------------------------//
   class CommandList {
@@ -79,20 +79,20 @@ namespace Fancy {
     virtual void CopyBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const GpuBuffer * aSrcBuffer,
                              uint64 aSrcOffset, uint64 aSize ) = 0;
 
-    void CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture,
-                              const SubresourceLocation & aSrcSubresource );
+    void         CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture,
+                                      const SubresourceLocation & aSrcSubresource );
     virtual void CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture,
                                       const SubresourceLocation & aSrcSubresource,
-                                      const TextureRegion & aSrcRegion ) = 0;
+                                      const TextureRegion &       aSrcRegion ) = 0;
 
-    void CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
-                      const Texture * aSrcTexture, const SubresourceLocation & aSrcSubresource );
+    void         CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
+                              const Texture * aSrcTexture, const SubresourceLocation & aSrcSubresource );
     virtual void CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
                               const TextureRegion & aDstRegion, const Texture * aSrcTexture,
                               const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) = 0;
 
-    void CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
-                              const GpuBuffer * aSrcBuffer, uint64 aSrcOffset );
+    void         CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
+                                      const GpuBuffer * aSrcBuffer, uint64 aSrcOffset );
     virtual void CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
                                       const TextureRegion & aDstRegion, const GpuBuffer * aSrcBuffer,
                                       uint64 aSrcOffset ) = 0;
@@ -100,7 +100,7 @@ namespace Fancy {
     virtual void Dispatch( const glm::int3 & aNumThreads ) = 0;
     virtual void DispatchRays( const DispatchRaysDesc & aDesc ) = 0;
 
-    void BindVertexBuffer( const GpuBuffer * aBuffer, uint64 anOffset = 0, uint64 aSize = 0 );
+    void         BindVertexBuffer( const GpuBuffer * aBuffer, uint64 anOffset = 0, uint64 aSize = 0 );
     virtual void BindVertexBuffers( const GpuBuffer ** someBuffers, uint64 * someOffsets, uint64 * someSizes,
                                     uint aNumBuffers, const VertexInputLayout * anInputLayout = nullptr ) = 0;
     virtual void BindIndexBuffer( const GpuBuffer * aBuffer, uint anIndexSize, uint64 anOffset = 0u,
@@ -118,19 +118,19 @@ namespace Fancy {
                        uint aNumDatas /*, const TextureRegion* someRegions = nullptr */ ) = 0;  // TODO: Support regions
 
     virtual GpuQuery BeginQuery( GpuQueryType aType ) = 0;
-    virtual void EndQuery( const GpuQuery & aQuery ) = 0;
+    virtual void     EndQuery( const GpuQuery & aQuery ) = 0;
     virtual GpuQuery InsertTimestamp() = 0;
-    virtual void CopyQueryDataToBuffer( const GpuQueryHeap * aQueryHeap, const GpuBuffer * aBuffer,
-                                        uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset ) = 0;
-    virtual void BeginMarkerRegion( const char * aName, uint aColor = UINT_MAX );
-    virtual void EndMarkerRegion();
+    virtual void     CopyQueryDataToBuffer( const GpuQueryHeap * aQueryHeap, const GpuBuffer * aBuffer,
+                                            uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset ) = 0;
+    virtual void     BeginMarkerRegion( const char * aName, uint aColor = UINT_MAX );
+    virtual void     EndMarkerRegion();
 
     void TransitionResource( const GpuResource * aResource, ResourceTransition aTransition, uint someUsageFlags = 0u );
     virtual void TransitionResource( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
                                      ResourceTransition aTransition, uint someUsageFlags = 0u ) = 0;
 
-    uint GetPrepareDescriptorIndex( const GpuResourceView * aView );
-    void PrepareResourceShaderAccess( const GpuResourceView * aView );
+    uint         GetPrepareDescriptorIndex( const GpuResourceView * aView );
+    void         PrepareResourceShaderAccess( const GpuResourceView * aView );
     virtual void PrepareResourceShaderAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
                                               ShaderResourceAccess aTransition ) = 0;
 
@@ -143,22 +143,22 @@ namespace Fancy {
     virtual void Close() = 0;
 
     virtual void FlushBarriers() = 0;
-    void PreExecute();
+    void         PreExecute();
     virtual void PostExecute( uint64 aFenceVal );
     virtual void ResetAndOpen();
 
     bool IsOpen() const {
       return myIsOpen;
     }
-    void SetClipRect( const glm::uvec4 & aRectangle );  /// x, y, width, height
-    const GpuBuffer * GetBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, const void * someData, uint64 aDataSize,
-                                 uint64 anAlignment = 0 );
-    const GpuBuffer * GetMappedBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, uint8 ** someDataPtrOut,
-                                       uint64 aDataSize, uint64 anAlignment = 0 );
-    void BindVertexBuffer( void * someData, uint64 aDataSize );
-    void BindIndexBuffer( void * someData, uint64 aDataSize, uint anIndexSize );
-    void BindConstantBuffer( void * someData, uint64 aDataSize, uint aRegisterIndex );
-    void SetViewport( const glm::uvec4 & uViewportParams );  /// x, y, width, height
+    void               SetClipRect( const glm::uvec4 & aRectangle );  /// x, y, width, height
+    const GpuBuffer *  GetBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, const void * someData, uint64 aDataSize,
+                                  uint64 anAlignment = 0 );
+    const GpuBuffer *  GetMappedBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, uint8 ** someDataPtrOut,
+                                        uint64 aDataSize, uint64 anAlignment = 0 );
+    void               BindVertexBuffer( void * someData, uint64 aDataSize );
+    void               BindIndexBuffer( void * someData, uint64 aDataSize, uint anIndexSize );
+    void               BindConstantBuffer( void * someData, uint64 aDataSize, uint aRegisterIndex );
+    void               SetViewport( const glm::uvec4 & uViewportParams );  /// x, y, width, height
     const glm::uvec4 & GetViewport() const {
       return myViewportParams;
     }  /// x, y, width, height
@@ -181,10 +181,10 @@ namespace Fancy {
                               const TextureRegion & aDstRegion, const TextureProperties & aSrcProps,
                               const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) const;
     void ValidateTextureToBufferCopy( const GpuBufferProperties & aDstBufferProps, uint64 aDstBufferOffset,
-                                      const TextureProperties & aSrcTextureProps,
+                                      const TextureProperties &   aSrcTextureProps,
                                       const SubresourceLocation & aSrcSubresource,
-                                      const TextureRegion & aSrcRegion ) const;
-    void ValidateBufferToTextureCopy( const TextureProperties & aDstTexProps,
+                                      const TextureRegion &       aSrcRegion ) const;
+    void ValidateBufferToTextureCopy( const TextureProperties &   aDstTexProps,
                                       const SubresourceLocation & aDstSubresource, const TextureRegion & aDstRegion,
                                       const GpuBufferProperties & aSrcBufferProps, uint64 aSrcBufferOffset ) const;
     void ValidateBufferCopy( const GpuBufferProperties & aDstProps, uint64 aDstOffset,
@@ -204,21 +204,21 @@ namespace Fancy {
 
     CommandListType myCommandListType;
 
-    glm::uvec4 myViewportParams;
-    glm::uvec4 myClipRect;
-    bool myIsOpen;
-    bool myViewportDirty;
-    bool myClipRectDirty;
-    bool myTopologyDirty;
-    bool myRenderTargetsDirty;
-    uint myMarkerRegionStackDepth;
+    glm::uvec4    myViewportParams;
+    glm::uvec4    myClipRect;
+    bool          myIsOpen;
+    bool          myViewportDirty;
+    bool          myClipRectDirty;
+    bool          myTopologyDirty;
+    bool          myRenderTargetsDirty;
+    uint          myMarkerRegionStackDepth;
     TextureView * myRenderTargets[ RenderConstants::kMaxNumRenderTargets ];
     TextureView * myDepthStencilTarget;
 
     GraphicsPipelineState myGraphicsPipelineState;
-    ComputePipelineState myComputePipelineState;
-    RtPipelineState * myRaytracingPipelineState;
-    bool myRaytracingPipelineStateDirty;
+    ComputePipelineState  myComputePipelineState;
+    RtPipelineState *     myRaytracingPipelineState;
+    bool                  myRaytracingPipelineStateDirty;
 
     eastl::vector< GpuRingBuffer * > myUploadRingBuffers;
     eastl::vector< GpuRingBuffer * > myRtUploadRingBuffers;

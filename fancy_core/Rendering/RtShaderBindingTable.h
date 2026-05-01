@@ -13,9 +13,9 @@ namespace Fancy {
 
   struct RtShaderBindingTableRange {
     GpuBuffer * mySbtBuffer = nullptr;
-    uint64 myOffset = 0ull;
-    uint64 mySize = 0ull;
-    uint myStride = 0u;
+    uint64      myOffset = 0ull;
+    uint64      mySize = 0ull;
+    uint        myStride = 0u;
   };
 
   class RtShaderBindingTable {
@@ -40,10 +40,10 @@ namespace Fancy {
     RtShaderBindingTableRange GetRange( RtShaderIdentifierType aType ) const;
 
     RtShaderBindingTableProperties myProperties;
-    GpuBufferHandle mySbtBuffer;
+    GpuBufferHandle                mySbtBuffer;
 
     uint8 * myMappedSbtData;
-    uint myAlignedShaderRecordSizeBytes;
+    uint    myAlignedShaderRecordSizeBytes;
 
     uint myRecordTypeOffset[ RT_SHADER_IDENTIFIER_TYPE_NUM ];
     uint myNumUsedRecords[ RT_SHADER_IDENTIFIER_TYPE_NUM ];

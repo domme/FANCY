@@ -18,13 +18,13 @@ private:
     COPY_DONE,
   };
 
-  Stage myStage = Stage::IDLE;
+  Stage  myStage = Stage::IDLE;
   uint64 myExpectedBufferValue = 0ull;
   uint64 myBufferCopyFence = 0ull;
 
   Fancy::SharedPtr< Fancy::GpuBufferView > myBufferUAV;
-  Fancy::SharedPtr< Fancy::GpuBuffer > myBuffer;
-  Fancy::SharedPtr< Fancy::GpuBuffer > myReadbackBuffer;
+  Fancy::SharedPtr< Fancy::GpuBuffer >     myBuffer;
+  Fancy::SharedPtr< Fancy::GpuBuffer >     myReadbackBuffer;
 
   Fancy::SharedPtr< Fancy::ShaderPipeline > mySetBufferValueShader;
   Fancy::SharedPtr< Fancy::ShaderPipeline > myIncrementBufferShader;

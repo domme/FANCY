@@ -28,6 +28,6 @@ public:
   SharedPtr< RtAccelerationStructure > myBLAS;
   SharedPtr< RtAccelerationStructure > myTLAS;
 
-  SharedPtr< RtPipelineState > myRtPso;
+  SharedPtr< RtPipelineState >      myRtPso;
   SharedPtr< RtShaderBindingTable > mySBT;
 };

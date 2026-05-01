@@ -9,7 +9,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   struct ImageData {
     TextureProperties myProperties;
-    TextureData myData;
+    TextureData       myData;
   };
   //---------------------------------------------------------------------------//
   struct ImageLoader {

@@ -16,7 +16,7 @@ namespace Fancy {
     const int logBufferSizeBytes = messageBufferSize + 2u;  // \n \0
 
     eastl::fixed_vector< char, 64 > logBufferVec( logBufferSizeBytes );
-    char * logBuffer = logBufferVec.data();
+    char *                          logBuffer = logBufferVec.data();
 
     int offset = 0;
     offset += vsnprintf( logBuffer + offset, messageBufferSize, aMessageFormat, args );
@@ -42,7 +42,7 @@ namespace Fancy {
         severityBufferSize + messageBufferSize + fileBufferSize + 1u + 1u + 1u + 1u + 1u;  // (...) \0 \n
 
     eastl::fixed_vector< char, 64 > logBufferVec( logBufferSizeBytes );
-    char * logBuffer = logBufferVec.data();
+    char *                          logBuffer = logBufferVec.data();
 
     int offset = 0;
     offset += snprintf( logBuffer + offset, severityBufferSize, "%s: ", aSeverity );

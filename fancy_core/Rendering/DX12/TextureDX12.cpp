@@ -44,7 +44,7 @@ namespace Fancy {
     myProperties = someProperties;
     myName = aName != nullptr ? aName : "Texture_Unnamed";
 
-    bool isArray, isCubemap;
+    bool                     isArray, isCubemap;
     D3D12_RESOURCE_DIMENSION dimension =
         Adapter::ResolveResourceDimension( someProperties.myDimension, isCubemap, isArray );
 
@@ -151,14 +151,14 @@ namespace Fancy {
       memset( clearValue.Color, 0, sizeof( clearValue.Color ) );
     }
 
-    RenderCore_PlatformDX12 * dx12Platform = RenderCore::GetPlatformDX12();
-    ID3D12Device * device = dx12Platform->GetDevice();
-    const CpuMemoryAccessType gpuMemAccess = ( CpuMemoryAccessType ) myProperties.myAccessType;
+    RenderCore_PlatformDX12 *            dx12Platform = RenderCore::GetPlatformDX12();
+    ID3D12Device *                       device = dx12Platform->GetDevice();
+    const CpuMemoryAccessType            gpuMemAccess = ( CpuMemoryAccessType ) myProperties.myAccessType;
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo( 0u, 1u, &resourceDesc );
 
-    const GpuMemoryType memoryType = ( myProperties.myIsRenderTarget || myProperties.bIsDepthStencil )
-                                         ? GpuMemoryType::RENDERTARGET
-                                         : GpuMemoryType::TEXTURE;
+    const GpuMemoryType           memoryType = ( myProperties.myIsRenderTarget || myProperties.bIsDepthStencil )
+                                                   ? GpuMemoryType::RENDERTARGET
+                                                   : GpuMemoryType::TEXTURE;
     const GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(
         memoryType, gpuMemAccess, allocInfo.SizeInBytes, ( uint ) allocInfo.Alignment, myName.c_str() );
     ASSERT( gpuMemory.myHeap != nullptr );
@@ -192,7 +192,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  uint64 TextureDX12::GetCopyableFootprints( const SubresourceRange & aSubresourceRange,
+  uint64 TextureDX12::GetCopyableFootprints( const SubresourceRange &             aSubresourceRange,
                                              D3D12_PLACED_SUBRESOURCE_FOOTPRINT * someFootprintsOut,
                                              uint * someNumRowsOut, uint64 * someRowSizesOut ) const {
     ASSERT( IsValid() );
@@ -201,7 +201,7 @@ namespace Fancy {
             mySubresources.myNumArrayIndices );
     ASSERT( aSubresourceRange.myFirstPlane + aSubresourceRange.myNumPlanes <= mySubresources.myNumPlanes );
 
-    ID3D12Resource * texResource = GetDX12Data()->myResource.Get();
+    ID3D12Resource *            texResource = GetDX12Data()->myResource.Get();
     const D3D12_RESOURCE_DESC & texResourceDesc = texResource->GetDesc();
 
     ID3D12Device * device = RenderCore::GetPlatformDX12()->GetDevice();
@@ -233,12 +233,12 @@ namespace Fancy {
   TextureViewDX12::TextureViewDX12( Texture * aTexture, const TextureViewProperties & someProperties,
                                     const char * aName )
       : TextureView::TextureView( aTexture, someProperties, aName ) {
-    const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( someProperties.myFormat );
+    const DataFormatInfo &    formatInfo = DataFormatInfo::GetFormatInfo( someProperties.myFormat );
     RenderCore_PlatformDX12 * platformDx12 = RenderCore::GetPlatformDX12();
 
     eastl::string name = myName.empty() ? aTexture->myName : myName;
 
-    bool success = false;
+    bool                    success = false;
     GpuResourceViewDataDX12 nativeData;
     myType = GpuResourceViewType::NONE;
     if ( someProperties.myIsRenderTarget ) {
@@ -276,8 +276,8 @@ namespace Fancy {
     ASSERT( success && nativeData.myDescriptor.myCpuHandle.ptr != UINT_MAX && myType != GpuResourceViewType::NONE );
 
     const TextureProperties & texProps = aTexture->GetProperties();
-    const uint numTexMips = texProps.myNumMipLevels;
-    const uint numTexArraySlices = texProps.GetArraySize();
+    const uint                numTexMips = texProps.myNumMipLevels;
+    const uint                numTexArraySlices = texProps.GetArraySize();
 
     myDX12Data = nativeData;
     const SubresourceRange & subresourceRange = someProperties.mySubresourceRange;
@@ -298,8 +298,8 @@ namespace Fancy {
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( someProperties.myFormat );
-    DXGI_FORMAT dxgiFormat = RenderCore_PlatformDX12::ResolveFormat( someProperties.myFormat );
+    const DataFormatInfo &   formatInfo = DataFormatInfo::GetFormatInfo( someProperties.myFormat );
+    DXGI_FORMAT              dxgiFormat = RenderCore_PlatformDX12::ResolveFormat( someProperties.myFormat );
     const SubresourceRange & subresourceRange = someProperties.mySubresourceRange;
     if ( formatInfo.myIsDepthStencil ) {
       ASSERT( subresourceRange.myFirstPlane <= 1 );
@@ -450,7 +450,7 @@ namespace Fancy {
   bool TextureViewDX12::CreateDSV( const Texture * aTexture, const TextureViewProperties & someProperties,
                                    const DescriptorDX12 & aDescriptor ) {
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-    const DXGI_FORMAT baseFormat = RenderCore_PlatformDX12::ResolveFormat( someProperties.myFormat );
+    const DXGI_FORMAT             baseFormat = RenderCore_PlatformDX12::ResolveFormat( someProperties.myFormat );
 
     const SubresourceRange & subresourceRange = someProperties.mySubresourceRange;
 

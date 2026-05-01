@@ -25,10 +25,10 @@ namespace Fancy {
     Camera * myCamera;
 
     glm::float2 myMouseSensitivity;
-    glm::int2 myLastMousePos;
+    glm::int2   myLastMousePos;
     glm::float3 myFocusPoint;
-    float myFocusPointDistance;
-    Mode myLastMode;
+    float       myFocusPointDistance;
+    Mode        myLastMode;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

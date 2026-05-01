@@ -44,7 +44,7 @@ Test_AsyncCompute::Test_AsyncCompute( Fancy::AssetManager * anAssetManager, Fanc
   ASSERT( myReadbackBuffer );
 
   ShaderPipelineDesc pipelineDesc;
-  ShaderDesc & shaderDesc = pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
+  ShaderDesc &       shaderDesc = pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
   shaderDesc.myShaderStage = ( uint ) ShaderStage::SHADERSTAGE_COMPUTE;
   shaderDesc.myPath = "fancy/resources/shaders/Tests/ModifyBuffer.hlsl";
   shaderDesc.myMainFunction = "main_increment";
@@ -110,8 +110,8 @@ void Test_AsyncCompute::OnUpdate( bool aDrawProperties ) {
       const uint expectedValue = myExpectedBufferValue + 1;
 
       uint * bufferData = ( uint * ) myReadbackBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
-      bool hasExpectedData = true;
-      uint bufferValue = 0;
+      bool   hasExpectedData = true;
+      uint   bufferValue = 0;
       for ( uint i = 0; hasExpectedData && i < kNumBufferElements; ++i ) {
         bufferValue = bufferData[ i ];
         hasExpectedData &= bufferData[ i ] == expectedValue;

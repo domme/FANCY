@@ -6,7 +6,7 @@
 
 namespace Fancy {
   struct RtShaderIdentifier {
-    RtShaderIdentifierType myType;
+    RtShaderIdentifierType           myType;
     eastl::fixed_vector< uint8, 64 > myData;
   };
 }  // namespace Fancy

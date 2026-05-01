@@ -21,7 +21,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   const typename PagedLinearAllocator::Page * PagedLinearAllocator::Allocate( uint64 aSize, uint anAlignment,
-                                                                              uint64 & anOffsetInPageOut,
+                                                                              uint64 &     anOffsetInPageOut,
                                                                               const char * aDebugName /*= nullptr*/ ) {
     const uint64 sizeWithAlignment = MathUtil::Align( aSize, anAlignment );
 
@@ -166,7 +166,7 @@ namespace Fancy {
     const uint64 alignedSize = MathUtil::Align( aSize, myPageSize );
     const uint64 pageStart = myPages.empty() ? 0u : myPages.back().myEnd;
     const uint64 pageEnd = pageStart + alignedSize;
-    Page page{ pageStart, pageEnd, 0u };
+    Page         page{ pageStart, pageEnd, 0u };
     if ( !CreatePageData( alignedSize, page.myData ) )
       return false;
 
@@ -175,7 +175,7 @@ namespace Fancy {
     return true;
   }
   //---------------------------------------------------------------------------//
-  PagedLinearAllocator::Page * PagedLinearAllocator::GetPageAndOffset( uint64 aVirtualOffset,
+  PagedLinearAllocator::Page * PagedLinearAllocator::GetPageAndOffset( uint64   aVirtualOffset,
                                                                        uint64 & anOffsetInPage ) {
     for ( Page & existingPage : myPages ) {
       if ( existingPage.myStart <= aVirtualOffset && existingPage.myEnd > aVirtualOffset ) {

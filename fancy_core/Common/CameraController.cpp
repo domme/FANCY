@@ -53,8 +53,8 @@ namespace Fancy {
 
     glm::int2 mouseDelta = anInputState.myMousePos - myLastMousePos;
 
-    float pitch = glm::radians( ( float ) mouseDelta.y ) * myMouseSensitivity.y;
-    float yaw = glm::radians( ( float ) mouseDelta.x ) * myMouseSensitivity.x;
+    float     pitch = glm::radians( ( float ) mouseDelta.y ) * myMouseSensitivity.y;
+    float     yaw = glm::radians( ( float ) mouseDelta.x ) * myMouseSensitivity.x;
     glm::quat pitchQuat = glm::quat( glm::float3( pitch, 0.0f, 0.0f ) );
     glm::quat yawQuat = glm::quat( glm::float3( 0.0f, yaw, 0.0f ) );
     myCamera->myOrientation = yawQuat * myCamera->myOrientation * pitchQuat;
@@ -65,8 +65,8 @@ namespace Fancy {
   void CameraController::UpdateTrackballCamera( float /*aDeltaTime*/, const Fancy::InputState & anInputState ) {
     if ( anInputState.myMouseBtnMask & InputState::MOUSE_BTN_LEFT ) {
       glm::ivec2 mouseDelta = anInputState.myMousePos - myLastMousePos;
-      float pitch = glm::radians( ( float ) mouseDelta.y ) * myMouseSensitivity.y;
-      float yaw = glm::radians( ( float ) mouseDelta.x ) * myMouseSensitivity.x;
+      float      pitch = glm::radians( ( float ) mouseDelta.y ) * myMouseSensitivity.y;
+      float      yaw = glm::radians( ( float ) mouseDelta.x ) * myMouseSensitivity.x;
 
       glm::float3 centerToCamDir = glm::normalize( myCamera->myPosition - myFocusPoint );
       if ( centerToCamDir.y < -0.9 )

@@ -10,7 +10,7 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   StaticDescriptorAllocatorDX12::StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE aType,
-                                                                uint64 aNumDescriptorsPerHeap )
+                                                                uint64                     aNumDescriptorsPerHeap )
       : PagedLinearAllocator( aNumDescriptorsPerHeap ),
         myHandleIncrementSize( RenderCore::GetPlatformDX12()->GetDevice()->GetDescriptorHandleIncrementSize( aType ) ),
         myType( aType ) {}
@@ -20,7 +20,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   DescriptorDX12 StaticDescriptorAllocatorDX12::AllocateDescriptor( const char * aDebugName /* = nullptr*/ ) {
-    uint64 descriptorIndexInHeap;
+    uint64       descriptorIndexInHeap;
     const Page * page = Allocate( 1u, 1u, descriptorIndexInHeap, aDebugName );
 
     if ( page == nullptr )
@@ -62,7 +62,7 @@ namespace Fancy {
   }
 
   bool StaticDescriptorAllocatorDX12::CreatePageData( uint64 aSize, eastl::any & aPageData ) {
-    ID3D12Device * device = RenderCore::GetPlatformDX12()->GetDevice();
+    ID3D12Device *             device = RenderCore::GetPlatformDX12()->GetDevice();
     D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
     ASSERT( aSize <= UINT_MAX );
     heapDesc.NumDescriptors = static_cast< uint >( aSize );

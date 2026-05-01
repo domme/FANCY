@@ -17,7 +17,7 @@ namespace Fancy {
   public:
     Time();
 
-    void Update( float fDt );
+    void  Update( float fDt );
     float GetDelta() const {
       return myDerivedDeltaTime;
     }

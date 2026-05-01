@@ -18,7 +18,7 @@ static bool LoadImage_STB( FILE * file, const char * aPathAbs, uint someLoadFlag
   anImageOut = ImageData();
 
   glm::ivec2 size;
-  int numChannels;
+  int        numChannels;
   if ( !stbi_info_from_file( file, &size.x, &size.y, &numChannels ) ) {
     LOG_ERROR( "Unable to optain image-infos from file %s. Reason: %s", aPathAbs, stbi_failure_reason() );
     fclose( file );
@@ -26,7 +26,7 @@ static bool LoadImage_STB( FILE * file, const char * aPathAbs, uint someLoadFlag
   }
 
   const bool is16Bit = stbi_is_16_bit_from_file( file ) == 1;
-  const int desiredNumChannels =
+  const int  desiredNumChannels =
       numChannels == 3 ? 4
                        : 0;  // Keep the original channels for everything else than RGB. In this case, always use RGBA
 
@@ -57,8 +57,8 @@ static bool LoadImage_STB( FILE * file, const char * aPathAbs, uint someLoadFlag
   }
 
   const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( props.myFormat );
-  const uint expectedDataSize = ( formatInfo.myBitsPerPixel / 8 ) * props.myWidth * props.myHeight;
-  uint8 * loadedData = stbi_load_from_file( file, &size.x, &size.y, &numChannels, desiredNumChannels );
+  const uint             expectedDataSize = ( formatInfo.myBitsPerPixel / 8 ) * props.myWidth * props.myHeight;
+  uint8 *                loadedData = stbi_load_from_file( file, &size.x, &size.y, &numChannels, desiredNumChannels );
   if ( !loadedData ) {
     LOG_ERROR( "Unable to decode image file %s. Reason: %s", aPathAbs, stbi_failure_reason() );
     fclose( file );
@@ -94,7 +94,7 @@ static bool LoadImage_DDS( FILE * file, const char * aPathAbs, uint someLoadFlag
     return false;
   }
 
-  bool hasDX10Header = false;
+  bool             hasDX10Header = false;
   DDS_HEADER_DXT10 header10;
   if ( header.ddspf.flags == DDS_FOURCC && header.ddspf.fourCC == DDSPF_DX10.fourCC ) {
     hasDX10Header = true;
@@ -104,15 +104,15 @@ static bool LoadImage_DDS( FILE * file, const char * aPathAbs, uint someLoadFlag
     }
   }
 
-  uint width = header.width;
-  uint height = header.height;
+  uint       width = header.width;
+  uint       height = header.height;
   DataFormat format = DataFormat::UNKNOWN;
 
   const bool isVolumeTexture = ( header.flags & DDS_HEADER_FLAGS_VOLUME ) != 0;
   ASSERT( !isVolumeTexture, "Not implemented" );
 
-  bool isCubeMap = false;
-  bool isArrayTexture = false;
+  bool                 isCubeMap = false;
+  bool                 isArrayTexture = false;
   GpuResourceDimension dimension = GpuResourceDimension::UNKONWN;
 
   if ( hasDX10Header ) {
@@ -166,7 +166,7 @@ static bool LoadImage_DDS( FILE * file, const char * aPathAbs, uint someLoadFlag
     const uint mipHeight = glm::max( 1u, height >> mip );
 
     uint64 rowPitchSizeBytes;
-    uint heightBlocksOrPixels;
+    uint   heightBlocksOrPixels;
     TextureData::ComputeRowPitchSizeAndBlockHeight( format, mipWidth, mipHeight, rowPitchSizeBytes,
                                                     heightBlocksOrPixels );
     overallSizeBytes += heightBlocksOrPixels * rowPitchSizeBytes;
@@ -181,7 +181,7 @@ static bool LoadImage_DDS( FILE * file, const char * aPathAbs, uint someLoadFlag
     const uint mipHeight = glm::max( 1u, height >> mip );
 
     uint64 rowPitchSizeBytes;
-    uint heightBlocksOrPixels;
+    uint   heightBlocksOrPixels;
     TextureData::ComputeRowPitchSizeAndBlockHeight( format, mipWidth, mipHeight, rowPitchSizeBytes,
                                                     heightBlocksOrPixels );
 
