@@ -56,3 +56,12 @@ FANCY.sln.DotSettings
 *.sln
 
 external/WinPixEventRuntime/
+
+pix.zip
+
+# vcpkg installed packages (regenerated during build)
+external/vcpkg/installed/
+external/vcpkg/vcpkg_installed/
+external/vcpkg/buildtrees/
+external/vcpkg/downloads/
+external/vcpkg/packages/

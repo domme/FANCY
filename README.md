@@ -15,22 +15,55 @@ Mostly created for personal learning-purposes and graphics-demos. Most areas are
 * Implicit and automatic hazard-tracking for resources
 
 ## Used Libraries
-* [DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler)
+* [DirectXShaderCompiler](https://github.com/microsoft/DirectXShaderCompiler) (DirectX DXC)
 * [Assimp](https://github.com/assimp/assimp)
 * [GLM](https://github.com/g-truc/glm)
-* [SPIRV-Reflect](https://github.com/chaoticbob/SPIRV-Reflect)
 * [STB-Image](https://github.com/nothings/stb)
 * [xxHash](https://github.com/Cyan4973/xxHash)
 * [EASTL](https://github.com/electronicarts/EASTL)
+* [WinPixEventRuntime](https://devblogs.microsoft.com/pix/) (GPU profiling)
 
 ## Building
-In order to generate a FANCY solution and build it, all git submodules must be properly initialized and some external prebuilt libraries need to be provided. Fancy uses [vcpgk](https://github.com/microsoft/vcpkg) for most of these libraries.
 
-If you don't already have vcpkg installed and set up (including the global Visual Studio integration), please checkout [vcpkg](https://github.com/microsoft/vcpkg) follow the [setup-steps for windows](https://github.com/microsoft/vcpkg#quick-start-windows).
-With a properly set up vcpkg, please execute "get_external_libs.bat" located in the FANCY root folder using cmd or powershell and provide it with the path to the vcpgk root folder as its first argument (e.g. ".\get_external_libs.bat C:/vcpgk/"). This will download and install all required external libraries that are part of vcpkg (e.g. Assimp, EASTL and xxHash).
+This project uses [vcpkg](https://github.com/microsoft/vcpkg) as the unified package manager for all external dependencies. All required packages are declared in the `vcpkg.json` manifest file located in `external/vcpkg/`. WinPixEventRuntime is downloaded separately via a bootstrap script.
 
-All other required libraries and binaries that are not part of vcpkg need to be downloaded using the bat-script "get_external_binaries.bat" which downloads and unpacks all other prebuilt binaries that are needed (mainly DirectXShaderCompiler and DX12 Agility SDK). This bat-file can just be executed as-is and doesn't require any arguments. This script will also download and set up [Sharpmake](https://github.com/ubisoft/Sharpmake), which FANCY uses to generate all of its projects and the solution itself. 
+### Prerequisites
 
-You will also need to have the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) installed on your system (with VK_SDK_PATH environment variable pointing to the correct folder).
+You will need:
+* Visual Studio 2022 with C++ workload
+* Git (with support for git submodules)
+* CMake 4.3 or newer
+* [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) (set VK_SDK_PATH environment variable)
 
-Once everything is set up as described, just execute "generate_solution.bat" and you should be ready to go to compile and start the "Tests" project included in the generated solution.
+### Build Steps
+
+1. Clone the repository with all submodules:
+   ```
+   git clone --recurse-submodules https://github.com/yourusername/PathTracer.git
+   cd PathTracer/FANCY
+   ```
+
+2. Download WinPixEventRuntime (one-time setup):
+   ```
+   powershell -ExecutionPolicy Bypass -File bootstrap_winpix.ps1
+   ```
+
+3. Install vcpkg dependencies from the manifest:
+   ```
+   cd external/vcpkg
+   .\vcpkg.exe install
+   cd ../..
+   ```
+
+4. Generate the project using CMake from the PathTracer root:
+   ```
+   cd ../..
+   cmake --preset vs2022-win64
+   ```
+
+5. Build the solution:
+   ```
+   cmake --build _cmake_build --config Release
+   ```
+
+**Important:** Always run `vcpkg install` from the `FANCY/external/vcpkg/` directory where `vcpkg.json` is located. This ensures packages are installed to the correct location (`FANCY/external/vcpkg/installed/`) that CMake expects.

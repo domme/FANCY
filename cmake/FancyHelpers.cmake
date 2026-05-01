@@ -1,7 +1,6 @@
 set(_fancy_vcpkg_installed "${FANCY_ROOT}/external/vcpkg/installed/x64-windows")
 set(FANCY_VCPKG_BIN         "${_fancy_vcpkg_installed}/bin"       CACHE INTERNAL "")
 set(FANCY_VCPKG_BIN_DEBUG   "${_fancy_vcpkg_installed}/debug/bin" CACHE INTERNAL "")
-set(FANCY_WINPIX_BIN        "${FANCY_ROOT}/external/WinPixEventRuntime/bin/x64" CACHE INTERNAL "")
 unset(_fancy_vcpkg_installed)
 
 # ---------------------------------------------------------------------------
@@ -102,11 +101,15 @@ function(fancy_copy_runtime_dlls target)
         COMMENT "Copying D3D12Core.dll to output dir"
     )
 
-    # WinPixEventRuntime (single binary, no debug variant)
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${FANCY_WINPIX_BIN}/WinPixEventRuntime.dll"
-            "$<TARGET_FILE_DIR:${target}>"
-        COMMENT "Copying WinPixEventRuntime.dll to output dir"
-    )
+    # WinPixEventRuntime (single binary, no debug variant; downloaded separately)
+    set(_winpix_dll "${FANCY_ROOT}/external/WinPixEventRuntime/bin/x64/WinPixEventRuntime.dll")
+    if(EXISTS "${_winpix_dll}")
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${_winpix_dll}"
+                "$<TARGET_FILE_DIR:${target}>"
+            COMMENT "Copying WinPixEventRuntime.dll to output dir"
+        )
+    endif()
+    unset(_winpix_dll)
 endfunction()

@@ -30,7 +30,6 @@ target_include_directories(fancy_core
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}"
         "${FANCY_EXTERNAL_DIR}"
-        "${FANCY_EXTERNAL_DIR}/WinPixEventRuntime/Include"
 )
 
 target_link_libraries(fancy_core
