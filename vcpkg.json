@@ -1,0 +1,14 @@
+{
+  "name": "fancy",
+  "version-string": "0.1.0",
+  "description": "A small rendering framework that abstracts DX12 and Vulkan",
+  "dependencies": [
+    "assimp",
+    "eastl",
+    "glm",
+    "xxhash",
+    "directx-dxc",
+    "directx-headers",
+    "directx12-agility"
+  ]
+}

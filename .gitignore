@@ -59,9 +59,8 @@ external/WinPixEventRuntime/
 
 pix.zip
 
-# vcpkg installed packages (regenerated during build)
-external/vcpkg/installed/
-external/vcpkg/vcpkg_installed/
+# vcpkg installed packages (regenerated during build setup)
+vcpkg_installed/
 external/vcpkg/buildtrees/
 external/vcpkg/downloads/
 external/vcpkg/packages/
