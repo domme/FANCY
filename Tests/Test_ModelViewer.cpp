@@ -274,7 +274,6 @@ void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
 
     const GpuResourceView * diffuseTex = material->myTextures[ ( uint ) MaterialTextureType::BASE_COLOR ].get();
     if ( diffuseTex ) {
-      ctx->PrepareResourceShaderAccess( diffuseTex );
       cbuffer_perObject.myTextureIndex = diffuseTex->GetGlobalDescriptorIndex();
     }
 

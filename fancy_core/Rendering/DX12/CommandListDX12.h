@@ -4,7 +4,6 @@
 #include "Rendering/RenderEnums.h"
 
 #include "DX12Prerequisites.h"
-#include "eastl/fixed_hash_map.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -67,11 +66,8 @@ namespace Fancy {
     void     BeginMarkerRegion( const char * aName, uint aColor ) override;
     void     EndMarkerRegion() override;
 
-    void TransitionResource( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
-                             ResourceTransition aTransition, uint someUsageFlags = 0u ) override;
-    void PrepareResourceShaderAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
-                                      ShaderResourceAccess aTransition ) override;
-    void ResourceUAVbarrier( const GpuResource ** someResources = nullptr, uint aNumResources = 0u ) override;
+    void GlobalBarrier( BarrierSyncScope waitFor, BarrierSyncScope unblocks, CacheFlush flush ) override;
+    void TextureBarrier( Texture * aTexture, TextureBarrierUsage aFromUsage, TextureBarrierUsage aToUsage ) override;
 
     void Close() override;
 
@@ -82,13 +78,11 @@ namespace Fancy {
     void Dispatch( const glm::int3 & aNumThreads ) override;
     void DispatchRays( const DispatchRaysDesc & aDesc ) override;
 
-    void TrackResourceTransition( const GpuResource * aResource, D3D12_RESOURCE_STATES aNewState,
-                                  bool aIsSharedReadState = false );
-    void TrackSubresourceTransition( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
-                                     D3D12_RESOURCE_STATES aNewState, bool aToSharedReadState = false );
-    void AddBarrier( const D3D12_RESOURCE_BARRIER & aBarrier );
+    void AddTextureBarrier( const D3D12_TEXTURE_BARRIER & aBarrier );
+    void AddBufferBarrier( const D3D12_BUFFER_BARRIER & aBarrier );
+    void AddGlobalBarrier( const D3D12_GLOBAL_BARRIER & aBarrier );
 
-    ID3D12GraphicsCommandList6 * GetDX12CommandList() const {
+    ID3D12GraphicsCommandList7 * GetDX12CommandList() const {
       return myCommandList;
     }
 
@@ -105,37 +99,14 @@ namespace Fancy {
     void ApplyTopologyType();
     void ApplyResourceBindings();
 
-    bool                  GetLocalSubresourceStates( const GpuResource * aResource, SubresourceLocation aSubresource,
-                                                     D3D12_RESOURCE_STATES & aStatesOut );
-    D3D12_RESOURCE_STATES ResolveValidateDstStates( const GpuResource * aResource, D3D12_RESOURCE_STATES aDstStates );
-    bool                  ValidateSubresourceTransition( const GpuResource * aResource, uint aSubresourceIndex,
-                                                         D3D12_RESOURCE_STATES aDstStates );
-
-    ID3D12GraphicsCommandList6 *                                             myCommandList;
+    ID3D12GraphicsCommandList7 *                                             myCommandList;
     ID3D12CommandAllocator *                                                 myCommandAllocator;
-    eastl::fixed_vector< D3D12_RESOURCE_BARRIER, kNumCachedBarriers, false > myPendingBarriers;
-    eastl::fixed_vector< uint64, 16 >                                        myLocalBuffersToBind;
-    eastl::fixed_vector< uint64, 16 >                                        myLocalRWBuffersToBind;
-    eastl::fixed_vector< uint64, 16 >                                        myLocalCBuffersToBind;
-
-    D3D12_RESOURCE_STATES myResourceStateMask;
-
-    struct SubresourceHazardData {
-      SubresourceHazardData() : myWasWritten( false ), myWasUsed( false ), myIsSharedReadState( false ) {}
-
-      // TODO: Those two could be reduced to only 24 bits
-      D3D12_RESOURCE_STATES myFirstDstStates = ( D3D12_RESOURCE_STATES ) 0;
-      D3D12_RESOURCE_STATES myStates = ( D3D12_RESOURCE_STATES ) 0;
-      uint                  myWasWritten : 1;
-      uint                  myWasUsed : 1;
-      uint                  myIsSharedReadState : 1;
-    };
-    struct LocalHazardData {
-      eastl::fixed_vector< SubresourceHazardData, 16 > mySubresources;
-    };
-
-    // TODO: Make this a simple vector and compare perf. Most likely a vector will be much faster in almost all cases
-    eastl::fixed_hash_map< const GpuResource *, LocalHazardData, kNumExpectedResourcesPerDispatch > myLocalHazardData;
+    eastl::fixed_vector< D3D12_TEXTURE_BARRIER, kNumCachedBarriers, false > myPendingTextureBarriers;
+    eastl::fixed_vector< D3D12_BUFFER_BARRIER,  kNumCachedBarriers, false > myPendingBufferBarriers;
+    eastl::fixed_vector< D3D12_GLOBAL_BARRIER,  4,                  false > myPendingGlobalBarriers;
+    eastl::fixed_vector< uint64, 16 >                                       myLocalBuffersToBind;
+    eastl::fixed_vector< uint64, 16 >                                       myLocalRWBuffersToBind;
+    eastl::fixed_vector< uint64, 16 >                                       myLocalCBuffersToBind;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

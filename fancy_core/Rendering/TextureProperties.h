@@ -15,7 +15,7 @@ namespace Fancy {
         : myDimension( GpuResourceDimension::TEXTURE_2D ), myPath( "" ), myWidth( 0u ), myHeight( 0u ),
           myDepthOrArraySize( 1u ), myFormat( DataFormat::NONE ), myAccessType( CpuMemoryAccessType::NO_CPU_ACCESS ),
           myNumMipLevels( 1u ), bIsDepthStencil( false ), myIsShaderWritable( false ), myIsRenderTarget( false ),
-          myPreferTypedFormat( false ) {}
+          myPreferTypedFormat( false ), myAllowCrossQueueAccess( false ) {}
 
     bool IsArray() const {
       return myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY ||
@@ -42,6 +42,18 @@ namespace Fancy {
     bool                 myIsShaderWritable;
     bool                 myIsRenderTarget;
     bool                 myPreferTypedFormat;
+    // When true: creates the texture with D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS.
+    // The texture is permanently in COMMON layout, meaning any queue type (graphics, compute,
+    // copy) can access it as SRV or UAV without TextureBarrier layout transitions.
+    // After a UAV write, only a fence sync + GlobalBarrier(ShaderWrite) is needed before
+    // the reading queue accesses it — no TextureBarrier required.
+    //
+    // Trade-off: disables GPU lossless compression (DCC on AMD RDNA2+, delta color compression
+    // on NVIDIA Ampere+) for this resource. This is typically zero cost for float UAV compute
+    // textures (no compression applies anyway) but has real impact on RGBA8 render targets.
+    //
+    // Constraints: Cannot be combined with bIsDepthStencil (D3D12 restriction) or MSAA (SampleDesc.Count > 1).
+    bool myAllowCrossQueueAccess;
   };
   //---------------------------------------------------------------------------//
   struct TextureViewProperties {

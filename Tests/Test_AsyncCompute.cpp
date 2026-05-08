@@ -84,7 +84,6 @@ void Test_AsyncCompute::OnUpdate( bool aDrawProperties ) {
       myExpectedBufferValue = ( uint ) Time::ourFrameIdx;
       CBuffer cbuf = { ( uint ) myExpectedBufferValue, myBufferUAV->GetGlobalDescriptorIndex(), 0 };
       graphicsContext->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-      graphicsContext->PrepareResourceShaderAccess( myBufferUAV.get() );
       graphicsContext->Dispatch( glm::int3( kNumBufferElements, 1, 1 ) );
       const uint64 setValueFence = RenderCore::ExecuteAndResetCommandList( graphicsContext );
 
@@ -92,7 +91,6 @@ void Test_AsyncCompute::OnUpdate( bool aDrawProperties ) {
       RenderCore::GetCommandQueue( CommandListType::Compute )->StallForFence( setValueFence );
       computeContext->SetShaderPipeline( myIncrementBufferShader.get() );
       computeContext->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-      computeContext->PrepareResourceShaderAccess( myBufferUAV.get() );
       computeContext->Dispatch( glm::int3( kNumBufferElements, 1, 1 ) );
       const uint64 incrementValueFence = RenderCore::ExecuteAndFreeCommandList( computeContext );
 

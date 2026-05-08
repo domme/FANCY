@@ -89,9 +89,6 @@ void Test_Raytracing::OnRender() {
   CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
   ctx->SetRaytracingPipelineState( myRtPso.get() );
 
-  ctx->PrepareResourceShaderAccess( rtOutputTex.myWriteView );
-  ctx->PrepareResourceShaderAccess( myTLAS->GetBufferRead() );
-
   struct Consts {
     glm::float3 myCamCenter;
     uint        myIsBGR;
@@ -123,7 +120,7 @@ void Test_Raytracing::OnRender() {
   desc.myDepth = 1;
   ctx->DispatchRays( desc );
 
-  ctx->ResourceUAVbarrier( rtOutputTex.myTexture );
+  ctx->GlobalBarrier( BarrierSyncScope::AllShading, BarrierSyncScope::AllShading, CacheFlush::ShaderWrite );
   SubresourceLocation subresourceLoc;
   TextureRegion       region = { glm::uvec3( 0 ), glm::uvec3( texProps.myTextureProperties.myWidth,
                                                               texProps.myTextureProperties.myHeight, 1u ) };

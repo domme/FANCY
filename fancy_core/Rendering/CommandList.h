@@ -22,6 +22,7 @@ namespace Fancy {
   class BlendState;
   class Shader;
   class GpuQueryHeap;
+  class Texture;
   //---------------------------------------------------------------------------//
   struct GraphicsPipelineState {
     GraphicsPipelineState();
@@ -125,24 +126,27 @@ namespace Fancy {
     virtual void     BeginMarkerRegion( const char * aName, uint aColor = UINT_MAX );
     virtual void     EndMarkerRegion();
 
-    void TransitionResource( const GpuResource * aResource, ResourceTransition aTransition, uint someUsageFlags = 0u );
-    virtual void TransitionResource( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
-                                     ResourceTransition aTransition, uint someUsageFlags = 0u ) = 0;
-
     uint         GetPrepareDescriptorIndex( const GpuResourceView * aView );
-    void         PrepareResourceShaderAccess( const GpuResourceView * aView );
-    virtual void PrepareResourceShaderAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
-                                              ShaderResourceAccess aTransition ) = 0;
-
-    void ResourceUAVbarrier( const GpuResource * aResource ) {
-      ResourceUAVbarrier( &aResource, 1u );
-    }
-
-    virtual void ResourceUAVbarrier( const GpuResource ** someResources = nullptr, uint aNumResources = 0u ) = 0;
 
     virtual void Close() = 0;
 
     virtual void FlushBarriers() = 0;
+
+    // Emits a D3D12 global barrier covering all resources.
+    // Use between any two dispatches/draws that share UAV-written data or render target writes.
+    // waitFor:  which pipeline stages to wait for before this barrier
+    // unblocks: which pipeline stages are unblocked after this barrier
+    // flush:    what caches to flush (ShaderWrite flushes L1->L2 after UAV writes,
+    //           RenderTargetWrite flushes ROP caches after render target writes)
+    virtual void GlobalBarrier( BarrierSyncScope waitFor, BarrierSyncScope unblocks, CacheFlush flush ) = 0;
+
+    // Emits a D3D12 texture barrier to transition a texture between physical layouts.
+    // Use only at render pass boundaries (e.g. RenderTarget->ShaderResource) or for presentation.
+    // Do NOT use for UAV->UAV same-layout hazards (use GlobalBarrier instead).
+    // fromUsage: the layout the texture is currently in
+    // toUsage:   the layout the texture needs to be in after this barrier
+    virtual void TextureBarrier( Texture * aTexture, TextureBarrierUsage aFromUsage, TextureBarrierUsage aToUsage ) = 0;
+
     void         PreExecute();
     virtual void PostExecute( uint64 aFenceVal );
     virtual void ResetAndOpen();
@@ -195,9 +199,6 @@ namespace Fancy {
 
     enum Consts {
       kNumCachedBarriers = 256,
-      kNumExpectedResourcesPerDispatch =
-          64,  // Mainly controls the hazard tracking data. TODO: Expose this in a better way - e.g. by making
-               // commandlists templated on the expected resource count
     };
 
     GpuQuery AllocateQuery( GpuQueryType aType );

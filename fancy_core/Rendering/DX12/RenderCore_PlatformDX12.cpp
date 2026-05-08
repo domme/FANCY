@@ -875,19 +875,29 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
   adapterType.make_lower();
 
   {
-    Microsoft::WRL::ComPtr< IDXGIFactory4 > dxgiFactory;
+    // IDXGIFactory6 enumerates adapters in GPU preference order.
+    // DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE puts the discrete dGPU first on Optimus / hybrid laptops.
+    Microsoft::WRL::ComPtr< IDXGIFactory6 > dxgiFactory;
     ASSERT_HRESULT( CreateDXGIFactory1( IID_PPV_ARGS( &dxgiFactory ) ) );
 
     uint            i = 0;
     IDXGIAdapter1 * adapter;
     eastl::string   defaultAdapterName;
-    while ( dxgiFactory->EnumAdapters1( i, &adapter ) != DXGI_ERROR_NOT_FOUND ) {
+    while ( dxgiFactory->EnumAdapterByGpuPreference( i, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
+                                                     IID_PPV_ARGS( &adapter ) ) != DXGI_ERROR_NOT_FOUND ) {
       DXGI_ADAPTER_DESC1 desc;
       adapter->GetDesc1( &desc );
+
+      // Skip software (WARP) adapters
+      if ( desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE ) {
+        ++i;
+        continue;
+      }
+
       eastl::string gpuName = StringUtil::ToNarrowString( desc.Description );
       LOG_INFO( "Found GPU %i: %s (dedicated VRAM: %i MB)", i, gpuName.c_str(), desc.DedicatedVideoMemory / SIZE_MB );
 
-      if ( i == 0 )
+      if ( defaultAdapterName.empty() )
         defaultAdapterName = gpuName;
 
       gpuName.make_lower();
@@ -965,6 +975,24 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
     LOG_INFO( "DXR Raytracing is supported with RT tier %i", ( int ) options.RaytracingTier );
   else
     LOG_INFO( "DXR Raytracing is NOT supported" );
+
+  D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12 = {};
+  result = ourDevice->CheckFeatureSupport( D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof( options12 ) );
+  if ( result != S_OK ) {
+    // D3D12_FEATURE_D3D12_OPTIONS12 is only recognised by the Agility SDK runtime. If result is
+    // E_INVALIDARG / DXGI_ERROR_UNSUPPORTED the inbox D3D12.dll is being used instead — check that
+    // D3D12Core.dll is next to the .exe and that D3D12SDKVersion / D3D12SDKPath are exported.
+    ASSERT( false, "CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12) failed (HRESULT 0x%08X). "
+                   "The Agility SDK may not be loading — verify D3D12Core.dll is in the same "
+                   "directory as the executable and that D3D12SDKVersion / D3D12SDKPath are "
+                   "exported from the main module.", result );
+  }
+  // EnhancedBarriersSupported requires the GPU driver to explicitly opt in.
+  // NVIDIA: driver >= 527.37 (Nov 2022). AMD: driver >= 22.11.1. Intel: driver >= 30.0.101.1191.
+  ASSERT( options12.EnhancedBarriersSupported,
+          "D3D12 Enhanced Barriers are not supported. Update your GPU driver: "
+          "NVIDIA >= 527.37 (Nov 2022), AMD >= 22.11.1, Intel >= 30.0.101.1191" );
+  LOG_INFO( "D3D12 Enhanced Barriers supported" );
 }
 //---------------------------------------------------------------------------//
 void RenderCore_PlatformDX12::BeginFrame() {

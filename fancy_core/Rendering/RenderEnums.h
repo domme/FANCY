@@ -264,7 +264,6 @@ namespace Fancy {
 
     NUM,
     UNKNOWN,
-    SHARED_READ
   };
   //---------------------------------------------------------------------------//
   enum class GpuQueryType {
@@ -291,14 +290,40 @@ namespace Fancy {
     SM_LATEST = SM_6_5,
   };
   //---------------------------------------------------------------------------//
-  enum class ResourceTransition {
-    TO_SHARED_CONTEXT_READ,  // Transition to all allowed read states on a subresource and mark it for being used
-                             // simultaneously on different queues
+  // Sync scope for GlobalBarrier: which pipeline stages to wait for / unblock.
+  //---------------------------------------------------------------------------//
+  enum class BarrierSyncScope {
+    None,        // D3D12_BARRIER_SYNC_NONE — no sync
+    Compute,     // D3D12_BARRIER_SYNC_COMPUTE_SHADING
+    Graphics,    // D3D12_BARRIER_SYNC_DRAW
+    AllShading,  // D3D12_BARRIER_SYNC_ALL_SHADING
+    Copy,        // D3D12_BARRIER_SYNC_COPY
+    All,         // D3D12_BARRIER_SYNC_ALL
   };
   //---------------------------------------------------------------------------//
-  enum class ResourceUsageFlags { SHADER_READ = 1 << 0, COPY_SRC = 1 << 1, DEPTH_STENCIL_READ = 1 << 2 };
+  // Cache flush scope for GlobalBarrier: what access types to make coherent.
   //---------------------------------------------------------------------------//
-  enum ShaderResourceAccess { SHADER_RESOURCE_ACCESS_SRV, SHADER_RESOURCE_ACCESS_UAV, SHADER_RESOURCE_ACCESS_RTAS };
+  enum class CacheFlush {
+    None,              // Execution-only sync — no cache invalidation
+    ShaderWrite,       // Flush L1 shader caches to L2 after UAV/shader writes
+    RenderTargetWrite, // Flush ROP / render target caches to L2
+  };
+  //---------------------------------------------------------------------------//
+  // Usage states for TextureBarrier: physical texture layout changes.
+  // Use sparingly — only at render-pass boundaries and for presentation.
+  //---------------------------------------------------------------------------//
+  enum class TextureBarrierUsage {
+    Undefined,      // Discard previous contents, no sync before
+    ShaderResource, // SRV read (queue-specific layout selected internally)
+    UAV,            // UAV read/write (queue-specific layout selected internally)
+    RenderTarget,   // Render target write
+    DepthWrite,     // Depth-stencil write
+    DepthRead,      // Depth-stencil read-only
+    Common,         // COMMON layout — valid for any queue and any access
+    Present,        // Present to swap chain (== COMMON layout numerically)
+    CopyDest,       // Copy destination (queue-specific layout selected internally)
+    CopySource,     // Copy source (queue-specific layout selected internally)
+  };
   //---------------------------------------------------------------------------//
   enum class VertexInputRate {
     PER_VERTEX = 0,

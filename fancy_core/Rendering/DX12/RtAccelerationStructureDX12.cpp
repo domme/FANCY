@@ -195,10 +195,9 @@ namespace Fancy {
     asBuildDesc.DestAccelerationStructureData = RenderCore::GetBuffer( myBuffer )->GetDeviceAddress();
     asBuildDesc.ScratchAccelerationStructureData = buildTempBuffer->GetDeviceAddress();
 
-    ID3D12GraphicsCommandList6 * dx12CmdList = static_cast< CommandListDX12 * >( cmdList )->GetDX12CommandList();
+    ID3D12GraphicsCommandList7 * dx12CmdList = static_cast< CommandListDX12 * >( cmdList )->GetDX12CommandList();
     dx12CmdList->BuildRaytracingAccelerationStructure( &asBuildDesc, 0, nullptr );
-    const GpuResource * res = RenderCore::GetBuffer( myBuffer );
-    cmdList->ResourceUAVbarrier( &res, 1 );
+    cmdList->GlobalBarrier( BarrierSyncScope::AllShading, BarrierSyncScope::AllShading, CacheFlush::ShaderWrite );
     RenderCore::ExecuteAndFreeCommandList( cmdList, SyncMode::BLOCKING );
     RenderCore::DeleteBuffer( buildTempBufferHandle );
 

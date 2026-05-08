@@ -11,6 +11,7 @@
 #include "AdapterDX12.h"
 #include "GpuResourceDataDX12.h"
 #include "GpuResourceViewDataDX12.h"
+#include "BarrierUtilsDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -100,42 +101,12 @@ namespace Fancy {
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
       if ( myProperties.myIsRenderTarget )
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+      if ( myProperties.myAllowCrossQueueAccess )
+        resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
     }
-
-    D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
-                                          D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE |
-                                          D3D12_RESOURCE_STATE_COPY_SOURCE;
-    D3D12_RESOURCE_STATES initialStates = readStateMask;
-    D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
-    if ( myProperties.myIsShaderWritable )
-      writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    if ( myProperties.bIsDepthStencil ) {
-      writeStateMask |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
-      readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
-      initialStates = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-    } else if ( myProperties.myIsRenderTarget ) {
-      writeStateMask |= D3D12_RESOURCE_STATE_RENDER_TARGET;
-      initialStates = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    }
-
-    // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier
-    const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
-    if ( hasInitData )
-      initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
 
     mySubresources =
         SubresourceRange( 0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes );
-
-    GpuSubresourceHazardDataDX12 subHazardData;
-    subHazardData.myContext = CommandListType::Graphics;
-    subHazardData.myStates = initialStates;
-
-    GpuResourceHazardDataDX12 * hazardData = &dataDx12.myHazardData;
-    *hazardData = GpuResourceHazardDataDX12();
-    hazardData->mySubresources.resize( mySubresources.GetNumSubresources(), subHazardData );
-    hazardData->myReadStates = readStateMask;
-    hazardData->myWriteStates = writeStateMask;
-    hazardData->myAllSubresourcesSameStates = true;
 
     const bool useOptimizeClearValue = ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ) != 0u ||
                                        ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL ) != 0u;
@@ -164,7 +135,9 @@ namespace Fancy {
     ASSERT( gpuMemory.myHeap != nullptr );
 
     const uint64 alignedHeapOffset = MathUtil::Align( gpuMemory.myOffsetInHeap, allocInfo.Alignment );
-    ASSERT_HRESULT( device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates,
+    // Enhanced Barriers: always create resources in COMMON state; initial layout is tracked in hazard data
+    ASSERT_HRESULT( device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc,
+                                                  D3D12_RESOURCE_STATE_COMMON,
                                                   useOptimizeClearValue ? &clearValue : nullptr,
                                                   IID_PPV_ARGS( &dataDx12.myResource ) ) );
     dataDx12.myGpuMemory = gpuMemory;
@@ -187,7 +160,7 @@ namespace Fancy {
 
     myDx12Data = dataDx12;
 
-    if ( hasInitData ) {
+    if ( someInitialDatas != nullptr && aNumInitialDatas > 0u ) {
       InitTextureData( someInitialDatas, aNumInitialDatas );
     }
   }

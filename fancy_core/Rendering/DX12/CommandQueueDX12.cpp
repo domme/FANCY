@@ -9,6 +9,7 @@
 #include "CommandListDX12.h"
 #include "GpuResourceDataDX12.h"
 #include "DebugUtilsDX12.h"
+#include "BarrierUtilsDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -74,8 +75,6 @@ namespace Fancy {
     ASSERT( aCommandList->GetType() == myType );
     ASSERT( aCommandList->IsOpen() );
 
-    ResolveResourceHazardData( aCommandList );
-
     aCommandList->Close();
 
     CommandListDX12 *   contextDx12 = ( CommandListDX12 * ) aCommandList;
@@ -95,111 +94,6 @@ namespace Fancy {
     const uint64 fenceVal = ExecuteCommandListInternal( aContext, aSyncMode );
     aContext->ResetAndOpen();
     return fenceVal;
-  }
-  //---------------------------------------------------------------------------//
-  void CommandQueueDX12::ResolveResourceHazardData( CommandList * aCommandList ) {
-    eastl::fixed_vector< D3D12_RESOURCE_BARRIER, 64 > patchingBarriers;
-
-    CommandListDX12 * cmdListDx12 = static_cast< CommandListDX12 * >( aCommandList );
-
-    for ( auto it : cmdListDx12->myLocalHazardData ) {
-      const GpuResource * resource = it.first;
-
-      GpuResourceHazardDataDX12 &              globalHazardData = resource->GetDX12Data()->myHazardData;
-      const CommandListDX12::LocalHazardData & localHazardData = it.second;
-      ASSERT( globalHazardData.mySubresources.size() == localHazardData.mySubresources.size() );
-
-      eastl::fixed_vector< D3D12_RESOURCE_BARRIER, 64 > subresourceTransitions;
-      for ( uint subIdx = 0u; subIdx < ( uint ) localHazardData.mySubresources.size(); ++subIdx ) {
-        GpuSubresourceHazardDataDX12 &                 globalSubData = globalHazardData.mySubresources[ subIdx ];
-        const CommandListDX12::SubresourceHazardData & localSubData = localHazardData.mySubresources[ subIdx ];
-
-        if ( !localSubData.myWasUsed )
-          continue;
-
-        const D3D12_RESOURCE_STATES oldGlobalStates = globalSubData.myStates;
-
-        if ( localSubData.myIsSharedReadState ) {
-          ASSERT( !localSubData.myWasWritten );
-          globalSubData.myContext = CommandListType::SHARED_READ;
-        }
-
-        globalSubData.myStates = localSubData.myStates;
-        if ( localSubData.myWasWritten )
-          globalSubData.myContext = aCommandList->GetType();
-
-        if ( oldGlobalStates == localSubData.myFirstDstStates ) {
-#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          if ( RenderCore::ourDebugLogResourceBarriers )
-            LOG_DEBUG( "Patching subresource transition: %s (subresource %d): No transition needed (global state %s == "
-                       "first dst state on commandlist %s)",
-                       resource->GetName(), subIdx, DebugUtilsDX12::ResourceStatesToString( oldGlobalStates ).c_str(),
-                       DebugUtilsDX12::ResourceStatesToString( localSubData.myFirstDstStates ).c_str() );
-#endif
-          continue;
-        }
-
-        D3D12_RESOURCE_BARRIER barrier = {};
-        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Transition.StateBefore = oldGlobalStates;
-        barrier.Transition.StateAfter = localSubData.myFirstDstStates;
-        barrier.Transition.Subresource = subIdx;
-        barrier.Transition.pResource = resource->GetDX12Data()->myResource.Get();
-
-#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-        if ( RenderCore::ourDebugLogResourceBarriers )
-          LOG_DEBUG( "Patching subresource transition: %s (subresource %d): %s -> %s", resource->GetName(), subIdx,
-                     DebugUtilsDX12::ResourceStatesToString( barrier.Transition.StateBefore ).c_str(),
-                     DebugUtilsDX12::ResourceStatesToString( barrier.Transition.StateAfter ).c_str() );
-#endif
-
-        subresourceTransitions.push_back( barrier );
-      }
-
-      if ( !subresourceTransitions.empty() ) {
-        bool canTransitionAllSubresources =
-            ( uint ) subresourceTransitions.size() == globalHazardData.mySubresources.size();
-        if ( canTransitionAllSubresources ) {
-          const D3D12_RESOURCE_BARRIER & firstBarrier = subresourceTransitions.front();
-          for ( uint i = 1u; canTransitionAllSubresources && i < ( uint ) subresourceTransitions.size(); ++i ) {
-            canTransitionAllSubresources &=
-                firstBarrier.Transition.StateBefore == subresourceTransitions[ i ].Transition.StateBefore &&
-                firstBarrier.Transition.StateAfter == subresourceTransitions[ i ].Transition.StateAfter;
-          }
-        }
-
-        if ( canTransitionAllSubresources ) {
-          D3D12_RESOURCE_BARRIER barrier = subresourceTransitions.front();
-          barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-          patchingBarriers.push_back( barrier );
-        } else {
-          patchingBarriers.reserve( patchingBarriers.size() + subresourceTransitions.size() );
-          for ( uint i = 0u; i < subresourceTransitions.size(); ++i )
-            patchingBarriers.push_back( subresourceTransitions[ i ] );
-        }
-
-        bool                  allSubresourcesSameState = true;
-        D3D12_RESOURCE_STATES firstState = globalHazardData.mySubresources[ 0 ].myStates;
-        CommandListType       firstContext = globalHazardData.mySubresources[ 0 ].myContext;
-        for ( uint subIdx = 1u; allSubresourcesSameState && subIdx < globalHazardData.mySubresources.size(); ++subIdx )
-          allSubresourcesSameState &= ( firstState == globalHazardData.mySubresources[ subIdx ].myStates &&
-                                        firstContext == globalHazardData.mySubresources[ subIdx ].myContext );
-
-        globalHazardData.myAllSubresourcesSameStates = allSubresourcesSameState;
-      }
-    }
-
-    if ( !patchingBarriers.empty() ) {
-      CommandList *     ctx = RenderCore::BeginCommandList( myType );
-      CommandListDX12 * ctxDx12 = static_cast< CommandListDX12 * >( ctx );
-
-      for ( uint i = 0u; i < patchingBarriers.size(); ++i )
-        ctxDx12->AddBarrier( patchingBarriers[ i ] );
-
-      ctxDx12->FlushBarriers();
-
-      ExecuteAndFreeCommandList( ctx );
-    }
   }
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

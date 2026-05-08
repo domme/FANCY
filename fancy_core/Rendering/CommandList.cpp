@@ -296,34 +296,8 @@ namespace Fancy {
     --myMarkerRegionStackDepth;
   }
   //---------------------------------------------------------------------------//
-  void CommandList::TransitionResource( const GpuResource * aResource, ResourceTransition aTransition,
-                                        uint someUsageFlags /* = 0u */ ) {
-    TransitionResource( aResource, aResource->GetSubresources(), aTransition, someUsageFlags );
-  }
-  //---------------------------------------------------------------------------//
   uint CommandList::GetPrepareDescriptorIndex( const GpuResourceView * aView ) {
-    PrepareResourceShaderAccess( aView );
     return aView->GetGlobalDescriptorIndex();
-  }
-  //---------------------------------------------------------------------------//
-  void CommandList::PrepareResourceShaderAccess( const GpuResourceView * aView ) {
-    ShaderResourceAccess access = SHADER_RESOURCE_ACCESS_SRV;
-    ;
-    switch ( aView->myType ) {
-      case GpuResourceViewType::SRV:
-        access = SHADER_RESOURCE_ACCESS_SRV;
-        break;
-      case GpuResourceViewType::SRV_RT_AS:
-        access = SHADER_RESOURCE_ACCESS_RTAS;
-        break;
-      case GpuResourceViewType::UAV:
-        access = SHADER_RESOURCE_ACCESS_UAV;
-        break;
-      default:
-        ASSERT( false, "Incompatible of unsupported resource view type" );
-    }
-
-    PrepareResourceShaderAccess( aView->GetResource(), aView->GetSubresourceRange(), access );
   }
   //---------------------------------------------------------------------------//
   void CommandList::PreExecute() {

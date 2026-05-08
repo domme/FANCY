@@ -67,7 +67,7 @@ namespace Fancy {
 
     void InitNullDescriptors();
 
-    ID3D12Device8 * GetDevice() const {
+    ID3D12Device10 * GetDevice() const {
       return ourDevice.Get();
     }
 
@@ -126,7 +126,7 @@ namespace Fancy {
 
     CommandQueueDX12 * GetCommandQueueDX12( CommandListType aCommandListType );
 
-    Microsoft::WRL::ComPtr< ID3D12Device8 > ourDevice;
+    Microsoft::WRL::ComPtr< ID3D12Device10 > ourDevice;
 
     UniquePtr< StaticDescriptorAllocatorDX12 >   myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
     UniquePtr< ShaderVisibleDescriptorHeapDX12 > myShaderVisibleDescriptorHeap;

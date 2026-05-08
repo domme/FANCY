@@ -9,6 +9,7 @@
 #include "RenderCore_PlatformDX12.h"
 #include "GpuResourceDataDX12.h"
 #include "GpuResourceViewDataDX12.h"
+#include "BarrierUtilsDX12.h"
 
 #if FANCY_ENABLE_DX12
 
@@ -64,56 +65,14 @@ namespace Fancy {
     resourceDesc.Flags =
         someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
-    D3D12_RESOURCE_STATES readStateMask =
-        D3D12_RESOURCE_STATE_GENERIC_READ | D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-    D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
-    if ( someProperties.myIsShaderWritable )
-      writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    // Upload/Readback buffers don't participate in Enhanced Barriers — keep legacy initial states.
+    // Default-heap buffers are created in COMMON state (Enhanced Barriers handles the rest).
+    D3D12_RESOURCE_STATES legacyInitialState = D3D12_RESOURCE_STATE_COMMON;
 
-    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::VERTEX_BUFFER ) &&
-         !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::CONSTANT_BUFFER ) )
-      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::INDEX_BUFFER ) )
-      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_INDEX_BUFFER;
-    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::SHADER_BUFFER ) ) {
-      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-
-      if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_SHADER_BINDING_TABLE ) )
-        readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    }
-    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE ) )
-      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-
-    // In most cases, UAV resources will directly be used as such so start with that as an initial state
-    D3D12_RESOURCE_STATES initialStates = someProperties.myIsShaderWritable
-                                              ? D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-                                              : ( D3D12_RESOURCE_STATE_GENERIC_READ & readStateMask ) & writeStateMask;
-    bool                  canChangeStates = true;
-    if ( someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE )  // Upload heap
-    {
-      canChangeStates = false;
-      initialStates = D3D12_RESOURCE_STATE_GENERIC_READ;
-    } else if ( someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ )  // Readback heap
-    {
-      canChangeStates = false;
-      initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
-    }
-
-    if ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE ) {
-      initialStates = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-      writeStateMask |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-    }
-
-    GpuSubresourceHazardDataDX12 subHazardData;
-    subHazardData.myContext = CommandListType::Graphics;
-    subHazardData.myStates = initialStates;
-
-    GpuResourceHazardDataDX12 * hazardData = &dataDx12.myHazardData;
-    *hazardData = GpuResourceHazardDataDX12();
-    hazardData->myCanChangeStates = canChangeStates;
-    hazardData->mySubresources.push_back( subHazardData );
-    hazardData->myReadStates = readStateMask;
-    hazardData->myWriteStates = writeStateMask;
+    if ( someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE )
+      legacyInitialState = D3D12_RESOURCE_STATE_GENERIC_READ;
+    else if ( someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ )
+      legacyInitialState = D3D12_RESOURCE_STATE_COPY_DEST;
 
     mySubresources = SubresourceRange( 0u, 1u, 0u, 1u, 0u, 1u );
 
@@ -125,8 +84,10 @@ namespace Fancy {
     ASSERT( gpuMemory.myHeap != nullptr );
 
     const uint64 alignedHeapOffset = MathUtil::Align( gpuMemory.myOffsetInHeap, myAlignment );
-    ASSERT_HRESULT( device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates,
-                                                  nullptr, IID_PPV_ARGS( &dataDx12.myResource ) ) );
+    // Enhanced Barriers: default-heap buffers created with COMMON; upload/readback keep their legacy initial state
+    ASSERT_HRESULT( device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc,
+                                                  legacyInitialState, nullptr,
+                                                  IID_PPV_ARGS( &dataDx12.myResource ) ) );
 
     eastl::wstring wName = StringUtil::ToWideString( myName );
     dataDx12.myResource->SetName( wName.c_str() );

@@ -250,6 +250,8 @@ namespace Fancy {
       GPU_BEGIN_PROFILE_FUNCTION_TAG( ctx, ANNTAG_IMGUI );
 
       ctx->SetViewport( glm::uvec4( 0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y ) );
+      ctx->TextureBarrier( RenderCore::GetRenderOutput( ourRenderOutput )->GetBackbuffer(),
+                           TextureBarrierUsage::Present, TextureBarrierUsage::RenderTarget );
       ctx->SetRenderTarget( RenderCore::GetRenderOutput( ourRenderOutput )->GetBackbufferRtv(), nullptr );
       ctx->SetDepthStencilState( RenderCore::GetDepthStencilState( ourDepthStencilState ) );
       ctx->SetBlendState( RenderCore::GetBlendState( ourBlendState ) );
@@ -293,8 +295,6 @@ namespace Fancy {
             if ( textureId != nullptr )
               textureView = static_cast< const GpuResourceView * >( textureId );
 
-            ctx->PrepareResourceShaderAccess( textureView );
-
             cbuffer.myTextureIndex = textureView->GetGlobalDescriptorIndex();
             ctx->BindConstantBuffer( &cbuffer, sizeof( cbuffer ), 0 );
 
@@ -309,6 +309,8 @@ namespace Fancy {
       }
 
       GPU_END_PROFILE( ctx );
+      ctx->TextureBarrier( RenderCore::GetRenderOutput( ourRenderOutput )->GetBackbuffer(),
+                           TextureBarrierUsage::RenderTarget, TextureBarrierUsage::Present );
       RenderCore::ExecuteAndFreeCommandList( ctx );
     }
 

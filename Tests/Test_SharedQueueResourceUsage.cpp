@@ -65,9 +65,8 @@ void Test_SharedQueueResourceUsage::OnUpdate( bool aDrawProperties ) {
 
   cbuf.myDstBufferIndex = myBufferWrite->GetGlobalDescriptorIndex();
   graphicsContext->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-  graphicsContext->PrepareResourceShaderAccess( myBufferWrite.get() );
   graphicsContext->Dispatch( glm::int3( kNumBufferElements, 1, 1 ) );
-  graphicsContext->TransitionResource( myBuffer.get(), ResourceTransition::TO_SHARED_CONTEXT_READ );
+  graphicsContext->GlobalBarrier( BarrierSyncScope::AllShading, BarrierSyncScope::All, CacheFlush::ShaderWrite );
   const uint64 setValueFence = RenderCore::ExecuteAndFreeCommandList( graphicsContext );
 
   GpuBufferResourceProperties props;
@@ -84,11 +83,9 @@ void Test_SharedQueueResourceUsage::OnUpdate( bool aDrawProperties ) {
   cbuf.mySrcBufferIndex = myBufferRead->GetGlobalDescriptorIndex();
   cbuf.myDstBufferIndex = tempBuffer.myWriteView->GetGlobalDescriptorIndex();
   computeContext->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-  computeContext->PrepareResourceShaderAccess( myBufferRead.get() );
-  computeContext->PrepareResourceShaderAccess( tempBuffer.myWriteView );
   computeContext->Dispatch( glm::int3( kNumBufferElements, 1, 1 ) );
 
-  computeContext->ResourceUAVbarrier();
+  computeContext->GlobalBarrier( BarrierSyncScope::AllShading, BarrierSyncScope::AllShading, CacheFlush::ShaderWrite );
 
   computeContext->CopyBuffer( tempBuffer.myBuffer, 0u, myBuffer.get(), 0u, sizeof( uint ) * kNumBufferElements );
 

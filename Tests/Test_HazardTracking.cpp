@@ -90,8 +90,6 @@ void Test_HazardTracking::OnUpdate( bool aDrawProperties ) {
     cBuffer cbuf = { myBufferRead[ i ]->GetGlobalDescriptorIndex(), myTexMipWrite[ i ]->GetGlobalDescriptorIndex() };
     ctx->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
 
-    ctx->PrepareResourceShaderAccess( myBufferRead[ i ].get() );
-    ctx->PrepareResourceShaderAccess( myTexMipWrite[ i ].get() );
     ctx->Dispatch( dispatchSizes[ i ] );
   }
 
@@ -102,8 +100,6 @@ void Test_HazardTracking::OnUpdate( bool aDrawProperties ) {
 
     cBuffer cbuf = { myBufferWrite[ i ]->GetGlobalDescriptorIndex(), myTexMipRead[ i ]->GetGlobalDescriptorIndex() };
     ctx->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-    ctx->PrepareResourceShaderAccess( myTexMipRead[ i ].get() );
-    ctx->PrepareResourceShaderAccess( myBufferWrite[ i ].get() );
     ctx->Dispatch( dispatchSizes[ i ] );
   }
 

@@ -280,10 +280,8 @@ void RenderCore::ComputeMipmaps( TextureHandle aTextureHandle ) {
     cBuffer.myDstTextureIdx = writeView->GetGlobalDescriptorIndex();
     cBuffer.mySrcTextureSize = glm::int2( ( int ) srcSize.x, ( int ) srcSize.y );
     ctx->BindConstantBuffer( &cBuffer, sizeof( cBuffer ), 0 );
-    ctx->PrepareResourceShaderAccess( readView );
-    ctx->PrepareResourceShaderAccess( writeView );
     ctx->Dispatch( glm::int3( dstSize.x, dstSize.y, 1 ) );
-    ctx->ResourceUAVbarrier();
+    ctx->GlobalBarrier( BarrierSyncScope::AllShading, BarrierSyncScope::AllShading, CacheFlush::ShaderWrite );
   }
 
   if ( aTextureHandle != textureHandle )

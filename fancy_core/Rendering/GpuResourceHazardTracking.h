@@ -4,14 +4,8 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
-  struct GpuResourceHazardTrackingDX12 {
-    // Uints are D3D12_RESOURCE_STATES
-    uint            myReadStates;
-    uint            myWriteStates;
-    uint            myState;
-    CommandListType myContext;
-  };
-  //---------------------------------------------------------------------------//
+  // Note: DX12 uses explicit programmer-driven GlobalBarrier / TextureBarrier calls (see CommandList.h).
+  // This struct is kept for Vulkan path parity and potential future use.
   struct GpuResourceHazardTrackingVk {
     // Uints are VkAccessFlags
     uint         myReadAccessMask;
@@ -20,15 +14,6 @@ namespace Fancy {
     mutable bool myHasInitialImageLayout;  // True if the image has never been used in a resourceBarrier and still has
                                            // its initial layout from creation.
     uint myInitialImageLayout;             // Initial layout given to an image upon creation.
-  };
-  //---------------------------------------------------------------------------//
-  struct GpuResourceHazardData {
-    bool myCanChangeStates = true;
-
-    union {
-      GpuResourceHazardTrackingDX12 myDx12Data;
-      GpuResourceHazardTrackingVk   myVkData;
-    };
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

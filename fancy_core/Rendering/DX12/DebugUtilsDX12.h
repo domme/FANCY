@@ -7,7 +7,9 @@
 
 namespace Fancy {
   namespace DebugUtilsDX12 {
-    eastl::string ResourceStatesToString( D3D12_RESOURCE_STATES aStates );
+    eastl::string BarrierLayoutToString( D3D12_BARRIER_LAYOUT aLayout );
+    eastl::string BarrierAccessToString( D3D12_BARRIER_ACCESS anAccess );
+    eastl::string BarrierSyncToString( D3D12_BARRIER_SYNC aSync );
   }
 }  // namespace Fancy
 
