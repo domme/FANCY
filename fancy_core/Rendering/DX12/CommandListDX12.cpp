@@ -44,29 +44,49 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
     D3D12_BARRIER_SYNC locResolveBarrierSyncScope( BarrierSyncScope aScope ) {
       switch ( aScope ) {
-        case BarrierSyncScope::None:       return D3D12_BARRIER_SYNC_NONE;
-        case BarrierSyncScope::Compute:    return D3D12_BARRIER_SYNC_COMPUTE_SHADING;
-        case BarrierSyncScope::Graphics:   return D3D12_BARRIER_SYNC_DRAW;
-        case BarrierSyncScope::AllShading: return D3D12_BARRIER_SYNC_ALL_SHADING;
-        case BarrierSyncScope::Copy:       return D3D12_BARRIER_SYNC_COPY;
-        case BarrierSyncScope::All:        return D3D12_BARRIER_SYNC_ALL;
-        default: ASSERT( false ); return D3D12_BARRIER_SYNC_ALL;
+        case BarrierSyncScope::None:
+          return D3D12_BARRIER_SYNC_NONE;
+        case BarrierSyncScope::Compute:
+          return D3D12_BARRIER_SYNC_COMPUTE_SHADING;
+        case BarrierSyncScope::Graphics:
+          return D3D12_BARRIER_SYNC_DRAW;
+        case BarrierSyncScope::AllShading:
+          return D3D12_BARRIER_SYNC_ALL_SHADING;
+        case BarrierSyncScope::Copy:
+          return D3D12_BARRIER_SYNC_COPY;
+        case BarrierSyncScope::All:
+          return D3D12_BARRIER_SYNC_ALL;
+        default:
+          ASSERT( false );
+          return D3D12_BARRIER_SYNC_ALL;
       }
     }
     //---------------------------------------------------------------------------//
     D3D12_BARRIER_LAYOUT locResolveTextureLayout( TextureLayout aLayout, CommandListType aCommandListType ) {
       switch ( aLayout ) {
-        case TextureLayout::Undefined:      return D3D12_BARRIER_LAYOUT_UNDEFINED;
-        case TextureLayout::ShaderResource: return BarrierUtilsDX12::GetShaderResourceLayout( aCommandListType );
-        case TextureLayout::UAV:            return BarrierUtilsDX12::GetUAVLayout( aCommandListType );
-        case TextureLayout::RenderTarget:   return D3D12_BARRIER_LAYOUT_RENDER_TARGET;
-        case TextureLayout::DepthWrite:     return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE;
-        case TextureLayout::DepthRead:      return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ;
-        case TextureLayout::Common:         return D3D12_BARRIER_LAYOUT_COMMON;
-        case TextureLayout::Present:        return D3D12_BARRIER_LAYOUT_PRESENT;
-        case TextureLayout::CopyDest:       return BarrierUtilsDX12::GetCopyDestLayout( aCommandListType );
-        case TextureLayout::CopySource:     return BarrierUtilsDX12::GetCopySourceLayout( aCommandListType );
-        default: ASSERT( false );           return D3D12_BARRIER_LAYOUT_UNDEFINED;
+        case TextureLayout::Undefined:
+          return D3D12_BARRIER_LAYOUT_UNDEFINED;
+        case TextureLayout::ShaderResource:
+          return BarrierUtilsDX12::GetShaderResourceLayout( aCommandListType );
+        case TextureLayout::UAV:
+          return BarrierUtilsDX12::GetUAVLayout( aCommandListType );
+        case TextureLayout::RenderTarget:
+          return D3D12_BARRIER_LAYOUT_RENDER_TARGET;
+        case TextureLayout::DepthWrite:
+          return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE;
+        case TextureLayout::DepthRead:
+          return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ;
+        case TextureLayout::Common:
+          return D3D12_BARRIER_LAYOUT_COMMON;
+        case TextureLayout::Present:
+          return D3D12_BARRIER_LAYOUT_PRESENT;
+        case TextureLayout::CopyDest:
+          return BarrierUtilsDX12::GetCopyDestLayout( aCommandListType );
+        case TextureLayout::CopySource:
+          return BarrierUtilsDX12::GetCopySourceLayout( aCommandListType );
+        default:
+          ASSERT( false );
+          return D3D12_BARRIER_LAYOUT_UNDEFINED;
       }
     }
     //---------------------------------------------------------------------------//
@@ -80,8 +100,8 @@ namespace Fancy {
 
     D3D12_COMMAND_LIST_TYPE nativeCmdListType = locResolveCommandListType( aCommandListType );
 
-    ASSERT_HRESULT( RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandList(
-        0, nativeCmdListType, myCommandAllocator, nullptr, IID_PPV_ARGS( &myCommandList ) ) );
+    ASSERT_HRESULT(
+        RenderCore::GetPlatformDX12()->GetDevice()->CreateCommandList( 0, nativeCmdListType, myCommandAllocator, nullptr, IID_PPV_ARGS( &myCommandList ) ) );
 
     PrepareForRecord( false );
   }
@@ -122,43 +142,36 @@ namespace Fancy {
     const ShaderVisibleDescriptorHeapDX12 * shaderVisibleHeap = platformDx12->GetShaderVisibleDescriptorHeap();
 
     // We only use one shader-visible descriptor heap per type, so just bind them up-front
-    ID3D12DescriptorHeap * shaderVisibleHeaps[] = { shaderVisibleHeap->GetResourceHeap(),
-                                                    shaderVisibleHeap->GetSamplerHeap() };
+    ID3D12DescriptorHeap * shaderVisibleHeaps[] = { shaderVisibleHeap->GetResourceHeap(), shaderVisibleHeap->GetSamplerHeap() };
     myCommandList->SetDescriptorHeaps( ARRAY_LENGTH( shaderVisibleHeaps ), shaderVisibleHeaps );
 
     // Set the root signature up front since we only use one
     const RootSignatureDX12 * rootSignature = platformDx12->GetRootSignature();
     if ( myCommandListType == CommandListType::Graphics || myCommandListType == CommandListType::Compute ) {
       myCommandList->SetComputeRootSignature( rootSignature->GetRootSignature() );
-      myCommandList->SetComputeRootDescriptorTable( rootSignature->myRootParamIndex_GlobalResources,
-                                                    shaderVisibleHeap->GetResourceHeapStart() );
-      myCommandList->SetComputeRootDescriptorTable( rootSignature->myRootParamIndex_GlobalSamplers,
-                                                    shaderVisibleHeap->GetSamplerHeapStart() );
+      myCommandList->SetComputeRootDescriptorTable( rootSignature->myRootParamIndex_GlobalResources, shaderVisibleHeap->GetResourceHeapStart() );
+      myCommandList->SetComputeRootDescriptorTable( rootSignature->myRootParamIndex_GlobalSamplers, shaderVisibleHeap->GetSamplerHeapStart() );
     }
 
     if ( myCommandListType == CommandListType::Graphics ) {
       myCommandList->SetGraphicsRootSignature( rootSignature->GetRootSignature() );
-      myCommandList->SetGraphicsRootDescriptorTable( rootSignature->myRootParamIndex_GlobalResources,
-                                                     shaderVisibleHeap->GetResourceHeapStart() );
-      myCommandList->SetGraphicsRootDescriptorTable( rootSignature->myRootParamIndex_GlobalSamplers,
-                                                     shaderVisibleHeap->GetSamplerHeapStart() );
+      myCommandList->SetGraphicsRootDescriptorTable( rootSignature->myRootParamIndex_GlobalResources, shaderVisibleHeap->GetResourceHeapStart() );
+      myCommandList->SetGraphicsRootDescriptorTable( rootSignature->myRootParamIndex_GlobalSamplers, shaderVisibleHeap->GetSamplerHeapStart() );
     }
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::UpdateSubresources( ID3D12Resource * aDstResource, ID3D12Resource * aStagingResource,
-                                            uint aFirstSubresourceIndex, uint aNumSubresources,
-                                            D3D12_SUBRESOURCE_DATA * someSubresourceDatas ) {
+  void CommandListDX12::UpdateSubresources( ID3D12Resource * aDstResource, ID3D12Resource * aStagingResource, uint aFirstSubresourceIndex,
+                                            uint aNumSubresources, D3D12_SUBRESOURCE_DATA * someSubresourceDatas ) {
     D3D12_RESOURCE_DESC srcDesc = aStagingResource->GetDesc();
     D3D12_RESOURCE_DESC destDesc = aDstResource->GetDesc();
 
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT * destLayouts = static_cast< D3D12_PLACED_SUBRESOURCE_FOOTPRINT * >(
-        alloca( sizeof( D3D12_PLACED_SUBRESOURCE_FOOTPRINT ) * aNumSubresources ) );
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT * destLayouts =
+        static_cast< D3D12_PLACED_SUBRESOURCE_FOOTPRINT * >( alloca( sizeof( D3D12_PLACED_SUBRESOURCE_FOOTPRINT ) * aNumSubresources ) );
     uint64 * destRowSizesByte = static_cast< uint64 * >( alloca( sizeof( uint64 ) * aNumSubresources ) );
     uint *   destRowNums = static_cast< uint * >( alloca( sizeof( uint ) * aNumSubresources ) );
 
     uint64 destTotalSizeBytes = 0u;
-    RenderCore::GetPlatformDX12()->GetDevice()->GetCopyableFootprints( &destDesc, aFirstSubresourceIndex,
-                                                                       aNumSubresources, 0u, destLayouts, destRowNums,
+    RenderCore::GetPlatformDX12()->GetDevice()->GetCopyableFootprints( &destDesc, aFirstSubresourceIndex, aNumSubresources, 0u, destLayouts, destRowNums,
                                                                        destRowSizesByte, &destTotalSizeBytes );
 
     FlushBarriers();
@@ -193,8 +206,7 @@ namespace Fancy {
 
     // Copy from the temp staging buffer to the destination resource (could be buffer or texture)
     if ( destDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER ) {
-      myCommandList->CopyBufferRegion( aDstResource, 0, aStagingResource, destLayouts[ 0 ].Offset,
-                                       destLayouts[ 0 ].Footprint.Width );
+      myCommandList->CopyBufferRegion( aDstResource, 0, aStagingResource, destLayouts[ 0 ].Offset, destLayouts[ 0 ].Footprint.Width );
     } else {
       for ( uint i = 0u; i < aNumSubresources; ++i ) {
         D3D12_TEXTURE_COPY_LOCATION destCopyLocation;
@@ -222,8 +234,7 @@ namespace Fancy {
     myCommandList->ClearRenderTargetView( viewDataDx12.myDescriptor.myCpuHandle, aColor, 0, nullptr );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::ClearDepthStencilTarget( TextureView * aTextureView, float aDepthClear, uint8 aStencilClear,
-                                                 uint someClearFlags ) {
+  void CommandListDX12::ClearDepthStencilTarget( TextureView * aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags ) {
     const GpuResourceViewDataDX12 & viewDataDx12 = aTextureView->myDX12Data;
     ASSERT( aTextureView->myType == GpuResourceViewType::DSV );
 
@@ -240,13 +251,11 @@ namespace Fancy {
       ASSERT( subresources.myFirstPlane == 0, "The texture view doesn't cover the depth plane" );
     } else if ( clearStencil && !clearDepth ) {
       ASSERT( formatInfo.myNumPlanes == 2 );
-      ASSERT( subresources.myFirstPlane + subresources.myNumPlanes >= 2,
-              "The texture view doesn't cover the stencil plane" );
+      ASSERT( subresources.myFirstPlane + subresources.myNumPlanes >= 2, "The texture view doesn't cover the stencil plane" );
     } else {
       ASSERT( formatInfo.myNumPlanes == 2 );
       ASSERT( subresources.myFirstPlane == 0, "The texture view doesn't cover the depth plane" );
-      ASSERT( subresources.myFirstPlane + subresources.myNumPlanes >= 2,
-              "The texture view doesn't cover the stencil plane" );
+      ASSERT( subresources.myFirstPlane + subresources.myNumPlanes >= 2, "The texture view doesn't cover the stencil plane" );
     }
 
     FlushBarriers();
@@ -257,8 +266,7 @@ namespace Fancy {
     if ( someClearFlags & ( uint ) DepthStencilClearFlags::CLEAR_STENCIL )
       clearFlags |= D3D12_CLEAR_FLAG_STENCIL;
 
-    myCommandList->ClearDepthStencilView( viewDataDx12.myDescriptor.myCpuHandle, clearFlags, aDepthClear, aStencilClear,
-                                          0, nullptr );
+    myCommandList->ClearDepthStencilView( viewDataDx12.myDescriptor.myCpuHandle, clearFlags, aDepthClear, aStencilClear, 0, nullptr );
   }
   //---------------------------------------------------------------------------//
   void CommandListDX12::CopyResource( GpuResource * aDstResource, GpuResource * aSrcResource ) {
@@ -270,8 +278,7 @@ namespace Fancy {
     myCommandList->CopyResource( destData->myResource.Get(), srcData->myResource.Get() );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const GpuBuffer * aSrcBuffer,
-                                    uint64 aSrcOffset, uint64 aSize ) {
+  void CommandListDX12::CopyBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const GpuBuffer * aSrcBuffer, uint64 aSrcOffset, uint64 aSize ) {
     ASSERT( aDstBuffer != aSrcBuffer, "Copying within the same buffer is not supported (same subresource)" );
 
 #if FANCY_RENDERER_USE_VALIDATION
@@ -286,12 +293,10 @@ namespace Fancy {
     myCommandList->CopyBufferRegion( dstResource, aDstOffset, srcResource, aSrcOffset, aSize );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset,
-                                             const Texture * aSrcTexture, const SubresourceLocation & aSrcSubresource,
-                                             const TextureRegion & aSrcRegion ) {
+  void CommandListDX12::CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture,
+                                             const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) {
 #if FANCY_RENDERER_USE_VALIDATION
-    ValidateTextureToBufferCopy( aDstBuffer->GetProperties(), aDstOffset, aSrcTexture->GetProperties(), aSrcSubresource,
-                                 aSrcRegion );
+    ValidateTextureToBufferCopy( aDstBuffer->GetProperties(), aDstOffset, aSrcTexture->GetProperties(), aSrcSubresource, aSrcRegion );
 #endif
 
     ID3D12Resource * bufferResourceDX12 = aDstBuffer->GetDX12Data()->myResource.Get();
@@ -312,10 +317,9 @@ namespace Fancy {
     footprint.Offset = 0;
     footprint.Footprint.Format = RenderCore_PlatformDX12::GetCopyableFormat( formatDx12, aSrcSubresource.myPlaneIndex );
     footprint.Footprint.Width = aSrcRegion.mySize.x;
-    footprint.Footprint.RowPitch = ( uint ) MathUtil::Align(
-        ( uint64 ) BITS_TO_BYTES( aSrcRegion.mySize.x *
-                                  formatInfo.myCopyableBitsPerPixelPerPlane[ aSrcSubresource.myPlaneIndex ] ),
-        ( uint64 ) RenderCore::GetPlatformCaps().myTextureRowAlignment );
+    footprint.Footprint.RowPitch =
+        ( uint ) MathUtil::Align( ( uint64 ) BITS_TO_BYTES( aSrcRegion.mySize.x * formatInfo.myCopyableBitsPerPixelPerPlane[ aSrcSubresource.myPlaneIndex ] ),
+                                  ( uint64 ) RenderCore::GetPlatformCaps().myTextureRowAlignment );
     footprint.Footprint.Height = aSrcRegion.mySize.y;
     footprint.Footprint.Depth = aSrcRegion.mySize.z;
 
@@ -337,12 +341,10 @@ namespace Fancy {
     myCommandList->CopyTextureRegion( &destLocation, 0, 0, 0, &srcLocation, &srcBox );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
-                                     const TextureRegion & aDstRegion, const Texture * aSrcTexture,
-                                     const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) {
+  void CommandListDX12::CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource, const TextureRegion & aDstRegion,
+                                     const Texture * aSrcTexture, const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) {
 #if FANCY_RENDERER_USE_VALIDATION
-    ValidateTextureCopy( aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcTexture->GetProperties(),
-                         aSrcSubresource, aSrcRegion );
+    ValidateTextureCopy( aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcTexture->GetProperties(), aSrcSubresource, aSrcRegion );
 #endif
 
     ID3D12Resource * dstResource = aDstTexture->GetDX12Data()->myResource.Get();
@@ -370,16 +372,13 @@ namespace Fancy {
     srcBox.bottom = aSrcRegion.myPos.y + aSrcRegion.mySize.y;
     srcBox.front = aSrcRegion.myPos.z;
     srcBox.back = aSrcRegion.myPos.z + aSrcRegion.mySize.z;
-    myCommandList->CopyTextureRegion( &dstLocation, aDstRegion.myPos.x, aDstRegion.myPos.y, aDstRegion.myPos.z,
-                                      &srcLocation, &srcBox );
+    myCommandList->CopyTextureRegion( &dstLocation, aDstRegion.myPos.x, aDstRegion.myPos.y, aDstRegion.myPos.z, &srcLocation, &srcBox );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
-                                             const TextureRegion & aDstRegion, const GpuBuffer * aSrcBuffer,
-                                             uint64 aSrcOffset ) {
+  void CommandListDX12::CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource, const TextureRegion & aDstRegion,
+                                             const GpuBuffer * aSrcBuffer, uint64 aSrcOffset ) {
 #if FANCY_RENDERER_USE_VALIDATION
-    ValidateBufferToTextureCopy( aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcBuffer->GetProperties(),
-                                 aSrcOffset );
+    ValidateBufferToTextureCopy( aDstTexture->GetProperties(), aDstSubresource, aDstRegion, aSrcBuffer->GetProperties(), aSrcOffset );
 #endif
 
     ID3D12Resource * dstResource = aDstTexture->GetDX12Data()->myResource.Get();
@@ -398,15 +397,14 @@ namespace Fancy {
 
     uint64 rowPitch;
     uint   heightBlocksOrPixel;
-    TextureData::ComputeRowPitchSizeAndBlockHeight( format, aDstRegion.mySize.x, aDstRegion.mySize.y, rowPitch,
-                                                    heightBlocksOrPixel, aDstSubresource.myPlaneIndex );
+    TextureData::ComputeRowPitchSizeAndBlockHeight( format, aDstRegion.mySize.x, aDstRegion.mySize.y, rowPitch, heightBlocksOrPixel,
+                                                    aDstSubresource.myPlaneIndex );
 
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
     footprint.Offset = 0u;
     footprint.Footprint.Format = RenderCore_PlatformDX12::GetCopyableFormat( formatDx12, aDstSubresource.myPlaneIndex );
     footprint.Footprint.Width = aDstRegion.mySize.x;
-    footprint.Footprint.RowPitch =
-        ( uint ) MathUtil::Align( rowPitch, RenderCore::GetPlatformCaps().myTextureRowAlignment );
+    footprint.Footprint.RowPitch = ( uint ) MathUtil::Align( rowPitch, RenderCore::GetPlatformCaps().myTextureRowAlignment );
     footprint.Footprint.Height = aDstRegion.mySize.y;
     footprint.Footprint.Depth = aDstRegion.mySize.z;
 
@@ -418,29 +416,25 @@ namespace Fancy {
 
     FlushBarriers();
 
-    myCommandList->CopyTextureRegion( &dstLocation, aDstRegion.myPos.x, aDstRegion.myPos.y, aDstRegion.myPos.z,
-                                      &srcLocation, nullptr );
+    myCommandList->CopyTextureRegion( &dstLocation, aDstRegion.myPos.x, aDstRegion.myPos.y, aDstRegion.myPos.z, &srcLocation, nullptr );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::UpdateTextureData( const Texture * aDstTexture, const SubresourceRange & aSubresourceRange,
-                                           const TextureSubData * someDatas, uint aNumDatas ) {
+  void CommandListDX12::UpdateTextureData( const Texture * aDstTexture, const SubresourceRange & aSubresourceRange, const TextureSubData * someDatas,
+                                           uint aNumDatas ) {
     const uint numSubresources = aSubresourceRange.GetNumSubresources();
     ASSERT( aNumDatas == numSubresources );
 
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT * footprints = ( D3D12_PLACED_SUBRESOURCE_FOOTPRINT * ) alloca(
-        sizeof( D3D12_PLACED_SUBRESOURCE_FOOTPRINT ) * numSubresources );
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT * footprints =
+        ( D3D12_PLACED_SUBRESOURCE_FOOTPRINT * ) alloca( sizeof( D3D12_PLACED_SUBRESOURCE_FOOTPRINT ) * numSubresources );
     uint *   rowNums = ( uint * ) alloca( sizeof( uint ) * numSubresources );
     uint64 * rowSizes = ( uint64 * ) alloca( sizeof( uint64 ) * numSubresources );
-    uint64   totalSize = static_cast< const TextureDX12 * >( aDstTexture )
-                             ->GetCopyableFootprints( aSubresourceRange, footprints, rowNums, rowSizes );
+    uint64   totalSize = static_cast< const TextureDX12 * >( aDstTexture )->GetCopyableFootprints( aSubresourceRange, footprints, rowNums, rowSizes );
 
     uint64            uploadBufferOffset;
-    const GpuBuffer * uploadBuffer =
-        GetBuffer( uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize );
+    const GpuBuffer * uploadBuffer = GetBuffer( uploadBufferOffset, GpuBufferUsage::STAGING_UPLOAD, nullptr, totalSize );
     ASSERT( uploadBuffer != nullptr );
 
-    uint8 * uploadBufferData =
-        ( uint8 * ) uploadBuffer->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize );
+    uint8 * uploadBufferData = ( uint8 * ) uploadBuffer->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize );
 
     for ( uint i = 0; i < aNumDatas; ++i ) {
       const D3D12_PLACED_SUBRESOURCE_FOOTPRINT & footprint = footprints[ i ];
@@ -468,11 +462,9 @@ namespace Fancy {
     uploadBuffer->Unmap( GpuResourceMapMode::WRITE_UNSYNCHRONIZED, uploadBufferOffset, totalSize );
 
     int i = 0;
-    for ( SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e;
-          ++subIter ) {
+    for ( SubresourceIterator subIter = aSubresourceRange.Begin(), e = aSubresourceRange.End(); subIter != e; ++subIter ) {
       const SubresourceLocation dstLocation = *subIter;
-      CommandList::CopyBufferToTexture( aDstTexture, dstLocation, uploadBuffer,
-                                        uploadBufferOffset + footprints[ i++ ].Offset );
+      CommandList::CopyBufferToTexture( aDstTexture, dstLocation, uploadBuffer, uploadBufferOffset + footprints[ i++ ].Offset );
     }
   }
   //---------------------------------------------------------------------------//
@@ -496,8 +488,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void CommandListDX12::FlushBarriers() {
     const bool hasTexture = !myPendingTextureBarriers.empty();
-    const bool hasBuffer  = !myPendingBufferBarriers.empty();
-    const bool hasGlobal  = !myPendingGlobalBarriers.empty();
+    const bool hasBuffer = !myPendingBufferBarriers.empty();
+    const bool hasGlobal = !myPendingGlobalBarriers.empty();
 
     if ( !hasTexture && !hasBuffer && !hasGlobal )
       return;
@@ -507,21 +499,21 @@ namespace Fancy {
 
     if ( hasTexture ) {
       D3D12_BARRIER_GROUP & g = groups[ numGroups++ ];
-      g.Type                      = D3D12_BARRIER_TYPE_TEXTURE;
-      g.NumBarriers               = ( uint32_t ) myPendingTextureBarriers.size();
-      g.pTextureBarriers          = myPendingTextureBarriers.data();
+      g.Type = D3D12_BARRIER_TYPE_TEXTURE;
+      g.NumBarriers = ( uint32_t ) myPendingTextureBarriers.size();
+      g.pTextureBarriers = myPendingTextureBarriers.data();
     }
     if ( hasBuffer ) {
       D3D12_BARRIER_GROUP & g = groups[ numGroups++ ];
-      g.Type                     = D3D12_BARRIER_TYPE_BUFFER;
-      g.NumBarriers              = ( uint32_t ) myPendingBufferBarriers.size();
-      g.pBufferBarriers          = myPendingBufferBarriers.data();
+      g.Type = D3D12_BARRIER_TYPE_BUFFER;
+      g.NumBarriers = ( uint32_t ) myPendingBufferBarriers.size();
+      g.pBufferBarriers = myPendingBufferBarriers.data();
     }
     if ( hasGlobal ) {
       D3D12_BARRIER_GROUP & g = groups[ numGroups++ ];
-      g.Type                     = D3D12_BARRIER_TYPE_GLOBAL;
-      g.NumBarriers              = ( uint32_t ) myPendingGlobalBarriers.size();
-      g.pGlobalBarriers          = myPendingGlobalBarriers.data();
+      g.Type = D3D12_BARRIER_TYPE_GLOBAL;
+      g.NumBarriers = ( uint32_t ) myPendingGlobalBarriers.size();
+      g.pGlobalBarriers = myPendingGlobalBarriers.data();
     }
 
     myCommandList->Barrier( numGroups, groups );
@@ -530,16 +522,14 @@ namespace Fancy {
     myPendingGlobalBarriers.clear();
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::BindLocalBuffer( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someViewProperties,
-                                         uint aRegisterIndex ) {
+  void CommandListDX12::BindLocalBuffer( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someViewProperties, uint aRegisterIndex ) {
     const RootSignatureDX12 * rootSignature = RenderCore::GetPlatformDX12()->GetRootSignature();
     const GpuBufferDX12 *     bufferDx12 = static_cast< const GpuBufferDX12 * >( aBuffer );
     const uint64              bufferViewGpuAddress = bufferDx12->GetDeviceAddress() + someViewProperties.myOffset;
 
     if ( someViewProperties.myIsShaderWritable ) {
       ASSERT( aRegisterIndex < rootSignature->myNumLocalRWBuffers );
-      ASSERT( someViewProperties.myIsRaw || someViewProperties.myIsStructured,
-              "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor" );
+      ASSERT( someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor" );
 
       if ( aRegisterIndex >= myLocalRWBuffersToBind.size() )
         myLocalRWBuffersToBind.resize( aRegisterIndex + 1, UINT64_MAX );
@@ -554,8 +544,7 @@ namespace Fancy {
       myLocalCBuffersToBind[ aRegisterIndex ] = bufferViewGpuAddress;
     } else {
       ASSERT( aRegisterIndex < rootSignature->myNumLocalBuffers );
-      ASSERT( someViewProperties.myIsRaw || someViewProperties.myIsStructured,
-              "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor" );
+      ASSERT( someViewProperties.myIsRaw || someViewProperties.myIsStructured, "D3D12 only supports raw or structured buffer SRVs/UAVs as root descriptor" );
 
       if ( aRegisterIndex >= myLocalBuffersToBind.size() )
         myLocalBuffersToBind.resize( aRegisterIndex + 1, UINT64_MAX );
@@ -604,16 +593,15 @@ namespace Fancy {
     return query;
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::CopyQueryDataToBuffer( const GpuQueryHeap * aQueryHeap, const GpuBuffer * aBuffer,
-                                               uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset ) {
+  void CommandListDX12::CopyQueryDataToBuffer( const GpuQueryHeap * aQueryHeap, const GpuBuffer * aBuffer, uint aFirstQueryIndex, uint aNumQueries,
+                                               uint64 aBufferOffset ) {
     const GpuQueryHeapDX12 * queryHeapDx12 = static_cast< const GpuQueryHeapDX12 * >( aQueryHeap );
     const GpuBufferDX12 *    bufferDx12 = static_cast< const GpuBufferDX12 * >( aBuffer );
 
     FlushBarriers();
 
-    myCommandList->ResolveQueryData( queryHeapDx12->myHeap.Get(), Adapter::ResolveQueryType( aQueryHeap->myType ),
-                                     aFirstQueryIndex, aNumQueries, bufferDx12->GetDX12Data()->myResource.Get(),
-                                     aBufferOffset );
+    myCommandList->ResolveQueryData( queryHeapDx12->myHeap.Get(), Adapter::ResolveQueryType( aQueryHeap->myType ), aFirstQueryIndex, aNumQueries,
+                                     bufferDx12->GetDX12Data()->myResource.Get(), aBufferOffset );
   }
   //---------------------------------------------------------------------------//
   void CommandListDX12::BeginMarkerRegion( const char * aName, uint aColor ) {
@@ -628,57 +616,53 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void CommandListDX12::GlobalBarrier( BarrierSyncScope waitFor, BarrierSyncScope unblocks, CacheFlush flush ) {
     D3D12_BARRIER_ACCESS accessBefore = D3D12_BARRIER_ACCESS_NO_ACCESS;
-    D3D12_BARRIER_ACCESS accessAfter  = D3D12_BARRIER_ACCESS_NO_ACCESS;
+    D3D12_BARRIER_ACCESS accessAfter = D3D12_BARRIER_ACCESS_NO_ACCESS;
     switch ( flush ) {
       case CacheFlush::None:
         break;
       case CacheFlush::ShaderWrite:
         accessBefore = D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
-        accessAfter  = ( D3D12_BARRIER_ACCESS )( D3D12_BARRIER_ACCESS_UNORDERED_ACCESS | D3D12_BARRIER_ACCESS_SHADER_RESOURCE );
+        accessAfter = ( D3D12_BARRIER_ACCESS ) ( D3D12_BARRIER_ACCESS_UNORDERED_ACCESS | D3D12_BARRIER_ACCESS_SHADER_RESOURCE );
         break;
       case CacheFlush::RenderTargetWrite:
         accessBefore = D3D12_BARRIER_ACCESS_RENDER_TARGET;
-        accessAfter  = D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
+        accessAfter = D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
         break;
     }
 
     D3D12_GLOBAL_BARRIER barrier = {};
-    barrier.SyncBefore   = locResolveBarrierSyncScope( waitFor );
-    barrier.SyncAfter    = locResolveBarrierSyncScope( unblocks );
+    barrier.SyncBefore = locResolveBarrierSyncScope( waitFor );
+    barrier.SyncAfter = locResolveBarrierSyncScope( unblocks );
     barrier.AccessBefore = accessBefore;
-    barrier.AccessAfter  = accessAfter;
+    barrier.AccessAfter = accessAfter;
     AddGlobalBarrier( barrier );
   }
   //---------------------------------------------------------------------------//
   void CommandListDX12::TextureBarrier( Texture * aTexture, TextureLayout aFromLayout, TextureLayout aToLayout ) {
     D3D12_TEXTURE_BARRIER barrier = {};
-    barrier.SyncBefore   = D3D12_BARRIER_SYNC_NONE;
-    barrier.SyncAfter    = D3D12_BARRIER_SYNC_NONE;
+    barrier.SyncBefore = D3D12_BARRIER_SYNC_NONE;
+    barrier.SyncAfter = D3D12_BARRIER_SYNC_NONE;
     barrier.AccessBefore = D3D12_BARRIER_ACCESS_NO_ACCESS;
-    barrier.AccessAfter  = D3D12_BARRIER_ACCESS_NO_ACCESS;
+    barrier.AccessAfter = D3D12_BARRIER_ACCESS_NO_ACCESS;
     barrier.LayoutBefore = locResolveTextureLayout( aFromLayout, myCommandListType );
-    barrier.LayoutAfter  = locResolveTextureLayout( aToLayout, myCommandListType );
-    barrier.pResource    = aTexture->GetDX12Data()->myResource.Get();
+    barrier.LayoutAfter = locResolveTextureLayout( aToLayout, myCommandListType );
+    barrier.pResource = aTexture->GetDX12Data()->myResource.Get();
     barrier.Subresources = CD3DX12_BARRIER_SUBRESOURCE_RANGE( 0xFFFFFFFF );
     AddTextureBarrier( barrier );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::BindVertexBuffers( const GpuBuffer ** someBuffers, uint64 * someOffsets, uint64 * someSizes,
-                                           uint aNumBuffers, const VertexInputLayout * anInputLayout /*= nullptr*/ ) {
+  void CommandListDX12::BindVertexBuffers( const GpuBuffer ** someBuffers, uint64 * someOffsets, uint64 * someSizes, uint aNumBuffers,
+                                           const VertexInputLayout * anInputLayout /*= nullptr*/ ) {
     const Shader * vertexShader =
-        myGraphicsPipelineState.myShaderPipeline
-            ? myGraphicsPipelineState.myShaderPipeline->GetShader( ShaderStage::SHADERSTAGE_VERTEX )
-            : nullptr;
-    const VertexInputLayout * shaderInputLayout =
-        vertexShader ? RenderCore::GetVertexInputLayout( vertexShader->myDefaultVertexInputLayout ) : nullptr;
+        myGraphicsPipelineState.myShaderPipeline ? myGraphicsPipelineState.myShaderPipeline->GetShader( ShaderStage::SHADERSTAGE_VERTEX ) : nullptr;
+    const VertexInputLayout * shaderInputLayout = vertexShader ? RenderCore::GetVertexInputLayout( vertexShader->myDefaultVertexInputLayout ) : nullptr;
     const VertexInputLayout * inputLayout = anInputLayout ? anInputLayout : shaderInputLayout;
 
     ASSERT( inputLayout && inputLayout->myProperties.myBufferBindings.size() == aNumBuffers );
 
     const bool isDefaultLayout = inputLayout == shaderInputLayout;
     const bool pipelineStateIsDefault = myGraphicsPipelineState.myVertexInputLayout == nullptr;
-    if ( myGraphicsPipelineState.myVertexInputLayout != inputLayout &&
-         !( isDefaultLayout && pipelineStateIsDefault ) ) {
+    if ( myGraphicsPipelineState.myVertexInputLayout != inputLayout && !( isDefaultLayout && pipelineStateIsDefault ) ) {
       myGraphicsPipelineState.myVertexInputLayout = inputLayout;
       myGraphicsPipelineState.myIsDirty = true;
     }
@@ -702,8 +686,7 @@ namespace Fancy {
     myCommandList->IASetVertexBuffers( 0, ( uint ) vertexBufferViews.size(), vertexBufferViews.data() );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::BindIndexBuffer( const GpuBuffer * aBuffer, uint anIndexSize, uint64 anIndexOffset /* = 0u */,
-                                         uint64 aNumIndices /* =~0ULL*/ ) {
+  void CommandListDX12::BindIndexBuffer( const GpuBuffer * aBuffer, uint anIndexSize, uint64 anIndexOffset /* = 0u */, uint64 aNumIndices /* =~0ULL*/ ) {
     ASSERT( anIndexSize == 2u || anIndexSize == 4u );
 
     D3D12_INDEX_BUFFER_VIEW indexBufferView;
@@ -723,8 +706,7 @@ namespace Fancy {
     myCommandList->IASetIndexBuffer( &indexBufferView );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::DrawInstanced( uint aNumVerticesPerInstance, uint aNumInstances, uint aBaseVertex,
-                                       uint aStartInstance ) {
+  void CommandListDX12::DrawInstanced( uint aNumVerticesPerInstance, uint aNumInstances, uint aBaseVertex, uint aStartInstance ) {
     CommandList::DrawInstanced( aNumVerticesPerInstance, aNumInstances, aBaseVertex, aStartInstance );
 
     ApplyViewportAndClipRect();
@@ -737,10 +719,8 @@ namespace Fancy {
     myCommandList->DrawInstanced( aNumVerticesPerInstance, aNumInstances, aBaseVertex, aStartInstance );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::DrawIndexedInstanced( uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex,
-                                              uint aBaseVertex, uint aStartInstance ) {
-    CommandList::DrawIndexedInstanced( aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex,
-                                       aStartInstance );
+  void CommandListDX12::DrawIndexedInstanced( uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance ) {
+    CommandList::DrawIndexedInstanced( aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance );
 
     ApplyViewportAndClipRect();
     ApplyRenderTargets();
@@ -749,8 +729,7 @@ namespace Fancy {
     FlushBarriers();
     ApplyResourceBindings();
 
-    myCommandList->DrawIndexedInstanced( aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex,
-                                         aStartInstance );
+    myCommandList->DrawIndexedInstanced( aNumIndicesPerInstance, aNumInstances, aStartIndex, aBaseVertex, aStartInstance );
   }
   //---------------------------------------------------------------------------//
   void CommandListDX12::ApplyViewportAndClipRect() {
@@ -885,8 +864,7 @@ namespace Fancy {
 
     myGraphicsPipelineState.myIsDirty = false;
 
-    ID3D12PipelineState * pso =
-        RenderCore::GetPlatformDX12()->GetPipelineStateCache().GetCreateGraphicsPSO( myGraphicsPipelineState );
+    ID3D12PipelineState * pso = RenderCore::GetPlatformDX12()->GetPipelineStateCache().GetCreateGraphicsPSO( myGraphicsPipelineState );
     myCommandList->SetPipelineState( pso );
   }
   //---------------------------------------------------------------------------//
@@ -896,8 +874,7 @@ namespace Fancy {
 
     myComputePipelineState.myIsDirty = false;
 
-    ID3D12PipelineState * pso =
-        RenderCore::GetPlatformDX12()->GetPipelineStateCache().GetCreateComputePSO( myComputePipelineState );
+    ID3D12PipelineState * pso = RenderCore::GetPlatformDX12()->GetPipelineStateCache().GetCreateComputePSO( myComputePipelineState );
     myCommandList->SetPipelineState( pso );
   }
   //---------------------------------------------------------------------------//
@@ -922,8 +899,7 @@ namespace Fancy {
 
     const glm::int3 & numGroupThreads = shader->GetProperties().myNumGroupThreads;
     const glm::int3   numGroups = glm::max( glm::int3( 1 ), aNumThreads / numGroupThreads );
-    myCommandList->Dispatch( static_cast< uint >( numGroups.x ), static_cast< uint >( numGroups.y ),
-                             static_cast< uint >( numGroups.z ) );
+    myCommandList->Dispatch( static_cast< uint >( numGroups.x ), static_cast< uint >( numGroups.y ), static_cast< uint >( numGroups.z ) );
   }
   //---------------------------------------------------------------------------//
   void CommandListDX12::DispatchRays( const DispatchRaysDesc & aDesc ) {
@@ -940,27 +916,23 @@ namespace Fancy {
     desc.Height = aDesc.myHeight;
     desc.Depth = aDesc.myDepth;
 
-    desc.RayGenerationShaderRecord.StartAddress =
-        aDesc.myRayGenShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myRayGenShaderTableRange.myOffset;
+    desc.RayGenerationShaderRecord.StartAddress = aDesc.myRayGenShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myRayGenShaderTableRange.myOffset;
     desc.RayGenerationShaderRecord.SizeInBytes = aDesc.myRayGenShaderTableRange.mySize;
 
     if ( aDesc.myMissShaderTableRange.mySbtBuffer != nullptr ) {
-      desc.MissShaderTable.StartAddress =
-          aDesc.myMissShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myMissShaderTableRange.myOffset;
+      desc.MissShaderTable.StartAddress = aDesc.myMissShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myMissShaderTableRange.myOffset;
       desc.MissShaderTable.SizeInBytes = aDesc.myMissShaderTableRange.mySize;
       desc.MissShaderTable.StrideInBytes = aDesc.myMissShaderTableRange.myStride;
     }
 
     if ( aDesc.myHitGroupTableRange.mySbtBuffer != nullptr ) {
-      desc.HitGroupTable.StartAddress =
-          aDesc.myHitGroupTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myHitGroupTableRange.myOffset;
+      desc.HitGroupTable.StartAddress = aDesc.myHitGroupTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myHitGroupTableRange.myOffset;
       desc.HitGroupTable.SizeInBytes = aDesc.myHitGroupTableRange.mySize;
       desc.HitGroupTable.StrideInBytes = aDesc.myHitGroupTableRange.myStride;
     }
 
     if ( aDesc.myCallableShaderTableRange.mySbtBuffer != nullptr ) {
-      desc.CallableShaderTable.StartAddress =
-          aDesc.myCallableShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myCallableShaderTableRange.myOffset;
+      desc.CallableShaderTable.StartAddress = aDesc.myCallableShaderTableRange.mySbtBuffer->GetDeviceAddress() + aDesc.myCallableShaderTableRange.myOffset;
       desc.CallableShaderTable.SizeInBytes = aDesc.myCallableShaderTableRange.mySize;
       desc.CallableShaderTable.StrideInBytes = aDesc.myCallableShaderTableRange.myStride;
     }

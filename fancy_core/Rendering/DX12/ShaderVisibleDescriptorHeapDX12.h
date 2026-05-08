@@ -40,8 +40,7 @@ namespace Fancy {
   private:
     void                       ProcessGlobalDescriptorFrees();
     D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType( GlobalResourceType aResourceType ) const {
-      return aResourceType == GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER
-                                                      : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+      return aResourceType == GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     }
     uint GetHandleIncementSize( GlobalResourceType aResourceType ) const {
       return aResourceType == GLOBAL_RESOURCE_SAMPLER ? mySamplerHandleIncrementSize : myResourceHandleIncrementSize;

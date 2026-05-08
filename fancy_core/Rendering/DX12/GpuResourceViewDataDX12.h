@@ -7,8 +7,7 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   struct GpuResourceViewDataDX12 {
-    DescriptorDX12
-        myDescriptor;  // Shader-visible descriptor for SRV, UAV, CBV. Non-shader-visible for all others (DSV, RTV)
+    DescriptorDX12 myDescriptor;  // Shader-visible descriptor for SRV, UAV, CBV. Non-shader-visible for all others (DSV, RTV)
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

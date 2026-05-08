@@ -34,8 +34,7 @@ namespace Fancy {
     virtual ~PagedLinearAllocator();
 
     const Page * FindPage( eastl::function< bool( const Page & ) > aPredicateFn );
-    const Page * Allocate( uint64 aSize, uint anAlignment, uint64 & anOffsetInPageOut,
-                           const char * aDebugName = nullptr );
+    const Page * Allocate( uint64 aSize, uint anAlignment, uint64 & anOffsetInPageOut, const char * aDebugName = nullptr );
     void         Free( const Block & aBlock );
     bool         IsEmpty() const {
       return myPages.empty();

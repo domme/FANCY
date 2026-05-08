@@ -15,8 +15,7 @@ namespace Fancy {
         : myMipLevel( aMipLevel ), myArrayIndex( anArrayIndex ), myPlaneIndex( aPlaneIndex ) {}
 
     bool operator==( const SubresourceLocation & anOther ) const {
-      return myMipLevel == anOther.myMipLevel && myArrayIndex == anOther.myArrayIndex &&
-             myPlaneIndex == anOther.myPlaneIndex;
+      return myMipLevel == anOther.myMipLevel && myArrayIndex == anOther.myArrayIndex && myPlaneIndex == anOther.myPlaneIndex;
     }
 
     bool operator!=( const SubresourceLocation & anOther ) const {
@@ -31,22 +30,19 @@ namespace Fancy {
   struct SubresourceIterator;
 
   struct SubresourceRange {
-    SubresourceRange( uint aFirstMipLevel = 0u, uint aNumMipLevels = 1u, uint aFirstArrayIndex = 0u,
-                      uint aNumArrayIndices = 1u, uint aFirstPlaneIndex = 0u, uint aNumPlanes = 1u )
-        : myFirstMipLevel( aFirstMipLevel ), myNumMipLevels( aNumMipLevels ), myFirstArrayIndex( aFirstArrayIndex ),
-          myNumArrayIndices( aNumArrayIndices ), myFirstPlane( aFirstPlaneIndex ), myNumPlanes( aNumPlanes ) {}
+    SubresourceRange( uint aFirstMipLevel = 0u, uint aNumMipLevels = 1u, uint aFirstArrayIndex = 0u, uint aNumArrayIndices = 1u, uint aFirstPlaneIndex = 0u,
+                      uint aNumPlanes = 1u )
+        : myFirstMipLevel( aFirstMipLevel ), myNumMipLevels( aNumMipLevels ), myFirstArrayIndex( aFirstArrayIndex ), myNumArrayIndices( aNumArrayIndices ),
+          myFirstPlane( aFirstPlaneIndex ), myNumPlanes( aNumPlanes ) {}
 
     SubresourceRange( const SubresourceLocation & aLocation )
-        : myFirstMipLevel( aLocation.myMipLevel ), myNumMipLevels( 1u ), myFirstArrayIndex( aLocation.myArrayIndex ),
-          myNumArrayIndices( 1u ), myFirstPlane( aLocation.myPlaneIndex ), myNumPlanes( 1u ) {}
+        : myFirstMipLevel( aLocation.myMipLevel ), myNumMipLevels( 1u ), myFirstArrayIndex( aLocation.myArrayIndex ), myNumArrayIndices( 1u ),
+          myFirstPlane( aLocation.myPlaneIndex ), myNumPlanes( 1u ) {}
 
     SubresourceRange( const SubresourceLocation & aFirstLocation, const SubresourceLocation & aLastLocation )
-        : myFirstMipLevel( aFirstLocation.myMipLevel ),
-          myNumMipLevels( aLastLocation.myMipLevel - aFirstLocation.myMipLevel + 1 ),
-          myFirstArrayIndex( aFirstLocation.myArrayIndex ),
-          myNumArrayIndices( aLastLocation.myArrayIndex - aFirstLocation.myArrayIndex + 1 ),
-          myFirstPlane( aFirstLocation.myPlaneIndex ),
-          myNumPlanes( aLastLocation.myPlaneIndex - aFirstLocation.myPlaneIndex + 1 ) {}
+        : myFirstMipLevel( aFirstLocation.myMipLevel ), myNumMipLevels( aLastLocation.myMipLevel - aFirstLocation.myMipLevel + 1 ),
+          myFirstArrayIndex( aFirstLocation.myArrayIndex ), myNumArrayIndices( aLastLocation.myArrayIndex - aFirstLocation.myArrayIndex + 1 ),
+          myFirstPlane( aFirstLocation.myPlaneIndex ), myNumPlanes( aLastLocation.myPlaneIndex - aFirstLocation.myPlaneIndex + 1 ) {}
 
     bool operator==( const SubresourceRange & anOther ) const;
 
@@ -56,8 +52,7 @@ namespace Fancy {
       return SubresourceLocation( myFirstMipLevel, myFirstArrayIndex, myFirstPlane );
     }
     SubresourceLocation Last() const {
-      return SubresourceLocation( myFirstMipLevel + myNumMipLevels - 1, myFirstArrayIndex + myNumArrayIndices - 1,
-                                  myFirstPlane + myNumPlanes - 1 );
+      return SubresourceLocation( myFirstMipLevel + myNumMipLevels - 1, myFirstArrayIndex + myNumArrayIndices - 1, myFirstPlane + myNumPlanes - 1 );
     }
     bool IsEmpty() const;
     uint GetNumSubresources() const;
@@ -118,8 +113,8 @@ namespace Fancy {
     TextureData( eastl::vector< uint8 > someData, eastl::vector< TextureSubData > someSubDatas )
         : myData( std::move( someData ) ), mySubDatas( std::move( someSubDatas ) ) {}
 
-    static void ComputeRowPitchSizeAndBlockHeight( DataFormat aFormat, uint aWidth, uint aHeight, uint64 & rowPitchSize,
-                                                   uint & aHeightBlocksOrPixels, uint aPlane = 0 );
+    static void ComputeRowPitchSizeAndBlockHeight( DataFormat aFormat, uint aWidth, uint aHeight, uint64 & rowPitchSize, uint & aHeightBlocksOrPixels,
+                                                   uint aPlane = 0 );
 
     eastl::vector< uint8 >          myData;
     eastl::vector< TextureSubData > mySubDatas;

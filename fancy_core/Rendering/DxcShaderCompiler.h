@@ -26,10 +26,9 @@ namespace Fancy {
       eastl::fixed_vector< eastl::string, 16 > myIncludedFiles;
     };
 
-    bool CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, const Config & aConfig,
-                            IncludeInfo & anIncludeInfo, eastl::vector< uint8 > & aCompiledBytecodeOut ) const;
-    bool CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, const Config & aConfig,
-                            IncludeInfo &                        anIncludeInfo,
+    bool CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, const Config & aConfig, IncludeInfo & anIncludeInfo,
+                            eastl::vector< uint8 > & aCompiledBytecodeOut ) const;
+    bool CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, const Config & aConfig, IncludeInfo & anIncludeInfo,
                             Microsoft::WRL::ComPtr< IDxcBlob > & aCompiledBytecodeOut ) const;
 
     IDxcContainerReflection * GetDxcReflector() const {

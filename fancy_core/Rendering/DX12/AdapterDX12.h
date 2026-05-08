@@ -19,8 +19,7 @@ namespace Fancy {
     static D3D12_HEAP_FLAGS              ResolveHeapFlags( GpuMemoryType aType );
     static GpuMemoryType                 ResolveGpuMemoryType( D3D12_HEAP_FLAGS aHeapFlags );
     static CpuMemoryAccessType           ResolveGpuMemoryAccessType( D3D12_HEAP_TYPE aHeapType );
-    static D3D12_RESOURCE_DIMENSION      ResolveResourceDimension( GpuResourceDimension aDimension, bool & aCubeMapOut,
-                                                                   bool & anArrayOut );
+    static D3D12_RESOURCE_DIMENSION      ResolveResourceDimension( GpuResourceDimension aDimension, bool & aCubeMapOut, bool & anArrayOut );
     static D3D12_QUERY_TYPE              ResolveQueryType( GpuQueryType aQueryType );
     static D3D12_QUERY_HEAP_TYPE         ResolveQueryHeapType( GpuQueryType aQueryType );
   };

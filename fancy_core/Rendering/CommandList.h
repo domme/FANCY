@@ -73,60 +73,47 @@ namespace Fancy {
     }
 
     virtual void ClearRenderTarget( TextureView * aTextureView, const float * aColor ) = 0;
-    virtual void ClearDepthStencilTarget( TextureView * aTextureView, float aDepthClear, uint8 aStencilClear,
-                                          uint someClearFlags ) = 0;
+    virtual void ClearDepthStencilTarget( TextureView * aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags ) = 0;
     virtual void CopyResource( GpuResource * aDstResource, GpuResource * aSrcResource ) = 0;
 
-    virtual void CopyBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const GpuBuffer * aSrcBuffer,
-                             uint64 aSrcOffset, uint64 aSize ) = 0;
+    virtual void CopyBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const GpuBuffer * aSrcBuffer, uint64 aSrcOffset, uint64 aSize ) = 0;
 
-    void         CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture,
-                                      const SubresourceLocation & aSrcSubresource );
-    virtual void CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture,
-                                      const SubresourceLocation & aSrcSubresource,
-                                      const TextureRegion &       aSrcRegion ) = 0;
+    void CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture, const SubresourceLocation & aSrcSubresource );
+    virtual void CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture, const SubresourceLocation & aSrcSubresource,
+                                      const TextureRegion & aSrcRegion ) = 0;
 
-    void         CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
-                              const Texture * aSrcTexture, const SubresourceLocation & aSrcSubresource );
-    virtual void CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
-                              const TextureRegion & aDstRegion, const Texture * aSrcTexture,
-                              const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) = 0;
+    void         CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource, const Texture * aSrcTexture,
+                              const SubresourceLocation & aSrcSubresource );
+    virtual void CopyTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource, const TextureRegion & aDstRegion,
+                              const Texture * aSrcTexture, const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) = 0;
 
-    void         CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
-                                      const GpuBuffer * aSrcBuffer, uint64 aSrcOffset );
-    virtual void CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource,
-                                      const TextureRegion & aDstRegion, const GpuBuffer * aSrcBuffer,
-                                      uint64 aSrcOffset ) = 0;
+    void CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource, const GpuBuffer * aSrcBuffer, uint64 aSrcOffset );
+    virtual void CopyBufferToTexture( const Texture * aDstTexture, const SubresourceLocation & aDstSubresource, const TextureRegion & aDstRegion,
+                                      const GpuBuffer * aSrcBuffer, uint64 aSrcOffset ) = 0;
 
     virtual void Dispatch( const glm::int3 & aNumThreads ) = 0;
     virtual void DispatchRays( const DispatchRaysDesc & aDesc ) = 0;
 
     void         BindVertexBuffer( const GpuBuffer * aBuffer, uint64 anOffset = 0, uint64 aSize = 0 );
-    virtual void BindVertexBuffers( const GpuBuffer ** someBuffers, uint64 * someOffsets, uint64 * someSizes,
-                                    uint aNumBuffers, const VertexInputLayout * anInputLayout = nullptr ) = 0;
-    virtual void BindIndexBuffer( const GpuBuffer * aBuffer, uint anIndexSize, uint64 anOffset = 0u,
-                                  uint64 aSize = ~0ULL ) = 0;
-    virtual void BindLocalBuffer( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someViewProperties,
-                                  uint aRegisterIndex ) = 0;
+    virtual void BindVertexBuffers( const GpuBuffer ** someBuffers, uint64 * someOffsets, uint64 * someSizes, uint aNumBuffers,
+                                    const VertexInputLayout * anInputLayout = nullptr ) = 0;
+    virtual void BindIndexBuffer( const GpuBuffer * aBuffer, uint anIndexSize, uint64 anOffset = 0u, uint64 aSize = ~0ULL ) = 0;
+    virtual void BindLocalBuffer( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someViewProperties, uint aRegisterIndex ) = 0;
 
-    virtual void DrawInstanced( uint aNumVerticesPerInstance, uint aNumInstances, uint aBaseVertex,
-                                uint aStartInstance );
-    virtual void DrawIndexedInstanced( uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex,
-                                       uint aBaseVertex, uint aStartInstance );
-    virtual void
-    UpdateTextureData( const Texture * aDstTexture, const SubresourceRange & aSubresourceRange,
-                       const TextureSubData * someDatas,
-                       uint aNumDatas /*, const TextureRegion* someRegions = nullptr */ ) = 0;  // TODO: Support regions
+    virtual void DrawInstanced( uint aNumVerticesPerInstance, uint aNumInstances, uint aBaseVertex, uint aStartInstance );
+    virtual void DrawIndexedInstanced( uint aNumIndicesPerInstance, uint aNumInstances, uint aStartIndex, uint aBaseVertex, uint aStartInstance );
+    virtual void UpdateTextureData( const Texture * aDstTexture, const SubresourceRange & aSubresourceRange, const TextureSubData * someDatas,
+                                    uint aNumDatas /*, const TextureRegion* someRegions = nullptr */ ) = 0;  // TODO: Support regions
 
     virtual GpuQuery BeginQuery( GpuQueryType aType ) = 0;
     virtual void     EndQuery( const GpuQuery & aQuery ) = 0;
     virtual GpuQuery InsertTimestamp() = 0;
-    virtual void     CopyQueryDataToBuffer( const GpuQueryHeap * aQueryHeap, const GpuBuffer * aBuffer,
-                                            uint aFirstQueryIndex, uint aNumQueries, uint64 aBufferOffset ) = 0;
+    virtual void     CopyQueryDataToBuffer( const GpuQueryHeap * aQueryHeap, const GpuBuffer * aBuffer, uint aFirstQueryIndex, uint aNumQueries,
+                                            uint64 aBufferOffset ) = 0;
     virtual void     BeginMarkerRegion( const char * aName, uint aColor = UINT_MAX );
     virtual void     EndMarkerRegion();
 
-    uint         GetPrepareDescriptorIndex( const GpuResourceView * aView );
+    uint GetPrepareDescriptorIndex( const GpuResourceView * aView );
 
     virtual void Close() = 0;
 
@@ -155,10 +142,8 @@ namespace Fancy {
       return myIsOpen;
     }
     void               SetClipRect( const glm::uvec4 & aRectangle );  /// x, y, width, height
-    const GpuBuffer *  GetBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, const void * someData, uint64 aDataSize,
-                                  uint64 anAlignment = 0 );
-    const GpuBuffer *  GetMappedBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, uint8 ** someDataPtrOut,
-                                        uint64 aDataSize, uint64 anAlignment = 0 );
+    const GpuBuffer *  GetBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, const void * someData, uint64 aDataSize, uint64 anAlignment = 0 );
+    const GpuBuffer *  GetMappedBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, uint8 ** someDataPtrOut, uint64 aDataSize, uint64 anAlignment = 0 );
     void               BindVertexBuffer( void * someData, uint64 aDataSize );
     void               BindIndexBuffer( void * someData, uint64 aDataSize, uint anIndexSize );
     void               BindConstantBuffer( void * someData, uint64 aDataSize, uint aRegisterIndex );
@@ -181,21 +166,16 @@ namespace Fancy {
 
   protected:
     void ValidateDrawState();
-    void ValidateTextureCopy( const TextureProperties & aDstProps, const SubresourceLocation & aDstSubresrource,
-                              const TextureRegion & aDstRegion, const TextureProperties & aSrcProps,
-                              const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) const;
-    void ValidateTextureToBufferCopy( const GpuBufferProperties & aDstBufferProps, uint64 aDstBufferOffset,
-                                      const TextureProperties &   aSrcTextureProps,
-                                      const SubresourceLocation & aSrcSubresource,
-                                      const TextureRegion &       aSrcRegion ) const;
-    void ValidateBufferToTextureCopy( const TextureProperties &   aDstTexProps,
-                                      const SubresourceLocation & aDstSubresource, const TextureRegion & aDstRegion,
+    void ValidateTextureCopy( const TextureProperties & aDstProps, const SubresourceLocation & aDstSubresrource, const TextureRegion & aDstRegion,
+                              const TextureProperties & aSrcProps, const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) const;
+    void ValidateTextureToBufferCopy( const GpuBufferProperties & aDstBufferProps, uint64 aDstBufferOffset, const TextureProperties & aSrcTextureProps,
+                                      const SubresourceLocation & aSrcSubresource, const TextureRegion & aSrcRegion ) const;
+    void ValidateBufferToTextureCopy( const TextureProperties & aDstTexProps, const SubresourceLocation & aDstSubresource, const TextureRegion & aDstRegion,
                                       const GpuBufferProperties & aSrcBufferProps, uint64 aSrcBufferOffset ) const;
-    void ValidateBufferCopy( const GpuBufferProperties & aDstProps, uint64 aDstOffset,
-                             const GpuBufferProperties & aSrcProps, uint64 aSrcOffset, uint64 aSize ) const;
+    void ValidateBufferCopy( const GpuBufferProperties & aDstProps, uint64 aDstOffset, const GpuBufferProperties & aSrcProps, uint64 aSrcOffset,
+                             uint64 aSize ) const;
 
-    GpuRingBuffer * GetUploadBuffer_Internal( uint64 & anOffsetOut, GpuBufferUsage aType, const void * someData,
-                                              uint64 aDataSize, uint64 anAlignment = 0 );
+    GpuRingBuffer * GetUploadBuffer_Internal( uint64 & anOffsetOut, GpuBufferUsage aType, const void * someData, uint64 aDataSize, uint64 anAlignment = 0 );
 
     enum Consts {
       kNumCachedBarriers = 256,

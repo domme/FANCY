@@ -29,10 +29,9 @@ namespace Fancy {
       ALL = ~0u
     };
 
-    bool Import( const char * aPath, const ShaderPipeline * aShaderPipeline, SceneData & aResultOut,
+    bool Import( const char * aPath, const ShaderPipeline * aShaderPipeline, SceneData & aResultOut, ImportOptions someImportOptions = ALL );
+    bool Import( const char * aPath, const eastl::fixed_vector< VertexShaderAttributeDesc, 16 > & someVertexAttributes, SceneData & aResultOut,
                  ImportOptions someImportOptions = ALL );
-    bool Import( const char * aPath, const eastl::fixed_vector< VertexShaderAttributeDesc, 16 > & someVertexAttributes,
-                 SceneData & aResultOut, ImportOptions someImportOptions = ALL );
 
   private:
     bool ProcessNodeRecursive( const aiNode * aNode, const glm::float4x4 & aParentTransform, SceneData & aResultOut );

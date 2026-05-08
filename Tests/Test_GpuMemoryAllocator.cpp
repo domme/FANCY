@@ -14,11 +14,9 @@
 
 using namespace Fancy;
 
-Test_GpuMemoryAllocator::Test_GpuMemoryAllocator( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow,
-                                                  Fancy::RenderOutput * aRenderOutput,
-                                                  Fancy::InputState *   anInputState )
-    : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "GPU Memory Allocations" ),
-      myBufferToAllocSizeMb( 64 ), myScale( 10.0f ) {
+Test_GpuMemoryAllocator::Test_GpuMemoryAllocator( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput,
+                                                  Fancy::InputState * anInputState )
+    : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "GPU Memory Allocations" ), myBufferToAllocSizeMb( 64 ), myScale( 10.0f ) {
   for ( uint memType = 0; memType < ( uint ) Fancy::GpuMemoryType::NUM; ++memType )
     for ( uint accessType = 0; accessType < ( uint ) Fancy::CpuMemoryAccessType::NUM; ++accessType )
       myAllocatorTypeVisible[ memType ][ accessType ] = false;
@@ -114,8 +112,7 @@ void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12,
       ImGui::SetCursorPos( pos );
       ImGui::Button( stringBuffer.Format( "Heap %d", i ), ImVec2( pixelWidth - 1, elementHeight ) );
       if ( ImGui::IsItemHovered() ) {
-        StaticString< 128 > str( "Start: %s\nEnd:%s\nSize:%s", locGetMemoryLabel( page.myStart, stringBuffer ),
-                                 locGetMemoryLabel( page.myEnd, stringBuffer ),
+        StaticString< 128 > str( "Start: %s\nEnd:%s\nSize:%s", locGetMemoryLabel( page.myStart, stringBuffer ), locGetMemoryLabel( page.myEnd, stringBuffer ),
                                  locGetMemoryLabel( page.myEnd - page.myStart, stringBuffer ) );
         ImGui::SetTooltip( str );
       }
@@ -126,8 +123,7 @@ void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12,
   pos = startPos;
   pos.y += elementHeight + 2.0f;
   ImGui::PushStyleColor( ImGuiCol_Button, 0xFFAAAAAA );
-  for ( auto freeBlockIt = allocator.myFreeList.Begin(); freeBlockIt != allocator.myFreeList.Invalid();
-        ++freeBlockIt ) {
+  for ( auto freeBlockIt = allocator.myFreeList.Begin(); freeBlockIt != allocator.myFreeList.Invalid(); ++freeBlockIt ) {
     const uint64 freeMemory = freeBlockIt->myEnd - freeBlockIt->myStart;
     const float  pixelWidth = aMemoryToPixelScale * ( float ) freeMemory;
     if ( pixelWidth < 2 )
@@ -136,12 +132,10 @@ void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12,
     ImVec2 currPos = pos;
     currPos.x = startPos.x + ( float ) ( freeBlockIt->myStart * aMemoryToPixelScale );
     ImGui::SetCursorPos( currPos );
-    ImGui::Button( stringBuffer.Format( "%s", locGetMemoryLabel( freeMemory, stringBuffer ) ),
-                   ImVec2( pixelWidth - 1, elementHeight ) );
+    ImGui::Button( stringBuffer.Format( "%s", locGetMemoryLabel( freeMemory, stringBuffer ) ), ImVec2( pixelWidth - 1, elementHeight ) );
     if ( ImGui::IsItemHovered() )
-      ImGui::SetTooltip( stringBuffer.Format(
-          "Free Block\nStart: %s\nEnd: %s\n Size: %s", locGetMemoryLabel( freeBlockIt->myStart, stringBuffer ),
-          locGetMemoryLabel( freeBlockIt->myEnd, stringBuffer ), locGetMemoryLabel( freeMemory, stringBuffer ) ) );
+      ImGui::SetTooltip( stringBuffer.Format( "Free Block\nStart: %s\nEnd: %s\n Size: %s", locGetMemoryLabel( freeBlockIt->myStart, stringBuffer ),
+                                              locGetMemoryLabel( freeBlockIt->myEnd, stringBuffer ), locGetMemoryLabel( freeMemory, stringBuffer ) ) );
   }
   ImGui::PopStyleColor( 1 );
 
@@ -155,13 +149,11 @@ void locDebugPrintMemoryAllocatorDx12( GpuMemoryAllocatorDX12 * anAllocatorDx12,
     ImVec2 currPos = pos;
     currPos.x = startPos.x + ( float ) ( debugInfo.myStart * aMemoryToPixelScale );
     ImGui::SetCursorPos( currPos );
-    ImGui::Button( stringBuffer.Format( "%s", locGetMemoryLabel( allocatedMemory, stringBuffer ) ),
-                   ImVec2( pixelWidth - 1, elementHeight ) );
+    ImGui::Button( stringBuffer.Format( "%s", locGetMemoryLabel( allocatedMemory, stringBuffer ) ), ImVec2( pixelWidth - 1, elementHeight ) );
     if ( ImGui::IsItemHovered() )
-      ImGui::SetTooltip( stringBuffer.Format(
-          "Allocated Block %s\nStart: %s\nEnd: %s\nSize: %s", debugInfo.myName.c_str(),
-          locGetMemoryLabel( debugInfo.myStart, stringBuffer ), locGetMemoryLabel( debugInfo.myEnd, stringBuffer ),
-          locGetMemoryLabel( allocatedMemory, stringBuffer ) ) );
+      ImGui::SetTooltip( stringBuffer.Format( "Allocated Block %s\nStart: %s\nEnd: %s\nSize: %s", debugInfo.myName.c_str(),
+                                              locGetMemoryLabel( debugInfo.myStart, stringBuffer ), locGetMemoryLabel( debugInfo.myEnd, stringBuffer ),
+                                              locGetMemoryLabel( allocatedMemory, stringBuffer ) ) );
   }
   ImGui::PopStyleColor( 1 );
 }
@@ -176,8 +168,7 @@ void Test_GpuMemoryAllocator::RenderMemoryAllocatorLayouts() {
 
   ImGui::SliderFloat( "Scale", &myScale, 0.1f, 2000.0f );
 
-  ImGui::BeginChildFrame( 1, ImVec2( ImGui::GetWindowWidth(), 512 ),
-                          ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground );
+  ImGui::BeginChildFrame( 1, ImVec2( ImGui::GetWindowWidth(), 512 ), ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBackground );
   for ( uint memType = 0; memType < ( uint ) Fancy::GpuMemoryType::NUM; ++memType ) {
     if ( ImGui::TreeNode( locMemoryTypeToString( ( GpuMemoryType ) memType ) ) ) {
       for ( uint accessType = 0; accessType < ( uint ) Fancy::CpuMemoryAccessType::NUM; ++accessType ) {

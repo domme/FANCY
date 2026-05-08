@@ -20,14 +20,12 @@ namespace Fancy {
     aDataOut.resize( myBufferAllocation->myBlockSize );
 
     const uint8 * srcBufferData = static_cast< const uint8 * >(
-        myBufferAllocation->myBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED, myBufferAllocation->myOffsetToBlock,
-                                           myBufferAllocation->myBlockSize ) );
+        myBufferAllocation->myBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED, myBufferAllocation->myOffsetToBlock, myBufferAllocation->myBlockSize ) );
     ASSERT( srcBufferData != nullptr );
 
     memcpy( aDataOut.data(), srcBufferData, myBufferAllocation->myBlockSize );
 
-    myBufferAllocation->myBuffer->Unmap( GpuResourceMapMode::READ_UNSYNCHRONIZED, myBufferAllocation->myOffsetToBlock,
-                                         myBufferAllocation->myBlockSize );
+    myBufferAllocation->myBuffer->Unmap( GpuResourceMapMode::READ_UNSYNCHRONIZED, myBufferAllocation->myOffsetToBlock, myBufferAllocation->myBlockSize );
   }
   //---------------------------------------------------------------------------//
   bool ReadbackTask::IsCompleted() const {
@@ -58,8 +56,7 @@ namespace Fancy {
       uint width, height, depth;
       myTextureProperties.GetSize( subResource.myMipLevel, width, height, depth );
 
-      const uint64 rowSize =
-          BITS_TO_BYTES( width * formatInfo.myCopyableBitsPerPixelPerPlane[ subResource.myPlaneIndex ] );
+      const uint64 rowSize = BITS_TO_BYTES( width * formatInfo.myCopyableBitsPerPixelPerPlane[ subResource.myPlaneIndex ] );
       const uint64 alignedRowSize = MathUtil::Align( rowSize, rowAlignment );
 
       const uint64 subresourceSize = rowSize * height * depth;
@@ -75,20 +72,17 @@ namespace Fancy {
     aDataOut.mySubDatas.resize( mySubresourceRange.GetNumSubresources() );
 
     const uint8 * srcSubResourceStart = static_cast< const uint8 * >(
-        myBufferAllocation->myBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED, myBufferAllocation->myOffsetToBlock,
-                                           myBufferAllocation->myBlockSize ) );
+        myBufferAllocation->myBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED, myBufferAllocation->myOffsetToBlock, myBufferAllocation->myBlockSize ) );
     ASSERT( srcSubResourceStart != nullptr );
 
     uint8 * dstSubResourceStart = aDataOut.myData.data();
     uint    subResourceIndex = 0u;
-    for ( SubresourceIterator it = mySubresourceRange.Begin(), end = mySubresourceRange.End(); it != end;
-          ++it, ++subResourceIndex ) {
+    for ( SubresourceIterator it = mySubresourceRange.Begin(), end = mySubresourceRange.End(); it != end; ++it, ++subResourceIndex ) {
       const SubresourceLocation & subResource = *it;
       uint                        width, height, depth;
       myTextureProperties.GetSize( subResource.myMipLevel, width, height, depth );
 
-      const uint64 dstRowSizeBytes =
-          BITS_TO_BYTES( width * formatInfo.myCopyableBitsPerPixelPerPlane[ subResource.myPlaneIndex ] );
+      const uint64 dstRowSizeBytes = BITS_TO_BYTES( width * formatInfo.myCopyableBitsPerPixelPerPlane[ subResource.myPlaneIndex ] );
       const uint64 srcRowSizeBytes = MathUtil::Align( dstRowSizeBytes, rowAlignment );
 
       const uint64 srcSliceSizeBytes = srcRowSizeBytes * height;
@@ -101,8 +95,7 @@ namespace Fancy {
       dstSubData.myTotalSizeBytes = dstSliceSizeBytes * depth;
 
       const uint64 srcSubresourceSizeBytes = srcSliceSizeBytes * depth;
-      const uint64 dstSubresourceSizeBytes =
-          MathUtil::Align( dstSliceSizeBytes * depth, caps.myTextureSubresourceBufferAlignment );
+      const uint64 dstSubresourceSizeBytes = MathUtil::Align( dstSliceSizeBytes * depth, caps.myTextureSubresourceBufferAlignment );
 
       const uint8 * srcSliceStart = srcSubResourceStart;
       uint8 *       dstSliceStart = dstSubResourceStart;
@@ -124,8 +117,7 @@ namespace Fancy {
       dstSubResourceStart += dstSubresourceSizeBytes;
     }
 
-    myBufferAllocation->myBuffer->Unmap( GpuResourceMapMode::READ_UNSYNCHRONIZED, myBufferAllocation->myOffsetToBlock,
-                                         myBufferAllocation->myBlockSize );
+    myBufferAllocation->myBuffer->Unmap( GpuResourceMapMode::READ_UNSYNCHRONIZED, myBufferAllocation->myOffsetToBlock, myBufferAllocation->myBlockSize );
   }
   //---------------------------------------------------------------------------//
 

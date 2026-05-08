@@ -105,8 +105,7 @@ namespace Fancy {
         uint64 overallSizeBytes = 0ull;
         bool   needsTempData = false;
         for ( TextureSubData & subData : aVal.mySubDatas ) {
-          if ( !needsTempData &&
-               ( overallSizeBytes > aVal.myData.size() || subData.myData != aVal.myData.data() + overallSizeBytes ) )
+          if ( !needsTempData && ( overallSizeBytes > aVal.myData.size() || subData.myData != aVal.myData.data() + overallSizeBytes ) )
             needsTempData = true;
 
           overallSizeBytes += subData.myTotalSizeBytes;
@@ -176,8 +175,7 @@ namespace Fancy {
     return SerializeScene( serializer, aSceneData );
   }
   //---------------------------------------------------------------------------//
-  void BinaryCache::WriteTextureData( const char * aSourceFilePath, TextureProperties & someTexProps,
-                                      TextureData & aTextureData ) {
+  void BinaryCache::WriteTextureData( const char * aSourceFilePath, TextureProperties & someTexProps, TextureData & aTextureData ) {
     const eastl::string cacheFilePath = GetCacheFilePathAbs( aSourceFilePath );
     Path::CreateDirectoryTreeForPath( cacheFilePath );
     BinarySerializer serializer( cacheFilePath.c_str(), BinarySerializer::WRITE );
@@ -189,8 +187,7 @@ namespace Fancy {
     SerializeTextureData( serializer, someTexProps, aTextureData );
   }
   //---------------------------------------------------------------------------//
-  bool BinaryCache::ReadTextureData( const char * aSourceFilePath, TextureProperties & someTexProps,
-                                     TextureData & aTextureData ) {
+  bool BinaryCache::ReadTextureData( const char * aSourceFilePath, TextureProperties & someTexProps, TextureData & aTextureData ) {
     if ( !HasValidDiskCache( aSourceFilePath ) )
       return false;
 
@@ -238,8 +235,7 @@ namespace Fancy {
     return true;
   }
   //---------------------------------------------------------------------------//
-  bool BinaryCache::SerializeTextureData( BinarySerializer & aSerializer, TextureProperties & someTexProps,
-                                          TextureData & aTextureData ) {
+  bool BinaryCache::SerializeTextureData( BinarySerializer & aSerializer, TextureProperties & someTexProps, TextureData & aTextureData ) {
     if ( aSerializer.IsReading() ) {
       uint version = 0;
       aSerializer.Serialize( version );

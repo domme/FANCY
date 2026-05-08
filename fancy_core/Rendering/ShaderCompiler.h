@@ -29,8 +29,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   class ShaderCompiler {
   public:
-    static const char *     ShaderStageToDefineString( ShaderStage aShaderStage );
-    static FixedShortString GetHLSLprofileString( ShaderStage aShaderStage, ShaderModel aShaderModel = SM_LATEST );
+    static const char *            ShaderStageToDefineString( ShaderStage aShaderStage );
+    static FixedShortString        GetHLSLprofileString( ShaderStage aShaderStage, ShaderModel aShaderModel = SM_LATEST );
     static VertexAttributeSemantic GetVertexAttributeSemantic( const char * aSemanticName );
 
     virtual ~ShaderCompiler() = default;
@@ -38,8 +38,7 @@ namespace Fancy {
     bool Compile( const ShaderDesc & aDesc, ShaderCompilerResult * aCompilerOutput ) const;
 
   protected:
-    virtual bool Compile_Internal( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc,
-                                   ShaderCompilerResult * aCompilerOutput ) const = 0;
+    virtual bool Compile_Internal( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, ShaderCompilerResult * aCompilerOutput ) const = 0;
 
     DxcShaderCompiler myDxcCompiler;
   };

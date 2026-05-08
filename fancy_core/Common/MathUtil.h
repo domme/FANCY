@@ -40,16 +40,14 @@ namespace Fancy {
     }
     //---------------------------------------------------------------------------//
     constexpr uint64 Align( uint64 aVal, uint64 anAlignment ) {
-      return ( anAlignment == 0 || anAlignment == 1 ) ? aVal
-                                                      : ( aVal + ( anAlignment - 1u ) ) & ( ~( anAlignment - 1u ) );
+      return ( anAlignment == 0 || anAlignment == 1 ) ? aVal : ( aVal + ( anAlignment - 1u ) ) & ( ~( anAlignment - 1u ) );
     }
     //---------------------------------------------------------------------------//
     constexpr bool IsAligned( uint64 aVal, uint64 anAlignment ) {
       return ( anAlignment == 0 || anAlignment == 1 ) ? true : ( aVal & ( anAlignment - 1u ) ) == 0u;
     }
     //---------------------------------------------------------------------------//
-    inline glm::mat4 perspectiveFov( float const & fov, float const & width, float const & height, float const & zNear,
-                                     float const & zFar ) {
+    inline glm::mat4 perspectiveFov( float const & fov, float const & width, float const & height, float const & zNear, float const & zFar ) {
       const float fovY_rad = glm::radians( fov );
 
       const float aspect = width / height;

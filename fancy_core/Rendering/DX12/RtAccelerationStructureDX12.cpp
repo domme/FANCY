@@ -26,8 +26,7 @@ namespace Fancy {
       return flags;
     }
 
-    static void GetBLASGeometryDescs( const RtAccelerationStructureGeometryData * someGeometries, uint aNumGeometries,
-                                      CommandList *                                     cmdList,
+    static void GetBLASGeometryDescs( const RtAccelerationStructureGeometryData * someGeometries, uint aNumGeometries, CommandList * cmdList,
                                       eastl::vector< D3D12_RAYTRACING_GEOMETRY_DESC > & geometryDescs ) {
       geometryDescs.reserve( aNumGeometries );
 
@@ -44,21 +43,17 @@ namespace Fancy {
         geoDescDx12.Type = RenderCore_PlatformDX12::GetRaytracingBVHGeometryType( geoInfo.myType );
         if ( geoDescDx12.Type == D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES ) {
           const DataFormatInfo & vertexFormatInfo = DataFormatInfo::GetFormatInfo( geoInfo.myVertexFormat );
-          const uint             vertexComponentSize =
-              BITS_TO_BYTES( vertexFormatInfo.myBitsPerPixel ) / vertexFormatInfo.myNumComponents;
-          const uint vertexStride =
-              glm::max( geoInfo.myVertexStride, ( uint ) BITS_TO_BYTES( vertexFormatInfo.myBitsPerPixel ) );
+          const uint             vertexComponentSize = BITS_TO_BYTES( vertexFormatInfo.myBitsPerPixel ) / vertexFormatInfo.myNumComponents;
+          const uint             vertexStride = glm::max( geoInfo.myVertexStride, ( uint ) BITS_TO_BYTES( vertexFormatInfo.myBitsPerPixel ) );
           ASSERT( MathUtil::IsAligned( vertexStride,
                                        vertexComponentSize ) );  // Stride must be a multiple of the component size
 
-          const uint indexStride =
-              BITS_TO_BYTES( DataFormatInfo::GetFormatInfo( geoInfo.myIndexFormat ).myBitsPerPixel );
+          const uint indexStride = BITS_TO_BYTES( DataFormatInfo::GetFormatInfo( geoInfo.myIndexFormat ).myBitsPerPixel );
           const uint transformStride = sizeof( glm::float3x4 );
 
           const uint64 vertexBufferAddress = geoInfo.myVertexData.GetGpuBufferAddress( cmdList, vertexComponentSize );
           const uint64 indexBufferAddress = geoInfo.myIndexData.GetGpuBufferAddress( cmdList, indexStride );
-          const uint64 transformBufferAddress =
-              geoInfo.myTransformData.GetGpuBufferAddress( cmdList, D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT );
+          const uint64 transformBufferAddress = geoInfo.myTransformData.GetGpuBufferAddress( cmdList, D3D12_RAYTRACING_TRANSFORM3X4_BYTE_ALIGNMENT );
 
           geoDescDx12.Triangles.VertexFormat = RenderCore_PlatformDX12::ResolveFormat( geoInfo.myVertexFormat );
           geoDescDx12.Triangles.VertexBuffer = { vertexBufferAddress, vertexStride };
@@ -68,8 +63,7 @@ namespace Fancy {
           geoDescDx12.Triangles.IndexCount = geoInfo.myNumIndices;
           geoDescDx12.Triangles.Transform3x4 = transformBufferAddress;
         } else {
-          const uint64 aabbBufferAddress =
-              geoInfo.myProcedural_AABBData.GetGpuBufferAddress( cmdList, D3D12_RAYTRACING_AABB_BYTE_ALIGNMENT );
+          const uint64 aabbBufferAddress = geoInfo.myProcedural_AABBData.GetGpuBufferAddress( cmdList, D3D12_RAYTRACING_AABB_BYTE_ALIGNMENT );
           geoDescDx12.AABBs.AABBs = { aabbBufferAddress, sizeof( D3D12_RAYTRACING_AABB ) };
           geoDescDx12.AABBs.AABBCount = geoInfo.myProcedural_NumAABBs;
         }
@@ -108,9 +102,8 @@ namespace Fancy {
     }
   }  // namespace Private
   //---------------------------------------------------------------------------//
-  RtAccelerationStructureDX12::RtAccelerationStructureDX12( const RtAccelerationStructureGeometryData * someGeometries,
-                                                            uint aNumGeometries, uint someFlags /*= 0*/,
-                                                            const char * aName /*= nullptr*/ )
+  RtAccelerationStructureDX12::RtAccelerationStructureDX12( const RtAccelerationStructureGeometryData * someGeometries, uint aNumGeometries,
+                                                            uint someFlags /*= 0*/, const char * aName /*= nullptr*/ )
       : RtAccelerationStructure( RtAccelerationStructureType::BOTTOM_LEVEL, aName ) {
     CommandList *                                   cmdList = RenderCore::BeginCommandList( CommandListType::Graphics );
     eastl::vector< D3D12_RAYTRACING_GEOMETRY_DESC > geometryDescs;
@@ -118,8 +111,8 @@ namespace Fancy {
     BuildInternal( &geometryDescs, nullptr, someFlags, aName, cmdList );
   }
   //---------------------------------------------------------------------------//
-  RtAccelerationStructureDX12::RtAccelerationStructureDX12( const RtAccelerationStructureInstanceData * someInstances,
-                                                            uint aNumInstances, uint someFlags, const char * aName )
+  RtAccelerationStructureDX12::RtAccelerationStructureDX12( const RtAccelerationStructureInstanceData * someInstances, uint aNumInstances, uint someFlags,
+                                                            const char * aName )
       : RtAccelerationStructure( RtAccelerationStructureType::TOP_LEVEL, aName ) {
     eastl::vector< D3D12_RAYTRACING_INSTANCE_DESC > instanceDescs;
     Private::GetTLASInstanceDescs( someInstances, aNumInstances, instanceDescs );
@@ -129,8 +122,8 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void RtAccelerationStructureDX12::BuildInternal( eastl::vector< D3D12_RAYTRACING_GEOMETRY_DESC > * someGeometryDescs,
-                                                   eastl::vector< D3D12_RAYTRACING_INSTANCE_DESC > * someInstanceDescs,
-                                                   uint someFlags, const char * aName, CommandList * cmdList ) {
+                                                   eastl::vector< D3D12_RAYTRACING_INSTANCE_DESC > * someInstanceDescs, uint someFlags, const char * aName,
+                                                   CommandList * cmdList ) {
     ASSERT( ( someGeometryDescs && !someInstanceDescs ) || ( !someGeometryDescs && someInstanceDescs ) );
     const bool isBLAS = someGeometryDescs != nullptr;
     ASSERT( isBLAS == ( myType == RtAccelerationStructureType::BOTTOM_LEVEL ) );
@@ -139,19 +132,15 @@ namespace Fancy {
     uint64            instanceDescBufferOffset = 0;
     if ( !isBLAS ) {
       uint64 instanceDescBufferSize =
-          MathUtil::Align( someInstanceDescs->size() * sizeof( D3D12_RAYTRACING_INSTANCE_DESC ),
-                           D3D12_RAYTRACING_INSTANCE_DESCS_BYTE_ALIGNMENT );
-      uint sizeNeeded =
-          ( uint ) glm::ceil( float( instanceDescBufferSize ) / sizeof( D3D12_RAYTRACING_INSTANCE_DESC ) );
+          MathUtil::Align( someInstanceDescs->size() * sizeof( D3D12_RAYTRACING_INSTANCE_DESC ), D3D12_RAYTRACING_INSTANCE_DESCS_BYTE_ALIGNMENT );
+      uint sizeNeeded = ( uint ) glm::ceil( float( instanceDescBufferSize ) / sizeof( D3D12_RAYTRACING_INSTANCE_DESC ) );
       someInstanceDescs->resize( sizeNeeded );
-      instanceDescBuffer =
-          cmdList->GetBuffer( instanceDescBufferOffset, GpuBufferUsage::STAGING_UPLOAD, someInstanceDescs->data(),
-                              instanceDescBufferSize, D3D12_RAYTRACING_INSTANCE_DESCS_BYTE_ALIGNMENT );
+      instanceDescBuffer = cmdList->GetBuffer( instanceDescBufferOffset, GpuBufferUsage::STAGING_UPLOAD, someInstanceDescs->data(), instanceDescBufferSize,
+                                               D3D12_RAYTRACING_INSTANCE_DESCS_BYTE_ALIGNMENT );
     }
 
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS asInputs = {};
-    asInputs.Flags = static_cast< D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS >(
-        Private::GetAccelerationStructureFlags( someFlags ) );
+    asInputs.Flags = static_cast< D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS >( Private::GetAccelerationStructureFlags( someFlags ) );
     asInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
     asInputs.Type = RenderCore_PlatformDX12::GetRtAccelerationStructureType( myType );
     if ( isBLAS ) {
@@ -163,8 +152,7 @@ namespace Fancy {
     }
 
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO asPrebuildInfo = {};
-    RenderCore::GetPlatformDX12()->GetDevice()->GetRaytracingAccelerationStructurePrebuildInfo( &asInputs,
-                                                                                                &asPrebuildInfo );
+    RenderCore::GetPlatformDX12()->GetDevice()->GetRaytracingAccelerationStructurePrebuildInfo( &asInputs, &asPrebuildInfo );
     ASSERT( asPrebuildInfo.ResultDataMaxSizeInBytes > 0 );
 
     GpuBufferProperties bufferProps;
@@ -173,8 +161,7 @@ namespace Fancy {
     bufferProps.myElementSizeBytes = asPrebuildInfo.ResultDataMaxSizeInBytes;
     bufferProps.myNumElements = 1;
     bufferProps.myIsShaderWritable = true;
-    myBuffer = RenderCore::CreateBuffer(
-        bufferProps, StaticString< 128 >( "%s_%s_buffer", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS" ) );
+    myBuffer = RenderCore::CreateBuffer( bufferProps, StaticString< 128 >( "%s_%s_buffer", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS" ) );
     ASSERT( myBuffer.IsValid() );
 
     // Actually build the BVH
@@ -185,8 +172,7 @@ namespace Fancy {
     tempBufferProps.myNumElements = 1;
     tempBufferProps.myElementSizeBytes = asPrebuildInfo.ScratchDataSizeInBytes;
     GpuBufferHandle buildTempBufferHandle =
-        RenderCore::CreateBuffer( tempBufferProps, StaticString< 128 >( "%s_%s_tempBuffer", aName ? aName : "Unnamed",
-                                                                        isBLAS ? "BLAS" : "TLAS" ) );
+        RenderCore::CreateBuffer( tempBufferProps, StaticString< 128 >( "%s_%s_tempBuffer", aName ? aName : "Unnamed", isBLAS ? "BLAS" : "TLAS" ) );
     ASSERT( buildTempBufferHandle.IsValid() );
     GpuBuffer * buildTempBuffer = RenderCore::GetBuffer( buildTempBufferHandle );
 
@@ -207,8 +193,7 @@ namespace Fancy {
       viewProps.myIsRtAccelerationStructure = true;
       viewProps.myIsShaderWritable = false;
       myTopLevelBufferRead =
-          RenderCore::CreateBufferView( RenderCore::GetBuffer( myBuffer ), viewProps,
-                                        StaticString< 128 >( "%s_TLAS_bufferView", aName ? aName : "Unnamed" ) );
+          RenderCore::CreateBufferView( RenderCore::GetBuffer( myBuffer ), viewProps, StaticString< 128 >( "%s_TLAS_bufferView", aName ? aName : "Unnamed" ) );
       ASSERT( myTopLevelBufferRead.IsValid() );
     }
   }

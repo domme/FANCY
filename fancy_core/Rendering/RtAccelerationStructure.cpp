@@ -16,14 +16,13 @@ namespace Fancy {
     }
 
     uint64            offset;
-    const GpuBuffer * buffer = aCommandList->GetBuffer( offset, GpuBufferUsage::STAGING_UPLOAD_RT_BUILD_INPUT,
-                                                        myCpuData.myData, myCpuData.myDataSize, anAlingment );
+    const GpuBuffer * buffer =
+        aCommandList->GetBuffer( offset, GpuBufferUsage::STAGING_UPLOAD_RT_BUILD_INPUT, myCpuData.myData, myCpuData.myDataSize, anAlingment );
     ASSERT( buffer != nullptr );
     return buffer->GetDeviceAddress() + offset;
   }
 
-  RtAccelerationStructure::RtAccelerationStructure( RtAccelerationStructureType aType, const char * aName )
-      : myType( aType ), myName( aName ? aName : "" ) {}
+  RtAccelerationStructure::RtAccelerationStructure( RtAccelerationStructureType aType, const char * aName ) : myType( aType ), myName( aName ? aName : "" ) {}
 
   RtAccelerationStructure::~RtAccelerationStructure() {
     if ( myTopLevelBufferRead.IsValid() )

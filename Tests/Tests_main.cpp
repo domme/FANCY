@@ -40,8 +40,7 @@ _Use_decl_annotations_ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR
   WindowParameters         windowParams;
   windowParams.myWidth = 1280;
   windowParams.myHeight = 720;
-  myTestApp.reset(
-      new TestApplication( hInstance, cStrings.data(), cStrings.size(), "Tests", renderProperties, windowParams ) );
+  myTestApp.reset( new TestApplication( hInstance, cStrings.data(), cStrings.size(), "Tests", renderProperties, windowParams ) );
 
   MSG msg = { 0 };
   while ( true ) {

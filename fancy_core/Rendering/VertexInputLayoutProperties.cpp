@@ -23,8 +23,7 @@ namespace Fancy {
     return overallSize;
   }
   //---------------------------------------------------------------------------//
-  VertexInputLayout::VertexInputLayout( const VertexInputLayoutProperties & someProperties )
-      : myProperties( someProperties ) {
+  VertexInputLayout::VertexInputLayout( const VertexInputLayoutProperties & someProperties ) : myProperties( someProperties ) {
     // Check for validity and compute the buffer-offsets
     uint bufferSize[ 16 ] = { 0u };
     for ( const VertexInputAttributeDesc & attributeDesc : myProperties.myAttributes ) {

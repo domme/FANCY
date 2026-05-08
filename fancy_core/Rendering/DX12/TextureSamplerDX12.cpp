@@ -92,8 +92,7 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
   }  // namespace Priv_TextureSamplerDX12
   //---------------------------------------------------------------------------//
-  TextureSamplerDX12::TextureSamplerDX12( const TextureSamplerProperties & someProperties )
-      : TextureSampler( someProperties ) {
+  TextureSamplerDX12::TextureSamplerDX12( const TextureSamplerProperties & someProperties ) : TextureSampler( someProperties ) {
     D3D12_SAMPLER_DESC desc;
     desc.AddressU = Priv_TextureSamplerDX12::locResolveAddressMode( myProperties.myAddressModeX );
     desc.AddressV = Priv_TextureSamplerDX12::locResolveAddressMode( myProperties.myAddressModeY );
@@ -102,8 +101,7 @@ namespace Fancy {
     for ( uint i = 0u; i < 4u; ++i )
       desc.BorderColor[ i ] = borderColor[ i ];
     desc.ComparisonFunc = RenderCore_PlatformDX12::ResolveCompFunc( myProperties.myComparisonFunc );
-    desc.Filter =
-        Priv_TextureSamplerDX12::locResolveFilterMode( myProperties.myMinFiltering, myProperties.myMagFiltering );
+    desc.Filter = Priv_TextureSamplerDX12::locResolveFilterMode( myProperties.myMinFiltering, myProperties.myMagFiltering );
     desc.MaxAnisotropy = glm::min( RenderCore::GetPlatformCaps().myMaxTextureAnisotropy, myProperties.myMaxAnisotropy );
     desc.MaxLOD = myProperties.myMaxLod;
     desc.MinLOD = myProperties.myMinLod;

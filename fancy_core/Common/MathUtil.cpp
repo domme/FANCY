@@ -29,8 +29,7 @@ namespace Fancy {
     }
     //---------------------------------------------------------------------------//
     void BeginMultiHash() {
-      ASSERT( !Priv_MathUtil::ourMultiHashStarted,
-              "Multi hash already started. Did you forget to call EndMultiHash()?" );
+      ASSERT( !Priv_MathUtil::ourMultiHashStarted, "Multi hash already started. Did you forget to call EndMultiHash()?" );
       if ( Priv_MathUtil::ourXXHashState == nullptr )
         Priv_MathUtil::ourXXHashState = XXH64_createState();
 

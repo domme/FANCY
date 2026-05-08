@@ -26,9 +26,7 @@ static bool LoadImage_STB( FILE * file, const char * aPathAbs, uint someLoadFlag
   }
 
   const bool is16Bit = stbi_is_16_bit_from_file( file ) == 1;
-  const int  desiredNumChannels =
-      numChannels == 3 ? 4
-                       : 0;  // Keep the original channels for everything else than RGB. In this case, always use RGBA
+  const int  desiredNumChannels = numChannels == 3 ? 4 : 0;  // Keep the original channels for everything else than RGB. In this case, always use RGBA
 
   TextureProperties & props = anImageOut.myProperties;
   props.myDimension = GpuResourceDimension::TEXTURE_2D;
@@ -136,8 +134,7 @@ static bool LoadImage_DDS( FILE * file, const char * aPathAbs, uint someLoadFlag
         format = DataFormat::BC4;
       else if ( header.ddspf.fourCC == DDSPF_BC4_SNORM.fourCC )
         format = DataFormat::BC4_SNORM;
-      else if ( header.ddspf.fourCC == DDSPF_BC5_UNORM.fourCC ||
-                header.ddspf.fourCC == MAKEFOURCC( 'A', 'T', 'I', '2' ) )
+      else if ( header.ddspf.fourCC == DDSPF_BC5_UNORM.fourCC || header.ddspf.fourCC == MAKEFOURCC( 'A', 'T', 'I', '2' ) )
         format = DataFormat::BC5;
       else if ( header.ddspf.fourCC == DDSPF_BC5_SNORM.fourCC )
         format = DataFormat::BC5_SNORM;
@@ -167,8 +164,7 @@ static bool LoadImage_DDS( FILE * file, const char * aPathAbs, uint someLoadFlag
 
     uint64 rowPitchSizeBytes;
     uint   heightBlocksOrPixels;
-    TextureData::ComputeRowPitchSizeAndBlockHeight( format, mipWidth, mipHeight, rowPitchSizeBytes,
-                                                    heightBlocksOrPixels );
+    TextureData::ComputeRowPitchSizeAndBlockHeight( format, mipWidth, mipHeight, rowPitchSizeBytes, heightBlocksOrPixels );
     overallSizeBytes += heightBlocksOrPixels * rowPitchSizeBytes;
   }
 
@@ -182,8 +178,7 @@ static bool LoadImage_DDS( FILE * file, const char * aPathAbs, uint someLoadFlag
 
     uint64 rowPitchSizeBytes;
     uint   heightBlocksOrPixels;
-    TextureData::ComputeRowPitchSizeAndBlockHeight( format, mipWidth, mipHeight, rowPitchSizeBytes,
-                                                    heightBlocksOrPixels );
+    TextureData::ComputeRowPitchSizeAndBlockHeight( format, mipWidth, mipHeight, rowPitchSizeBytes, heightBlocksOrPixels );
 
     const uint64 sizeOnMip = heightBlocksOrPixels * rowPitchSizeBytes;
 

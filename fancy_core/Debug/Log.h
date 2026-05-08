@@ -29,8 +29,7 @@ namespace Fancy {
     std::cout << logBuffer;
   }
 
-  inline void LogWithLocation( const char * aSeverity, const char * aFile, const int aLine, const char * aMessageFormat,
-                               ... ) {
+  inline void LogWithLocation( const char * aSeverity, const char * aFile, const int aLine, const char * aMessageFormat, ... ) {
     va_list args;
     va_start( args, aMessageFormat );
 
@@ -38,8 +37,7 @@ namespace Fancy {
     const int messageBufferSize = vsnprintf( nullptr, 0u, aMessageFormat, args ) + 1;
     const int fileBufferSize = snprintf( nullptr, 0u, "File: %s (%i)", aFile, aLine ) + 1;
 
-    const int logBufferSizeBytes =
-        severityBufferSize + messageBufferSize + fileBufferSize + 1u + 1u + 1u + 1u + 1u;  // (...) \0 \n
+    const int logBufferSizeBytes = severityBufferSize + messageBufferSize + fileBufferSize + 1u + 1u + 1u + 1u + 1u;  // (...) \0 \n
 
     eastl::fixed_vector< char, 64 > logBufferVec( logBufferSizeBytes );
     char *                          logBuffer = logBufferVec.data();
@@ -66,16 +64,16 @@ namespace Fancy {
 #define LOG_WARNING( aFormat, ... ) LogWithLocation( "Warning", __FILE__, __LINE__, aFormat, ##__VA_ARGS__ )
 #define LOG_ERROR( aFormat, ... ) LogWithLocation( "Error", __FILE__, __LINE__, aFormat, ##__VA_ARGS__ )
   //---------------------------------------------------------------------------//
-#define ASSERT( aValue, ... )                                                                                          \
-  {                                                                                                                    \
-    if ( !( aValue ) ) {                                                                                               \
-      LOG_ERROR( "", ##__VA_ARGS__ );                                                                                  \
-      assert( aValue );                                                                                                \
-    }                                                                                                                  \
+#define ASSERT( aValue, ... )                                                                                                                                  \
+  {                                                                                                                                                            \
+    if ( !( aValue ) ) {                                                                                                                                       \
+      LOG_ERROR( "", ##__VA_ARGS__ );                                                                                                                          \
+      assert( aValue );                                                                                                                                        \
+    }                                                                                                                                                          \
   }
-#define STATIC_ASSERT( condition, message )                                                                            \
-  {                                                                                                                    \
-    static_assert( condition, message );                                                                               \
+#define STATIC_ASSERT( condition, message )                                                                                                                    \
+  {                                                                                                                                                            \
+    static_assert( condition, message );                                                                                                                       \
   }
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

@@ -12,10 +12,9 @@ namespace Fancy {
 
 class Test {
 public:
-  Test( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput,
-        Fancy::InputState * anInputState, const char * aName )
-      : myAssetManager( anAssetManager ), myWindow( aWindow ), myOutput( aRenderOutput ), myInput( anInputState ),
-        myName( aName ) {}
+  Test( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput, Fancy::InputState * anInputState,
+        const char * aName )
+      : myAssetManager( anAssetManager ), myWindow( aWindow ), myOutput( aRenderOutput ), myInput( anInputState ), myName( aName ) {}
   virtual ~Test() = default;
 
   virtual void OnWindowResized( uint /*aWidth*/, uint /*aHeight*/ ){};

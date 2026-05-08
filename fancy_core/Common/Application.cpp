@@ -12,12 +12,10 @@
 #include "Rendering/RenderOutput.h"
 
 namespace Fancy {
-  Fancy::Application::Application( HINSTANCE anInstanceHandle, const char ** someArguments, uint aNumArguments,
-                                   const char * aName, const char * aRelativeRootFolder,
-                                   const RenderPlatformProperties & someRenderProperties,
-                                   const WindowParameters &         someWindowParams )
-      : myAppInstanceHandle( anInstanceHandle ), myName( aName ), myCameraController( &myCamera ),
-        myRealTimeClock( new Time ) {
+  Fancy::Application::Application( HINSTANCE anInstanceHandle, const char ** someArguments, uint aNumArguments, const char * aName,
+                                   const char * aRelativeRootFolder, const RenderPlatformProperties & someRenderProperties,
+                                   const WindowParameters & someWindowParams )
+      : myAppInstanceHandle( anInstanceHandle ), myName( aName ), myCameraController( &myCamera ), myRealTimeClock( new Time ) {
     CommandLine::CreateInstance( someArguments, aNumArguments );
 
     // Init IO-subsystem
@@ -30,12 +28,8 @@ namespace Fancy {
     ASSERT( RenderCore::IsInitialized() );
 
     myRenderOutput = RenderCore::CreateRenderOutput( anInstanceHandle, someWindowParams );
-    RenderCore::GetRenderOutput( myRenderOutput )
-        ->GetWindow()
-        ->myOnResize.Connect( this, &Application::OnWindowResized );
-    RenderCore::GetRenderOutput( myRenderOutput )
-        ->GetWindow()
-        ->myWindowEventHandler.Connect( &myInputState, &InputState::OnWindowEvent );
+    RenderCore::GetRenderOutput( myRenderOutput )->GetWindow()->myOnResize.Connect( this, &Application::OnWindowResized );
+    RenderCore::GetRenderOutput( myRenderOutput )->GetWindow()->myWindowEventHandler.Connect( &myInputState, &InputState::OnWindowEvent );
 
     Assets::Init();
   }

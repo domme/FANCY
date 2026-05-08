@@ -21,11 +21,10 @@ namespace Fancy {
     bool IsValid() const override;
     void SetName( const char * aName ) override;
 
-    void Create( const TextureProperties & someProperties, const char * aName = nullptr,
-                 const TextureSubData * someInitialDatas = nullptr, uint aNumInitialDatas = 0u ) override;
+    void Create( const TextureProperties & someProperties, const char * aName = nullptr, const TextureSubData * someInitialDatas = nullptr,
+                 uint aNumInitialDatas = 0u ) override;
 
-    uint64 GetCopyableFootprints( const SubresourceRange &             aSubresourceRange,
-                                  D3D12_PLACED_SUBRESOURCE_FOOTPRINT * someFootprintsOut, uint * someNumRowsOut,
+    uint64 GetCopyableFootprints( const SubresourceRange & aSubresourceRange, D3D12_PLACED_SUBRESOURCE_FOOTPRINT * someFootprintsOut, uint * someNumRowsOut,
                                   uint64 * someRowSizesOut ) const;
 
   protected:
@@ -38,14 +37,10 @@ namespace Fancy {
     ~TextureViewDX12() override;
 
   private:
-    static bool CreateSRV( const Texture * aTexture, const TextureViewProperties & someProperties,
-                           const DescriptorDX12 & aDescriptor );
-    static bool CreateUAV( const Texture * aTexture, const TextureViewProperties & someProperties,
-                           const DescriptorDX12 & aDescriptor );
-    static bool CreateRTV( const Texture * aTexture, const TextureViewProperties & someProperties,
-                           const DescriptorDX12 & aDescriptor );
-    static bool CreateDSV( const Texture * aTexture, const TextureViewProperties & someProperties,
-                           const DescriptorDX12 & aDescriptor );
+    static bool CreateSRV( const Texture * aTexture, const TextureViewProperties & someProperties, const DescriptorDX12 & aDescriptor );
+    static bool CreateUAV( const Texture * aTexture, const TextureViewProperties & someProperties, const DescriptorDX12 & aDescriptor );
+    static bool CreateRTV( const Texture * aTexture, const TextureViewProperties & someProperties, const DescriptorDX12 & aDescriptor );
+    static bool CreateDSV( const Texture * aTexture, const TextureViewProperties & someProperties, const DescriptorDX12 & aDescriptor );
   };
 }  // namespace Fancy
 

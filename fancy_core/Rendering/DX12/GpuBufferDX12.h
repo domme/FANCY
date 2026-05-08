@@ -18,8 +18,7 @@ namespace Fancy {
     bool IsValid() const override;
     void SetName( const char * aName ) override;
 
-    void   Create( const GpuBufferProperties & clParameters, const char * aName = nullptr,
-                   const void * pInitialData = nullptr ) override;
+    void   Create( const GpuBufferProperties & clParameters, const char * aName = nullptr, const void * pInitialData = nullptr ) override;
     uint64 GetDeviceAddress() const override;
 
   protected:
@@ -34,12 +33,9 @@ namespace Fancy {
     GpuBufferViewDX12( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties, const char * aName );
     ~GpuBufferViewDX12() override;
 
-    static bool CreateSRVdescriptor( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
-                                     const DescriptorDX12 & aDescriptor );
-    static bool CreateUAVdescriptor( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
-                                     const DescriptorDX12 & aDescriptor );
-    static bool CreateCBVdescriptor( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
-                                     const DescriptorDX12 & aDescriptor );
+    static bool CreateSRVdescriptor( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties, const DescriptorDX12 & aDescriptor );
+    static bool CreateUAVdescriptor( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties, const DescriptorDX12 & aDescriptor );
+    static bool CreateCBVdescriptor( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties, const DescriptorDX12 & aDescriptor );
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

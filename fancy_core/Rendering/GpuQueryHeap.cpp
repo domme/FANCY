@@ -3,8 +3,7 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
-  GpuQueryHeap::GpuQueryHeap( GpuQueryType aQueryType, uint aNumQueries )
-      : myType( aQueryType ), myNumQueries( aNumQueries ) {}
+  GpuQueryHeap::GpuQueryHeap( GpuQueryType aQueryType, uint aNumQueries ) : myType( aQueryType ), myNumQueries( aNumQueries ) {}
   //---------------------------------------------------------------------------//
   GpuQueryHeap::~GpuQueryHeap() {}
   //---------------------------------------------------------------------------//

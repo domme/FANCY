@@ -10,8 +10,7 @@
 
 namespace Fancy {
   void ImGuiDebugImage::Update( Fancy::TextureView * aTexture, const char * aName ) {
-    glm::float2 size = glm::float2( ( float ) aTexture->GetTexture()->GetProperties().myWidth,
-                                    ( float ) aTexture->GetTexture()->GetProperties().myHeight );
+    glm::float2 size = glm::float2( ( float ) aTexture->GetTexture()->GetProperties().myWidth, ( float ) aTexture->GetTexture()->GetProperties().myHeight );
     size *= myZoom;
 
     ImGui::Text( aName );
@@ -19,15 +18,13 @@ namespace Fancy {
     ImGui::DragFloat( "Zoom", &myZoom, 0.1f, 0.25f, 10.0f );
   }
 
-  ImGuiMippedDebugImage::ImGuiMippedDebugImage( Texture * aTexture, const char * aName )
-      : myTexture( aTexture ), myName( aName ) {
+  ImGuiMippedDebugImage::ImGuiMippedDebugImage( Texture * aTexture, const char * aName ) : myTexture( aTexture ), myName( aName ) {
     const TextureProperties & props = aTexture->GetProperties();
     for ( int mip = 0; mip < props.myNumMipLevels; ++mip ) {
       TextureViewProperties viewProps;
       viewProps.myFormat = props.myFormat;
       viewProps.mySubresourceRange = SubresourceRange( aTexture->GetSubresourceLocation( mip ) );
-      myMipViews.push_back(
-          RenderCore::CreateTextureView( aTexture, viewProps, StaticString< 128 >( "%s_mip_%d", aName, mip ) ) );
+      myMipViews.push_back( RenderCore::CreateTextureView( aTexture, viewProps, StaticString< 128 >( "%s_mip_%d", aName, mip ) ) );
     }
   }
 
@@ -39,9 +36,8 @@ namespace Fancy {
   }
 
   void ImGuiMippedDebugImage::Update() {
-    glm::float2 textureSize =
-        glm::float2( ( float ) myTexture->GetProperties().myWidth, ( float ) myTexture->GetProperties().myHeight );
-    float ratio = textureSize.y / textureSize.x;
+    glm::float2 textureSize = glm::float2( ( float ) myTexture->GetProperties().myWidth, ( float ) myTexture->GetProperties().myHeight );
+    float       ratio = textureSize.y / textureSize.x;
 
     glm::float2 availableSize( ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y );
     glm::float2 size = availableSize;

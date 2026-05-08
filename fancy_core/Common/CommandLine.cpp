@@ -54,9 +54,8 @@ namespace Fancy {
           ASSERT( strlen( argStr ) <= kMaxValSize );
 
           Argument & lastArg = myArguments[ myArguments.size() - 1 ];
-          ASSERT( lastArg.myType == ARGTYPE_NO_VALUE,
-                  "Malformed command line string. Two values encountered for the same type. Did you forget to add a "
-                  "'-' before the next argument?" );
+          ASSERT( lastArg.myType == ARGTYPE_NO_VALUE, "Malformed command line string. Two values encountered for the same type. Did you forget to add a "
+                                                      "'-' before the next argument?" );
 
           ParseValue( argStr, lastArg );
         }

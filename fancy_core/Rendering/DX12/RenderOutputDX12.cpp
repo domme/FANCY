@@ -27,7 +27,7 @@ namespace Fancy {
     swapChainDesc.SampleDesc.Count = 1;
     swapChainDesc.Windowed = TRUE;
 
-    RenderCore_PlatformDX12 * coreDX12 = static_cast< RenderCore_PlatformDX12 * >( RenderCore::GetPlatform() );
+    RenderCore_PlatformDX12 *                coreDX12 = static_cast< RenderCore_PlatformDX12 * >( RenderCore::GetPlatform() );
     Microsoft::WRL::ComPtr< IDXGISwapChain > swapChain = coreDX12->CreateSwapChain( swapChainDesc );
 
     ASSERT( swapChain != nullptr );

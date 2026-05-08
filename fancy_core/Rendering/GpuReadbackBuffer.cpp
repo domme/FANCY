@@ -19,8 +19,8 @@ namespace Fancy {
   }
 
   GpuReadbackBuffer::~GpuReadbackBuffer() {
-    ASSERT( myUsedBlocks.IsEmpty(), "Destructing readback-buffer %s while there are still %d blocks in use",
-            RenderCore::GetBuffer( myBuffer )->myName.c_str(), myUsedBlocks.Size() );
+    ASSERT( myUsedBlocks.IsEmpty(), "Destructing readback-buffer %s while there are still %d blocks in use", RenderCore::GetBuffer( myBuffer )->myName.c_str(),
+            myUsedBlocks.Size() );
   }
 
   GpuBuffer * GpuReadbackBuffer::AllocateBlock( uint64 aSize, uint anOffsetAlignment, uint64 & anOffsetOut ) {
@@ -56,8 +56,7 @@ namespace Fancy {
       }
     }
 
-    ASSERT( false, "Unable to free block (offset %d, size %d) from buffer %s", anOffsetToBlock, aBlockSize,
-            RenderCore::GetBuffer( myBuffer )->myName.c_str() );
+    ASSERT( false, "Unable to free block (offset %d, size %d) from buffer %s", anOffsetToBlock, aBlockSize, RenderCore::GetBuffer( myBuffer )->myName.c_str() );
     return false;
   }
 }  // namespace Fancy

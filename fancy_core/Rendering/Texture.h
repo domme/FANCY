@@ -16,11 +16,10 @@ namespace Fancy {
     Texture( GpuResource && aResource, const TextureProperties & someProperties, bool aIsSwapChainTexture );
     virtual ~Texture() = default;
 
-    static void ComputeRowPitchSizeAndBlockHeight( DataFormat aFormat, uint aWidth, uint aHeight, uint64 & rowPitchSize,
-                                                   uint & aHeightBlocksOrPixels );
+    static void ComputeRowPitchSizeAndBlockHeight( DataFormat aFormat, uint aWidth, uint aHeight, uint64 & rowPitchSize, uint & aHeightBlocksOrPixels );
 
-    virtual void Create( const TextureProperties & someProperties, const char * aName = nullptr,
-                         const TextureSubData * someInitialDatas = nullptr, uint aNumInitialDatas = 0u ) = 0;
+    virtual void Create( const TextureProperties & someProperties, const char * aName = nullptr, const TextureSubData * someInitialDatas = nullptr,
+                         uint aNumInitialDatas = 0u ) = 0;
 
     const TextureProperties & GetProperties() const {
       return myProperties;

@@ -41,8 +41,7 @@ namespace Fancy {
     };
     //---------------------------------------------------------------------------//
     glm::float4x4 MatFromAiMat( const aiMatrix4x4 & mat ) {
-      return glm::float4x4( mat.a1, mat.a2, mat.a3, mat.a4, mat.b1, mat.b2, mat.b3, mat.b4, mat.c1, mat.c2, mat.c3,
-                            mat.c4, mat.d1, mat.d2, mat.d3, mat.d4 );
+      return glm::float4x4( mat.a1, mat.a2, mat.a3, mat.a4, mat.b1, mat.b2, mat.b3, mat.b4, mat.c1, mat.c2, mat.c3, mat.c4, mat.d1, mat.d2, mat.d3, mat.d4 );
     }
     //---------------------------------------------------------------------------//
     uint GetAiImportOptions( MeshImporter::ImportOptions someImportOptions ) {
@@ -60,15 +59,13 @@ namespace Fancy {
       return aiOptions;
     }
     //---------------------------------------------------------------------------//
-    VertexInputLayoutProperties
-    CreateVertexInputLayout( const eastl::fixed_vector< VertexShaderAttributeDesc, 16 > & someVertexAttributes ) {
+    VertexInputLayoutProperties CreateVertexInputLayout( const eastl::fixed_vector< VertexShaderAttributeDesc, 16 > & someVertexAttributes ) {
       VertexInputLayoutProperties layoutProps;
 
       uint overallVertexSize = 0u;
       for ( const VertexShaderAttributeDesc & expectedAttribute : someVertexAttributes ) {
         overallVertexSize += DataFormatInfo::GetFormatInfo( expectedAttribute.myFormat ).myBitsPerPixel / 8;
-        layoutProps.myAttributes.push_back(
-            { expectedAttribute.myFormat, expectedAttribute.mySemantic, expectedAttribute.mySemanticIndex, 0u } );
+        layoutProps.myAttributes.push_back( { expectedAttribute.myFormat, expectedAttribute.mySemantic, expectedAttribute.mySemanticIndex, 0u } );
       }
 
       VertexBufferBindDesc bufferBindDesc;
@@ -79,8 +76,7 @@ namespace Fancy {
       return layoutProps;
     }
     //---------------------------------------------------------------------------//
-    eastl::string BuildTexturePath( const aiMaterial * anAiMaterial, uint anAiTextureType, uint aTexIndex,
-                                    const eastl::string & aSceneSourcePath ) {
+    eastl::string BuildTexturePath( const aiMaterial * anAiMaterial, uint anAiTextureType, uint aTexIndex, const eastl::string & aSceneSourcePath ) {
       uint numTextures = anAiMaterial->GetTextureCount( static_cast< aiTextureType >( anAiTextureType ) );
       if ( numTextures == 0u )
         return "";
@@ -106,29 +102,25 @@ namespace Fancy {
     }
   }  // namespace Priv_MeshImporter
   //---------------------------------------------------------------------------//
-  bool MeshImporter::Import( const char * aPath, const ShaderPipeline * aShaderPipeline, SceneData & aResultOut,
-                             ImportOptions someImportOptions ) {
+  bool MeshImporter::Import( const char * aPath, const ShaderPipeline * aShaderPipeline, SceneData & aResultOut, ImportOptions someImportOptions ) {
     const Shader * vertexShader = aShaderPipeline->GetShader( SHADERSTAGE_VERTEX );
     ASSERT( vertexShader != nullptr, "Vertex shader needed during mesh import to get the required vertex attributes" );
     return Import( aPath, vertexShader->myVertexAttributes, aResultOut, someImportOptions );
   }
   //---------------------------------------------------------------------------//
-  bool MeshImporter::Import( const char *                                                 aPath,
-                             const eastl::fixed_vector< VertexShaderAttributeDesc, 16 > & someVertexAttributes,
-                             SceneData & aResultOut, ImportOptions someImportOptions ) {
+  bool MeshImporter::Import( const char * aPath, const eastl::fixed_vector< VertexShaderAttributeDesc, 16 > & someVertexAttributes, SceneData & aResultOut,
+                             ImportOptions someImportOptions ) {
 #if FANCY_USE_BINARY_CACHE
     if ( !CommandLine::GetInstance()->HasArgument( "nobinarycache" ) && BinaryCache::ReadScene( aPath, aResultOut ) )
       return true;
 #endif
 
-    Priv_MeshImporter::ScopedLoggingStream loggingStream( Assimp::Logger::Debugging | Assimp::Logger::Info |
-                                                          Assimp::Logger::Err | Assimp::Logger::Warn );
+    Priv_MeshImporter::ScopedLoggingStream loggingStream( Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn );
 
     eastl::string pathAbs = Path::GetAbsolutePath( aPath );
 
     Assimp::Importer importer;
-    const aiScene *  importedScene =
-        importer.ReadFile( pathAbs.c_str(), Priv_MeshImporter::GetAiImportOptions( someImportOptions ) );
+    const aiScene *  importedScene = importer.ReadFile( pathAbs.c_str(), Priv_MeshImporter::GetAiImportOptions( someImportOptions ) );
 
     if ( !importedScene )
       return false;
@@ -141,8 +133,7 @@ namespace Fancy {
     aResultOut.myVertexInputLayoutProperties = myVertexInputLayout;
 
     aiNode * rootNode = importedScene->mRootNode;
-    bool     success =
-        ProcessNodeRecursive( rootNode, Priv_MeshImporter::MatFromAiMat( rootNode->mTransformation ), aResultOut );
+    bool     success = ProcessNodeRecursive( rootNode, Priv_MeshImporter::MatFromAiMat( rootNode->mTransformation ), aResultOut );
 
 #if FANCY_USE_BINARY_CACHE
     if ( success && !CommandLine::GetInstance()->HasArgument( "nobinarycache" ) )
@@ -158,8 +149,7 @@ namespace Fancy {
     return success;
   }
   //---------------------------------------------------------------------------//
-  bool MeshImporter::ProcessNodeRecursive( const aiNode * aNode, const glm::float4x4 & aParentTransform,
-                                           SceneData & aResultOut ) {
+  bool MeshImporter::ProcessNodeRecursive( const aiNode * aNode, const glm::float4x4 & aParentTransform, SceneData & aResultOut ) {
     if ( !aNode )
       return false;
 
@@ -275,8 +265,7 @@ namespace Fancy {
         if ( aiMesh->HasTextureCoords( iUVchannel ) ) {
           ImportVertexStream stream;
           stream.mySourceDataStride = sizeof( aiMesh->mTextureCoords[ iUVchannel ][ 0 ] );
-          stream.myDataSize =
-              sizeof( aiMesh->mTextureCoords[ iUVchannel ][ 0 ].x ) * aiMesh->mNumUVComponents[ iUVchannel ];
+          stream.myDataSize = sizeof( aiMesh->mTextureCoords[ iUVchannel ][ 0 ].x ) * aiMesh->mNumUVComponents[ iUVchannel ];
           stream.mySourceData = reinterpret_cast< const uint8 * >( aiMesh->mTextureCoords[ iUVchannel ] );
           stream.mySourceSemantic = VertexAttributeSemantic::TEXCOORD;
           stream.mySourceSemanticIndex = iUVchannel;
@@ -305,13 +294,12 @@ namespace Fancy {
       uint overallVertexSize = 0u;
       for ( uint i = 0u; i < expectedAttributes.size(); ++i ) {
         const VertexShaderAttributeDesc & expectedAttribute = expectedAttributes[ i ];
-        uint expectedSize = DataFormatInfo::GetFormatInfo( expectedAttribute.myFormat ).myBitsPerPixel / 8;
+        uint                              expectedSize = DataFormatInfo::GetFormatInfo( expectedAttribute.myFormat ).myBitsPerPixel / 8;
         attributeSizes[ i ] = expectedSize;
         overallVertexSize += expectedSize;
         for ( uint k = 0u; k < importStreams.size(); ++k ) {
           const ImportVertexStream & stream = importStreams[ k ];
-          if ( stream.mySourceSemantic == expectedAttribute.mySemantic &&
-               stream.mySourceSemanticIndex == expectedAttribute.mySemanticIndex ) {
+          if ( stream.mySourceSemantic == expectedAttribute.mySemantic && stream.mySourceSemanticIndex == expectedAttribute.mySemanticIndex ) {
             if ( stream.myDataSize > expectedSize )
               LOG_WARNING( "Vertex attribute size for semantic %d in model is larger than the expected size. Only the "
                            "expected size will be copied per vertex: Expected %d bytes - has %d bytes",
@@ -417,14 +405,11 @@ namespace Fancy {
     float      specular;
     const bool hasSpecular = anAiMaterial->Get( AI_MATKEY_SHININESS_STRENGTH, specular ) == AI_SUCCESS;
 
-    const eastl::string & diffuseTexPath =
-        Priv_MeshImporter::BuildTexturePath( anAiMaterial, aiTextureType_DIFFUSE, 0u, mySourcePath );
-    const eastl::string & normalTexPath =
-        Priv_MeshImporter::BuildTexturePath( anAiMaterial, aiTextureType_NORMALS, 0u, mySourcePath );
+    const eastl::string & diffuseTexPath = Priv_MeshImporter::BuildTexturePath( anAiMaterial, aiTextureType_DIFFUSE, 0u, mySourcePath );
+    const eastl::string & normalTexPath = Priv_MeshImporter::BuildTexturePath( anAiMaterial, aiTextureType_NORMALS, 0u, mySourcePath );
     // const eastl::string& specularTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_SPECULAR,
     // 0u, mySourcePath);
-    const eastl::string & specPowerTexPath =
-        Priv_MeshImporter::BuildTexturePath( anAiMaterial, aiTextureType_SHININESS, 0u, mySourcePath );
+    const eastl::string & specPowerTexPath = Priv_MeshImporter::BuildTexturePath( anAiMaterial, aiTextureType_SHININESS, 0u, mySourcePath );
     // const eastl::string& opacityTexPath = Priv_MeshImporter::BuildTexturePath(anAiMaterial, aiTextureType_OPACITY,
     // 0u, mySourcePath);
 
@@ -432,8 +417,7 @@ namespace Fancy {
     matDesc.myTextures[ ( uint ) MaterialTextureType::BASE_COLOR ] = diffuseTexPath;
     matDesc.myTextures[ ( uint ) MaterialTextureType::NORMAL ] = normalTexPath;
     matDesc.myTextures[ ( uint ) MaterialTextureType::MATERIAL ] = specPowerTexPath;
-    matDesc.myParameters[ ( uint ) MaterialParameterType::COLOR ] =
-        glm::float4( color_diffuse.r, color_diffuse.g, color_diffuse.b, 1.0f );
+    matDesc.myParameters[ ( uint ) MaterialParameterType::COLOR ] = glm::float4( color_diffuse.r, color_diffuse.g, color_diffuse.b, 1.0f );
     matDesc.myParameters[ ( uint ) MaterialParameterType::SPECULAR_REFLECTIVITY ] = glm::float4( specular );
     matDesc.myParameters[ ( uint ) MaterialParameterType::SPECULAR_POWER ] = glm::float4( specularPower );
     matDesc.myParameters[ ( uint ) MaterialParameterType::OPACITY ] = glm::float4( opacity );

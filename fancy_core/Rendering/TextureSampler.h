@@ -16,8 +16,7 @@ namespace Fancy {
     }
 
   protected:
-    TextureSampler( const TextureSamplerProperties & someProperties )
-        : myProperties( someProperties ), myGlobalDescriptorIndex( UINT_MAX ) {}
+    TextureSampler( const TextureSamplerProperties & someProperties ) : myProperties( someProperties ), myGlobalDescriptorIndex( UINT_MAX ) {}
 
     TextureSamplerProperties myProperties;
     uint                     myGlobalDescriptorIndex;

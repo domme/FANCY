@@ -34,8 +34,7 @@ namespace Fancy {
 #endif
     }
 
-    static uint CalcSubresourceIndex( uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices,
-                                      uint aPlaneIndex );
+    static uint CalcSubresourceIndex( uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex );
     static uint CalcNumSubresources( uint aNumMips, uint aNumArraySlices, uint aNumPlanes );
 
     uint                     GetSubresourceIndex( const SubresourceLocation & aSubresourceLocation ) const;

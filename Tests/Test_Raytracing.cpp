@@ -18,8 +18,8 @@
 
 using namespace Fancy;
 
-Test_Raytracing::Test_Raytracing( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow,
-                                  Fancy::RenderOutput * aRenderOutput, Fancy::InputState * anInputState )
+Test_Raytracing::Test_Raytracing( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput,
+                                  Fancy::InputState * anInputState )
     : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "Raytracing" ) {
   // Create bottom level BVH
   eastl::vector< glm::float3 > vertices = { { 1.0f, -1.0f, 0.0f }, { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } };
@@ -52,12 +52,10 @@ Test_Raytracing::Test_Raytracing( Fancy::AssetManager * anAssetManager, Fancy::W
   myTLAS = RenderCore::CreateRtTopLevelAccelerationStructure( &instanceData, 1u );
 
   RtPipelineStateProperties rtPipelineProps;
-  const uint                raygenIdx =
-      rtPipelineProps.AddRayGenShader( "fancy/resources/shaders/Tests/Raytracing/RayGen.hlsl", "RayGen" );
-  const uint missIdx = rtPipelineProps.AddMissShader( "fancy/resources/shaders/Tests/Raytracing/Miss.hlsl", "Miss" );
-  const uint hitIdx =
-      rtPipelineProps.AddHitGroup( L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr,
-                                   "fancy/resources/shaders/Tests/Raytracing/Hit.hlsl", "ClosestHit" );
+  const uint                raygenIdx = rtPipelineProps.AddRayGenShader( "fancy/resources/shaders/Tests/Raytracing/RayGen.hlsl", "RayGen" );
+  const uint                missIdx = rtPipelineProps.AddMissShader( "fancy/resources/shaders/Tests/Raytracing/Miss.hlsl", "Miss" );
+  const uint                hitIdx = rtPipelineProps.AddHitGroup( L"HitGroup0", RT_HIT_GROUP_TYPE_TRIANGLES, nullptr, nullptr, nullptr, nullptr,
+                                                                  "fancy/resources/shaders/Tests/Raytracing/Hit.hlsl", "ClosestHit" );
   rtPipelineProps.SetMaxAttributeSize( 32u );
   rtPipelineProps.SetMaxPayloadSize( 128u );
   rtPipelineProps.SetMaxRecursionDepth( 2u );
@@ -122,8 +120,7 @@ void Test_Raytracing::OnRender() {
 
   ctx->GlobalBarrier( BarrierSyncScope::AllShading, BarrierSyncScope::AllShading, CacheFlush::ShaderWrite );
   SubresourceLocation subresourceLoc;
-  TextureRegion       region = { glm::uvec3( 0 ), glm::uvec3( texProps.myTextureProperties.myWidth,
-                                                              texProps.myTextureProperties.myHeight, 1u ) };
+  TextureRegion       region = { glm::uvec3( 0 ), glm::uvec3( texProps.myTextureProperties.myWidth, texProps.myTextureProperties.myHeight, 1u ) };
 
   Texture * backbuffer = myOutput->GetBackbuffer();
   ctx->CopyTexture( backbuffer, subresourceLoc, region, rtOutputTex.myTexture, subresourceLoc, region );

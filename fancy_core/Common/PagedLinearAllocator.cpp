@@ -11,8 +11,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   inline PagedLinearAllocator::~PagedLinearAllocator() {}
   //---------------------------------------------------------------------------//
-  const PagedLinearAllocator::Page *
-  PagedLinearAllocator::FindPage( eastl::function< bool( const Page & ) > aPredicateFn ) {
+  const PagedLinearAllocator::Page * PagedLinearAllocator::FindPage( eastl::function< bool( const Page & ) > aPredicateFn ) {
     for ( const Page & page : myPages )
       if ( aPredicateFn( page ) )
         return &page;
@@ -20,8 +19,7 @@ namespace Fancy {
     return nullptr;
   }
   //---------------------------------------------------------------------------//
-  const typename PagedLinearAllocator::Page * PagedLinearAllocator::Allocate( uint64 aSize, uint anAlignment,
-                                                                              uint64 &     anOffsetInPageOut,
+  const typename PagedLinearAllocator::Page * PagedLinearAllocator::Allocate( uint64 aSize, uint anAlignment, uint64 & anOffsetInPageOut,
                                                                               const char * aDebugName /*= nullptr*/ ) {
     const uint64 sizeWithAlignment = MathUtil::Align( aSize, anAlignment );
 
@@ -64,9 +62,8 @@ namespace Fancy {
   void PagedLinearAllocator::Free( const Block & aBlockToFree ) {
 #if CORE_DEBUG_MEMORY_ALLOCATIONS
     {
-      auto it = eastl::find_if(
-          myAllocDebugInfos.begin(), myAllocDebugInfos.end(),
-          [ &aBlockToFree ]( const AllocDebugInfo & anInfo ) { return anInfo.myStart == aBlockToFree.myStart; } );
+      auto it = eastl::find_if( myAllocDebugInfos.begin(), myAllocDebugInfos.end(),
+                                [ &aBlockToFree ]( const AllocDebugInfo & anInfo ) { return anInfo.myStart == aBlockToFree.myStart; } );
 
       ASSERT( it != myAllocDebugInfos.end() );
       myAllocDebugInfos.erase( it );
@@ -76,8 +73,7 @@ namespace Fancy {
     auto pageIt = eastl::find_if( myPages.begin(), myPages.end(), [ aBlockToFree ]( const Page & aPage ) {
       return aBlockToFree.myStart >= aPage.myStart && aBlockToFree.myEnd <= aPage.myEnd;
     } );
-    ASSERT( pageIt != myPages.end(), "No page found for block to free (start: %d, end: %d)", aBlockToFree.myStart,
-            aBlockToFree.myEnd );
+    ASSERT( pageIt != myPages.end(), "No page found for block to free (start: %d, end: %d)", aBlockToFree.myStart, aBlockToFree.myEnd );
     Page & page = *pageIt;
 
     --page.myOpenAllocs;
@@ -85,8 +81,7 @@ namespace Fancy {
     if ( page.myOpenAllocs == 0 )  // Was this the last allocation from the page -> remove the page completely
     {
 #if CORE_DEBUG_MEMORY_ALLOCATIONS  // Validate that the only remaining allocated space is the block to free.
-      FreeListIterator firstBlockInPage =
-          myFreeList.Find( [ &page ]( const Block & aBlock ) { return IsBlockInPage( aBlock, page ); } );
+      FreeListIterator firstBlockInPage = myFreeList.Find( [ &page ]( const Block & aBlock ) { return IsBlockInPage( aBlock, page ); } );
       FreeListIterator lastBlockInPage;
       if ( firstBlockInPage ) {
         for ( FreeListIterator it = firstBlockInPage.Next(); it != myFreeList.Invalid(); ++it ) {
@@ -96,18 +91,15 @@ namespace Fancy {
       }
       if ( !firstBlockInPage ) {
         // No free blocks in the page, so the block to free must cover the whole page
-        ASSERT( page.myStart == aBlockToFree.myStart &&
-                page.myEnd == MathUtil::Align( aBlockToFree.myEnd, myPageSize ) );
+        ASSERT( page.myStart == aBlockToFree.myStart && page.myEnd == MathUtil::Align( aBlockToFree.myEnd, myPageSize ) );
       } else if ( !lastBlockInPage ) {
         // There is only one free block in this page left. It must be either at the start or at the end of the page and
         // the remaining space must be the block being freed
         const bool isAtStart = firstBlockInPage->myStart == page.myStart;
         const bool isAtEnd = firstBlockInPage->myEnd == page.myEnd;
         ASSERT( isAtStart || isAtEnd );
-        ASSERT( !isAtStart || ( firstBlockInPage->myEnd == aBlockToFree.myStart ) &&
-                                  ( page.myEnd == MathUtil::Align( aBlockToFree.myEnd, myPageSize ) ) );
-        ASSERT( !isAtEnd ||
-                ( firstBlockInPage->myStart == aBlockToFree.myEnd ) && ( page.myStart == aBlockToFree.myStart ) );
+        ASSERT( !isAtStart || ( firstBlockInPage->myEnd == aBlockToFree.myStart ) && ( page.myEnd == MathUtil::Align( aBlockToFree.myEnd, myPageSize ) ) );
+        ASSERT( !isAtEnd || ( firstBlockInPage->myStart == aBlockToFree.myEnd ) && ( page.myStart == aBlockToFree.myStart ) );
       } else  // There are at least two free blocks in the page. There can only be exactly two blocks at the start and
               // end of the page and the space between them must be the block being freed
       {
@@ -129,17 +121,12 @@ namespace Fancy {
       DestroyPageData( page.myData );
       myPages.erase( pageIt );
     } else {
-      FreeListIterator blockBefore = myFreeList.ReverseFind(
-          [ aBlockToFree ]( const Block & aBlock ) { return aBlock.myEnd <= aBlockToFree.myStart; } );
+      FreeListIterator blockBefore = myFreeList.ReverseFind( [ aBlockToFree ]( const Block & aBlock ) { return aBlock.myEnd <= aBlockToFree.myStart; } );
       FreeListIterator blockAfter =
-          blockBefore ? blockBefore.Next() : myFreeList.Find( [ aBlockToFree ]( const Block & aBlock ) {
-            return aBlock.myStart >= aBlockToFree.myEnd;
-          } );
+          blockBefore ? blockBefore.Next() : myFreeList.Find( [ aBlockToFree ]( const Block & aBlock ) { return aBlock.myStart >= aBlockToFree.myEnd; } );
 
-      const bool canMergeWithBefore = blockBefore != myFreeList.Invalid() && IsBlockInPage( *blockBefore, page ) &&
-                                      blockBefore->myEnd == aBlockToFree.myStart;
-      const bool canMergeWithAfter = blockAfter != myFreeList.Invalid() && IsBlockInPage( *blockAfter, page ) &&
-                                     blockAfter->myStart == aBlockToFree.myEnd;
+      const bool canMergeWithBefore = blockBefore != myFreeList.Invalid() && IsBlockInPage( *blockBefore, page ) && blockBefore->myEnd == aBlockToFree.myStart;
+      const bool canMergeWithAfter = blockAfter != myFreeList.Invalid() && IsBlockInPage( *blockAfter, page ) && blockAfter->myStart == aBlockToFree.myEnd;
       if ( canMergeWithBefore && canMergeWithAfter )  // [A][X][B]
       {
         blockBefore->myEnd = blockAfter->myEnd;
@@ -175,8 +162,7 @@ namespace Fancy {
     return true;
   }
   //---------------------------------------------------------------------------//
-  PagedLinearAllocator::Page * PagedLinearAllocator::GetPageAndOffset( uint64   aVirtualOffset,
-                                                                       uint64 & anOffsetInPage ) {
+  PagedLinearAllocator::Page * PagedLinearAllocator::GetPageAndOffset( uint64 aVirtualOffset, uint64 & anOffsetInPage ) {
     for ( Page & existingPage : myPages ) {
       if ( existingPage.myStart <= aVirtualOffset && existingPage.myEnd > aVirtualOffset ) {
         anOffsetInPage = aVirtualOffset - existingPage.myStart;

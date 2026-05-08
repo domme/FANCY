@@ -4,8 +4,7 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
-  uint GpuResource::CalcSubresourceIndex( uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices,
-                                          uint aPlaneIndex ) {
+  uint GpuResource::CalcSubresourceIndex( uint aMipIndex, uint aNumMips, uint anArrayIndex, uint aNumArraySlices, uint aPlaneIndex ) {
     return aPlaneIndex * aNumMips * aNumArraySlices + anArrayIndex * aNumMips + aMipIndex;
   }
   //---------------------------------------------------------------------------//
@@ -14,9 +13,8 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   uint GpuResource::GetSubresourceIndex( const SubresourceLocation & aSubresourceLocation ) const {
-    const uint index = CalcSubresourceIndex( aSubresourceLocation.myMipLevel, mySubresources.myNumMipLevels,
-                                             aSubresourceLocation.myArrayIndex, mySubresources.myNumArrayIndices,
-                                             aSubresourceLocation.myPlaneIndex );
+    const uint index = CalcSubresourceIndex( aSubresourceLocation.myMipLevel, mySubresources.myNumMipLevels, aSubresourceLocation.myArrayIndex,
+                                             mySubresources.myNumArrayIndices, aSubresourceLocation.myPlaneIndex );
 
     return index;
   }
@@ -27,8 +25,7 @@ namespace Fancy {
     location.myArrayIndex = ( aSubresourceIndex / mySubresources.myNumMipLevels ) % mySubresources.myNumArrayIndices;
     location.myPlaneIndex = aSubresourceIndex / ( mySubresources.myNumMipLevels * mySubresources.myNumArrayIndices );
 
-    ASSERT( location.myMipLevel < mySubresources.myNumMipLevels &&
-            location.myArrayIndex < mySubresources.myNumArrayIndices &&
+    ASSERT( location.myMipLevel < mySubresources.myNumMipLevels && location.myArrayIndex < mySubresources.myNumArrayIndices &&
             location.myPlaneIndex < mySubresources.myNumPlanes );
 
     return location;

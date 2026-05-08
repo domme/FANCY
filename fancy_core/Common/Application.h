@@ -20,9 +20,8 @@ namespace Fancy {
 
   class Application {
   public:
-    Application( HINSTANCE anInstanceHandle, const char ** someArguments, uint aNumArguments, const char * aName,
-                 const char * aRelativeRootFolder, const RenderPlatformProperties & someRenderProperties,
-                 const WindowParameters & someWindowParams );
+    Application( HINSTANCE anInstanceHandle, const char ** someArguments, uint aNumArguments, const char * aName, const char * aRelativeRootFolder,
+                 const RenderPlatformProperties & someRenderProperties, const WindowParameters & someWindowParams );
 
     virtual ~Application();
 

@@ -32,10 +32,8 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Create( const GpuBufferProperties & someProperties, const char * aName /*= nullptr*/,
-                              const void * pInitialData /*= nullptr*/ ) {
-    ASSERT( someProperties.myElementSizeBytes > 0 && someProperties.myNumElements > 0,
-            "Invalid buffer size specified" );
+  void GpuBufferDX12::Create( const GpuBufferProperties & someProperties, const char * aName /*= nullptr*/, const void * pInitialData /*= nullptr*/ ) {
+    ASSERT( someProperties.myElementSizeBytes > 0 && someProperties.myNumElements > 0, "Invalid buffer size specified" );
 
     Destroy();
     GpuResourceDataDX12 dataDx12;
@@ -47,8 +45,7 @@ namespace Fancy {
     if ( ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::CONSTANT_BUFFER ) != 0u )
       myAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT;
 
-    const uint64 pitch =
-        MathUtil::Align( someProperties.myNumElements * someProperties.myElementSizeBytes, myAlignment );
+    const uint64 pitch = MathUtil::Align( someProperties.myNumElements * someProperties.myElementSizeBytes, myAlignment );
 
     D3D12_RESOURCE_DESC resourceDesc;
     memset( &resourceDesc, 0, sizeof( resourceDesc ) );
@@ -62,8 +59,7 @@ namespace Fancy {
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-    resourceDesc.Flags =
-        someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
+    resourceDesc.Flags = someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
     // Upload/Readback buffers don't participate in Enhanced Barriers — keep legacy initial states.
     // Default-heap buffers are created in COMMON state (Enhanced Barriers handles the rest).
@@ -79,15 +75,14 @@ namespace Fancy {
     RenderCore_PlatformDX12 * dx12Platform = RenderCore::GetPlatformDX12();
     ID3D12Device *            device = dx12Platform->GetDevice();
 
-    GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(
-        GpuMemoryType::BUFFER, someProperties.myCpuAccess, pitch, myAlignment, myName.c_str() );
+    GpuMemoryAllocationDX12 gpuMemory =
+        dx12Platform->AllocateGpuMemory( GpuMemoryType::BUFFER, someProperties.myCpuAccess, pitch, myAlignment, myName.c_str() );
     ASSERT( gpuMemory.myHeap != nullptr );
 
     const uint64 alignedHeapOffset = MathUtil::Align( gpuMemory.myOffsetInHeap, myAlignment );
     // Enhanced Barriers: default-heap buffers created with COMMON; upload/readback keep their legacy initial state
-    ASSERT_HRESULT( device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc,
-                                                  legacyInitialState, nullptr,
-                                                  IID_PPV_ARGS( &dataDx12.myResource ) ) );
+    ASSERT_HRESULT(
+        device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, legacyInitialState, nullptr, IID_PPV_ARGS( &dataDx12.myResource ) ) );
 
     eastl::wstring wName = StringUtil::ToWideString( myName );
     dataDx12.myResource->SetName( wName.c_str() );
@@ -103,8 +98,7 @@ namespace Fancy {
         Unmap( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
       } else {
         CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
-        ctx->UpdateBufferData( this, 0u, pInitialData,
-                               someProperties.myNumElements * someProperties.myElementSizeBytes );
+        ctx->UpdateBufferData( this, 0u, pInitialData, someProperties.myNumElements * someProperties.myElementSizeBytes );
         RenderCore::ExecuteAndFreeCommandList( ctx, SyncMode::BLOCKING );
       }
     }
@@ -131,8 +125,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
 
   //---------------------------------------------------------------------------//
-  GpuBufferViewDX12::GpuBufferViewDX12( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
-                                        const char * aName )
+  GpuBufferViewDX12::GpuBufferViewDX12( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties, const char * aName )
       : GpuBufferView::GpuBufferView( aBuffer, someProperties, aName ) {
     GpuResourceViewDataDX12 nativeData;
 
@@ -142,8 +135,7 @@ namespace Fancy {
     if ( someProperties.myIsConstantBuffer ) {
       name.append( "CBV" );
       ASSERT( myType == GpuResourceViewType::CBV );
-      nativeData.myDescriptor =
-          RenderCore::GetPlatformDX12()->AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str() );
+      nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, name.c_str() );
       ASSERT( nativeData.myDescriptor.myCpuHandle.ptr != UINT_MAX );
       success = CreateCBVdescriptor( aBuffer, someProperties, nativeData.myDescriptor );
     } else {
@@ -154,21 +146,19 @@ namespace Fancy {
       if ( someProperties.myIsShaderWritable ) {
         name.append( "UAV" );
         ASSERT( myType == GpuResourceViewType::UAV );
-        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(
-            GLOBAL_RESOURCE_RWBUFFER, name.c_str() );
+        nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource( GLOBAL_RESOURCE_RWBUFFER, name.c_str() );
         success = CreateUAVdescriptor( aBuffer, rawProperties, nativeData.myDescriptor );
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
       } else {
         if ( someProperties.myIsRtAccelerationStructure ) {
           name.append( "SRV_RT_AS" );
           ASSERT( myType == GpuResourceViewType::SRV_RT_AS );
-          nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(
-              GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE, name.c_str() );
+          nativeData.myDescriptor =
+              RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource( GLOBAL_RESOURCE_RT_ACCELERATION_STRUCTURE, name.c_str() );
         } else {
           name.append( "SRV" );
           ASSERT( myType == GpuResourceViewType::SRV );
-          nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource(
-              GLOBAL_RESOURCE_BUFFER, name.c_str() );
+          nativeData.myDescriptor = RenderCore::GetPlatformDX12()->AllocateShaderVisibleDescriptorForGlobalResource( GLOBAL_RESOURCE_BUFFER, name.c_str() );
         }
 
         success = CreateSRVdescriptor( aBuffer, rawProperties, nativeData.myDescriptor );
@@ -187,9 +177,7 @@ namespace Fancy {
     RenderCore::GetPlatformDX12()->FreeDescriptor( myDX12Data.myDescriptor );
   }
   //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateSRVdescriptor( const GpuBuffer *               aBuffer,
-                                               const GpuBufferViewProperties & someProperties,
-                                               const DescriptorDX12 &          aDescriptor ) {
+  bool GpuBufferViewDX12::CreateSRVdescriptor( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties, const DescriptorDX12 & aDescriptor ) {
     const GpuResourceDataDX12 * dataDx12 = aBuffer->GetDX12Data();
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -223,21 +211,17 @@ namespace Fancy {
       srvDesc.Format = RenderCore_PlatformDX12::ResolveFormat( format );
       srvDesc.Buffer.FirstElement = someProperties.myOffset / BITS_TO_BYTES( formatInfo.myBitsPerPixel );
       ASSERT( someProperties.mySize / BITS_TO_BYTES( formatInfo.myBitsPerPixel ) <= UINT_MAX );
-      srvDesc.Buffer.NumElements =
-          static_cast< uint >( someProperties.mySize / BITS_TO_BYTES( formatInfo.myBitsPerPixel ) );
+      srvDesc.Buffer.NumElements = static_cast< uint >( someProperties.mySize / BITS_TO_BYTES( formatInfo.myBitsPerPixel ) );
     }
 
     // Resource must be nullptr in case of Rt acceleration structure according to the docs. The buffer-address is
     // already included in the srvDesc
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView(
-        someProperties.myIsRtAccelerationStructure ? nullptr : dataDx12->myResource.Get(), &srvDesc,
-        aDescriptor.myCpuHandle );
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView( someProperties.myIsRtAccelerationStructure ? nullptr : dataDx12->myResource.Get(),
+                                                                          &srvDesc, aDescriptor.myCpuHandle );
     return true;
   }
   //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateUAVdescriptor( const GpuBuffer *               aBuffer,
-                                               const GpuBufferViewProperties & someProperties,
-                                               const DescriptorDX12 &          aDescriptor ) {
+  bool GpuBufferViewDX12::CreateUAVdescriptor( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties, const DescriptorDX12 & aDescriptor ) {
     const GpuResourceDataDX12 * dataDx12 = aBuffer->GetDX12Data();
 
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
@@ -264,18 +248,14 @@ namespace Fancy {
       uavDesc.Format = RenderCore_PlatformDX12::ResolveFormat( format );
       uavDesc.Buffer.FirstElement = someProperties.myOffset / BITS_TO_BYTES( formatInfo.myBitsPerPixel );
       ASSERT( someProperties.mySize / BITS_TO_BYTES( formatInfo.myBitsPerPixel ) <= UINT_MAX );
-      uavDesc.Buffer.NumElements =
-          static_cast< uint >( someProperties.mySize / BITS_TO_BYTES( formatInfo.myBitsPerPixel ) );
+      uavDesc.Buffer.NumElements = static_cast< uint >( someProperties.mySize / BITS_TO_BYTES( formatInfo.myBitsPerPixel ) );
     }
 
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView( dataDx12->myResource.Get(), nullptr,
-                                                                           &uavDesc, aDescriptor.myCpuHandle );
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView( dataDx12->myResource.Get(), nullptr, &uavDesc, aDescriptor.myCpuHandle );
     return true;
   }
   //---------------------------------------------------------------------------//
-  bool GpuBufferViewDX12::CreateCBVdescriptor( const GpuBuffer *               aBuffer,
-                                               const GpuBufferViewProperties & someProperties,
-                                               const DescriptorDX12 &          aDescriptor ) {
+  bool GpuBufferViewDX12::CreateCBVdescriptor( const GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties, const DescriptorDX12 & aDescriptor ) {
     const GpuResourceDataDX12 * dataDx12 = aBuffer->GetDX12Data();
 
     D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
@@ -299,8 +279,7 @@ namespace Fancy {
     return mappedData;
   }
   //---------------------------------------------------------------------------//
-  void GpuBufferDX12::Unmap_Internal( GpuResourceMapMode aMapMode, uint64 anOffset /* = 0u */,
-                                      uint64 aSize /* = UINT64_MAX */ ) const {
+  void GpuBufferDX12::Unmap_Internal( GpuResourceMapMode aMapMode, uint64 anOffset /* = 0u */, uint64 aSize /* = UINT64_MAX */ ) const {
     D3D12_RANGE range;
     range.Begin = anOffset;
     range.End = range.Begin + aSize;

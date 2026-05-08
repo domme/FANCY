@@ -11,13 +11,13 @@ namespace Fancy {
     struct RtPsoBuilder {
       RtPsoBuilder( uint aNumShaders, uint aNumHitGroups );
 
-      void AddShaderLibrarySubobject( Shader * aShader, const wchar_t * aMainFunctionRename = nullptr );
-      void AddHitGroupSubobject( const RtPipelineStateProperties::HitGroup &                     aHitGroup,
-                                 const eastl::vector< RtPipelineStateProperties::ShaderEntry > & someHitShaders );
-      void AddShaderConfig( uint aMaxPayloadSizeBytes, uint aMaxAttributeSizeBytes );
-      void AddGlobalRootSignature( ID3D12RootSignature * aRootSignature );
-      void SetPipelineConfig( uint aMaxRecursionDepth, RtPipelineFlags someFlags );
-      void AddSubobject( D3D12_STATE_SUBOBJECT_TYPE aType, void * aSubobject );
+      void            AddShaderLibrarySubobject( Shader * aShader, const wchar_t * aMainFunctionRename = nullptr );
+      void            AddHitGroupSubobject( const RtPipelineStateProperties::HitGroup &                     aHitGroup,
+                                            const eastl::vector< RtPipelineStateProperties::ShaderEntry > & someHitShaders );
+      void            AddShaderConfig( uint aMaxPayloadSizeBytes, uint aMaxAttributeSizeBytes );
+      void            AddGlobalRootSignature( ID3D12RootSignature * aRootSignature );
+      void            SetPipelineConfig( uint aMaxRecursionDepth, RtPipelineFlags someFlags );
+      void            AddSubobject( D3D12_STATE_SUBOBJECT_TYPE aType, void * aSubobject );
       const wchar_t * AddWideString( const char * aString );
       const wchar_t * AddWideString( const eastl::string & aString );
       bool            BuildRtPso( Microsoft::WRL::ComPtr< ID3D12StateObject > & aStateObjectOut );
@@ -55,8 +55,7 @@ namespace Fancy {
 
       myAllExportNames.push_back( exportDesc.Name );
 
-      ASSERT( myLibraryDescs.capacity() > myLibraryDescs.size(),
-              "Vector-grow not allowed. Individual members are being referenced as pointers." );
+      ASSERT( myLibraryDescs.capacity() > myLibraryDescs.size(), "Vector-grow not allowed. Individual members are being referenced as pointers." );
       D3D12_DXIL_LIBRARY_DESC & libDesc = myLibraryDescs.push_back();
       libDesc.DXILLibrary = shaderDx12->getNativeByteCode();
       libDesc.NumExports = 1;
@@ -65,25 +64,20 @@ namespace Fancy {
       AddSubobject( D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, &libDesc );
     }
     //---------------------------------------------------------------------------//
-    void RtPsoBuilder::AddHitGroupSubobject(
-        const RtPipelineStateProperties::HitGroup &                     aHitGroup,
-        const eastl::vector< RtPipelineStateProperties::ShaderEntry > & someHitShaders ) {
-      ASSERT( myHitGroups.capacity() > myHitGroups.size(),
-              "Vector-grow not allowed. Individual members are being referenced as pointers." );
+    void RtPsoBuilder::AddHitGroupSubobject( const RtPipelineStateProperties::HitGroup &                     aHitGroup,
+                                             const eastl::vector< RtPipelineStateProperties::ShaderEntry > & someHitShaders ) {
+      ASSERT( myHitGroups.capacity() > myHitGroups.size(), "Vector-grow not allowed. Individual members are being referenced as pointers." );
       D3D12_HIT_GROUP_DESC & hitGroupDesc = myHitGroups.push_back();
       hitGroupDesc = {};
       hitGroupDesc.Type = RenderCore_PlatformDX12::GetRaytracingHitGroupType( aHitGroup.myType );
       hitGroupDesc.HitGroupExport = aHitGroup.myName.c_str();
 
       if ( aHitGroup.myIntersectionShaderIdx != UINT_MAX )
-        hitGroupDesc.IntersectionShaderImport =
-            someHitShaders[ aHitGroup.myIntersectionShaderIdx ].myUniqueMainFunctionName.c_str();
+        hitGroupDesc.IntersectionShaderImport = someHitShaders[ aHitGroup.myIntersectionShaderIdx ].myUniqueMainFunctionName.c_str();
       if ( aHitGroup.myAnyHitShaderIdx != UINT_MAX )
-        hitGroupDesc.AnyHitShaderImport =
-            someHitShaders[ aHitGroup.myAnyHitShaderIdx ].myUniqueMainFunctionName.c_str();
+        hitGroupDesc.AnyHitShaderImport = someHitShaders[ aHitGroup.myAnyHitShaderIdx ].myUniqueMainFunctionName.c_str();
       if ( aHitGroup.myClosestHitShaderIdx != UINT_MAX )
-        hitGroupDesc.ClosestHitShaderImport =
-            someHitShaders[ aHitGroup.myClosestHitShaderIdx ].myUniqueMainFunctionName.c_str();
+        hitGroupDesc.ClosestHitShaderImport = someHitShaders[ aHitGroup.myClosestHitShaderIdx ].myUniqueMainFunctionName.c_str();
 
       AddSubobject( D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP, &hitGroupDesc );
     }
@@ -116,8 +110,7 @@ namespace Fancy {
     }
     //---------------------------------------------------------------------------//
     const wchar_t * RtPsoBuilder::AddWideString( const char * aString ) {
-      ASSERT( myWideStrings.capacity() > myWideStrings.size(),
-              "Vector-grow not allowed. Individual members are being referenced as pointers." );
+      ASSERT( myWideStrings.capacity() > myWideStrings.size(), "Vector-grow not allowed. Individual members are being referenced as pointers." );
       myWideStrings.push_back( StringUtil::ToWideString( aString ) );
       return myWideStrings.back().c_str();
     }
@@ -132,8 +125,7 @@ namespace Fancy {
       aDesc.NumSubobjects = ( uint ) mySubObjects.size();
       aDesc.pSubobjects = mySubObjects.data();
 
-      HRESULT result =
-          RenderCore::GetPlatformDX12()->GetDevice()->CreateStateObject( &aDesc, IID_PPV_ARGS( &aStateObjectOut ) );
+      HRESULT result = RenderCore::GetPlatformDX12()->GetDevice()->CreateStateObject( &aDesc, IID_PPV_ARGS( &aStateObjectOut ) );
       return result == S_OK;
     }
     //---------------------------------------------------------------------------//
@@ -141,8 +133,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
 
   //---------------------------------------------------------------------------//
-  RtPipelineStateDX12::RtPipelineStateDX12( const RtPipelineStateProperties & someProps )
-      : RtPipelineState( someProps ) {
+  RtPipelineStateDX12::RtPipelineStateDX12( const RtPipelineStateProperties & someProps ) : RtPipelineState( someProps ) {
     Recompile();
   }
   //---------------------------------------------------------------------------//
@@ -157,18 +148,15 @@ namespace Fancy {
       myRtPsoProperties.Reset();
     }
 
-    const uint numShaders = static_cast< uint >(
-        myProperties.myHitShaders.size() + myProperties.myRaygenShaders.size() + myProperties.myMissShaders.size() );
+    const uint   numShaders = static_cast< uint >( myProperties.myHitShaders.size() + myProperties.myRaygenShaders.size() + myProperties.myMissShaders.size() );
     const uint   numHitGroups = static_cast< uint >( myProperties.myHitGroups.size() );
     RtPsoBuilder builder( numShaders, numHitGroups );
 
     for ( const RtPipelineStateProperties::ShaderEntry & shader : myProperties.myRaygenShaders )
-      builder.AddShaderLibrarySubobject( RenderCore::GetShader( shader.myShader ),
-                                         shader.myUniqueMainFunctionName.c_str() );
+      builder.AddShaderLibrarySubobject( RenderCore::GetShader( shader.myShader ), shader.myUniqueMainFunctionName.c_str() );
 
     for ( const RtPipelineStateProperties::ShaderEntry & shader : myProperties.myMissShaders )
-      builder.AddShaderLibrarySubobject( RenderCore::GetShader( shader.myShader ),
-                                         shader.myUniqueMainFunctionName.c_str() );
+      builder.AddShaderLibrarySubobject( RenderCore::GetShader( shader.myShader ), shader.myUniqueMainFunctionName.c_str() );
 
     for ( const RtPipelineStateProperties::ShaderEntry & it : myProperties.myHitShaders )
       builder.AddShaderLibrarySubobject( RenderCore::GetShader( it.myShader ), it.myUniqueMainFunctionName.c_str() );
@@ -195,9 +183,8 @@ namespace Fancy {
     return false;
   }
   //---------------------------------------------------------------------------//
-  void RtPipelineStateDX12::GetShaderIdentifierDataInternal( uint /* aShaderIndexInRtPso */,
-                                                             const RtPipelineStateProperties::HitGroup & aShaderEntry,
-                                                             RtShaderIdentifier &                        someDataOut ) {
+  void RtPipelineStateDX12::GetShaderIdentifierDataInternal( uint /* aShaderIndexInRtPso */, const RtPipelineStateProperties::HitGroup & aShaderEntry,
+                                                             RtShaderIdentifier & someDataOut ) {
     void * shaderIdentifier = myRtPsoProperties->GetShaderIdentifier( aShaderEntry.myName.c_str() );
     ASSERT( shaderIdentifier );
 
@@ -205,10 +192,8 @@ namespace Fancy {
     memcpy( someDataOut.myData.data(), shaderIdentifier, D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES );
   }
   //---------------------------------------------------------------------------//
-  void
-  RtPipelineStateDX12::GetShaderIdentifierDataInternal( uint /* aShaderIndexInRtPso */,
-                                                        const RtPipelineStateProperties::ShaderEntry & aShaderEntry,
-                                                        RtShaderIdentifier &                           someDataOut ) {
+  void RtPipelineStateDX12::GetShaderIdentifierDataInternal( uint /* aShaderIndexInRtPso */, const RtPipelineStateProperties::ShaderEntry & aShaderEntry,
+                                                             RtShaderIdentifier & someDataOut ) {
     void * shaderIdentifier = myRtPsoProperties->GetShaderIdentifier( aShaderEntry.myUniqueMainFunctionName.c_str() );
     ASSERT( shaderIdentifier );
 

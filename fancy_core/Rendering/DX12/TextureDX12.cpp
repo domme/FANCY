@@ -46,19 +46,15 @@ namespace Fancy {
     myName = aName != nullptr ? aName : "Texture_Unnamed";
 
     bool                     isArray, isCubemap;
-    D3D12_RESOURCE_DIMENSION dimension =
-        Adapter::ResolveResourceDimension( someProperties.myDimension, isCubemap, isArray );
+    D3D12_RESOURCE_DIMENSION dimension = Adapter::ResolveResourceDimension( someProperties.myDimension, isCubemap, isArray );
 
-    ASSERT( dimension != D3D12_RESOURCE_DIMENSION_BUFFER && dimension != D3D12_RESOURCE_DIMENSION_UNKNOWN,
-            "Invalid texture resource dimension" );
+    ASSERT( dimension != D3D12_RESOURCE_DIMENSION_BUFFER && dimension != D3D12_RESOURCE_DIMENSION_UNKNOWN, "Invalid texture resource dimension" );
     ASSERT( !isCubemap || someProperties.myDepthOrArraySize % 6 == 0, "A cubemap needs at least 6 faces" );
     ASSERT( someProperties.myWidth > 0u, "Texture needs a nonzero width" );
-    ASSERT( someProperties.myHeight > 0u || dimension == D3D12_RESOURCE_DIMENSION_TEXTURE1D,
-            "Non-1D textures always need a nonzero height" )
+    ASSERT( someProperties.myHeight > 0u || dimension == D3D12_RESOURCE_DIMENSION_TEXTURE1D, "Non-1D textures always need a nonzero height" )
     ASSERT( someProperties.myDepthOrArraySize > 0 || ( !isArray && dimension != D3D12_RESOURCE_DIMENSION_TEXTURE3D ),
             "Array or 3D-texture need a nonzero depthOrArraySize" );
-    ASSERT( !someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable,
-            "Shader writable and depthstencil are mutually exclusive" );
+    ASSERT( !someProperties.bIsDepthStencil || !someProperties.myIsShaderWritable, "Shader writable and depthstencil are mutually exclusive" );
 
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( myProperties.myFormat );
 
@@ -105,11 +101,10 @@ namespace Fancy {
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
     }
 
-    mySubresources =
-        SubresourceRange( 0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes );
+    mySubresources = SubresourceRange( 0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes );
 
-    const bool useOptimizeClearValue = ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ) != 0u ||
-                                       ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL ) != 0u;
+    const bool useOptimizeClearValue =
+        ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ) != 0u || ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL ) != 0u;
 
     D3D12_CLEAR_VALUE clearValue;
     if ( myProperties.bIsDepthStencil ) {
@@ -127,19 +122,15 @@ namespace Fancy {
     const CpuMemoryAccessType            gpuMemAccess = ( CpuMemoryAccessType ) myProperties.myAccessType;
     const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo( 0u, 1u, &resourceDesc );
 
-    const GpuMemoryType           memoryType = ( myProperties.myIsRenderTarget || myProperties.bIsDepthStencil )
-                                                   ? GpuMemoryType::RENDERTARGET
-                                                   : GpuMemoryType::TEXTURE;
-    const GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(
-        memoryType, gpuMemAccess, allocInfo.SizeInBytes, ( uint ) allocInfo.Alignment, myName.c_str() );
+    const GpuMemoryType memoryType = ( myProperties.myIsRenderTarget || myProperties.bIsDepthStencil ) ? GpuMemoryType::RENDERTARGET : GpuMemoryType::TEXTURE;
+    const GpuMemoryAllocationDX12 gpuMemory =
+        dx12Platform->AllocateGpuMemory( memoryType, gpuMemAccess, allocInfo.SizeInBytes, ( uint ) allocInfo.Alignment, myName.c_str() );
     ASSERT( gpuMemory.myHeap != nullptr );
 
     const uint64 alignedHeapOffset = MathUtil::Align( gpuMemory.myOffsetInHeap, allocInfo.Alignment );
     // Enhanced Barriers: always create resources in COMMON state; initial layout is tracked in hazard data
-    ASSERT_HRESULT( device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc,
-                                                  D3D12_RESOURCE_STATE_COMMON,
-                                                  useOptimizeClearValue ? &clearValue : nullptr,
-                                                  IID_PPV_ARGS( &dataDx12.myResource ) ) );
+    ASSERT_HRESULT( device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, D3D12_RESOURCE_STATE_COMMON,
+                                                  useOptimizeClearValue ? &clearValue : nullptr, IID_PPV_ARGS( &dataDx12.myResource ) ) );
     dataDx12.myGpuMemory = gpuMemory;
 
     // TODO: Decide between placed and committed resources depending on size and alignment requirements (maybe also
@@ -165,13 +156,11 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  uint64 TextureDX12::GetCopyableFootprints( const SubresourceRange &             aSubresourceRange,
-                                             D3D12_PLACED_SUBRESOURCE_FOOTPRINT * someFootprintsOut,
+  uint64 TextureDX12::GetCopyableFootprints( const SubresourceRange & aSubresourceRange, D3D12_PLACED_SUBRESOURCE_FOOTPRINT * someFootprintsOut,
                                              uint * someNumRowsOut, uint64 * someRowSizesOut ) const {
     ASSERT( IsValid() );
     ASSERT( aSubresourceRange.myFirstMipLevel + aSubresourceRange.myNumMipLevels <= mySubresources.myNumMipLevels );
-    ASSERT( aSubresourceRange.myFirstArrayIndex + aSubresourceRange.myNumArrayIndices <=
-            mySubresources.myNumArrayIndices );
+    ASSERT( aSubresourceRange.myFirstArrayIndex + aSubresourceRange.myNumArrayIndices <= mySubresources.myNumArrayIndices );
     ASSERT( aSubresourceRange.myFirstPlane + aSubresourceRange.myNumPlanes <= mySubresources.myNumPlanes );
 
     ID3D12Resource *            texResource = GetDX12Data()->myResource.Get();
@@ -179,13 +168,13 @@ namespace Fancy {
 
     ID3D12Device * device = RenderCore::GetPlatformDX12()->GetDevice();
 
-    const int startSubresourceIndex = GetSubresourceIndex( SubresourceLocation(
-        aSubresourceRange.myFirstMipLevel, aSubresourceRange.myFirstArrayIndex, aSubresourceRange.myFirstPlane ) );
+    const int startSubresourceIndex =
+        GetSubresourceIndex( SubresourceLocation( aSubresourceRange.myFirstMipLevel, aSubresourceRange.myFirstArrayIndex, aSubresourceRange.myFirstPlane ) );
     const int numSubresources = aSubresourceRange.GetNumSubresources();
 
     uint64 totalSize;
-    device->GetCopyableFootprints( &texResourceDesc, startSubresourceIndex, numSubresources, 0u, someFootprintsOut,
-                                   someNumRowsOut, someRowSizesOut, &totalSize );
+    device->GetCopyableFootprints( &texResourceDesc, startSubresourceIndex, numSubresources, 0u, someFootprintsOut, someNumRowsOut, someRowSizesOut,
+                                   &totalSize );
     return totalSize;
   }
   //---------------------------------------------------------------------------//
@@ -203,8 +192,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
 
   //---------------------------------------------------------------------------//
-  TextureViewDX12::TextureViewDX12( Texture * aTexture, const TextureViewProperties & someProperties,
-                                    const char * aName )
+  TextureViewDX12::TextureViewDX12( Texture * aTexture, const TextureViewProperties & someProperties, const char * aName )
       : TextureView::TextureView( aTexture, someProperties, aName ) {
     const DataFormatInfo &    formatInfo = DataFormatInfo::GetFormatInfo( someProperties.myFormat );
     RenderCore_PlatformDX12 * platformDx12 = RenderCore::GetPlatformDX12();
@@ -232,15 +220,13 @@ namespace Fancy {
       if ( someProperties.myIsShaderWritable ) {
         myType = GpuResourceViewType::UAV;
         name.append( " UAV" );
-        nativeData.myDescriptor =
-            platformDx12->AllocateShaderVisibleDescriptorForGlobalResource( globalResourceType, name.c_str() );
+        nativeData.myDescriptor = platformDx12->AllocateShaderVisibleDescriptorForGlobalResource( globalResourceType, name.c_str() );
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
         success = CreateUAV( aTexture, someProperties, nativeData.myDescriptor );
       } else {
         myType = GpuResourceViewType::SRV;
         name.append( " SRV" );
-        nativeData.myDescriptor =
-            platformDx12->AllocateShaderVisibleDescriptorForGlobalResource( globalResourceType, name.c_str() );
+        nativeData.myDescriptor = platformDx12->AllocateShaderVisibleDescriptorForGlobalResource( globalResourceType, name.c_str() );
         myGlobalDescriptorIndex = nativeData.myDescriptor.myGlobalResourceIndex;
         success = CreateSRV( aTexture, someProperties, nativeData.myDescriptor );
       }
@@ -256,18 +242,15 @@ namespace Fancy {
     const SubresourceRange & subresourceRange = someProperties.mySubresourceRange;
     mySubresourceRange = subresourceRange;
 
-    myCoversAllSubresources =
-        subresourceRange.myNumMipLevels == texProps.myNumMipLevels &&
-        subresourceRange.myNumArrayIndices == texProps.myDepthOrArraySize &&
-        subresourceRange.myNumPlanes == DataFormatInfo::GetFormatInfo( texProps.myFormat ).myNumPlanes;
+    myCoversAllSubresources = subresourceRange.myNumMipLevels == texProps.myNumMipLevels && subresourceRange.myNumArrayIndices == texProps.myDepthOrArraySize &&
+                              subresourceRange.myNumPlanes == DataFormatInfo::GetFormatInfo( texProps.myFormat ).myNumPlanes;
   }
   //---------------------------------------------------------------------------//
   TextureViewDX12::~TextureViewDX12() {
     RenderCore::GetPlatformDX12()->FreeDescriptor( myDX12Data.myDescriptor );
   }
   //---------------------------------------------------------------------------//
-  bool TextureViewDX12::CreateSRV( const Texture * aTexture, const TextureViewProperties & someProperties,
-                                   const DescriptorDX12 & aDescriptor ) {
+  bool TextureViewDX12::CreateSRV( const Texture * aTexture, const TextureViewProperties & someProperties, const DescriptorDX12 & aDescriptor ) {
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
@@ -332,13 +315,11 @@ namespace Fancy {
     }
 
     const GpuResourceDataDX12 * dataDx12 = aTexture->GetDX12Data();
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView( dataDx12->myResource.Get(), &srvDesc,
-                                                                          aDescriptor.myCpuHandle );
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateShaderResourceView( dataDx12->myResource.Get(), &srvDesc, aDescriptor.myCpuHandle );
     return true;
   }
   //---------------------------------------------------------------------------//
-  bool TextureViewDX12::CreateUAV( const Texture * aTexture, const TextureViewProperties & someProperties,
-                                   const DescriptorDX12 & aDescriptor ) {
+  bool TextureViewDX12::CreateUAV( const Texture * aTexture, const TextureViewProperties & someProperties, const DescriptorDX12 & aDescriptor ) {
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
     uavDesc.Format = RenderCore::GetPlatformDX12()->ResolveFormat( someProperties.myFormat );
     const SubresourceRange & subresourceRange = someProperties.mySubresourceRange;
@@ -373,13 +354,11 @@ namespace Fancy {
     }
 
     const GpuResourceDataDX12 * dataDx12 = aTexture->GetDX12Data();
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView( dataDx12->myResource.Get(), nullptr,
-                                                                           &uavDesc, aDescriptor.myCpuHandle );
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateUnorderedAccessView( dataDx12->myResource.Get(), nullptr, &uavDesc, aDescriptor.myCpuHandle );
     return true;
   }
   //---------------------------------------------------------------------------//
-  bool TextureViewDX12::CreateRTV( const Texture * aTexture, const TextureViewProperties & someProperties,
-                                   const DescriptorDX12 & aDescriptor ) {
+  bool TextureViewDX12::CreateRTV( const Texture * aTexture, const TextureViewProperties & someProperties, const DescriptorDX12 & aDescriptor ) {
     D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 
     rtvDesc.Format = RenderCore::GetPlatformDX12()->ResolveFormat( someProperties.myFormat );
@@ -415,13 +394,11 @@ namespace Fancy {
     }
 
     const GpuResourceDataDX12 * dataDx12 = aTexture->GetDX12Data();
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateRenderTargetView( dataDx12->myResource.Get(), &rtvDesc,
-                                                                        aDescriptor.myCpuHandle );
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateRenderTargetView( dataDx12->myResource.Get(), &rtvDesc, aDescriptor.myCpuHandle );
     return true;
   }
   //---------------------------------------------------------------------------//
-  bool TextureViewDX12::CreateDSV( const Texture * aTexture, const TextureViewProperties & someProperties,
-                                   const DescriptorDX12 & aDescriptor ) {
+  bool TextureViewDX12::CreateDSV( const Texture * aTexture, const TextureViewProperties & someProperties, const DescriptorDX12 & aDescriptor ) {
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
     const DXGI_FORMAT             baseFormat = RenderCore_PlatformDX12::ResolveFormat( someProperties.myFormat );
 
@@ -456,8 +433,7 @@ namespace Fancy {
     }
 
     const GpuResourceDataDX12 * dataDx12 = aTexture->GetDX12Data();
-    RenderCore::GetPlatformDX12()->GetDevice()->CreateDepthStencilView( dataDx12->myResource.Get(), &dsvDesc,
-                                                                        aDescriptor.myCpuHandle );
+    RenderCore::GetPlatformDX12()->GetDevice()->CreateDepthStencilView( dataDx12->myResource.Get(), &dsvDesc, aDescriptor.myCpuHandle );
     return true;
   }
   //---------------------------------------------------------------------------//

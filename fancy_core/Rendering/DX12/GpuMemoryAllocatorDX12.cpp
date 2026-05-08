@@ -9,17 +9,14 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
-  GpuMemoryAllocatorDX12::GpuMemoryAllocatorDX12( GpuMemoryType aType, CpuMemoryAccessType anAccessType,
-                                                  uint64 aPageSize )
+  GpuMemoryAllocatorDX12::GpuMemoryAllocatorDX12( GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aPageSize )
       : PagedLinearAllocator( aPageSize ), myType( aType ), myAccess( anAccessType ) {}
   //---------------------------------------------------------------------------//
   GpuMemoryAllocatorDX12::~GpuMemoryAllocatorDX12() {
-    ASSERT( PagedLinearAllocator::IsEmpty(),
-            "There are still gpu-resources allocated when destroying the memory allocator" );
+    ASSERT( PagedLinearAllocator::IsEmpty(), "There are still gpu-resources allocated when destroying the memory allocator" );
   }
   //---------------------------------------------------------------------------//
-  GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate( const uint64 aSize, const uint anAlignment,
-                                                            const char * aDebugName /*= nullptr*/ ) {
+  GpuMemoryAllocationDX12 GpuMemoryAllocatorDX12::Allocate( const uint64 aSize, const uint anAlignment, const char * aDebugName /*= nullptr*/ ) {
     uint64       offsetInPage;
     const Page * page = PagedLinearAllocator::Allocate( aSize, anAlignment, offsetInPage, aDebugName );
     if ( page == nullptr )
@@ -34,10 +31,8 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void GpuMemoryAllocatorDX12::Free( GpuMemoryAllocationDX12 & anAllocation ) {
-    const Page * page = FindPage( [ & ]( const Page & aPage ) {
-      return anAllocation.myHeap ==
-             eastl::any_cast< const Microsoft::WRL::ComPtr< ID3D12Heap > & >( aPage.myData ).Get();
-    } );
+    const Page * page = FindPage(
+        [ & ]( const Page & aPage ) { return anAllocation.myHeap == eastl::any_cast< const Microsoft::WRL::ComPtr< ID3D12Heap > & >( aPage.myData ).Get(); } );
 
     ASSERT( page != nullptr );
 

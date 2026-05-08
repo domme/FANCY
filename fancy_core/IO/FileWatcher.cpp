@@ -7,8 +7,7 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   FileWatcher::FileWatcher( const SharedPtr< Time > & aClock ) : myClock( aClock ) {
-    myClock->GetTimedUpdateSlot( TimedUpdateInterval::PER_SECOND_REALTIME )
-        .Connect( this, &FileWatcher::UpdateFileInfos );
+    myClock->GetTimedUpdateSlot( TimedUpdateInterval::PER_SECOND_REALTIME ).Connect( this, &FileWatcher::UpdateFileInfos );
   }
   //---------------------------------------------------------------------------//
   FileWatcher::~FileWatcher() {
@@ -24,8 +23,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void FileWatcher::AddFileWatch( const eastl::string & aPath ) const {
-    if ( std::find_if( myWatchEntries.begin(), myWatchEntries.end(),
-                       [ = ]( const auto & entry ) { return entry.myPath == aPath; } ) != myWatchEntries.end() )
+    if ( std::find_if( myWatchEntries.begin(), myWatchEntries.end(), [ = ]( const auto & entry ) { return entry.myPath == aPath; } ) != myWatchEntries.end() )
       return;
 
     const uint64 currWriteTime = Path::GetFileWriteTime( aPath );
@@ -42,8 +40,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void FileWatcher::RemoveFileWatch( const eastl::string & aPath ) {
-    auto it = std::find_if( myWatchEntries.begin(), myWatchEntries.end(),
-                            [ = ]( const auto & entry ) { return entry.myPath == aPath; } );
+    auto it = std::find_if( myWatchEntries.begin(), myWatchEntries.end(), [ = ]( const auto & entry ) { return entry.myPath == aPath; } );
 
     if ( it != myWatchEntries.end() )
       myWatchEntries.erase( it );

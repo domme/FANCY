@@ -7,8 +7,7 @@ namespace Fancy {
 
     aWidthOut = myWidth >> aMipLevel;
 
-    const bool hasHeight =
-        myDimension != GpuResourceDimension::TEXTURE_1D && myDimension != GpuResourceDimension::TEXTURE_1D_ARRAY;
+    const bool hasHeight = myDimension != GpuResourceDimension::TEXTURE_1D && myDimension != GpuResourceDimension::TEXTURE_1D_ARRAY;
     aHeightOut = hasHeight ? myHeight >> aMipLevel : 1u;
 
     const bool hasDepth = GetDepthSize() > 1u;

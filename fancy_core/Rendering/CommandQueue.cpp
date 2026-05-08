@@ -5,8 +5,7 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   CommandQueue::CommandQueue( CommandListType aType )
-      : myType( aType ), myLastCompletedFenceVal(( ( ( uint64 ) aType ) << 61ULL )),
-        myNextFenceVal( myLastCompletedFenceVal + 1u ) {}
+      : myType( aType ), myLastCompletedFenceVal(( ( ( uint64 ) aType ) << 61ULL )), myNextFenceVal( myLastCompletedFenceVal + 1u ) {}
   //---------------------------------------------------------------------------//
   CommandQueue::~CommandQueue() {
     ASSERT( myCommandListPool.size() == myAvailableCommandLists.size(), "There are still some commandLists in flight" );
@@ -29,8 +28,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void CommandQueue::FreeCommandList( CommandList * aCommandList ) {
-    ASSERT( eastl::find( myAvailableCommandLists.begin(), myAvailableCommandLists.end(), aCommandList ) ==
-            myAvailableCommandLists.end() );
+    ASSERT( eastl::find( myAvailableCommandLists.begin(), myAvailableCommandLists.end(), aCommandList ) == myAvailableCommandLists.end() );
     myAvailableCommandLists.push_back( aCommandList );
   }
   //---------------------------------------------------------------------------//

@@ -172,8 +172,7 @@ namespace Fancy {
 
         ourFontTextureTex = RenderCore::CreateTexture( props, "Imgui Font Texture", &uploadData, 1u );
         ASSERT( ourFontTextureTex.IsValid() );
-        ourFontTexture = RenderCore::CreateTextureView( RenderCore::GetTexture( ourFontTextureTex ), viewProps,
-                                                        "Imgui Font Texture" );
+        ourFontTexture = RenderCore::CreateTextureView( RenderCore::GetTexture( ourFontTextureTex ), viewProps, "Imgui Font Texture" );
         ASSERT( ourFontTexture.IsValid() );
       }
 
@@ -250,8 +249,7 @@ namespace Fancy {
       GPU_BEGIN_PROFILE_FUNCTION_TAG( ctx, ANNTAG_IMGUI );
 
       ctx->SetViewport( glm::uvec4( 0, 0, ::ImGui::GetIO().DisplaySize.x, ::ImGui::GetIO().DisplaySize.y ) );
-      ctx->TextureBarrier( RenderCore::GetRenderOutput( ourRenderOutput )->GetBackbuffer(),
-                           TextureLayout::Present, TextureLayout::RenderTarget );
+      ctx->TextureBarrier( RenderCore::GetRenderOutput( ourRenderOutput )->GetBackbuffer(), TextureLayout::Present, TextureLayout::RenderTarget );
       ctx->SetRenderTarget( RenderCore::GetRenderOutput( ourRenderOutput )->GetBackbufferRtv(), nullptr );
       ctx->SetDepthStencilState( RenderCore::GetDepthStencilState( ourDepthStencilState ) );
       ctx->SetBlendState( RenderCore::GetBlendState( ourBlendState ) );
@@ -268,9 +266,8 @@ namespace Fancy {
       const float T = 0.f;
 
       CBufferData cbuffer = {};
-      cbuffer.myProjectionMatrix =
-          glm::float4x4( 2.0f / ( R - L ), 0.0f, 0.0f, 0.0f, 0.0f, 2.0f / ( T - B ), 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f,
-                         ( R + L ) / ( L - R ), ( T + B ) / ( B - T ), 0.5f, 1.0f );
+      cbuffer.myProjectionMatrix = glm::float4x4( 2.0f / ( R - L ), 0.0f, 0.0f, 0.0f, 0.0f, 2.0f / ( T - B ), 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.0f,
+                                                  ( R + L ) / ( L - R ), ( T + B ) / ( B - T ), 0.5f, 1.0f );
 
       cbuffer.mySamplerIndex = RenderCore::GetTextureSampler( ourSampler )->GetGlobalDescriptorIndex();
 
@@ -280,8 +277,7 @@ namespace Fancy {
         const ImDrawList * cmd_list = _draw_data->CmdLists[ iCmdList ];
 
         ctx->BindVertexBuffer( cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof( ImDrawVert ) );
-        ctx->BindIndexBuffer( cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof( ImDrawIdx ),
-                              sizeof( ImDrawIdx ) );
+        ctx->BindIndexBuffer( cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof( ImDrawIdx ), sizeof( ImDrawIdx ) );
 
         uint cmdIndexOffset = 0;
         for ( int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.size(); cmd_i++ ) {
@@ -298,8 +294,7 @@ namespace Fancy {
             cbuffer.myTextureIndex = textureView->GetGlobalDescriptorIndex();
             ctx->BindConstantBuffer( &cbuffer, sizeof( cbuffer ), 0 );
 
-            const glm::uvec4 clipRect( ( uint ) pcmd->ClipRect.x, ( uint ) pcmd->ClipRect.y, ( uint ) pcmd->ClipRect.z,
-                                       ( uint ) pcmd->ClipRect.w );
+            const glm::uvec4 clipRect( ( uint ) pcmd->ClipRect.x, ( uint ) pcmd->ClipRect.y, ( uint ) pcmd->ClipRect.z, ( uint ) pcmd->ClipRect.w );
             ctx->SetClipRect( clipRect );
 
             ctx->DrawIndexedInstanced( pcmd->ElemCount, 1u, cmdIndexOffset, 0u, 0u );
@@ -310,8 +305,7 @@ namespace Fancy {
 
       GPU_END_PROFILE( ctx );
       ctx->GlobalBarrier( BarrierSyncScope::Graphics, BarrierSyncScope::All, CacheFlush::RenderTargetWrite );
-      ctx->TextureBarrier( RenderCore::GetRenderOutput( ourRenderOutput )->GetBackbuffer(),
-                           TextureLayout::RenderTarget, TextureLayout::Present );
+      ctx->TextureBarrier( RenderCore::GetRenderOutput( ourRenderOutput )->GetBackbuffer(), TextureLayout::RenderTarget, TextureLayout::Present );
       RenderCore::ExecuteAndFreeCommandList( ctx );
     }
 

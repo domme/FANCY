@@ -16,8 +16,7 @@ namespace Fancy {
       eastl::fixed_vector< eastl::wstring, 16 > myIncludeSearchPaths;
       IDxcUtils *                               myDxcUtils;
 
-      IncludeHandler( IDxcUtils * aDxcUtils, eastl::string * someIncludeSearchPaths, uint aNumPaths )
-          : myDxcUtils( aDxcUtils ) {
+      IncludeHandler( IDxcUtils * aDxcUtils, eastl::string * someIncludeSearchPaths, uint aNumPaths ) : myDxcUtils( aDxcUtils ) {
         for ( uint i = 0u; i < aNumPaths; ++i ) {
           const eastl::string & dir = someIncludeSearchPaths[ i ];
           ASSERT( !dir.empty() );
@@ -52,8 +51,7 @@ namespace Fancy {
           path = Path::GetAbsolutePath( path );
           path.make_lower();
 
-          if ( eastl::find( myIncludedFilePaths.begin(), myIncludedFilePaths.end(), path ) !=
-               myIncludedFilePaths.end() ) {
+          if ( eastl::find( myIncludedFilePaths.begin(), myIncludedFilePaths.end(), path ) != myIncludedFilePaths.end() ) {
             // Already included, return empty string blob
             IDxcBlobEncoding * pBlobWithEncoding;
             static const char  nullStr[] = " ";
@@ -117,8 +115,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   DxcShaderCompiler::~DxcShaderCompiler() {}
   //---------------------------------------------------------------------------//
-  bool DxcShaderCompiler::CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc,
-                                             const Config & aConfig, IncludeInfo & anIncludeInfo,
+  bool DxcShaderCompiler::CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, const Config & aConfig, IncludeInfo & anIncludeInfo,
                                              eastl::vector< uint8 > & aCompiledBytecodeOut ) const {
     Microsoft::WRL::ComPtr< IDxcBlob > bytecodeBlob;
     if ( !CompileToBytecode( anHlslSrcPathAbs, aDesc, aConfig, anIncludeInfo, bytecodeBlob ) )
@@ -129,16 +126,14 @@ namespace Fancy {
     return true;
   }
   //---------------------------------------------------------------------------//
-  bool DxcShaderCompiler::CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc,
-                                             const Config & aConfig, IncludeInfo & anIncludeInfo,
+  bool DxcShaderCompiler::CompileToBytecode( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, const Config & aConfig, IncludeInfo & anIncludeInfo,
                                              Microsoft::WRL::ComPtr< IDxcBlob > & aCompiledBytecodeOut ) const {
     eastl::string shaderFile = FileReader::ReadTextFile( anHlslSrcPathAbs );
     if ( shaderFile.empty() )
       return false;
 
     IDxcBlobEncoding * sourceBlob;
-    if ( myDxcUtils->CreateBlobFromPinned( shaderFile.c_str(), ( uint ) shaderFile.size(), CP_UTF8, &sourceBlob ) !=
-         S_OK )
+    if ( myDxcUtils->CreateBlobFromPinned( shaderFile.c_str(), ( uint ) shaderFile.size(), CP_UTF8, &sourceBlob ) != S_OK )
       return false;
 
     LPCWSTR args[ 32 ];
@@ -168,8 +163,7 @@ namespace Fancy {
     defineNames.push_back( L"DXC_COMPILER" );
     defines.push_back( { defineNames[ defineNames.size() - 1 ].c_str(), nullptr } );
 
-    const char * stageDefine =
-        ShaderCompiler::ShaderStageToDefineString( static_cast< ShaderStage >( aDesc.myShaderStage ) );
+    const char * stageDefine = ShaderCompiler::ShaderStageToDefineString( static_cast< ShaderStage >( aDesc.myShaderStage ) );
     defineNames.push_back( StringUtil::ToWideString( stageDefine ) );
     defines.push_back( { defineNames[ defineNames.size() - 1 ].c_str(), nullptr } );
 
@@ -182,12 +176,11 @@ namespace Fancy {
 
     eastl::wstring sourceName = StringUtil::ToWideString( aDesc.myPath );
     eastl::wstring mainFunction = StringUtil::ToWideString( aDesc.myMainFunction );
-    eastl::wstring hlslProfileString = StringUtil::ToWideString(
-        ShaderCompiler::GetHLSLprofileString( static_cast< ShaderStage >( aDesc.myShaderStage ) ).c_str() );
+    eastl::wstring hlslProfileString =
+        StringUtil::ToWideString( ShaderCompiler::GetHLSLprofileString( static_cast< ShaderStage >( aDesc.myShaderStage ) ).c_str() );
 
     IDxcOperationResult * compiledResult;
-    HRESULT result = myDxcCompiler->Compile( sourceBlob, sourceName.c_str(), mainFunction.c_str(),
-                                             hlslProfileString.c_str(), args, numArgs, defines.data(),
+    HRESULT result = myDxcCompiler->Compile( sourceBlob, sourceName.c_str(), mainFunction.c_str(), hlslProfileString.c_str(), args, numArgs, defines.data(),
                                              ( uint ) defines.size(), includeHandler.Get(), &compiledResult );
 
     IDxcBlobEncoding * errorBlob = nullptr;
@@ -197,10 +190,8 @@ namespace Fancy {
       IDxcBlobUtf8 * errorBlob8 = nullptr;
       myDxcUtils->GetBlobAsUtf8( errorBlob, &errorBlob8 );
 
-      if ( errorBlob8 != nullptr && errorBlob8->GetBufferPointer() != nullptr &&
-           static_cast< const char * >( errorBlob8->GetBufferPointer() )[ 0 ] != '\0' ) {
-        LOG_ERROR( "Error compiling shader %s: %s", aDesc.myPath.c_str(),
-                   static_cast< const char * >( errorBlob8->GetBufferPointer() ) );
+      if ( errorBlob8 != nullptr && errorBlob8->GetBufferPointer() != nullptr && static_cast< const char * >( errorBlob8->GetBufferPointer() )[ 0 ] != '\0' ) {
+        LOG_ERROR( "Error compiling shader %s: %s", aDesc.myPath.c_str(), static_cast< const char * >( errorBlob8->GetBufferPointer() ) );
         return false;
       }
     } else if ( result != S_OK ) {

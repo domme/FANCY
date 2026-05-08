@@ -8,14 +8,12 @@ namespace Fancy {
   Texture::Texture() : GpuResource( GpuResourceType::TEXTURE ), myIsSwapChainTexture( false ) {}
   //---------------------------------------------------------------------------//
   Texture::Texture( GpuResource && aResource, const TextureProperties & someProperties, bool aIsSwapChainTexture )
-      : GpuResource( std::move( aResource ) ), myProperties( someProperties ),
-        myIsSwapChainTexture( aIsSwapChainTexture ) {}
+      : GpuResource( std::move( aResource ) ), myProperties( someProperties ), myIsSwapChainTexture( aIsSwapChainTexture ) {}
   //---------------------------------------------------------------------------//
   void Texture::InitTextureData( const TextureSubData * someInitialDatas, uint aNumInitialDatas ) {
     const uint                lastSubresourceIndex = aNumInitialDatas - 1u;
     const SubresourceLocation lastSubresourceLocation = GetSubresourceLocation( lastSubresourceIndex );
-    const SubresourceRange    subresourceRange( 0, lastSubresourceLocation.myMipLevel + 1u, 0u,
-                                                lastSubresourceLocation.myArrayIndex + 1u, 0u,
+    const SubresourceRange    subresourceRange( 0, lastSubresourceLocation.myMipLevel + 1u, 0u, lastSubresourceLocation.myArrayIndex + 1u, 0u,
                                                 lastSubresourceLocation.myPlaneIndex + 1u );
 
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( myProperties.myFormat );

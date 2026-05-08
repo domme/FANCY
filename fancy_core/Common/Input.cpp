@@ -5,9 +5,7 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
-  InputState::InputState()
-      : myModifierKeyMask( 0u ), myMouseBtnMask( 0u ), myMousePos( 0, 0 ), myMouseDelta( 0, 0 ),
-        myMouseWeelDelta( 0.0f ), myKeyState{} {}
+  InputState::InputState() : myModifierKeyMask( 0u ), myMouseBtnMask( 0u ), myMousePos( 0, 0 ), myMouseDelta( 0, 0 ), myMouseWeelDelta( 0.0f ), myKeyState{} {}
   //---------------------------------------------------------------------------//
   void InputState::OnWindowEvent( UINT message, WPARAM wParam, LPARAM lParam, bool * /*aWasHandled*/ ) {
     switch ( message ) {

@@ -30,7 +30,7 @@ namespace Fancy {
   };
   //---------------------------------------------------------------------------//
   struct MaterialDesc {
-    uint64 GetHash() const;
+    uint64        GetHash() const;
     static uint64 Hash( const MaterialDesc & aDesc ) {
       return aDesc.GetHash();
     }

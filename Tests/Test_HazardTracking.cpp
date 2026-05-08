@@ -7,8 +7,8 @@
 
 using namespace Fancy;
 
-Test_HazardTracking::Test_HazardTracking( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow,
-                                          Fancy::RenderOutput * aRenderOutput, Fancy::InputState * anInputState )
+Test_HazardTracking::Test_HazardTracking( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput,
+                                          Fancy::InputState * anInputState )
     : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "Hazard Tracking" ) {
   TextureProperties texProps;
   texProps.myWidth = 32;
@@ -43,8 +43,7 @@ Test_HazardTracking::Test_HazardTracking( Fancy::AssetManager * anAssetManager, 
     32 * 32 * sizeof( unsigned int ) + 16 * 16 * sizeof( unsigned int ),
   };
 
-  uint viewSizes[ 3 ] = { 32 * 32 * sizeof( unsigned int ), 16 * 16 * sizeof( unsigned int ),
-                          8 * 8 * sizeof( unsigned int ) };
+  uint viewSizes[ 3 ] = { 32 * 32 * sizeof( unsigned int ), 16 * 16 * sizeof( unsigned int ), 8 * 8 * sizeof( unsigned int ) };
 
   for ( uint i = 0u; i < 3; ++i ) {
     GpuBufferViewProperties bufViewProps;

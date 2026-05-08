@@ -11,8 +11,7 @@ namespace Fancy {
     eastl::wstring ToWideString( const eastl::string & aStr );
     eastl::string  ToNarrowString( const std::wstring & aStr );
     //---------------------------------------------------------------------------//
-    template < class VectorT >
-    void Tokenize( const char * aString, const char * someDelimiters, VectorT & someTokensOut ) {
+    template < class VectorT > void Tokenize( const char * aString, const char * someDelimiters, VectorT & someTokensOut ) {
       uint len = aString == nullptr ? 0 : ( uint ) strlen( aString );
       if ( len == 0 )
         return;

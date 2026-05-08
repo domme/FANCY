@@ -53,8 +53,8 @@ void ImageData::Create( SharedPtr< TextureView > aTexture ) {
   mySelectedFilter = AssetManager::FILTER_LINEAR;
 }
 
-Test_Mipmapping::Test_Mipmapping( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow,
-                                  Fancy::RenderOutput * aRenderOutput, Fancy::InputState * anInputState )
+Test_Mipmapping::Test_Mipmapping( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput,
+                                  Fancy::InputState * anInputState )
     : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "Mipmapping" ) {
   const uint loadFlags = AssetManager::SHADER_WRITABLE;
   myImageDatas.push_back( myAssetManager->LoadTexture( "Textures/Sibenik/kamen.png", loadFlags ) );
@@ -81,12 +81,10 @@ void Test_Mipmapping::OnUpdate( bool aDrawProperties ) {
 
     ImGui::Checkbox( data.myName.c_str(), &data.myIsWindowOpen );
     if ( data.myIsWindowOpen ) {
-      ImGui::SetNextWindowSize(
-          ImVec2( static_cast< float >( texProps.myWidth * 2 ), static_cast< float >( texProps.myHeight * 2 ) ) );
+      ImGui::SetNextWindowSize( ImVec2( static_cast< float >( texProps.myWidth * 2 ), static_cast< float >( texProps.myHeight * 2 ) ) );
       ImGui::Begin( data.myName.c_str() );
       ImGui::SliderInt( "Mip Level", &data.mySelectedMipLevel, 0, texProps.myNumMipLevels - 1 );
-      data.myIsDirty |= ImGui::ListBox( "Downsample Filter", &data.mySelectedFilter, locResampleFilterNames,
-                                        ARRAY_LENGTH( locResampleFilterNames ) );
+      data.myIsDirty |= ImGui::ListBox( "Downsample Filter", &data.mySelectedFilter, locResampleFilterNames, ARRAY_LENGTH( locResampleFilterNames ) );
 
       if ( data.myIsDirty | myUpdateAlways ) {
         myAssetManager->ComputeMipmaps( data.myTexture, ( AssetManager::ResampleFilter ) data.mySelectedFilter );

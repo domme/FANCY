@@ -9,8 +9,7 @@ namespace Fancy {
 
     bool operator==( const GpuResourceViewDataDX12 & anOther ) const {
       return myType == anOther.myType && myDescriptor.myHeapType == anOther.myDescriptor.myHeapType &&
-             myDescriptor.myCpuHandle.ptr == anOther.myDescriptor.myCpuHandle.ptr &&
-             myDescriptor.myGpuHandle.ptr == anOther.myDescriptor.myGpuHandle.ptr;
+             myDescriptor.myCpuHandle.ptr == anOther.myDescriptor.myCpuHandle.ptr && myDescriptor.myGpuHandle.ptr == anOther.myDescriptor.myGpuHandle.ptr;
     }
 
     Type           myType = NONE;

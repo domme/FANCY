@@ -9,19 +9,17 @@ namespace Fancy {
     const GpuBufferProperties & newProps = someProps.myBufferProperties;
     ASSERT( !someProps.myIsShaderWritable || newProps.myIsShaderWritable );
 
-    bool needsCreate = !myBuffer.IsValid() || ( someProps.myIsShaderResource == !myReadView.IsValid() ) ||
-                       ( someProps.myIsShaderWritable == !myWriteView.IsValid() );
+    bool needsCreate =
+        !myBuffer.IsValid() || ( someProps.myIsShaderResource == !myReadView.IsValid() ) || ( someProps.myIsShaderWritable == !myWriteView.IsValid() );
 
     if ( !needsCreate ) {
       const GpuBufferProperties & currProps = RenderCore::GetBuffer( myBuffer )->GetProperties();
-      needsCreate = newProps.myElementSizeBytes != currProps.myElementSizeBytes ||
-                    newProps.myNumElements != currProps.myNumElements ||
+      needsCreate = newProps.myElementSizeBytes != currProps.myElementSizeBytes || newProps.myNumElements != currProps.myNumElements ||
                     newProps.myCpuAccess != currProps.myCpuAccess || newProps.myBindFlags != currProps.myBindFlags;
 
       if ( myReadView.IsValid() || myWriteView.IsValid() ) {
-        const GpuBufferViewProperties & currViewProps = myReadView.IsValid()
-                                                            ? RenderCore::GetBufferView( myReadView )->GetProperties()
-                                                            : RenderCore::GetBufferView( myWriteView )->GetProperties();
+        const GpuBufferViewProperties & currViewProps =
+            myReadView.IsValid() ? RenderCore::GetBufferView( myReadView )->GetProperties() : RenderCore::GetBufferView( myWriteView )->GetProperties();
 
         needsCreate |= currViewProps.myIsRaw != someProps.myIsRaw || currViewProps.myFormat != someProps.myFormat ||
                        currViewProps.myIsStructured != someProps.myIsStructured;
@@ -58,14 +56,12 @@ namespace Fancy {
     const TextureProperties & texProps = someProps.myTextureProperties;
 
     bool needsCreate = !myTexture.IsValid() || ( someProps.myIsTexture == !myReadView.IsValid() ) ||
-                       ( someProps.myIsRenderTarget == !myRenderTargetView.IsValid() ) ||
-                       ( someProps.myIsShaderWritable == !myWriteView.IsValid() );
+                       ( someProps.myIsRenderTarget == !myRenderTargetView.IsValid() ) || ( someProps.myIsShaderWritable == !myWriteView.IsValid() );
 
     if ( !needsCreate ) {
       const TextureProperties & currTexProps = RenderCore::GetTexture( myTexture )->GetProperties();
       needsCreate = texProps.myWidth != currTexProps.myWidth || texProps.myHeight != currTexProps.myHeight ||
-                    texProps.GetDepthSize() != currTexProps.GetDepthSize() ||
-                    texProps.GetArraySize() != currTexProps.GetArraySize() ||
+                    texProps.GetDepthSize() != currTexProps.GetDepthSize() || texProps.GetArraySize() != currTexProps.GetArraySize() ||
                     texProps.myFormat != currTexProps.myFormat || texProps.myDimension != currTexProps.myDimension ||
                     texProps.myPreferTypedFormat != currTexProps.myPreferTypedFormat;
     }

@@ -38,8 +38,7 @@ namespace Fancy {
       TextureViewHandle selectedTexture = Assets::GetTexture( mySelectedItem.c_str() );
 
       if ( selectedTexture.IsValid() ) {
-        mySelectedDebugImage.reset( new ImGuiMippedDebugImage(
-            RenderCore::GetTextureView( selectedTexture )->GetTexture(), mySelectedItem.c_str() ) );
+        mySelectedDebugImage.reset( new ImGuiMippedDebugImage( RenderCore::GetTextureView( selectedTexture )->GetTexture(), mySelectedItem.c_str() ) );
       }
     }
 

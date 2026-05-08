@@ -304,25 +304,25 @@ namespace Fancy {
   // Cache flush scope for GlobalBarrier: what access types to make coherent.
   //---------------------------------------------------------------------------//
   enum class CacheFlush {
-    None,              // Execution-only sync — no cache invalidation
-    ShaderWrite,       // Flush L1 shader caches to L2 after UAV/shader writes
-    RenderTargetWrite, // Flush ROP / render target caches to L2
+    None,               // Execution-only sync — no cache invalidation
+    ShaderWrite,        // Flush L1 shader caches to L2 after UAV/shader writes
+    RenderTargetWrite,  // Flush ROP / render target caches to L2
   };
   //---------------------------------------------------------------------------//
   // Physical texture layout for TextureBarrier. Sync and cache-flush must be
   // handled separately via a preceding GlobalBarrier call.
   //---------------------------------------------------------------------------//
   enum class TextureLayout {
-    Undefined,      // Discard previous contents
-    ShaderResource, // SRV read (queue-specific layout selected at the DX12 level)
-    UAV,            // UAV read/write (queue-specific layout selected at the DX12 level)
-    RenderTarget,   // Render target write
-    DepthWrite,     // Depth-stencil write
-    DepthRead,      // Depth-stencil read-only
-    Common,         // COMMON layout — valid for any queue and any access
-    Present,        // Present to swap chain (== COMMON layout numerically)
-    CopyDest,       // Copy destination (queue-specific layout selected at the DX12 level)
-    CopySource,     // Copy source (queue-specific layout selected at the DX12 level)
+    Undefined,       // Discard previous contents
+    ShaderResource,  // SRV read (queue-specific layout selected at the DX12 level)
+    UAV,             // UAV read/write (queue-specific layout selected at the DX12 level)
+    RenderTarget,    // Render target write
+    DepthWrite,      // Depth-stencil write
+    DepthRead,       // Depth-stencil read-only
+    Common,          // COMMON layout — valid for any queue and any access
+    Present,         // Present to swap chain (== COMMON layout numerically)
+    CopyDest,        // Copy destination (queue-specific layout selected at the DX12 level)
+    CopySource,      // Copy source (queue-specific layout selected at the DX12 level)
   };
   //---------------------------------------------------------------------------//
   enum class VertexInputRate {
@@ -346,11 +346,7 @@ namespace Fancy {
     NUM
   };
   //---------------------------------------------------------------------------//
-  enum class RtAccelerationStructureGeometryFlags {
-    NONE = 0u,
-    OPAQUE_GEOMETRY = 1 << 0u,
-    NO_DUPLICATE_ANYHIT_INVOCATION = 1 << 1u
-  };
+  enum class RtAccelerationStructureGeometryFlags { NONE = 0u, OPAQUE_GEOMETRY = 1 << 0u, NO_DUPLICATE_ANYHIT_INVOCATION = 1 << 1u };
   //---------------------------------------------------------------------------//
   enum class RtAccelerationStructureFlags {
     NONE = 0u,

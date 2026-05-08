@@ -12,8 +12,7 @@ namespace Fancy {
   eastl::vector< Window * > ourCreatedWindows;
   //---------------------------------------------------------------------------//
   LRESULT CALLBACK locOnWindowEvent( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam ) {
-    auto it = std::find_if( ourCreatedWindows.begin(), ourCreatedWindows.end(),
-                            [ hWnd ]( auto wndIt ) { return wndIt->GetWindowHandle() == hWnd; } );
+    auto it = std::find_if( ourCreatedWindows.begin(), ourCreatedWindows.end(), [ hWnd ]( auto wndIt ) { return wndIt->GetWindowHandle() == hWnd; } );
 
     LRESULT handled = S_FALSE;
 
@@ -31,8 +30,7 @@ namespace Fancy {
   Window::Window( HWND aHandle ) : myWindowHandle( aHandle ), myHeight( 1 ), myWidth( 1 ) {}
   //---------------------------------------------------------------------------//
   Window::~Window() {
-    auto it = eastl::find_if( ourCreatedWindows.begin(), ourCreatedWindows.end(),
-                              [ = ]( auto wndIt ) { return wndIt->GetWindowHandle() == myWindowHandle; } );
+    auto it = eastl::find_if( ourCreatedWindows.begin(), ourCreatedWindows.end(), [ = ]( auto wndIt ) { return wndIt->GetWindowHandle() == myWindowHandle; } );
 
     if ( it != ourCreatedWindows.end() ) {
       ourCreatedWindows.erase( it );
@@ -84,8 +82,8 @@ namespace Fancy {
     eastl::string title = someParams.myTitle + " - DX12";
 
     // Create the window and store a handle to it.
-    HWND windowHandle = CreateWindowEx( NULL, "WindowClass1", title.c_str(), WS_OVERLAPPEDWINDOW, 100, 100,
-                                        windowRect.right - windowRect.left, windowRect.bottom - windowRect.top,
+    HWND windowHandle = CreateWindowEx( NULL, "WindowClass1", title.c_str(), WS_OVERLAPPEDWINDOW, 100, 100, windowRect.right - windowRect.left,
+                                        windowRect.bottom - windowRect.top,
                                         NULL,  // We have no parent window, NULL.
                                         NULL,  // We aren't using menus, NULL.
                                         anInstanceHandle,

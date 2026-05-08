@@ -12,14 +12,12 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   struct TextureProperties {
     TextureProperties()
-        : myDimension( GpuResourceDimension::TEXTURE_2D ), myPath( "" ), myWidth( 0u ), myHeight( 0u ),
-          myDepthOrArraySize( 1u ), myFormat( DataFormat::NONE ), myAccessType( CpuMemoryAccessType::NO_CPU_ACCESS ),
-          myNumMipLevels( 1u ), bIsDepthStencil( false ), myIsShaderWritable( false ), myIsRenderTarget( false ),
-          myPreferTypedFormat( false ), myAllowCrossQueueAccess( false ) {}
+        : myDimension( GpuResourceDimension::TEXTURE_2D ), myPath( "" ), myWidth( 0u ), myHeight( 0u ), myDepthOrArraySize( 1u ), myFormat( DataFormat::NONE ),
+          myAccessType( CpuMemoryAccessType::NO_CPU_ACCESS ), myNumMipLevels( 1u ), bIsDepthStencil( false ), myIsShaderWritable( false ),
+          myIsRenderTarget( false ), myPreferTypedFormat( false ), myAllowCrossQueueAccess( false ) {}
 
     bool IsArray() const {
-      return myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY ||
-             myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY ||
+      return myDimension == GpuResourceDimension::TEXTURE_1D_ARRAY || myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY ||
              myDimension == GpuResourceDimension::TEXTURE_CUBE_ARRAY;
     }
     uint GetArraySize() const {
@@ -58,9 +56,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   struct TextureViewProperties {
     TextureViewProperties()
-        : myDimension( GpuResourceDimension::UNKONWN ), myFormat( DataFormat::UNKNOWN ), myIsShaderWritable( false ),
-          myIsRenderTarget( false ), myIsDepthReadOnly( false ), myIsStencilReadOnly( false ), myMinLodClamp( 0.0f ),
-          myFirstZindex( 0u ), myZSize( 1u ) {}
+        : myDimension( GpuResourceDimension::UNKONWN ), myFormat( DataFormat::UNKNOWN ), myIsShaderWritable( false ), myIsRenderTarget( false ),
+          myIsDepthReadOnly( false ), myIsStencilReadOnly( false ), myMinLodClamp( 0.0f ), myFirstZindex( 0u ), myZSize( 1u ) {}
 
     SubresourceRange     mySubresourceRange;
     GpuResourceDimension myDimension;

@@ -41,10 +41,9 @@ Index of this file:
 
 // Visual Studio warnings
 #ifdef _MSC_VER
-#pragma warning( disable : 4127 )  // condition expression is constant
-#pragma warning( disable : 4505 )  // unreferenced local function has been removed (stb stuff)
-#pragma warning(                                                                                                       \
-    disable : 4996 )  // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
+#pragma warning( disable : 4127 )   // condition expression is constant
+#pragma warning( disable : 4505 )   // unreferenced local function has been removed (stb stuff)
+#pragma warning( disable : 4996 )   // 'This function or variable may be unsafe': strcpy, strdup, sprintf, vsnprintf, sscanf, fopen
 #pragma warning( disable : 26451 )  // [Static Analyzer] Arithmetic overflow : Using operator 'xxx' on a 4 byte value
                                     // and then casting the result to a 8 byte value. Cast the value to the wider type
                                     // before calling operator 'xxx' to avoid overflow(io.2).
@@ -55,39 +54,32 @@ Index of this file:
 // Clang/GCC warnings with -Weverything
 #if defined( __clang__ )
 #if __has_warning( "-Wunknown-warning-option" )
-#pragma clang diagnostic ignored                                                                                       \
-    "-Wunknown-warning-option"  // warning: unknown warning group 'xxx'                      // not all warnings are
-                                // known by all Clang versions and they tend to be rename-happy.. so ignoring warnings
-                                // triggers new warnings on some configuration. Great!
+#pragma clang diagnostic ignored "-Wunknown-warning-option"  // warning: unknown warning group 'xxx'                      // not all warnings are
+                                                             // known by all Clang versions and they tend to be rename-happy.. so ignoring warnings
+                                                             // triggers new warnings on some configuration. Great!
 #endif
-#pragma clang diagnostic ignored "-Wunknown-pragmas"  // warning: unknown warning group 'xxx'
-#pragma clang diagnostic ignored                                                                                       \
-    "-Wold-style-cast"  // warning: use of old-style cast                            // yes, they are more terse.
-#pragma clang diagnostic ignored "-Wfloat-equal"  // warning: comparing floating point with == or != is unsafe //
-                                                  // storing and comparing against same constants ok.
-#pragma clang diagnostic ignored "-Wglobal-constructors"  // warning: declaration requires a global destructor //
-                                                          // similar to above, not sure what the exact difference is.
-#pragma clang diagnostic ignored "-Wsign-conversion"      // warning: implicit conversion changes signedness
+#pragma clang diagnostic ignored "-Wunknown-pragmas"                // warning: unknown warning group 'xxx'
+#pragma clang diagnostic ignored "-Wold-style-cast"                 // warning: use of old-style cast                            // yes, they are more terse.
+#pragma clang diagnostic ignored "-Wfloat-equal"                    // warning: comparing floating point with == or != is unsafe //
+                                                                    // storing and comparing against same constants ok.
+#pragma clang diagnostic ignored "-Wglobal-constructors"            // warning: declaration requires a global destructor //
+                                                                    // similar to above, not sure what the exact difference is.
+#pragma clang diagnostic ignored "-Wsign-conversion"                // warning: implicit conversion changes signedness
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"  // warning: zero as null pointer constant // some
                                                                     // standard header variations use #define NULL 0
 #pragma clang diagnostic ignored "-Wcomma"                          // warning: possible misuse of comma operator here
 #pragma clang diagnostic ignored "-Wreserved-id-macro"              // warning: macro name is a reserved identifier
-#pragma clang diagnostic ignored                                                                                       \
-    "-Wdouble-promotion"  // warning: implicit conversion from 'float' to 'double' when passing argument to function  //
-                          // using printf() is a misery with this as C++ va_arg ellipsis changes float to double.
-#pragma clang diagnostic ignored                                                                                       \
-    "-Wimplicit-int-float-conversion"  // warning: implicit conversion from 'xxx' to 'float' may lose precision
+#pragma clang diagnostic ignored "-Wdouble-promotion"  // warning: implicit conversion from 'float' to 'double' when passing argument to function  //
+                                                       // using printf() is a misery with this as C++ va_arg ellipsis changes float to double.
+#pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"  // warning: implicit conversion from 'xxx' to 'float' may lose precision
 #elif defined( __GNUC__ )
-#pragma GCC diagnostic ignored "-Wpragmas"          // warning: unknown option after '#pragma GCC diagnostic' kind
-#pragma GCC diagnostic ignored "-Wunused-function"  // warning: 'xxxx' defined but not used
-#pragma GCC diagnostic ignored                                                                                         \
-    "-Wdouble-promotion"  // warning: implicit conversion from 'float' to 'double' when passing argument to function
-#pragma GCC diagnostic ignored "-Wconversion"  // warning: conversion to 'xxxx' from 'xxxx' may alter its value
-#pragma GCC diagnostic ignored                                                                                         \
-    "-Wstack-protector"  // warning: stack protector not protecting local variables: variable length buffer
-#pragma GCC diagnostic ignored                                                                                         \
-    "-Wclass-memaccess"  // [__GNUC__ >= 8] warning: 'memset/memcpy' clearing/writing an object of type 'xxxx' with no
-                         // trivial copy-assignment; use assignment or value-initialization instead
+#pragma GCC diagnostic ignored "-Wpragmas"           // warning: unknown option after '#pragma GCC diagnostic' kind
+#pragma GCC diagnostic ignored "-Wunused-function"   // warning: 'xxxx' defined but not used
+#pragma GCC diagnostic ignored "-Wdouble-promotion"  // warning: implicit conversion from 'float' to 'double' when passing argument to function
+#pragma GCC diagnostic ignored "-Wconversion"        // warning: conversion to 'xxxx' from 'xxxx' may alter its value
+#pragma GCC diagnostic ignored "-Wstack-protector"   // warning: stack protector not protecting local variables: variable length buffer
+#pragma GCC diagnostic ignored "-Wclass-memaccess"   // [__GNUC__ >= 8] warning: 'memset/memcpy' clearing/writing an object of type 'xxxx' with no
+                                                     // trivial copy-assignment; use assignment or value-initialization instead
 #endif
 
 //-------------------------------------------------------------------------
@@ -125,20 +117,18 @@ namespace IMGUI_STB_NAMESPACE {
 
 #if defined( __GNUC__ )
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored                                                                                         \
-    "-Wtype-limits"  // warning: comparison is always true due to limited range of data type [-Wtype-limits]
-#pragma GCC diagnostic ignored                                                                                         \
-    "-Wcast-qual"  // warning: cast from type 'const xxxx *' to type 'xxxx *' casts away qualifiers
+#pragma GCC diagnostic ignored "-Wtype-limits"  // warning: comparison is always true due to limited range of data type [-Wtype-limits]
+#pragma GCC diagnostic ignored "-Wcast-qual"    // warning: cast from type 'const xxxx *' to type 'xxxx *' casts away qualifiers
 #endif
 
-#ifndef STB_RECT_PACK_IMPLEMENTATION  // in case the user already have an implementation in the _same_ compilation unit
-                                      // (e.g. unity builds)
+#ifndef STB_RECT_PACK_IMPLEMENTATION                // in case the user already have an implementation in the _same_ compilation unit
+                                                    // (e.g. unity builds)
 #ifndef IMGUI_DISABLE_STB_RECT_PACK_IMPLEMENTATION  // in case the user already have an implementation in another
                                                     // compilation unit
 #define STBRP_STATIC
-#define STBRP_ASSERT( x )                                                                                              \
-  do {                                                                                                                 \
-    IM_ASSERT( x );                                                                                                    \
+#define STBRP_ASSERT( x )                                                                                                                                      \
+  do {                                                                                                                                                         \
+    IM_ASSERT( x );                                                                                                                                            \
   } while ( 0 )
 #define STBRP_SORT ImQsort
 #define STB_RECT_PACK_IMPLEMENTATION
@@ -151,15 +141,15 @@ namespace IMGUI_STB_NAMESPACE {
 #endif
 
 #ifdef IMGUI_ENABLE_STB_TRUETYPE
-#ifndef STB_TRUETYPE_IMPLEMENTATION  // in case the user already have an implementation in the _same_ compilation unit
-                                     // (e.g. unity builds)
+#ifndef STB_TRUETYPE_IMPLEMENTATION                // in case the user already have an implementation in the _same_ compilation unit
+                                                   // (e.g. unity builds)
 #ifndef IMGUI_DISABLE_STB_TRUETYPE_IMPLEMENTATION  // in case the user already have an implementation in another
                                                    // compilation unit
 #define STBTT_malloc( x, u ) ( ( void ) ( u ), IM_ALLOC( x ) )
 #define STBTT_free( x, u ) ( ( void ) ( u ), IM_FREE( x ) )
-#define STBTT_assert( x )                                                                                              \
-  do {                                                                                                                 \
-    IM_ASSERT( x );                                                                                                    \
+#define STBTT_assert( x )                                                                                                                                      \
+  do {                                                                                                                                                         \
+    IM_ASSERT( x );                                                                                                                                            \
   } while ( 0 )
 #define STBTT_fmod( x, y ) ImFmod( x, y )
 #define STBTT_sqrt( x ) ImSqrt( x )
@@ -400,9 +390,7 @@ void ImDrawListSharedData::SetCircleTessellationMaxError( float max_error ) {
   CircleSegmentMaxError = max_error;
   for ( int i = 0; i < IM_ARRAYSIZE( CircleSegmentCounts ); i++ ) {
     const float radius = ( float ) i;
-    CircleSegmentCounts[ i ] =
-        ( ImU8 ) ( ( i > 0 ) ? IM_DRAWLIST_CIRCLE_AUTO_SEGMENT_CALC( radius, CircleSegmentMaxError )
-                             : IM_DRAWLIST_ARCFAST_SAMPLE_MAX );
+    CircleSegmentCounts[ i ] = ( ImU8 ) ( ( i > 0 ) ? IM_DRAWLIST_CIRCLE_AUTO_SEGMENT_CALC( radius, CircleSegmentMaxError ) : IM_DRAWLIST_ARCFAST_SAMPLE_MAX );
   }
   ArcFastRadiusCutoff = IM_DRAWLIST_CIRCLE_AUTO_SEGMENT_CALC_R( IM_DRAWLIST_ARCFAST_SAMPLE_MAX, CircleSegmentMaxError );
 }
@@ -494,10 +482,8 @@ void ImDrawList::AddCallback( ImDrawCallback callback, void * callback_data ) {
 
 // Compare ClipRect, TextureId and VtxOffset with a single memcmp()
 #define ImDrawCmd_HeaderSize ( IM_OFFSETOF( ImDrawCmd, VtxOffset ) + sizeof( unsigned int ) )
-#define ImDrawCmd_HeaderCompare( CMD_LHS, CMD_RHS )                                                                    \
-  ( memcmp( CMD_LHS, CMD_RHS, ImDrawCmd_HeaderSize ) )  // Compare ClipRect, TextureId, VtxOffset
-#define ImDrawCmd_HeaderCopy( CMD_DST, CMD_SRC )                                                                       \
-  ( memcpy( CMD_DST, CMD_SRC, ImDrawCmd_HeaderSize ) )  // Copy ClipRect, TextureId, VtxOffset
+#define ImDrawCmd_HeaderCompare( CMD_LHS, CMD_RHS ) ( memcmp( CMD_LHS, CMD_RHS, ImDrawCmd_HeaderSize ) )  // Compare ClipRect, TextureId, VtxOffset
+#define ImDrawCmd_HeaderCopy( CMD_DST, CMD_SRC ) ( memcpy( CMD_DST, CMD_SRC, ImDrawCmd_HeaderSize ) )     // Copy ClipRect, TextureId, VtxOffset
 #define ImDrawCmd_AreSequentialIdxOffset( CMD_0, CMD_1 ) ( CMD_0->IdxOffset + CMD_0->ElemCount == CMD_1->IdxOffset )
 
 // Try to merge two last draw commands
@@ -505,8 +491,8 @@ void ImDrawList::_TryMergeDrawCmds() {
   IM_ASSERT_PARANOID( CmdBuffer.Size > 0 );
   ImDrawCmd * curr_cmd = &CmdBuffer.Data[ CmdBuffer.Size - 1 ];
   ImDrawCmd * prev_cmd = curr_cmd - 1;
-  if ( ImDrawCmd_HeaderCompare( curr_cmd, prev_cmd ) == 0 && ImDrawCmd_AreSequentialIdxOffset( prev_cmd, curr_cmd ) &&
-       curr_cmd->UserCallback == NULL && prev_cmd->UserCallback == NULL ) {
+  if ( ImDrawCmd_HeaderCompare( curr_cmd, prev_cmd ) == 0 && ImDrawCmd_AreSequentialIdxOffset( prev_cmd, curr_cmd ) && curr_cmd->UserCallback == NULL &&
+       prev_cmd->UserCallback == NULL ) {
     prev_cmd->ElemCount += curr_cmd->ElemCount;
     CmdBuffer.pop_back();
   }
@@ -605,14 +591,12 @@ void ImDrawList::PushClipRect( const ImVec2 & cr_min, const ImVec2 & cr_max, boo
 }
 
 void ImDrawList::PushClipRectFullScreen() {
-  PushClipRect( ImVec2( _Data->ClipRectFullscreen.x, _Data->ClipRectFullscreen.y ),
-                ImVec2( _Data->ClipRectFullscreen.z, _Data->ClipRectFullscreen.w ) );
+  PushClipRect( ImVec2( _Data->ClipRectFullscreen.x, _Data->ClipRectFullscreen.y ), ImVec2( _Data->ClipRectFullscreen.z, _Data->ClipRectFullscreen.w ) );
 }
 
 void ImDrawList::PopClipRect() {
   _ClipRectStack.pop_back();
-  _CmdHeader.ClipRect =
-      ( _ClipRectStack.Size == 0 ) ? _Data->ClipRectFullscreen : _ClipRectStack.Data[ _ClipRectStack.Size - 1 ];
+  _CmdHeader.ClipRect = ( _ClipRectStack.Size == 0 ) ? _Data->ClipRectFullscreen : _ClipRectStack.Data[ _ClipRectStack.Size - 1 ];
   _OnChangedClipRect();
 }
 
@@ -624,8 +608,7 @@ void ImDrawList::PushTextureID( ImTextureID texture_id ) {
 
 void ImDrawList::PopTextureID() {
   _TextureIdStack.pop_back();
-  _CmdHeader.TextureId =
-      ( _TextureIdStack.Size == 0 ) ? ( ImTextureID ) NULL : _TextureIdStack.Data[ _TextureIdStack.Size - 1 ];
+  _CmdHeader.TextureId = ( _TextureIdStack.Size == 0 ) ? ( ImTextureID ) NULL : _TextureIdStack.Data[ _TextureIdStack.Size - 1 ];
   _OnChangedTextureID();
 }
 
@@ -635,8 +618,7 @@ void ImDrawList::PopTextureID() {
 void ImDrawList::PrimReserve( int idx_count, int vtx_count ) {
   // Large mesh support (when enabled)
   IM_ASSERT_PARANOID( idx_count >= 0 && vtx_count >= 0 );
-  if ( sizeof( ImDrawIdx ) == 2 && ( _VtxCurrentIdx + vtx_count >= ( 1 << 16 ) ) &&
-       ( Flags & ImDrawListFlags_AllowVtxOffset ) ) {
+  if ( sizeof( ImDrawIdx ) == 2 && ( _VtxCurrentIdx + vtx_count >= ( 1 << 16 ) ) && ( Flags & ImDrawListFlags_AllowVtxOffset ) ) {
     // FIXME: In theory we should be testing that vtx_count <64k here.
     // In practice, RenderText() relies on reserving ahead for a worst case scenario so it is currently useful for us
     // to not make that check until we rework the text functions to handle clipping and large horizontal lines better.
@@ -719,9 +701,8 @@ void ImDrawList::PrimRectUV( const ImVec2 & a, const ImVec2 & c, const ImVec2 & 
   _IdxWritePtr += 6;
 }
 
-void ImDrawList::PrimQuadUV( const ImVec2 & a, const ImVec2 & b, const ImVec2 & c, const ImVec2 & d,
-                             const ImVec2 & uv_a, const ImVec2 & uv_b, const ImVec2 & uv_c, const ImVec2 & uv_d,
-                             ImU32 col ) {
+void ImDrawList::PrimQuadUV( const ImVec2 & a, const ImVec2 & b, const ImVec2 & c, const ImVec2 & d, const ImVec2 & uv_a, const ImVec2 & uv_b,
+                             const ImVec2 & uv_c, const ImVec2 & uv_d, ImU32 col ) {
   ImDrawIdx idx = ( ImDrawIdx ) _VtxCurrentIdx;
   _IdxWritePtr[ 0 ] = idx;
   _IdxWritePtr[ 1 ] = ( ImDrawIdx ) ( idx + 1 );
@@ -751,34 +732,33 @@ void ImDrawList::PrimQuadUV( const ImVec2 & a, const ImVec2 & b, const ImVec2 & 
 // - Those macros expects l-values and need to be used as their own statement.
 // - Those macros are intentionally not surrounded by the 'do {} while (0)' idiom because even that translates to
 // runtime with debug compilers.
-#define IM_NORMALIZE2F_OVER_ZERO( VX, VY )                                                                             \
-  {                                                                                                                    \
-    float d2 = VX * VX + VY * VY;                                                                                      \
-    if ( d2 > 0.0f ) {                                                                                                 \
-      float inv_len = ImRsqrt( d2 );                                                                                   \
-      VX *= inv_len;                                                                                                   \
-      VY *= inv_len;                                                                                                   \
-    }                                                                                                                  \
-  }                                                                                                                    \
+#define IM_NORMALIZE2F_OVER_ZERO( VX, VY )                                                                                                                     \
+  {                                                                                                                                                            \
+    float d2 = VX * VX + VY * VY;                                                                                                                              \
+    if ( d2 > 0.0f ) {                                                                                                                                         \
+      float inv_len = ImRsqrt( d2 );                                                                                                                           \
+      VX *= inv_len;                                                                                                                                           \
+      VY *= inv_len;                                                                                                                                           \
+    }                                                                                                                                                          \
+  }                                                                                                                                                            \
   ( void ) 0
 #define IM_FIXNORMAL2F_MAX_INVLEN2 100.0f  // 500.0f (see #4053, #3366)
-#define IM_FIXNORMAL2F( VX, VY )                                                                                       \
-  {                                                                                                                    \
-    float d2 = VX * VX + VY * VY;                                                                                      \
-    if ( d2 > 0.000001f ) {                                                                                            \
-      float inv_len2 = 1.0f / d2;                                                                                      \
-      if ( inv_len2 > IM_FIXNORMAL2F_MAX_INVLEN2 )                                                                     \
-        inv_len2 = IM_FIXNORMAL2F_MAX_INVLEN2;                                                                         \
-      VX *= inv_len2;                                                                                                  \
-      VY *= inv_len2;                                                                                                  \
-    }                                                                                                                  \
-  }                                                                                                                    \
+#define IM_FIXNORMAL2F( VX, VY )                                                                                                                               \
+  {                                                                                                                                                            \
+    float d2 = VX * VX + VY * VY;                                                                                                                              \
+    if ( d2 > 0.000001f ) {                                                                                                                                    \
+      float inv_len2 = 1.0f / d2;                                                                                                                              \
+      if ( inv_len2 > IM_FIXNORMAL2F_MAX_INVLEN2 )                                                                                                             \
+        inv_len2 = IM_FIXNORMAL2F_MAX_INVLEN2;                                                                                                                 \
+      VX *= inv_len2;                                                                                                                                          \
+      VY *= inv_len2;                                                                                                                                          \
+    }                                                                                                                                                          \
+  }                                                                                                                                                            \
   ( void ) 0
 
 // TODO: Thickness anti-aliased lines cap are missing their AA fringe.
 // We avoid using the ImVec2 math operators here to reduce cost to a minimum for debug/non-inlined builds.
-void ImDrawList::AddPolyline( const ImVec2 * points, const int points_count, ImU32 col, ImDrawFlags flags,
-                              float thickness ) {
+void ImDrawList::AddPolyline( const ImVec2 * points, const int points_count, ImU32 col, ImDrawFlags flags, float thickness ) {
   if ( points_count < 2 || ( col & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -801,8 +781,7 @@ void ImDrawList::AddPolyline( const ImVec2 * points, const int points_count, ImU
     // - For now, only draw integer-width lines using textures to avoid issues with the way scaling occurs, could be
     // improved.
     // - If AA_SIZE is not 1.0f we cannot use the texture path.
-    const bool use_texture = ( Flags & ImDrawListFlags_AntiAliasedLinesUseTex ) &&
-                             ( integer_thickness < IM_DRAWLIST_TEX_LINES_WIDTH_MAX ) &&
+    const bool use_texture = ( Flags & ImDrawListFlags_AntiAliasedLinesUseTex ) && ( integer_thickness < IM_DRAWLIST_TEX_LINES_WIDTH_MAX ) &&
                              ( fractional_thickness <= 0.00001f ) && ( AA_SIZE == 1.0f );
 
     // We should never hit this, because NewFrame() doesn't set ImDrawListFlags_AntiAliasedLinesUseTex unless
@@ -853,10 +832,8 @@ void ImDrawList::AddPolyline( const ImVec2 * points, const int points_count, ImU
       if ( !closed ) {
         temp_points[ 0 ] = points[ 0 ] + temp_normals[ 0 ] * half_draw_size;
         temp_points[ 1 ] = points[ 0 ] - temp_normals[ 0 ] * half_draw_size;
-        temp_points[ ( points_count - 1 ) * 2 + 0 ] =
-            points[ points_count - 1 ] + temp_normals[ points_count - 1 ] * half_draw_size;
-        temp_points[ ( points_count - 1 ) * 2 + 1 ] =
-            points[ points_count - 1 ] - temp_normals[ points_count - 1 ] * half_draw_size;
+        temp_points[ ( points_count - 1 ) * 2 + 0 ] = points[ points_count - 1 ] + temp_normals[ points_count - 1 ] * half_draw_size;
+        temp_points[ ( points_count - 1 ) * 2 + 1 ] = points[ points_count - 1 ] - temp_normals[ points_count - 1 ] * half_draw_size;
       }
 
       // Generate the indices to form a number of triangles for each line segment, and the vertices for the line edges
@@ -867,9 +844,7 @@ void ImDrawList::AddPolyline( const ImVec2 * points, const int points_count, ImU
       for ( int i1 = 0; i1 < count; i1++ )  // i1 is the first point of the line segment
       {
         const int          i2 = ( i1 + 1 ) == points_count ? 0 : i1 + 1;  // i2 is the second point of the line segment
-        const unsigned int idx2 = ( ( i1 + 1 ) == points_count )
-                                      ? _VtxCurrentIdx
-                                      : ( idx1 + ( use_texture ? 2 : 3 ) );  // Vertex index for end of segment
+        const unsigned int idx2 = ( ( i1 + 1 ) == points_count ) ? _VtxCurrentIdx : ( idx1 + ( use_texture ? 2 : 3 ) );  // Vertex index for end of segment
 
         // Average normals
         float dm_x = ( temp_normals[ i1 ].x + temp_normals[ i2 ].x ) * 0.5f;
@@ -965,14 +940,10 @@ void ImDrawList::AddPolyline( const ImVec2 * points, const int points_count, ImU
         temp_points[ 1 ] = points[ 0 ] + temp_normals[ 0 ] * ( half_inner_thickness );
         temp_points[ 2 ] = points[ 0 ] - temp_normals[ 0 ] * ( half_inner_thickness );
         temp_points[ 3 ] = points[ 0 ] - temp_normals[ 0 ] * ( half_inner_thickness + AA_SIZE );
-        temp_points[ points_last * 4 + 0 ] =
-            points[ points_last ] + temp_normals[ points_last ] * ( half_inner_thickness + AA_SIZE );
-        temp_points[ points_last * 4 + 1 ] =
-            points[ points_last ] + temp_normals[ points_last ] * ( half_inner_thickness );
-        temp_points[ points_last * 4 + 2 ] =
-            points[ points_last ] - temp_normals[ points_last ] * ( half_inner_thickness );
-        temp_points[ points_last * 4 + 3 ] =
-            points[ points_last ] - temp_normals[ points_last ] * ( half_inner_thickness + AA_SIZE );
+        temp_points[ points_last * 4 + 0 ] = points[ points_last ] + temp_normals[ points_last ] * ( half_inner_thickness + AA_SIZE );
+        temp_points[ points_last * 4 + 1 ] = points[ points_last ] + temp_normals[ points_last ] * ( half_inner_thickness );
+        temp_points[ points_last * 4 + 2 ] = points[ points_last ] - temp_normals[ points_last ] * ( half_inner_thickness );
+        temp_points[ points_last * 4 + 3 ] = points[ points_last ] - temp_normals[ points_last ] * ( half_inner_thickness + AA_SIZE );
       }
 
       // Generate the indices to form a number of triangles for each line segment, and the vertices for the line edges
@@ -982,9 +953,8 @@ void ImDrawList::AddPolyline( const ImVec2 * points, const int points_count, ImU
       unsigned int idx1 = _VtxCurrentIdx;   // Vertex index for start of line segment
       for ( int i1 = 0; i1 < count; i1++ )  // i1 is the first point of the line segment
       {
-        const int i2 = ( i1 + 1 ) == points_count ? 0 : ( i1 + 1 );  // i2 is the second point of the line segment
-        const unsigned int idx2 =
-            ( i1 + 1 ) == points_count ? _VtxCurrentIdx : ( idx1 + 4 );  // Vertex index for end of segment
+        const int          i2 = ( i1 + 1 ) == points_count ? 0 : ( i1 + 1 );                   // i2 is the second point of the line segment
+        const unsigned int idx2 = ( i1 + 1 ) == points_count ? _VtxCurrentIdx : ( idx1 + 4 );  // Vertex index for end of segment
 
         // Average normals
         float dm_x = ( temp_normals[ i1 ].x + temp_normals[ i2 ].x ) * 0.5f;
@@ -1188,8 +1158,7 @@ void ImDrawList::AddConvexPolyFilled( const ImVec2 * points, const int points_co
   }
 }
 
-void ImDrawList::_PathArcToFastEx( const ImVec2 & center, float radius, int a_min_sample, int a_max_sample,
-                                   int a_step ) {
+void ImDrawList::_PathArcToFastEx( const ImVec2 & center, float radius, int a_min_sample, int a_max_sample, int a_step ) {
   if ( radius < 0.5f ) {
     _Path.push_back( center );
     return;
@@ -1293,8 +1262,7 @@ void ImDrawList::PathArcToFast( const ImVec2 & center, float radius, int a_min_o
     _Path.push_back( center );
     return;
   }
-  _PathArcToFastEx( center, radius, a_min_of_12 * IM_DRAWLIST_ARCFAST_SAMPLE_MAX / 12,
-                    a_max_of_12 * IM_DRAWLIST_ARCFAST_SAMPLE_MAX / 12, 0 );
+  _PathArcToFastEx( center, radius, a_min_of_12 * IM_DRAWLIST_ARCFAST_SAMPLE_MAX / 12, a_max_of_12 * IM_DRAWLIST_ARCFAST_SAMPLE_MAX / 12, 0 );
 }
 
 void ImDrawList::PathArcTo( const ImVec2 & center, float radius, float a_min, float a_max, int num_segments ) {
@@ -1319,8 +1287,7 @@ void ImDrawList::PathArcTo( const ImVec2 & center, float radius, float a_min, fl
 
     const int a_min_sample = a_is_reverse ? ( int ) ImFloorSigned( a_min_sample_f ) : ( int ) ImCeil( a_min_sample_f );
     const int a_max_sample = a_is_reverse ? ( int ) ImCeil( a_max_sample_f ) : ( int ) ImFloorSigned( a_max_sample_f );
-    const int a_mid_samples =
-        a_is_reverse ? ImMax( a_min_sample - a_max_sample, 0 ) : ImMax( a_max_sample - a_min_sample, 0 );
+    const int a_mid_samples = a_is_reverse ? ImMax( a_min_sample - a_max_sample, 0 ) : ImMax( a_max_sample - a_min_sample, 0 );
 
     const float a_min_segment_angle = a_min_sample * IM_PI * 2.0f / IM_DRAWLIST_ARCFAST_SAMPLE_MAX;
     const float a_max_segment_angle = a_max_sample * IM_PI * 2.0f / IM_DRAWLIST_ARCFAST_SAMPLE_MAX;
@@ -1337,8 +1304,7 @@ void ImDrawList::PathArcTo( const ImVec2 & center, float radius, float a_min, fl
   } else {
     const float arc_length = ImAbs( a_max - a_min );
     const int   circle_segment_count = _CalcCircleAutoSegmentCount( radius );
-    const int   arc_segment_count = ImMax( ( int ) ImCeil( circle_segment_count * arc_length / ( IM_PI * 2.0f ) ),
-                                           ( int ) ( 2.0f * IM_PI / arc_length ) );
+    const int   arc_segment_count = ImMax( ( int ) ImCeil( circle_segment_count * arc_length / ( IM_PI * 2.0f ) ), ( int ) ( 2.0f * IM_PI / arc_length ) );
     _PathArcToN( center, radius, a_min, a_max, arc_segment_count );
   }
 }
@@ -1361,8 +1327,8 @@ ImVec2 ImBezierQuadraticCalc( const ImVec2 & p1, const ImVec2 & p2, const ImVec2
 }
 
 // Closely mimics ImBezierCubicClosestPointCasteljau() in imgui.cpp
-static void PathBezierCubicCurveToCasteljau( ImVector< ImVec2 > * path, float x1, float y1, float x2, float y2,
-                                             float x3, float y3, float x4, float y4, float tess_tol, int level ) {
+static void PathBezierCubicCurveToCasteljau( ImVector< ImVec2 > * path, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4,
+                                             float tess_tol, int level ) {
   float dx = x4 - x1;
   float dy = y4 - y1;
   float d2 = ( x2 - x4 ) * dy - ( y2 - y4 ) * dx;
@@ -1383,8 +1349,8 @@ static void PathBezierCubicCurveToCasteljau( ImVector< ImVec2 > * path, float x1
   }
 }
 
-static void PathBezierQuadraticCurveToCasteljau( ImVector< ImVec2 > * path, float x1, float y1, float x2, float y2,
-                                                 float x3, float y3, float tess_tol, int level ) {
+static void PathBezierQuadraticCurveToCasteljau( ImVector< ImVec2 > * path, float x1, float y1, float x2, float y2, float x3, float y3, float tess_tol,
+                                                 int level ) {
   float dx = x3 - x1, dy = y3 - y1;
   float det = ( x2 - x3 ) * dy - ( y2 - y3 ) * dx;
   if ( det * det * 4.0f < tess_tol * ( dx * dx + dy * dy ) ) {
@@ -1402,8 +1368,7 @@ void ImDrawList::PathBezierCubicCurveTo( const ImVec2 & p2, const ImVec2 & p3, c
   ImVec2 p1 = _Path.back();
   if ( num_segments == 0 ) {
     IM_ASSERT( _Data->CurveTessellationTol > 0.0f );
-    PathBezierCubicCurveToCasteljau( &_Path, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y,
-                                     _Data->CurveTessellationTol, 0 );  // Auto-tessellated
+    PathBezierCubicCurveToCasteljau( &_Path, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y, _Data->CurveTessellationTol, 0 );  // Auto-tessellated
   } else {
     float t_step = 1.0f / ( float ) num_segments;
     for ( int i_step = 1; i_step <= num_segments; i_step++ )
@@ -1460,20 +1425,16 @@ static inline ImDrawFlags FixRectCornerFlags( ImDrawFlags flags ) {
 
 void ImDrawList::PathRect( const ImVec2 & a, const ImVec2 & b, float rounding, ImDrawFlags flags ) {
   flags = FixRectCornerFlags( flags );
-  rounding = ImMin( rounding,
-                    ImFabs( b.x - a.x ) *
-                            ( ( ( flags & ImDrawFlags_RoundCornersTop ) == ImDrawFlags_RoundCornersTop ) ||
-                                      ( ( flags & ImDrawFlags_RoundCornersBottom ) == ImDrawFlags_RoundCornersBottom )
-                                  ? 0.5f
-                                  : 1.0f ) -
-                        1.0f );
-  rounding =
-      ImMin( rounding, ImFabs( b.y - a.y ) *
-                               ( ( ( flags & ImDrawFlags_RoundCornersLeft ) == ImDrawFlags_RoundCornersLeft ) ||
-                                         ( ( flags & ImDrawFlags_RoundCornersRight ) == ImDrawFlags_RoundCornersRight )
-                                     ? 0.5f
-                                     : 1.0f ) -
-                           1.0f );
+  rounding = ImMin( rounding, ImFabs( b.x - a.x ) * ( ( ( flags & ImDrawFlags_RoundCornersTop ) == ImDrawFlags_RoundCornersTop ) ||
+                                                              ( ( flags & ImDrawFlags_RoundCornersBottom ) == ImDrawFlags_RoundCornersBottom )
+                                                          ? 0.5f
+                                                          : 1.0f ) -
+                                  1.0f );
+  rounding = ImMin( rounding, ImFabs( b.y - a.y ) * ( ( ( flags & ImDrawFlags_RoundCornersLeft ) == ImDrawFlags_RoundCornersLeft ) ||
+                                                              ( ( flags & ImDrawFlags_RoundCornersRight ) == ImDrawFlags_RoundCornersRight )
+                                                          ? 0.5f
+                                                          : 1.0f ) -
+                                  1.0f );
 
   if ( rounding < 0.5f || ( flags & ImDrawFlags_RoundCornersMask_ ) == ImDrawFlags_RoundCornersNone ) {
     PathLineTo( a );
@@ -1502,8 +1463,7 @@ void ImDrawList::AddLine( const ImVec2 & p1, const ImVec2 & p2, ImU32 col, float
 
 // p_min = upper-left, p_max = lower-right
 // Note we don't render 1 pixels sized rectangles properly.
-void ImDrawList::AddRect( const ImVec2 & p_min, const ImVec2 & p_max, ImU32 col, float rounding, ImDrawFlags flags,
-                          float thickness ) {
+void ImDrawList::AddRect( const ImVec2 & p_min, const ImVec2 & p_max, ImU32 col, float rounding, ImDrawFlags flags, float thickness ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
   if ( Flags & ImDrawListFlags_AntiAliasedLines )
@@ -1514,8 +1474,7 @@ void ImDrawList::AddRect( const ImVec2 & p_min, const ImVec2 & p_max, ImU32 col,
   PathStroke( col, ImDrawFlags_Closed, thickness );
 }
 
-void ImDrawList::AddRectFilled( const ImVec2 & p_min, const ImVec2 & p_max, ImU32 col, float rounding,
-                                ImDrawFlags flags ) {
+void ImDrawList::AddRectFilled( const ImVec2 & p_min, const ImVec2 & p_max, ImU32 col, float rounding, ImDrawFlags flags ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
   if ( rounding < 0.5f || ( flags & ImDrawFlags_RoundCornersMask_ ) == ImDrawFlags_RoundCornersNone ) {
@@ -1528,8 +1487,8 @@ void ImDrawList::AddRectFilled( const ImVec2 & p_min, const ImVec2 & p_max, ImU3
 }
 
 // p_min = upper-left, p_max = lower-right
-void ImDrawList::AddRectFilledMultiColor( const ImVec2 & p_min, const ImVec2 & p_max, ImU32 col_upr_left,
-                                          ImU32 col_upr_right, ImU32 col_bot_right, ImU32 col_bot_left ) {
+void ImDrawList::AddRectFilledMultiColor( const ImVec2 & p_min, const ImVec2 & p_max, ImU32 col_upr_left, ImU32 col_upr_right, ImU32 col_bot_right,
+                                          ImU32 col_bot_left ) {
   if ( ( ( col_upr_left | col_upr_right | col_bot_right | col_bot_left ) & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -1547,8 +1506,7 @@ void ImDrawList::AddRectFilledMultiColor( const ImVec2 & p_min, const ImVec2 & p
   PrimWriteVtx( ImVec2( p_min.x, p_max.y ), uv, col_bot_left );
 }
 
-void ImDrawList::AddQuad( const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3, const ImVec2 & p4, ImU32 col,
-                          float thickness ) {
+void ImDrawList::AddQuad( const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3, const ImVec2 & p4, ImU32 col, float thickness ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -1559,8 +1517,7 @@ void ImDrawList::AddQuad( const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p
   PathStroke( col, ImDrawFlags_Closed, thickness );
 }
 
-void ImDrawList::AddQuadFilled( const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3, const ImVec2 & p4,
-                                ImU32 col ) {
+void ImDrawList::AddQuadFilled( const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3, const ImVec2 & p4, ImU32 col ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -1654,8 +1611,7 @@ void ImDrawList::AddNgonFilled( const ImVec2 & center, float radius, ImU32 col, 
 }
 
 // Cubic Bezier takes 4 controls points
-void ImDrawList::AddBezierCubic( const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3, const ImVec2 & p4, ImU32 col,
-                                 float thickness, int num_segments ) {
+void ImDrawList::AddBezierCubic( const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3, const ImVec2 & p4, ImU32 col, float thickness, int num_segments ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -1665,8 +1621,7 @@ void ImDrawList::AddBezierCubic( const ImVec2 & p1, const ImVec2 & p2, const ImV
 }
 
 // Quadratic Bezier takes 3 controls points
-void ImDrawList::AddBezierQuadratic( const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3, ImU32 col,
-                                     float thickness, int num_segments ) {
+void ImDrawList::AddBezierQuadratic( const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3, ImU32 col, float thickness, int num_segments ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -1675,8 +1630,8 @@ void ImDrawList::AddBezierQuadratic( const ImVec2 & p1, const ImVec2 & p2, const
   PathStroke( col, 0, thickness );
 }
 
-void ImDrawList::AddText( const ImFont * font, float font_size, const ImVec2 & pos, ImU32 col, const char * text_begin,
-                          const char * text_end, float wrap_width, const ImVec4 * cpu_fine_clip_rect ) {
+void ImDrawList::AddText( const ImFont * font, float font_size, const ImVec2 & pos, ImU32 col, const char * text_begin, const char * text_end, float wrap_width,
+                          const ImVec4 * cpu_fine_clip_rect ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -1701,16 +1656,14 @@ void ImDrawList::AddText( const ImFont * font, float font_size, const ImVec2 & p
     clip_rect.z = ImMin( clip_rect.z, cpu_fine_clip_rect->z );
     clip_rect.w = ImMin( clip_rect.w, cpu_fine_clip_rect->w );
   }
-  font->RenderText( this, font_size, pos, col, clip_rect, text_begin, text_end, wrap_width,
-                    cpu_fine_clip_rect != NULL );
+  font->RenderText( this, font_size, pos, col, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip_rect != NULL );
 }
 
 void ImDrawList::AddText( const ImVec2 & pos, ImU32 col, const char * text_begin, const char * text_end ) {
   AddText( NULL, 0.0f, pos, col, text_begin, text_end );
 }
 
-void ImDrawList::AddImage( ImTextureID user_texture_id, const ImVec2 & p_min, const ImVec2 & p_max,
-                           const ImVec2 & uv_min, const ImVec2 & uv_max, ImU32 col ) {
+void ImDrawList::AddImage( ImTextureID user_texture_id, const ImVec2 & p_min, const ImVec2 & p_max, const ImVec2 & uv_min, const ImVec2 & uv_max, ImU32 col ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -1725,9 +1678,8 @@ void ImDrawList::AddImage( ImTextureID user_texture_id, const ImVec2 & p_min, co
     PopTextureID();
 }
 
-void ImDrawList::AddImageQuad( ImTextureID user_texture_id, const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3,
-                               const ImVec2 & p4, const ImVec2 & uv1, const ImVec2 & uv2, const ImVec2 & uv3,
-                               const ImVec2 & uv4, ImU32 col ) {
+void ImDrawList::AddImageQuad( ImTextureID user_texture_id, const ImVec2 & p1, const ImVec2 & p2, const ImVec2 & p3, const ImVec2 & p4, const ImVec2 & uv1,
+                               const ImVec2 & uv2, const ImVec2 & uv3, const ImVec2 & uv4, ImU32 col ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -1742,9 +1694,8 @@ void ImDrawList::AddImageQuad( ImTextureID user_texture_id, const ImVec2 & p1, c
     PopTextureID();
 }
 
-void ImDrawList::AddImageRounded( ImTextureID user_texture_id, const ImVec2 & p_min, const ImVec2 & p_max,
-                                  const ImVec2 & uv_min, const ImVec2 & uv_max, ImU32 col, float rounding,
-                                  ImDrawFlags flags ) {
+void ImDrawList::AddImageRounded( ImTextureID user_texture_id, const ImVec2 & p_min, const ImVec2 & p_max, const ImVec2 & uv_min, const ImVec2 & uv_max,
+                                  ImU32 col, float rounding, ImDrawFlags flags ) {
   if ( ( col & IM_COL32_A_MASK ) == 0 )
     return;
 
@@ -1790,8 +1741,7 @@ void ImDrawListSplitter::ClearFreeMemory() {
 
 void ImDrawListSplitter::Split( ImDrawList * draw_list, int channels_count ) {
   IM_UNUSED( draw_list );
-  IM_ASSERT( _Current == 0 && _Count <= 1 &&
-             "Nested channel splitting is not supported. Please use separate instances of ImDrawListSplitter." );
+  IM_ASSERT( _Current == 0 && _Count <= 1 && "Nested channel splitting is not supported. Please use separate instances of ImDrawListSplitter." );
   int old_channels_count = _Channels.Size;
   if ( old_channels_count < channels_count ) {
     _Channels.reserve( channels_count );  // Avoid over reserving since this is likely to stay stable
@@ -1830,8 +1780,7 @@ void ImDrawListSplitter::Merge( ImDrawList * draw_list ) {
   int         idx_offset = last_cmd ? last_cmd->IdxOffset + last_cmd->ElemCount : 0;
   for ( int i = 1; i < _Count; i++ ) {
     ImDrawChannel & ch = _Channels[ i ];
-    if ( ch._CmdBuffer.Size > 0 && ch._CmdBuffer.back().ElemCount == 0 &&
-         ch._CmdBuffer.back().UserCallback == NULL )  // Equivalent of PopUnusedDrawCmd()
+    if ( ch._CmdBuffer.Size > 0 && ch._CmdBuffer.back().ElemCount == 0 && ch._CmdBuffer.back().UserCallback == NULL )  // Equivalent of PopUnusedDrawCmd()
       ch._CmdBuffer.pop_back();
 
     if ( ch._CmdBuffer.Size > 0 && last_cmd != NULL ) {
@@ -1839,8 +1788,7 @@ void ImDrawListSplitter::Merge( ImDrawList * draw_list ) {
       // Manipulating IdxOffset (e.g. by reordering draw commands like done by RenderDimmedBackgroundBehindWindow()) is
       // not supported within a splitter.
       ImDrawCmd * next_cmd = &ch._CmdBuffer[ 0 ];
-      if ( ImDrawCmd_HeaderCompare( last_cmd, next_cmd ) == 0 && last_cmd->UserCallback == NULL &&
-           next_cmd->UserCallback == NULL ) {
+      if ( ImDrawCmd_HeaderCompare( last_cmd, next_cmd ) == 0 && last_cmd->UserCallback == NULL && next_cmd->UserCallback == NULL ) {
         // Merge previous channel last draw command with current channel first draw command if matching.
         last_cmd->ElemCount += next_cmd->ElemCount;
         idx_offset += next_cmd->ElemCount;
@@ -1903,8 +1851,7 @@ void ImDrawListSplitter::SetCurrentChannel( ImDrawList * draw_list, int idx ) {
   draw_list->_IdxWritePtr = draw_list->IdxBuffer.Data + draw_list->IdxBuffer.Size;
 
   // If current command is used with different settings we need to add a new command
-  ImDrawCmd * curr_cmd =
-      ( draw_list->CmdBuffer.Size == 0 ) ? NULL : &draw_list->CmdBuffer.Data[ draw_list->CmdBuffer.Size - 1 ];
+  ImDrawCmd * curr_cmd = ( draw_list->CmdBuffer.Size == 0 ) ? NULL : &draw_list->CmdBuffer.Data[ draw_list->CmdBuffer.Size - 1 ];
   if ( curr_cmd == NULL )
     draw_list->AddDrawCmd();
   else if ( curr_cmd->ElemCount == 0 )
@@ -1943,8 +1890,7 @@ void ImDrawData::ScaleClipRects( const ImVec2 & fb_scale ) {
     ImDrawList * cmd_list = CmdLists[ i ];
     for ( int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++ ) {
       ImDrawCmd * cmd = &cmd_list->CmdBuffer[ cmd_i ];
-      cmd->ClipRect = ImVec4( cmd->ClipRect.x * fb_scale.x, cmd->ClipRect.y * fb_scale.y, cmd->ClipRect.z * fb_scale.x,
-                              cmd->ClipRect.w * fb_scale.y );
+      cmd->ClipRect = ImVec4( cmd->ClipRect.x * fb_scale.x, cmd->ClipRect.y * fb_scale.y, cmd->ClipRect.z * fb_scale.x, cmd->ClipRect.w * fb_scale.y );
     }
   }
 }
@@ -1954,8 +1900,8 @@ void ImDrawData::ScaleClipRects( const ImVec2 & fb_scale ) {
 //-----------------------------------------------------------------------------
 
 // Generic linear color gradient, write to RGB fields, leave A untouched.
-void ImGui::ShadeVertsLinearColorGradientKeepAlpha( ImDrawList * draw_list, int vert_start_idx, int vert_end_idx,
-                                                    ImVec2 gradient_p0, ImVec2 gradient_p1, ImU32 col0, ImU32 col1 ) {
+void ImGui::ShadeVertsLinearColorGradientKeepAlpha( ImDrawList * draw_list, int vert_start_idx, int vert_end_idx, ImVec2 gradient_p0, ImVec2 gradient_p1,
+                                                    ImU32 col0, ImU32 col1 ) {
   ImVec2       gradient_extent = gradient_p1 - gradient_p0;
   float        gradient_inv_length2 = 1.0f / ImLengthSqr( gradient_extent );
   ImDrawVert * vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
@@ -1972,18 +1918,16 @@ void ImGui::ShadeVertsLinearColorGradientKeepAlpha( ImDrawList * draw_list, int 
     int   r = ( int ) ( col0_r + col_delta_r * t );
     int   g = ( int ) ( col0_g + col_delta_g * t );
     int   b = ( int ) ( col0_b + col_delta_b * t );
-    vert->col = ( r << IM_COL32_R_SHIFT ) | ( g << IM_COL32_G_SHIFT ) | ( b << IM_COL32_B_SHIFT ) |
-                ( vert->col & IM_COL32_A_MASK );
+    vert->col = ( r << IM_COL32_R_SHIFT ) | ( g << IM_COL32_G_SHIFT ) | ( b << IM_COL32_B_SHIFT ) | ( vert->col & IM_COL32_A_MASK );
   }
 }
 
 // Distribute UV over (a, b) rectangle
-void ImGui::ShadeVertsLinearUV( ImDrawList * draw_list, int vert_start_idx, int vert_end_idx, const ImVec2 & a,
-                                const ImVec2 & b, const ImVec2 & uv_a, const ImVec2 & uv_b, bool clamp ) {
+void ImGui::ShadeVertsLinearUV( ImDrawList * draw_list, int vert_start_idx, int vert_end_idx, const ImVec2 & a, const ImVec2 & b, const ImVec2 & uv_a,
+                                const ImVec2 & uv_b, bool clamp ) {
   const ImVec2 size = b - a;
   const ImVec2 uv_size = uv_b - uv_a;
-  const ImVec2 scale =
-      ImVec2( size.x != 0.0f ? ( uv_size.x / size.x ) : 0.0f, size.y != 0.0f ? ( uv_size.y / size.y ) : 0.0f );
+  const ImVec2 scale = ImVec2( size.x != 0.0f ? ( uv_size.x / size.x ) : 0.0f, size.y != 0.0f ? ( uv_size.y / size.y ) : 0.0f );
 
   ImDrawVert * vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
   ImDrawVert * vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
@@ -2019,65 +1963,64 @@ ImFontConfig::ImFontConfig() {
 // A work of art lies ahead! (. = white layer, X = black layer, others are blank)
 // The 2x2 white texels on the top left are the ones we'll use everywhere in Dear ImGui to render filled shapes.
 // (This is used when io.MouseDrawCursor = true)
-const int FONT_ATLAS_DEFAULT_TEX_DATA_W = 122;  // Actual texture will be 2 times that + 1 spacing.
-const int FONT_ATLAS_DEFAULT_TEX_DATA_H = 27;
-static const char
-    FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS[ FONT_ATLAS_DEFAULT_TEX_DATA_W * FONT_ATLAS_DEFAULT_TEX_DATA_H + 1 ] = {
-      "..-         -XXXXXXX-    X    -           X           -XXXXXXX          -          XXXXXXX-     XX          - "
-      "XX       XX "
-      "..-         -X.....X-   X.X   -          X.X          -X.....X          -          X.....X-    X..X         "
-      "-X..X     X..X"
-      "---         -XXX.XXX-  X...X  -         X...X         -X....X           -           X....X-    X..X         "
-      "-X...X   X...X"
-      "X           -  X.X  - X.....X -        X.....X        -X...X            -            X...X-    X..X         - "
-      "X...X X...X "
-      "XX          -  X.X  -X.......X-       X.......X       -X..X.X           -           X.X..X-    X..X         -  "
-      "X...X...X  "
-      "X.X         -  X.X  -XXXX.XXXX-       XXXX.XXXX       -X.X X.X          -          X.X X.X-    X..XXX       -   "
-      "X.....X   "
-      "X..X        -  X.X  -   X.X   -          X.X          -XX   X.X         -         X.X   XX-    X..X..XXX    -   "
-      " X...X    "
-      "X...X       -  X.X  -   X.X   -    XX    X.X    XX    -      X.X        -        X.X      -    X..X..X..XX  -   "
-      "  X.X     "
-      "X....X      -  X.X  -   X.X   -   X.X    X.X    X.X   -       X.X       -       X.X       -    X..X..X..X.X -   "
-      " X...X    "
-      "X.....X     -  X.X  -   X.X   -  X..X    X.X    X..X  -        X.X      -      X.X        -XXX X..X..X..X..X-   "
-      "X.....X   "
-      "X......X    -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -         X.X   XX-XX   X.X         -X..XX........X..X-  "
-      "X...X...X  "
-      "X.......X   -  X.X  -   X.X   -X.....................X-          X.X X.X-X.X X.X          -X...X...........X- "
-      "X...X X...X "
-      "X........X  -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -           X.X..X-X..X.X           - "
-      "X..............X-X...X   X...X"
-      "X.........X -XXX.XXX-   X.X   -  X..X    X.X    X..X  -            X...X-X...X            -  "
-      "X.............X-X..X     X..X"
-      "X..........X-X.....X-   X.X   -   X.X    X.X    X.X   -           X....X-X....X           -  X.............X- "
-      "XX       XX "
-      "X......XXXXX-XXXXXXX-   X.X   -    XX    X.X    XX    -          X.....X-X.....X          -   "
-      "X............X--------------"
-      "X...X..X    ---------   X.X   -          X.X          -          XXXXXXX-XXXXXXX          -   X...........X -   "
-      "          "
-      "X..X X..X   -       -XXXX.XXXX-       XXXX.XXXX       -------------------------------------    X..........X -   "
-      "          "
-      "X.X  X..X   -       -X.......X-       X.......X       -    XX           XX    -           -    X..........X -   "
-      "          "
-      "XX    X..X  -       - X.....X -        X.....X        -   X.X           X.X   -           -     X........X  -   "
-      "          "
-      "      X..X  -       -  X...X  -         X...X         -  X..X           X..X  -           -     X........X  -   "
-      "          "
-      "       XX   -       -   X.X   -          X.X          - X...XXXXXXXXXXXXX...X -           -     XXXXXXXXXX  -   "
-      "          "
-      "-------------       -    X    -           X           -X.....................X-           -------------------   "
-      "          "
-      "                    ----------------------------------- X...XXXXXXXXXXXXX...X -                                 "
-      "          "
-      "                                                      -  X..X           X..X  -                                 "
-      "          "
-      "                                                      -   X.X           X.X   -                                 "
-      "          "
-      "                                                      -    XX           XX    -                                 "
-      "          "
-    };
+const int         FONT_ATLAS_DEFAULT_TEX_DATA_W = 122;  // Actual texture will be 2 times that + 1 spacing.
+const int         FONT_ATLAS_DEFAULT_TEX_DATA_H = 27;
+static const char FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS[ FONT_ATLAS_DEFAULT_TEX_DATA_W * FONT_ATLAS_DEFAULT_TEX_DATA_H + 1 ] = {
+  "..-         -XXXXXXX-    X    -           X           -XXXXXXX          -          XXXXXXX-     XX          - "
+  "XX       XX "
+  "..-         -X.....X-   X.X   -          X.X          -X.....X          -          X.....X-    X..X         "
+  "-X..X     X..X"
+  "---         -XXX.XXX-  X...X  -         X...X         -X....X           -           X....X-    X..X         "
+  "-X...X   X...X"
+  "X           -  X.X  - X.....X -        X.....X        -X...X            -            X...X-    X..X         - "
+  "X...X X...X "
+  "XX          -  X.X  -X.......X-       X.......X       -X..X.X           -           X.X..X-    X..X         -  "
+  "X...X...X  "
+  "X.X         -  X.X  -XXXX.XXXX-       XXXX.XXXX       -X.X X.X          -          X.X X.X-    X..XXX       -   "
+  "X.....X   "
+  "X..X        -  X.X  -   X.X   -          X.X          -XX   X.X         -         X.X   XX-    X..X..XXX    -   "
+  " X...X    "
+  "X...X       -  X.X  -   X.X   -    XX    X.X    XX    -      X.X        -        X.X      -    X..X..X..XX  -   "
+  "  X.X     "
+  "X....X      -  X.X  -   X.X   -   X.X    X.X    X.X   -       X.X       -       X.X       -    X..X..X..X.X -   "
+  " X...X    "
+  "X.....X     -  X.X  -   X.X   -  X..X    X.X    X..X  -        X.X      -      X.X        -XXX X..X..X..X..X-   "
+  "X.....X   "
+  "X......X    -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -         X.X   XX-XX   X.X         -X..XX........X..X-  "
+  "X...X...X  "
+  "X.......X   -  X.X  -   X.X   -X.....................X-          X.X X.X-X.X X.X          -X...X...........X- "
+  "X...X X...X "
+  "X........X  -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -           X.X..X-X..X.X           - "
+  "X..............X-X...X   X...X"
+  "X.........X -XXX.XXX-   X.X   -  X..X    X.X    X..X  -            X...X-X...X            -  "
+  "X.............X-X..X     X..X"
+  "X..........X-X.....X-   X.X   -   X.X    X.X    X.X   -           X....X-X....X           -  X.............X- "
+  "XX       XX "
+  "X......XXXXX-XXXXXXX-   X.X   -    XX    X.X    XX    -          X.....X-X.....X          -   "
+  "X............X--------------"
+  "X...X..X    ---------   X.X   -          X.X          -          XXXXXXX-XXXXXXX          -   X...........X -   "
+  "          "
+  "X..X X..X   -       -XXXX.XXXX-       XXXX.XXXX       -------------------------------------    X..........X -   "
+  "          "
+  "X.X  X..X   -       -X.......X-       X.......X       -    XX           XX    -           -    X..........X -   "
+  "          "
+  "XX    X..X  -       - X.....X -        X.....X        -   X.X           X.X   -           -     X........X  -   "
+  "          "
+  "      X..X  -       -  X...X  -         X...X         -  X..X           X..X  -           -     X........X  -   "
+  "          "
+  "       XX   -       -   X.X   -          X.X          - X...XXXXXXXXXXXXX...X -           -     XXXXXXXXXX  -   "
+  "          "
+  "-------------       -    X    -           X           -X.....................X-           -------------------   "
+  "          "
+  "                    ----------------------------------- X...XXXXXXXXXXXXX...X -                                 "
+  "          "
+  "                                                      -  X..X           X..X  -                                 "
+  "          "
+  "                                                      -   X.X           X.X   -                                 "
+  "          "
+  "                                                      -    XX           XX    -                                 "
+  "          "
+};
 
 static const ImVec2 FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[ ImGuiMouseCursor_COUNT ][ 3 ] = {
   // Pos ........ Size ......... Offset ......
@@ -2147,8 +2090,7 @@ void ImFontAtlas::Clear() {
   ClearFonts();
 }
 
-void ImFontAtlas::GetTexDataAsAlpha8( unsigned char ** out_pixels, int * out_width, int * out_height,
-                                      int * out_bytes_per_pixel ) {
+void ImFontAtlas::GetTexDataAsAlpha8( unsigned char ** out_pixels, int * out_width, int * out_height, int * out_bytes_per_pixel ) {
   // Build atlas on demand
   if ( TexPixelsAlpha8 == NULL )
     Build();
@@ -2162,8 +2104,7 @@ void ImFontAtlas::GetTexDataAsAlpha8( unsigned char ** out_pixels, int * out_wid
     *out_bytes_per_pixel = 1;
 }
 
-void ImFontAtlas::GetTexDataAsRGBA32( unsigned char ** out_pixels, int * out_width, int * out_height,
-                                      int * out_bytes_per_pixel ) {
+void ImFontAtlas::GetTexDataAsRGBA32( unsigned char ** out_pixels, int * out_width, int * out_height, int * out_bytes_per_pixel ) {
   // Convert to RGBA32 format on demand
   // Although it is likely to be the most commonly used format, our font rendering is 1 channel / 8 bpp
   if ( !TexPixelsRGBA32 ) {
@@ -2196,11 +2137,10 @@ ImFont * ImFontAtlas::AddFont( const ImFontConfig * font_cfg ) {
   if ( !font_cfg->MergeMode )
     Fonts.push_back( IM_NEW( ImFont ) );
   else
-    IM_ASSERT( !Fonts.empty() &&
-               "Cannot use MergeMode for the first font" );  // When using MergeMode make sure that a font has already
-                                                             // been added before. You can use
-                                                             // ImGui::GetIO().Fonts->AddFontDefault() to add the
-                                                             // default imgui font.
+    IM_ASSERT( !Fonts.empty() && "Cannot use MergeMode for the first font" );  // When using MergeMode make sure that a font has already
+                                                                               // been added before. You can use
+                                                                               // ImGui::GetIO().Fonts->AddFontDefault() to add the
+                                                                               // default imgui font.
 
   ConfigData.push_back( *font_cfg );
   ImFontConfig & new_font_cfg = ConfigData.back();
@@ -2233,8 +2173,7 @@ static void Decode85( const unsigned char * src, unsigned char * dst ) {
   while ( *src ) {
     unsigned int tmp =
         Decode85Byte( src[ 0 ] ) +
-        85 * ( Decode85Byte( src[ 1 ] ) +
-               85 * ( Decode85Byte( src[ 2 ] ) + 85 * ( Decode85Byte( src[ 3 ] ) + 85 * Decode85Byte( src[ 4 ] ) ) ) );
+        85 * ( Decode85Byte( src[ 1 ] ) + 85 * ( Decode85Byte( src[ 2 ] ) + 85 * ( Decode85Byte( src[ 3 ] ) + 85 * Decode85Byte( src[ 4 ] ) ) ) );
     dst[ 0 ] = ( ( tmp >> 0 ) & 0xFF );
     dst[ 1 ] = ( ( tmp >> 8 ) & 0xFF );
     dst[ 2 ] = ( ( tmp >> 16 ) & 0xFF );
@@ -2254,20 +2193,17 @@ ImFont * ImFontAtlas::AddFontDefault( const ImFontConfig * font_cfg_template ) {
   if ( font_cfg.SizePixels <= 0.0f )
     font_cfg.SizePixels = 13.0f * 1.0f;
   if ( font_cfg.Name[ 0 ] == '\0' )
-    ImFormatString( font_cfg.Name, IM_ARRAYSIZE( font_cfg.Name ), "ProggyClean.ttf, %dpx",
-                    ( int ) font_cfg.SizePixels );
+    ImFormatString( font_cfg.Name, IM_ARRAYSIZE( font_cfg.Name ), "ProggyClean.ttf, %dpx", ( int ) font_cfg.SizePixels );
   font_cfg.EllipsisChar = ( ImWchar ) 0x0085;
   font_cfg.GlyphOffset.y = 1.0f * IM_FLOOR( font_cfg.SizePixels / 13.0f );  // Add +1 offset per 13 units
 
   const char *    ttf_compressed_base85 = GetDefaultCompressedFontDataTTFBase85();
   const ImWchar * glyph_ranges = font_cfg.GlyphRanges != NULL ? font_cfg.GlyphRanges : GetGlyphRangesDefault();
-  ImFont *        font =
-      AddFontFromMemoryCompressedBase85TTF( ttf_compressed_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges );
+  ImFont *        font = AddFontFromMemoryCompressedBase85TTF( ttf_compressed_base85, font_cfg.SizePixels, &font_cfg, glyph_ranges );
   return font;
 }
 
-ImFont * ImFontAtlas::AddFontFromFileTTF( const char * filename, float size_pixels,
-                                          const ImFontConfig * font_cfg_template, const ImWchar * glyph_ranges ) {
+ImFont * ImFontAtlas::AddFontFromFileTTF( const char * filename, float size_pixels, const ImFontConfig * font_cfg_template, const ImWchar * glyph_ranges ) {
   IM_ASSERT( !Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!" );
   size_t data_size = 0;
   void * data = ImFileLoadToMemory( filename, "rb", &data_size, 0 );
@@ -2288,8 +2224,8 @@ ImFont * ImFontAtlas::AddFontFromFileTTF( const char * filename, float size_pixe
 
 // NB: Transfer ownership of 'ttf_data' to ImFontAtlas, unless font_cfg_template->FontDataOwnedByAtlas == false. Owned
 // TTF buffer will be deleted after Build().
-ImFont * ImFontAtlas::AddFontFromMemoryTTF( void * ttf_data, int ttf_size, float size_pixels,
-                                            const ImFontConfig * font_cfg_template, const ImWchar * glyph_ranges ) {
+ImFont * ImFontAtlas::AddFontFromMemoryTTF( void * ttf_data, int ttf_size, float size_pixels, const ImFontConfig * font_cfg_template,
+                                            const ImWchar * glyph_ranges ) {
   IM_ASSERT( !Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!" );
   ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
   IM_ASSERT( font_cfg.FontData == NULL );
@@ -2301,29 +2237,24 @@ ImFont * ImFontAtlas::AddFontFromMemoryTTF( void * ttf_data, int ttf_size, float
   return AddFont( &font_cfg );
 }
 
-ImFont * ImFontAtlas::AddFontFromMemoryCompressedTTF( const void * compressed_ttf_data, int compressed_ttf_size,
-                                                      float size_pixels, const ImFontConfig * font_cfg_template,
-                                                      const ImWchar * glyph_ranges ) {
+ImFont * ImFontAtlas::AddFontFromMemoryCompressedTTF( const void * compressed_ttf_data, int compressed_ttf_size, float size_pixels,
+                                                      const ImFontConfig * font_cfg_template, const ImWchar * glyph_ranges ) {
   const unsigned int buf_decompressed_size = stb_decompress_length( ( const unsigned char * ) compressed_ttf_data );
   unsigned char *    buf_decompressed_data = ( unsigned char * ) IM_ALLOC( buf_decompressed_size );
-  stb_decompress( buf_decompressed_data, ( const unsigned char * ) compressed_ttf_data,
-                  ( unsigned int ) compressed_ttf_size );
+  stb_decompress( buf_decompressed_data, ( const unsigned char * ) compressed_ttf_data, ( unsigned int ) compressed_ttf_size );
 
   ImFontConfig font_cfg = font_cfg_template ? *font_cfg_template : ImFontConfig();
   IM_ASSERT( font_cfg.FontData == NULL );
   font_cfg.FontDataOwnedByAtlas = true;
-  return AddFontFromMemoryTTF( buf_decompressed_data, ( int ) buf_decompressed_size, size_pixels, &font_cfg,
-                               glyph_ranges );
+  return AddFontFromMemoryTTF( buf_decompressed_data, ( int ) buf_decompressed_size, size_pixels, &font_cfg, glyph_ranges );
 }
 
-ImFont * ImFontAtlas::AddFontFromMemoryCompressedBase85TTF( const char * compressed_ttf_data_base85, float size_pixels,
-                                                            const ImFontConfig * font_cfg,
-                                                            const ImWchar *      glyph_ranges ) {
+ImFont * ImFontAtlas::AddFontFromMemoryCompressedBase85TTF( const char * compressed_ttf_data_base85, float size_pixels, const ImFontConfig * font_cfg,
+                                                            const ImWchar * glyph_ranges ) {
   int    compressed_ttf_size = ( ( ( int ) strlen( compressed_ttf_data_base85 ) + 4 ) / 5 ) * 4;
   void * compressed_ttf = IM_ALLOC( ( size_t ) compressed_ttf_size );
   Decode85( ( const unsigned char * ) compressed_ttf_data_base85, ( unsigned char * ) compressed_ttf );
-  ImFont * font =
-      AddFontFromMemoryCompressedTTF( compressed_ttf, compressed_ttf_size, size_pixels, font_cfg, glyph_ranges );
+  ImFont * font = AddFontFromMemoryCompressedTTF( compressed_ttf, compressed_ttf_size, size_pixels, font_cfg, glyph_ranges );
   IM_FREE( compressed_ttf );
   return font;
 }
@@ -2338,8 +2269,7 @@ int ImFontAtlas::AddCustomRectRegular( int width, int height ) {
   return CustomRects.Size - 1;  // Return index
 }
 
-int ImFontAtlas::AddCustomRectFontGlyph( ImFont * font, ImWchar id, int width, int height, float advance_x,
-                                         const ImVec2 & offset ) {
+int ImFontAtlas::AddCustomRectFontGlyph( ImFont * font, ImWchar id, int width, int height, float advance_x, const ImVec2 & offset ) {
 #ifdef IMGUI_USE_WCHAR32
   IM_ASSERT( id <= IM_UNICODE_CODEPOINT_MAX );
 #endif
@@ -2357,17 +2287,15 @@ int ImFontAtlas::AddCustomRectFontGlyph( ImFont * font, ImWchar id, int width, i
   return CustomRects.Size - 1;  // Return index
 }
 
-void ImFontAtlas::CalcCustomRectUV( const ImFontAtlasCustomRect * rect, ImVec2 * out_uv_min,
-                                    ImVec2 * out_uv_max ) const {
+void ImFontAtlas::CalcCustomRectUV( const ImFontAtlasCustomRect * rect, ImVec2 * out_uv_min, ImVec2 * out_uv_max ) const {
   IM_ASSERT( TexWidth > 0 && TexHeight > 0 );  // Font atlas needs to be built before we can calculate UV coordinates
   IM_ASSERT( rect->IsPacked() );               // Make sure the rectangle has been packed
   *out_uv_min = ImVec2( ( float ) rect->X * TexUvScale.x, ( float ) rect->Y * TexUvScale.y );
-  *out_uv_max =
-      ImVec2( ( float ) ( rect->X + rect->Width ) * TexUvScale.x, ( float ) ( rect->Y + rect->Height ) * TexUvScale.y );
+  *out_uv_max = ImVec2( ( float ) ( rect->X + rect->Width ) * TexUvScale.x, ( float ) ( rect->Y + rect->Height ) * TexUvScale.y );
 }
 
-bool ImFontAtlas::GetMouseCursorTexData( ImGuiMouseCursor cursor_type, ImVec2 * out_offset, ImVec2 * out_size,
-                                         ImVec2 out_uv_border[ 2 ], ImVec2 out_uv_fill[ 2 ] ) {
+bool ImFontAtlas::GetMouseCursorTexData( ImGuiMouseCursor cursor_type, ImVec2 * out_offset, ImVec2 * out_size, ImVec2 out_uv_border[ 2 ],
+                                         ImVec2 out_uv_fill[ 2 ] ) {
   if ( cursor_type <= ImGuiMouseCursor_None || cursor_type >= ImGuiMouseCursor_COUNT )
     return false;
   if ( Flags & ImFontAtlasFlags_NoMouseCursors )
@@ -2375,8 +2303,8 @@ bool ImFontAtlas::GetMouseCursorTexData( ImGuiMouseCursor cursor_type, ImVec2 * 
 
   IM_ASSERT( PackIdMouseCursors != -1 );
   ImFontAtlasCustomRect * r = GetCustomRectByIndex( PackIdMouseCursors );
-  ImVec2 pos = FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[ cursor_type ][ 0 ] + ImVec2( ( float ) r->X, ( float ) r->Y );
-  ImVec2 size = FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[ cursor_type ][ 1 ];
+  ImVec2                  pos = FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[ cursor_type ][ 0 ] + ImVec2( ( float ) r->X, ( float ) r->Y );
+  ImVec2                  size = FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[ cursor_type ][ 1 ];
   *out_size = size;
   *out_offset = FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[ cursor_type ][ 2 ];
   out_uv_border[ 0 ] = ( pos ) *TexUvScale;
@@ -2421,8 +2349,7 @@ void ImFontAtlasBuildMultiplyCalcLookupTable( unsigned char out_table[ 256 ], fl
   }
 }
 
-void ImFontAtlasBuildMultiplyRectAlpha8( const unsigned char table[ 256 ], unsigned char * pixels, int x, int y, int w,
-                                         int h, int stride ) {
+void ImFontAtlasBuildMultiplyRectAlpha8( const unsigned char table[ 256 ], unsigned char * pixels, int x, int y, int w, int h, int stride ) {
   IM_ASSERT_PARANOID( w <= stride );
   unsigned char * data = pixels + x + y * stride;
   for ( int j = h; j > 0; j--, data += stride - w )
@@ -2434,25 +2361,24 @@ void ImFontAtlasBuildMultiplyRectAlpha8( const unsigned char table[ 256 ], unsig
 // Temporary data for one source font (multiple source fonts can be merged into one destination ImFont)
 // (C++03 doesn't allow instancing ImVector<> with function-local types so we declare the type here.)
 struct ImFontBuildSrcData {
-  stbtt_fontinfo   FontInfo;
-  stbtt_pack_range PackRange;  // Hold the list of codepoints to pack (essentially points to Codepoints.Data)
-  stbrp_rect *     Rects;  // Rectangle to pack. We first fill in their size and the packer will give us their position.
-  stbtt_packedchar * PackedChars;  // Output glyphs
-  const ImWchar * SrcRanges;  // Ranges as requested by user (user is allowed to request too much, e.g. 0x0020..0xFFFF)
-  int             DstIndex;   // Index into atlas->Fonts[] and dst_tmp_array[]
-  int             GlyphsHighest;  // Highest requested codepoint
-  int         GlyphsCount;  // Glyph count (excluding missing glyphs and glyphs already set by an earlier source font)
-  ImBitVector GlyphsSet;    // Glyph bit map (random access, 1-bit per codepoint. This will be a maximum of 8KB)
-  ImVector< int > GlyphsList;  // Glyph codepoints list (flattened version of GlyphsSet)
+  stbtt_fontinfo     FontInfo;
+  stbtt_pack_range   PackRange;      // Hold the list of codepoints to pack (essentially points to Codepoints.Data)
+  stbrp_rect *       Rects;          // Rectangle to pack. We first fill in their size and the packer will give us their position.
+  stbtt_packedchar * PackedChars;    // Output glyphs
+  const ImWchar *    SrcRanges;      // Ranges as requested by user (user is allowed to request too much, e.g. 0x0020..0xFFFF)
+  int                DstIndex;       // Index into atlas->Fonts[] and dst_tmp_array[]
+  int                GlyphsHighest;  // Highest requested codepoint
+  int                GlyphsCount;    // Glyph count (excluding missing glyphs and glyphs already set by an earlier source font)
+  ImBitVector        GlyphsSet;      // Glyph bit map (random access, 1-bit per codepoint. This will be a maximum of 8KB)
+  ImVector< int >    GlyphsList;     // Glyph codepoints list (flattened version of GlyphsSet)
 };
 
 // Temporary data for one destination ImFont* (multiple source fonts can be merged into one destination ImFont)
 struct ImFontBuildDstData {
-  int SrcCount;  // Number of source fonts targeting this destination font.
-  int GlyphsHighest;
-  int GlyphsCount;
-  ImBitVector
-      GlyphsSet;  // This is used to resolve collision when multiple sources are merged into a same destination font.
+  int         SrcCount;  // Number of source fonts targeting this destination font.
+  int         GlyphsHighest;
+  int         GlyphsCount;
+  ImBitVector GlyphsSet;  // This is used to resolve collision when multiple sources are merged into a same destination font.
 };
 
 static void UnpackBitVectorToFlatIndexList( const ImBitVector * in, ImVector< int > * out ) {
@@ -2602,8 +2528,7 @@ static bool ImFontAtlasBuildWithStbTruetype( ImFontAtlas * atlas ) {
       int       x0, y0, x1, y1;
       const int glyph_index_in_font = stbtt_FindGlyphIndex( &src_tmp.FontInfo, src_tmp.GlyphsList[ glyph_i ] );
       IM_ASSERT( glyph_index_in_font != 0 );
-      stbtt_GetGlyphBitmapBoxSubpixel( &src_tmp.FontInfo, glyph_index_in_font, scale * cfg.OversampleH,
-                                       scale * cfg.OversampleV, 0, 0, &x0, &y0, &x1, &y1 );
+      stbtt_GetGlyphBitmapBoxSubpixel( &src_tmp.FontInfo, glyph_index_in_font, scale * cfg.OversampleH, scale * cfg.OversampleV, 0, 0, &x0, &y0, &x1, &y1 );
       src_tmp.Rects[ glyph_i ].w = ( stbrp_coord ) ( x1 - x0 + padding + cfg.OversampleH - 1 );
       src_tmp.Rects[ glyph_i ].h = ( stbrp_coord ) ( y1 - y0 + padding + cfg.OversampleV - 1 );
       total_surface += src_tmp.Rects[ glyph_i ].w * src_tmp.Rects[ glyph_i ].h;
@@ -2619,10 +2544,7 @@ static bool ImFontAtlasBuildWithStbTruetype( ImFontAtlas * atlas ) {
   if ( atlas->TexDesiredWidth > 0 )
     atlas->TexWidth = atlas->TexDesiredWidth;
   else
-    atlas->TexWidth = ( surface_sqrt >= 4096 * 0.7f )   ? 4096
-                      : ( surface_sqrt >= 2048 * 0.7f ) ? 2048
-                      : ( surface_sqrt >= 1024 * 0.7f ) ? 1024
-                                                        : 512;
+    atlas->TexWidth = ( surface_sqrt >= 4096 * 0.7f ) ? 4096 : ( surface_sqrt >= 2048 * 0.7f ) ? 2048 : ( surface_sqrt >= 1024 * 0.7f ) ? 1024 : 512;
 
   // 5. Start packing
   // Pack our extra data rectangles first, so it will be on the upper-left corner of our texture (UV will have small
@@ -2650,8 +2572,7 @@ static bool ImFontAtlasBuildWithStbTruetype( ImFontAtlas * atlas ) {
   }
 
   // 7. Allocate texture
-  atlas->TexHeight = ( atlas->Flags & ImFontAtlasFlags_NoPowerOfTwoHeight ) ? ( atlas->TexHeight + 1 )
-                                                                            : ImUpperPowerOfTwo( atlas->TexHeight );
+  atlas->TexHeight = ( atlas->Flags & ImFontAtlasFlags_NoPowerOfTwoHeight ) ? ( atlas->TexHeight + 1 ) : ImUpperPowerOfTwo( atlas->TexHeight );
   atlas->TexUvScale = ImVec2( 1.0f / atlas->TexWidth, 1.0f / atlas->TexHeight );
   atlas->TexPixelsAlpha8 = ( unsigned char * ) IM_ALLOC( atlas->TexWidth * atlas->TexHeight );
   memset( atlas->TexPixelsAlpha8, 0, atlas->TexWidth * atlas->TexHeight );
@@ -2674,8 +2595,7 @@ static bool ImFontAtlasBuildWithStbTruetype( ImFontAtlas * atlas ) {
       stbrp_rect * r = &src_tmp.Rects[ 0 ];
       for ( int glyph_i = 0; glyph_i < src_tmp.GlyphsCount; glyph_i++, r++ )
         if ( r->was_packed )
-          ImFontAtlasBuildMultiplyRectAlpha8( multiply_table, atlas->TexPixelsAlpha8, r->x, r->y, r->w, r->h,
-                                              atlas->TexWidth * 1 );
+          ImFontAtlasBuildMultiplyRectAlpha8( multiply_table, atlas->TexPixelsAlpha8, r->x, r->y, r->w, r->h, atlas->TexWidth * 1 );
     }
     src_tmp.Rects = NULL;
   }
@@ -2712,10 +2632,9 @@ static bool ImFontAtlasBuildWithStbTruetype( ImFontAtlas * atlas ) {
       const stbtt_packedchar & pc = src_tmp.PackedChars[ glyph_i ];
       stbtt_aligned_quad       q;
       float                    unused_x = 0.0f, unused_y = 0.0f;
-      stbtt_GetPackedQuad( src_tmp.PackedChars, atlas->TexWidth, atlas->TexHeight, glyph_i, &unused_x, &unused_y, &q,
-                           0 );
-      dst_font->AddGlyph( &cfg, ( ImWchar ) codepoint, q.x0 + font_off_x, q.y0 + font_off_y, q.x1 + font_off_x,
-                          q.y1 + font_off_y, q.s0, q.t0, q.s1, q.t1, pc.xadvance );
+      stbtt_GetPackedQuad( src_tmp.PackedChars, atlas->TexWidth, atlas->TexHeight, glyph_i, &unused_x, &unused_y, &q, 0 );
+      dst_font->AddGlyph( &cfg, ( ImWchar ) codepoint, q.x0 + font_off_x, q.y0 + font_off_y, q.x1 + font_off_x, q.y1 + font_off_y, q.s0, q.t0, q.s1, q.t1,
+                          pc.xadvance );
     }
   }
 
@@ -2734,8 +2653,7 @@ const ImFontBuilderIO * ImFontAtlasGetBuilderForStbTruetype() {
 
 #endif  // IMGUI_ENABLE_STB_TRUETYPE
 
-void ImFontAtlasBuildSetupFont( ImFontAtlas * atlas, ImFont * font, ImFontConfig * font_config, float ascent,
-                                float descent ) {
+void ImFontAtlasBuildSetupFont( ImFontAtlas * atlas, ImFont * font, ImFontConfig * font_config, float ascent, float descent ) {
   if ( !font_config->MergeMode ) {
     font->ClearOutputData();
     font->FontSize = font_config->SizePixels;
@@ -2753,8 +2671,7 @@ void ImFontAtlasBuildPackCustomRects( ImFontAtlas * atlas, void * stbrp_context_
   IM_ASSERT( pack_context != NULL );
 
   ImVector< ImFontAtlasCustomRect > & user_rects = atlas->CustomRects;
-  IM_ASSERT( user_rects.Size >=
-             1 );  // We expect at least the default custom rects to be registered, else something went wrong.
+  IM_ASSERT( user_rects.Size >= 1 );  // We expect at least the default custom rects to be registered, else something went wrong.
 
   ImVector< stbrp_rect > pack_rects;
   pack_rects.resize( user_rects.Size );
@@ -2773,8 +2690,8 @@ void ImFontAtlasBuildPackCustomRects( ImFontAtlas * atlas, void * stbrp_context_
     }
 }
 
-void ImFontAtlasBuildRender8bppRectFromString( ImFontAtlas * atlas, int x, int y, int w, int h, const char * in_str,
-                                               char in_marker_char, unsigned char in_marker_pixel_value ) {
+void ImFontAtlasBuildRender8bppRectFromString( ImFontAtlas * atlas, int x, int y, int w, int h, const char * in_str, char in_marker_char,
+                                               unsigned char in_marker_pixel_value ) {
   IM_ASSERT( x >= 0 && x + w <= atlas->TexWidth );
   IM_ASSERT( y >= 0 && y + h <= atlas->TexHeight );
   unsigned char * out_pixel = atlas->TexPixelsAlpha8 + x + ( y * atlas->TexWidth );
@@ -2783,8 +2700,8 @@ void ImFontAtlasBuildRender8bppRectFromString( ImFontAtlas * atlas, int x, int y
       out_pixel[ off_x ] = ( in_str[ off_x ] == in_marker_char ) ? in_marker_pixel_value : 0x00;
 }
 
-void ImFontAtlasBuildRender32bppRectFromString( ImFontAtlas * atlas, int x, int y, int w, int h, const char * in_str,
-                                                char in_marker_char, unsigned int in_marker_pixel_value ) {
+void ImFontAtlasBuildRender32bppRectFromString( ImFontAtlas * atlas, int x, int y, int w, int h, const char * in_str, char in_marker_char,
+                                                unsigned int in_marker_pixel_value ) {
   IM_ASSERT( x >= 0 && x + w <= atlas->TexWidth );
   IM_ASSERT( y >= 0 && y + h <= atlas->TexHeight );
   unsigned int * out_pixel = atlas->TexPixelsRGBA32 + x + ( y * atlas->TexWidth );
@@ -2804,19 +2721,15 @@ static void ImFontAtlasBuildRenderDefaultTexData( ImFontAtlas * atlas ) {
     const int x_for_white = r->X;
     const int x_for_black = r->X + FONT_ATLAS_DEFAULT_TEX_DATA_W + 1;
     if ( atlas->TexPixelsAlpha8 != NULL ) {
-      ImFontAtlasBuildRender8bppRectFromString( atlas, x_for_white, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W,
-                                                FONT_ATLAS_DEFAULT_TEX_DATA_H, FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, '.',
-                                                0xFF );
-      ImFontAtlasBuildRender8bppRectFromString( atlas, x_for_black, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W,
-                                                FONT_ATLAS_DEFAULT_TEX_DATA_H, FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, 'X',
-                                                0xFF );
+      ImFontAtlasBuildRender8bppRectFromString( atlas, x_for_white, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
+                                                FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, '.', 0xFF );
+      ImFontAtlasBuildRender8bppRectFromString( atlas, x_for_black, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
+                                                FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, 'X', 0xFF );
     } else {
-      ImFontAtlasBuildRender32bppRectFromString( atlas, x_for_white, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W,
-                                                 FONT_ATLAS_DEFAULT_TEX_DATA_H, FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, '.',
-                                                 IM_COL32_WHITE );
-      ImFontAtlasBuildRender32bppRectFromString( atlas, x_for_black, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W,
-                                                 FONT_ATLAS_DEFAULT_TEX_DATA_H, FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, 'X',
-                                                 IM_COL32_WHITE );
+      ImFontAtlasBuildRender32bppRectFromString( atlas, x_for_white, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
+                                                 FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, '.', IM_COL32_WHITE );
+      ImFontAtlasBuildRender32bppRectFromString( atlas, x_for_black, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
+                                                 FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, 'X', IM_COL32_WHITE );
     }
   } else {
     // Render 4 white pixels
@@ -2850,8 +2763,7 @@ static void ImFontAtlasBuildRenderLinesTexData( ImFontAtlas * atlas ) {
     unsigned int pad_right = r->Width - ( pad_left + line_width );
 
     // Write each slice
-    IM_ASSERT( pad_left + line_width + pad_right == r->Width &&
-               y < r->Height );  // Make sure we're inside the texture bounds before we start writing pixels
+    IM_ASSERT( pad_left + line_width + pad_right == r->Width && y < r->Height );  // Make sure we're inside the texture bounds before we start writing pixels
     if ( atlas->TexPixelsAlpha8 != NULL ) {
       unsigned char * write_ptr = &atlas->TexPixelsAlpha8[ r->X + ( ( r->Y + y ) * atlas->TexWidth ) ];
       for ( unsigned int i = 0; i < pad_left; i++ )
@@ -2876,10 +2788,8 @@ static void ImFontAtlasBuildRenderLinesTexData( ImFontAtlas * atlas ) {
 
     // Calculate UVs for this line
     ImVec2 uv0 = ImVec2( ( float ) ( r->X + pad_left - 1 ), ( float ) ( r->Y + y ) ) * atlas->TexUvScale;
-    ImVec2 uv1 =
-        ImVec2( ( float ) ( r->X + pad_left + line_width + 1 ), ( float ) ( r->Y + y + 1 ) ) * atlas->TexUvScale;
-    float half_v =
-        ( uv0.y + uv1.y ) * 0.5f;  // Calculate a constant V in the middle of the row to avoid sampling artifacts
+    ImVec2 uv1 = ImVec2( ( float ) ( r->X + pad_left + line_width + 1 ), ( float ) ( r->Y + y + 1 ) ) * atlas->TexUvScale;
+    float  half_v = ( uv0.y + uv1.y ) * 0.5f;  // Calculate a constant V in the middle of the row to avoid sampling artifacts
     atlas->TexUvLines[ n ] = ImVec4( uv0.x, half_v, uv1.x, half_v );
   }
 }
@@ -2889,8 +2799,7 @@ void ImFontAtlasBuildInit( ImFontAtlas * atlas ) {
   // Register texture region for mouse cursors or standard white pixels
   if ( atlas->PackIdMouseCursors < 0 ) {
     if ( !( atlas->Flags & ImFontAtlasFlags_NoMouseCursors ) )
-      atlas->PackIdMouseCursors =
-          atlas->AddCustomRectRegular( FONT_ATLAS_DEFAULT_TEX_DATA_W * 2 + 1, FONT_ATLAS_DEFAULT_TEX_DATA_H );
+      atlas->PackIdMouseCursors = atlas->AddCustomRectRegular( FONT_ATLAS_DEFAULT_TEX_DATA_W * 2 + 1, FONT_ATLAS_DEFAULT_TEX_DATA_H );
     else
       atlas->PackIdMouseCursors = atlas->AddCustomRectRegular( 2, 2 );
   }
@@ -2899,8 +2808,7 @@ void ImFontAtlasBuildInit( ImFontAtlas * atlas ) {
   // The +2 here is to give space for the end caps, whilst height +1 is to accommodate the fact we have a zero-width row
   if ( atlas->PackIdLines < 0 ) {
     if ( !( atlas->Flags & ImFontAtlasFlags_NoBakedLines ) )
-      atlas->PackIdLines =
-          atlas->AddCustomRectRegular( IM_DRAWLIST_TEX_LINES_WIDTH_MAX + 2, IM_DRAWLIST_TEX_LINES_WIDTH_MAX + 1 );
+      atlas->PackIdLines = atlas->AddCustomRectRegular( IM_DRAWLIST_TEX_LINES_WIDTH_MAX + 2, IM_DRAWLIST_TEX_LINES_WIDTH_MAX + 1 );
   }
 }
 
@@ -2921,8 +2829,8 @@ void ImFontAtlasBuildFinish( ImFontAtlas * atlas ) {
     IM_ASSERT( r->Font->ContainerAtlas == atlas );
     ImVec2 uv0, uv1;
     atlas->CalcCustomRectUV( r, &uv0, &uv1 );
-    r->Font->AddGlyph( NULL, ( ImWchar ) r->GlyphID, r->GlyphOffset.x, r->GlyphOffset.y, r->GlyphOffset.x + r->Width,
-                       r->GlyphOffset.y + r->Height, uv0.x, uv0.y, uv1.x, uv1.y, r->GlyphAdvanceX );
+    r->Font->AddGlyph( NULL, ( ImWchar ) r->GlyphID, r->GlyphOffset.x, r->GlyphOffset.y, r->GlyphOffset.x + r->Width, r->GlyphOffset.y + r->Height, uv0.x,
+                       uv0.y, uv1.x, uv1.y, r->GlyphAdvanceX );
   }
 
   // Build all fonts lookup tables
@@ -2977,8 +2885,8 @@ const ImWchar * ImFontAtlas::GetGlyphRangesChineseFull() {
   return &ranges[ 0 ];
 }
 
-static void UnpackAccumulativeOffsetsIntoRanges( int base_codepoint, const short * accumulative_offsets,
-                                                 int accumulative_offsets_count, ImWchar * out_ranges ) {
+static void UnpackAccumulativeOffsetsIntoRanges( int base_codepoint, const short * accumulative_offsets, int accumulative_offsets_count,
+                                                 ImWchar * out_ranges ) {
   for ( int n = 0; n < accumulative_offsets_count; n++, out_ranges += 2 ) {
     out_ranges[ 0 ] = out_ranges[ 1 ] = ( ImWchar ) ( base_codepoint + accumulative_offsets[ n ] );
     base_codepoint += accumulative_offsets[ n ];
@@ -2999,106 +2907,78 @@ const ImWchar * ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon() {
   // adding new characters. (Stored as accumulative offsets from the initial unicode codepoint 0x4E00. This encoding is
   // designed to helps us compact the source code size.)
   static const short accumulative_offsets_from_0x4E00[] = {
-    0,   1,   2,  4,  1,  1,  1,  1,   2,   1,   3,   2,  1,   2,   2,  1,   1,   1,   1,   1,   5,   2,  1,  2,   3,
-    3,   3,   2,  2,  4,  1,  1,  1,   2,   1,   5,   2,  3,   1,   2,  1,   2,   1,   1,   2,   1,   1,  2,  2,   1,
-    4,   1,   1,  1,  1,  5,  10, 1,   2,   19,  2,   1,  2,   1,   2,  1,   2,   1,   2,   1,   5,   1,  6,  3,   2,
-    1,   2,   2,  1,  1,  1,  4,  8,   5,   1,   1,   4,  1,   1,   3,  1,   2,   1,   5,   1,   2,   1,  1,  1,   10,
-    1,   1,   5,  2,  4,  6,  1,  4,   2,   2,   2,   12, 2,   1,   1,  6,   1,   1,   1,   4,   1,   1,  4,  6,   5,
-    1,   4,   2,  2,  4,  10, 7,  1,   1,   4,   2,   4,  2,   1,   4,  3,   6,   10,  12,  5,   7,   2,  14, 2,   9,
-    1,   1,   6,  7,  10, 4,  7,  13,  1,   5,   4,   8,  4,   1,   1,  2,   28,  5,   6,   1,   1,   5,  2,  5,   20,
-    2,   2,   9,  8,  11, 2,  9,  17,  1,   8,   6,   8,  27,  4,   6,  9,   20,  11,  27,  6,   68,  2,  2,  1,   1,
-    1,   2,   1,  2,  2,  7,  6,  11,  3,   3,   1,   1,  3,   1,   2,  1,   1,   1,   1,   1,   3,   1,  1,  8,   3,
-    4,   1,   5,  7,  2,  1,  4,  4,   8,   4,   2,   1,  2,   1,   1,  4,   5,   6,   3,   6,   2,   12, 3,  1,   3,
-    9,   2,   4,  3,  4,  1,  5,  3,   3,   1,   3,   7,  1,   5,   1,  1,   1,   1,   2,   3,   4,   5,  2,  3,   2,
-    6,   1,   1,  2,  1,  7,  1,  7,   3,   4,   5,   15, 2,   2,   1,  5,   3,   22,  19,  2,   1,   1,  1,  1,   2,
-    5,   1,   1,  1,  6,  1,  1,  12,  8,   2,   9,   18, 22,  4,   1,  1,   5,   1,   16,  1,   2,   7,  10, 15,  1,
-    1,   6,   2,  4,  1,  2,  4,  1,   6,   1,   1,   3,  2,   4,   1,  6,   4,   5,   1,   2,   1,   1,  2,  1,   10,
-    3,   1,   3,  2,  1,  9,  3,  2,   5,   7,   2,   19, 4,   3,   6,  1,   1,   1,   1,   1,   4,   3,  2,  1,   1,
-    1,   2,   5,  3,  1,  1,  1,  2,   2,   1,   1,   2,  1,   1,   2,  1,   3,   1,   1,   1,   3,   7,  1,  4,   1,
-    1,   2,   1,  1,  2,  1,  2,  4,   4,   3,   8,   1,  1,   1,   2,  1,   3,   5,   1,   3,   1,   3,  4,  6,   2,
-    2,   14,  4,  6,  6,  11, 9,  1,   15,  3,   1,   28, 5,   2,   5,  5,   3,   1,   3,   4,   5,   4,  6,  14,  3,
-    2,   3,   5,  21, 2,  7,  20, 10,  1,   2,   19,  2,  4,   28,  28, 2,   3,   2,   1,   14,  4,   1,  26, 28,  42,
-    12,  40,  3,  52, 79, 5,  14, 17,  3,   2,   2,   11, 3,   4,   6,  3,   1,   8,   2,   23,  4,   5,  8,  10,  4,
-    2,   7,   3,  5,  1,  1,  6,  3,   1,   2,   2,   2,  5,   28,  1,  1,   7,   7,   20,  5,   3,   29, 3,  17,  26,
-    1,   8,   4,  27, 3,  6,  11, 23,  5,   3,   4,   6,  13,  24,  16, 6,   5,   10,  25,  35,  7,   3,  2,  3,   3,
-    14,  3,   6,  2,  6,  1,  4,  2,   3,   8,   2,   1,  1,   3,   3,  3,   4,   1,   1,   13,  2,   2,  4,  5,   2,
-    1,   14,  14, 1,  2,  2,  1,  4,   5,   2,   3,   1,  14,  3,   12, 3,   17,  2,   16,  5,   1,   2,  1,  8,   9,
-    3,   19,  4,  2,  2,  4,  17, 25,  21,  20,  28,  75, 1,   10,  29, 103, 4,   1,   2,   1,   1,   4,  2,  4,   1,
-    2,   3,   24, 2,  2,  2,  1,  1,   2,   1,   3,   8,  1,   1,   1,  2,   1,   1,   3,   1,   1,   1,  6,  1,   5,
-    3,   1,   1,  1,  3,  4,  1,  1,   5,   2,   1,   5,  6,   13,  9,  16,  1,   1,   1,   1,   3,   2,  3,  2,   4,
-    5,   2,   5,  2,  2,  3,  7,  13,  7,   2,   2,   1,  1,   1,   1,  2,   3,   3,   2,   1,   6,   4,  9,  2,   1,
-    14,  2,   14, 2,  1,  18, 3,  4,   14,  4,   11,  41, 15,  23,  15, 23,  176, 1,   3,   4,   1,   1,  1,  1,   5,
-    3,   1,   2,  3,  7,  3,  1,  1,   2,   1,   2,   4,  4,   6,   2,  4,   1,   9,   7,   1,   10,  5,  8,  16,  29,
-    1,   1,   2,  2,  3,  1,  3,  5,   2,   4,   5,   4,  1,   1,   2,  2,   3,   3,   7,   1,   6,   10, 1,  17,  1,
-    44,  4,   6,  2,  1,  1,  6,  5,   4,   2,   10,  1,  6,   9,   2,  8,   1,   24,  1,   2,   13,  7,  8,  8,   2,
-    1,   4,   1,  3,  1,  3,  3,  5,   2,   5,   10,  9,  4,   9,   12, 2,   1,   6,   1,   10,  1,   1,  7,  7,   4,
-    10,  8,   3,  1,  13, 4,  3,  1,   6,   1,   3,   5,  2,   1,   2,  17,  16,  5,   2,   16,  6,   1,  4,  2,   1,
-    3,   3,   6,  8,  5,  11, 11, 1,   3,   3,   2,   4,  6,   10,  9,  5,   7,   4,   7,   4,   7,   1,  1,  4,   2,
-    1,   3,   6,  8,  7,  1,  6,  11,  5,   5,   3,   24, 9,   4,   2,  7,   13,  5,   1,   8,   82,  16, 61, 1,   1,
-    1,   4,   2,  2,  16, 10, 3,  8,   1,   1,   6,   4,  2,   1,   3,  1,   1,   1,   4,   3,   8,   4,  2,  2,   1,
-    1,   1,   1,  1,  6,  3,  5,  1,   1,   4,   6,   9,  2,   1,   1,  1,   2,   1,   7,   2,   1,   6,  1,  5,   4,
-    4,   3,   1,  8,  1,  3,  3,  1,   3,   2,   2,   2,  2,   3,   1,  6,   1,   2,   1,   2,   1,   3,  7,  1,   8,
-    2,   1,   2,  1,  5,  2,  5,  3,   5,   10,  1,   2,  1,   1,   3,  2,   5,   11,  3,   9,   3,   5,  1,  1,   5,
-    9,   1,   2,  1,  5,  7,  9,  9,   8,   1,   3,   3,  3,   6,   8,  2,   3,   2,   1,   1,   32,  6,  1,  2,   15,
-    9,   3,   7,  13, 1,  3,  10, 13,  2,   14,  1,   13, 10,  2,   1,  3,   10,  4,   15,  2,   15,  15, 10, 1,   3,
-    9,   6,   9,  32, 25, 26, 47, 7,   3,   2,   3,   1,  6,   3,   4,  3,   2,   8,   5,   4,   1,   9,  4,  2,   2,
-    19,  10,  6,  2,  3,  8,  1,  2,   2,   4,   2,   1,  9,   4,   4,  4,   6,   4,   8,   9,   2,   3,  1,  1,   1,
-    1,   3,   5,  5,  1,  3,  8,  4,   6,   2,   1,   4,  12,  1,   5,  3,   7,   13,  2,   5,   8,   1,  6,  1,   2,
-    5,   14,  6,  1,  5,  2,  4,  8,   15,  5,   1,   23, 6,   62,  2,  10,  1,   1,   8,   1,   2,   2,  10, 4,   2,
-    2,   9,   2,  1,  1,  3,  2,  3,   1,   5,   3,   3,  2,   1,   3,  8,   1,   1,   1,   11,  3,   1,  1,  4,   3,
-    7,   1,   14, 1,  2,  3,  12, 5,   2,   5,   1,   6,  7,   5,   7,  14,  11,  1,   3,   1,   8,   9,  12, 2,   1,
-    11,  8,   4,  4,  2,  6,  10, 9,   13,  1,   1,   3,  1,   5,   1,  3,   2,   4,   4,   1,   18,  2,  3,  14,  11,
-    4,   29,  4,  2,  7,  1,  3,  13,  9,   2,   2,   5,  3,   5,   20, 7,   16,  8,   5,   72,  34,  6,  4,  22,  12,
-    12,  28,  45, 36, 9,  7,  39, 9,   191, 1,   1,   1,  4,   11,  8,  4,   9,   2,   3,   22,  1,   1,  1,  1,   4,
-    17,  1,   7,  7,  1,  11, 31, 10,  2,   4,   8,   2,  3,   2,   1,  4,   2,   16,  4,   32,  2,   3,  19, 13,  4,
-    9,   1,   5,  2,  14, 8,  1,  1,   3,   6,   19,  6,  5,   1,   16, 6,   2,   10,  8,   5,   1,   2,  3,  1,   5,
-    5,   1,   11, 6,  6,  1,  3,  3,   2,   6,   3,   8,  1,   1,   4,  10,  7,   5,   7,   7,   5,   8,  9,  2,   1,
-    3,   4,   1,  1,  3,  1,  3,  3,   2,   6,   16,  1,  4,   6,   3,  1,   10,  6,   1,   3,   15,  2,  9,  2,   10,
-    25,  13,  9,  16, 6,  2,  2,  10,  11,  4,   3,   9,  1,   2,   6,  6,   5,   4,   30,  40,  1,   10, 7,  12,  14,
-    33,  6,   3,  6,  7,  3,  1,  3,   1,   11,  14,  4,  9,   5,   12, 11,  49,  18,  51,  31,  140, 31, 2,  2,   1,
-    5,   1,   8,  1,  10, 1,  4,  4,   3,   24,  1,   10, 1,   3,   6,  6,   16,  3,   4,   5,   2,   1,  4,  2,   57,
-    10,  6,   22, 2,  22, 3,  7,  22,  6,   10,  11,  36, 18,  16,  33, 36,  2,   5,   5,   1,   1,   1,  4,  10,  1,
-    4,   13,  2,  7,  5,  2,  9,  3,   4,   1,   7,   43, 3,   7,   3,  9,   14,  7,   9,   1,   11,  1,  1,  3,   7,
-    4,   18,  13, 1,  14, 1,  3,  6,   10,  73,  2,   2,  30,  6,   1,  11,  18,  19,  13,  22,  3,   46, 42, 37,  89,
-    7,   3,   16, 34, 2,  2,  3,  9,   1,   7,   1,   1,  1,   2,   2,  4,   10,  7,   3,   10,  3,   9,  5,  28,  9,
-    2,   6,   13, 7,  3,  1,  3,  10,  2,   7,   2,   11, 3,   6,   21, 54,  85,  2,   1,   4,   2,   2,  1,  39,  3,
-    21,  2,   2,  5,  1,  1,  1,  4,   1,   1,   3,   4,  15,  1,   3,  2,   4,   4,   2,   3,   8,   2,  20, 1,   8,
-    7,   13,  4,  1,  26, 6,  2,  9,   34,  4,   21,  52, 10,  4,   4,  1,   5,   12,  2,   11,  1,   7,  2,  30,  12,
-    44,  2,   30, 1,  1,  3,  6,  16,  9,   17,  39,  82, 2,   2,   24, 7,   1,   7,   3,   16,  9,   14, 44, 2,   1,
-    2,   1,   2,  3,  5,  2,  4,  1,   6,   7,   5,   3,  2,   6,   1,  11,  5,   11,  2,   1,   18,  19, 8,  1,   3,
-    24,  29,  2,  1,  3,  5,  2,  2,   1,   13,  6,   5,  1,   46,  11, 3,   5,   1,   1,   5,   8,   2,  10, 6,   12,
-    6,   3,   7,  11, 2,  4,  16, 13,  2,   5,   1,   1,  2,   2,   5,  2,   28,  5,   2,   23,  10,  8,  4,  4,   22,
-    39,  95,  38, 8,  14, 9,  5,  1,   13,  5,   4,   3,  13,  12,  11, 1,   9,   1,   27,  37,  2,   5,  4,  4,   63,
-    211, 95,  2,  2,  2,  1,  3,  5,   2,   1,   1,   2,  2,   1,   1,  1,   3,   2,   4,   1,   2,   1,  1,  5,   2,
-    2,   1,   1,  2,  3,  1,  3,  1,   1,   1,   3,   1,  4,   2,   1,  3,   6,   1,   1,   3,   7,   15, 5,  3,   2,
-    5,   3,   9,  11, 4,  2,  22, 1,   6,   3,   8,   7,  1,   4,   28, 4,   16,  3,   3,   25,  4,   4,  27, 27,  1,
-    4,   1,   2,  2,  7,  1,  3,  5,   2,   28,  8,   2,  14,  1,   8,  6,   16,  25,  3,   3,   3,   14, 3,  3,   1,
-    1,   2,   1,  4,  6,  3,  8,  4,   1,   1,   1,   2,  3,   6,   10, 6,   2,   3,   18,  3,   2,   5,  5,  4,   3,
-    1,   5,   2,  5,  4,  23, 7,  6,   12,  6,   4,   17, 11,  9,   5,  1,   1,   10,  5,   12,  1,   1,  11, 26,  33,
-    7,   3,   6,  1,  17, 7,  1,  5,   12,  1,   11,  2,  4,   1,   8,  14,  17,  23,  1,   2,   1,   7,  8,  16,  11,
-    9,   6,   5,  2,  6,  4,  16, 2,   8,   14,  1,   11, 8,   9,   1,  1,   1,   9,   25,  4,   11,  19, 7,  2,   15,
-    2,   12,  8,  52, 7,  5,  19, 2,   16,  4,   36,  8,  1,   16,  8,  24,  26,  4,   6,   2,   9,   5,  4,  36,  3,
-    28,  12,  25, 15, 37, 27, 17, 12,  59,  38,  5,   32, 127, 1,   2,  9,   17,  14,  4,   1,   2,   1,  1,  8,   11,
-    50,  4,   14, 2,  19, 16, 4,  17,  5,   4,   5,   26, 12,  45,  2,  23,  45,  104, 30,  12,  8,   3,  10, 2,   2,
-    3,   3,   1,  4,  20, 7,  2,  9,   6,   15,  2,   20, 1,   3,   16, 4,   11,  15,  6,   134, 2,   5,  59, 1,   2,
-    2,   2,   1,  9,  17, 3,  26, 137, 10,  211, 59,  1,  2,   4,   1,  4,   1,   1,   1,   2,   6,   2,  3,  1,   1,
-    2,   3,   2,  3,  1,  3,  4,  4,   2,   3,   3,   1,  4,   3,   1,  7,   2,   2,   3,   1,   2,   1,  3,  3,   3,
-    2,   2,   3,  2,  1,  3,  14, 6,   1,   3,   2,   9,  6,   15,  27, 9,   34,  145, 1,   1,   2,   1,  1,  1,   1,
-    2,   1,   1,  1,  1,  2,  2,  2,   3,   1,   2,   1,  1,   1,   2,  3,   5,   8,   3,   5,   2,   4,  1,  3,   2,
-    2,   2,   12, 4,  1,  1,  1,  10,  4,   5,   1,   20, 4,   16,  1,  15,  9,   5,   12,  2,   9,   2,  5,  4,   2,
-    26,  19,  7,  1,  26, 4,  30, 12,  15,  42,  1,   6,  8,   172, 1,  1,   4,   2,   1,   1,   11,  2,  2,  4,   2,
-    1,   2,   1,  10, 8,  1,  2,  1,   4,   5,   1,   2,  5,   1,   8,  4,   1,   3,   4,   2,   1,   6,  2,  1,   3,
-    4,   1,   2,  1,  1,  1,  1,  12,  5,   7,   2,   4,  3,   1,   1,  1,   3,   3,   6,   1,   2,   2,  3,  3,   3,
-    2,   1,   2,  12, 14, 11, 6,  6,   4,   12,  2,   8,  1,   7,   10, 1,   35,  7,   4,   13,  15,  4,  3,  23,  21,
-    28,  52,  5,  26, 5,  6,  1,  7,   10,  2,   7,   53, 3,   2,   1,  1,   1,   2,   163, 532, 1,   10, 11, 1,   3,
-    3,   4,   8,  2,  8,  6,  2,  2,   23,  22,  4,   2,  2,   4,   2,  1,   3,   1,   3,   3,   5,   9,  8,  2,   1,
-    2,   8,   1,  10, 2,  12, 21, 20,  15,  105, 2,   3,  1,   1,   3,  2,   3,   1,   1,   2,   5,   1,  4,  15,  11,
-    19,  1,   1,  1,  1,  5,  4,  5,   1,   1,   2,   5,  3,   5,   12, 1,   2,   5,   1,   11,  1,   1,  15, 9,   1,
-    4,   5,   3,  26, 8,  2,  1,  3,   1,   1,   15,  19, 2,   12,  1,  2,   5,   2,   7,   2,   19,  2,  20, 6,   26,
-    7,   5,   2,  2,  7,  34, 21, 13,  70,  2,   128, 1,  1,   2,   1,  1,   2,   1,   1,   3,   2,   2,  2,  15,  1,
-    4,   1,   3,  4,  42, 10, 6,  1,   49,  85,  8,   1,  2,   1,   1,  4,   4,   2,   3,   6,   1,   5,  7,  4,   3,
-    211, 4,   1,  2,  1,  2,  5,  1,   2,   4,   2,   2,  6,   5,   6,  10,  3,   4,   48,  100, 6,   2,  16, 296, 5,
-    27,  387, 2,  2,  3,  7,  16, 8,   5,   38,  15,  39, 21,  9,   10, 3,   7,   59,  13,  27,  21,  47, 5,  21,  6
+    0,   1,  2,  4,  1,  1,  1,  1,  2,  1,  3,  2,  1,  2,  2,   1,  1,   1,   1,   1,   5,   2,  1,   2,   3,   3,  3,   2,   2,  4,   1,   1,  1,  2,   1,
+    5,   2,  3,  1,  2,  1,  2,  1,  1,  2,  1,  1,  2,  2,  1,   4,  1,   1,   1,   1,   5,   10, 1,   2,   19,  2,  1,   2,   1,  2,   1,   2,  1,  2,   1,
+    5,   1,  6,  3,  2,  1,  2,  2,  1,  1,  1,  4,  8,  5,  1,   1,  4,   1,   1,   3,   1,   2,  1,   5,   1,   2,  1,   1,   1,  10,  1,   1,  5,  2,   4,
+    6,   1,  4,  2,  2,  2,  12, 2,  1,  1,  6,  1,  1,  1,  4,   1,  1,   4,   6,   5,   1,   4,  2,   2,   4,   10, 7,   1,   1,  4,   2,   4,  2,  1,   4,
+    3,   6,  10, 12, 5,  7,  2,  14, 2,  9,  1,  1,  6,  7,  10,  4,  7,   13,  1,   5,   4,   8,  4,   1,   1,   2,  28,  5,   6,  1,   1,   5,  2,  5,   20,
+    2,   2,  9,  8,  11, 2,  9,  17, 1,  8,  6,  8,  27, 4,  6,   9,  20,  11,  27,  6,   68,  2,  2,   1,   1,   1,  2,   1,   2,  2,   7,   6,  11, 3,   3,
+    1,   1,  3,  1,  2,  1,  1,  1,  1,  1,  3,  1,  1,  8,  3,   4,  1,   5,   7,   2,   1,   4,  4,   8,   4,   2,  1,   2,   1,  1,   4,   5,  6,  3,   6,
+    2,   12, 3,  1,  3,  9,  2,  4,  3,  4,  1,  5,  3,  3,  1,   3,  7,   1,   5,   1,   1,   1,  1,   2,   3,   4,  5,   2,   3,  2,   6,   1,  1,  2,   1,
+    7,   1,  7,  3,  4,  5,  15, 2,  2,  1,  5,  3,  22, 19, 2,   1,  1,   1,   1,   2,   5,   1,  1,   1,   6,   1,  1,   12,  8,  2,   9,   18, 22, 4,   1,
+    1,   5,  1,  16, 1,  2,  7,  10, 15, 1,  1,  6,  2,  4,  1,   2,  4,   1,   6,   1,   1,   3,  2,   4,   1,   6,  4,   5,   1,  2,   1,   1,  2,  1,   10,
+    3,   1,  3,  2,  1,  9,  3,  2,  5,  7,  2,  19, 4,  3,  6,   1,  1,   1,   1,   1,   4,   3,  2,   1,   1,   1,  2,   5,   3,  1,   1,   1,  2,  2,   1,
+    1,   2,  1,  1,  2,  1,  3,  1,  1,  1,  3,  7,  1,  4,  1,   1,  2,   1,   1,   2,   1,   2,  4,   4,   3,   8,  1,   1,   1,  2,   1,   3,  5,  1,   3,
+    1,   3,  4,  6,  2,  2,  14, 4,  6,  6,  11, 9,  1,  15, 3,   1,  28,  5,   2,   5,   5,   3,  1,   3,   4,   5,  4,   6,   14, 3,   2,   3,  5,  21,  2,
+    7,   20, 10, 1,  2,  19, 2,  4,  28, 28, 2,  3,  2,  1,  14,  4,  1,   26,  28,  42,  12,  40, 3,   52,  79,  5,  14,  17,  3,  2,   2,   11, 3,  4,   6,
+    3,   1,  8,  2,  23, 4,  5,  8,  10, 4,  2,  7,  3,  5,  1,   1,  6,   3,   1,   2,   2,   2,  5,   28,  1,   1,  7,   7,   20, 5,   3,   29, 3,  17,  26,
+    1,   8,  4,  27, 3,  6,  11, 23, 5,  3,  4,  6,  13, 24, 16,  6,  5,   10,  25,  35,  7,   3,  2,   3,   3,   14, 3,   6,   2,  6,   1,   4,  2,  3,   8,
+    2,   1,  1,  3,  3,  3,  4,  1,  1,  13, 2,  2,  4,  5,  2,   1,  14,  14,  1,   2,   2,   1,  4,   5,   2,   3,  1,   14,  3,  12,  3,   17, 2,  16,  5,
+    1,   2,  1,  8,  9,  3,  19, 4,  2,  2,  4,  17, 25, 21, 20,  28, 75,  1,   10,  29,  103, 4,  1,   2,   1,   1,  4,   2,   4,  1,   2,   3,  24, 2,   2,
+    2,   1,  1,  2,  1,  3,  8,  1,  1,  1,  2,  1,  1,  3,  1,   1,  1,   6,   1,   5,   3,   1,  1,   1,   3,   4,  1,   1,   5,  2,   1,   5,  6,  13,  9,
+    16,  1,  1,  1,  1,  3,  2,  3,  2,  4,  5,  2,  5,  2,  2,   3,  7,   13,  7,   2,   2,   1,  1,   1,   1,   2,  3,   3,   2,  1,   6,   4,  9,  2,   1,
+    14,  2,  14, 2,  1,  18, 3,  4,  14, 4,  11, 41, 15, 23, 15,  23, 176, 1,   3,   4,   1,   1,  1,   1,   5,   3,  1,   2,   3,  7,   3,   1,  1,  2,   1,
+    2,   4,  4,  6,  2,  4,  1,  9,  7,  1,  10, 5,  8,  16, 29,  1,  1,   2,   2,   3,   1,   3,  5,   2,   4,   5,  4,   1,   1,  2,   2,   3,  3,  7,   1,
+    6,   10, 1,  17, 1,  44, 4,  6,  2,  1,  1,  6,  5,  4,  2,   10, 1,   6,   9,   2,   8,   1,  24,  1,   2,   13, 7,   8,   8,  2,   1,   4,  1,  3,   1,
+    3,   3,  5,  2,  5,  10, 9,  4,  9,  12, 2,  1,  6,  1,  10,  1,  1,   7,   7,   4,   10,  8,  3,   1,   13,  4,  3,   1,   6,  1,   3,   5,  2,  1,   2,
+    17,  16, 5,  2,  16, 6,  1,  4,  2,  1,  3,  3,  6,  8,  5,   11, 11,  1,   3,   3,   2,   4,  6,   10,  9,   5,  7,   4,   7,  4,   7,   1,  1,  4,   2,
+    1,   3,  6,  8,  7,  1,  6,  11, 5,  5,  3,  24, 9,  4,  2,   7,  13,  5,   1,   8,   82,  16, 61,  1,   1,   1,  4,   2,   2,  16,  10,  3,  8,  1,   1,
+    6,   4,  2,  1,  3,  1,  1,  1,  4,  3,  8,  4,  2,  2,  1,   1,  1,   1,   1,   6,   3,   5,  1,   1,   4,   6,  9,   2,   1,  1,   1,   2,  1,  7,   2,
+    1,   6,  1,  5,  4,  4,  3,  1,  8,  1,  3,  3,  1,  3,  2,   2,  2,   2,   3,   1,   6,   1,  2,   1,   2,   1,  3,   7,   1,  8,   2,   1,  2,  1,   5,
+    2,   5,  3,  5,  10, 1,  2,  1,  1,  3,  2,  5,  11, 3,  9,   3,  5,   1,   1,   5,   9,   1,  2,   1,   5,   7,  9,   9,   8,  1,   3,   3,  3,  6,   8,
+    2,   3,  2,  1,  1,  32, 6,  1,  2,  15, 9,  3,  7,  13, 1,   3,  10,  13,  2,   14,  1,   13, 10,  2,   1,   3,  10,  4,   15, 2,   15,  15, 10, 1,   3,
+    9,   6,  9,  32, 25, 26, 47, 7,  3,  2,  3,  1,  6,  3,  4,   3,  2,   8,   5,   4,   1,   9,  4,   2,   2,   19, 10,  6,   2,  3,   8,   1,  2,  2,   4,
+    2,   1,  9,  4,  4,  4,  6,  4,  8,  9,  2,  3,  1,  1,  1,   1,  3,   5,   5,   1,   3,   8,  4,   6,   2,   1,  4,   12,  1,  5,   3,   7,  13, 2,   5,
+    8,   1,  6,  1,  2,  5,  14, 6,  1,  5,  2,  4,  8,  15, 5,   1,  23,  6,   62,  2,   10,  1,  1,   8,   1,   2,  2,   10,  4,  2,   2,   9,  2,  1,   1,
+    3,   2,  3,  1,  5,  3,  3,  2,  1,  3,  8,  1,  1,  1,  11,  3,  1,   1,   4,   3,   7,   1,  14,  1,   2,   3,  12,  5,   2,  5,   1,   6,  7,  5,   7,
+    14,  11, 1,  3,  1,  8,  9,  12, 2,  1,  11, 8,  4,  4,  2,   6,  10,  9,   13,  1,   1,   3,  1,   5,   1,   3,  2,   4,   4,  1,   18,  2,  3,  14,  11,
+    4,   29, 4,  2,  7,  1,  3,  13, 9,  2,  2,  5,  3,  5,  20,  7,  16,  8,   5,   72,  34,  6,  4,   22,  12,  12, 28,  45,  36, 9,   7,   39, 9,  191, 1,
+    1,   1,  4,  11, 8,  4,  9,  2,  3,  22, 1,  1,  1,  1,  4,   17, 1,   7,   7,   1,   11,  31, 10,  2,   4,   8,  2,   3,   2,  1,   4,   2,  16, 4,   32,
+    2,   3,  19, 13, 4,  9,  1,  5,  2,  14, 8,  1,  1,  3,  6,   19, 6,   5,   1,   16,  6,   2,  10,  8,   5,   1,  2,   3,   1,  5,   5,   1,  11, 6,   6,
+    1,   3,  3,  2,  6,  3,  8,  1,  1,  4,  10, 7,  5,  7,  7,   5,  8,   9,   2,   1,   3,   4,  1,   1,   3,   1,  3,   3,   2,  6,   16,  1,  4,  6,   3,
+    1,   10, 6,  1,  3,  15, 2,  9,  2,  10, 25, 13, 9,  16, 6,   2,  2,   10,  11,  4,   3,   9,  1,   2,   6,   6,  5,   4,   30, 40,  1,   10, 7,  12,  14,
+    33,  6,  3,  6,  7,  3,  1,  3,  1,  11, 14, 4,  9,  5,  12,  11, 49,  18,  51,  31,  140, 31, 2,   2,   1,   5,  1,   8,   1,  10,  1,   4,  4,  3,   24,
+    1,   10, 1,  3,  6,  6,  16, 3,  4,  5,  2,  1,  4,  2,  57,  10, 6,   22,  2,   22,  3,   7,  22,  6,   10,  11, 36,  18,  16, 33,  36,  2,  5,  5,   1,
+    1,   1,  4,  10, 1,  4,  13, 2,  7,  5,  2,  9,  3,  4,  1,   7,  43,  3,   7,   3,   9,   14, 7,   9,   1,   11, 1,   1,   3,  7,   4,   18, 13, 1,   14,
+    1,   3,  6,  10, 73, 2,  2,  30, 6,  1,  11, 18, 19, 13, 22,  3,  46,  42,  37,  89,  7,   3,  16,  34,  2,   2,  3,   9,   1,  7,   1,   1,  1,  2,   2,
+    4,   10, 7,  3,  10, 3,  9,  5,  28, 9,  2,  6,  13, 7,  3,   1,  3,   10,  2,   7,   2,   11, 3,   6,   21,  54, 85,  2,   1,  4,   2,   2,  1,  39,  3,
+    21,  2,  2,  5,  1,  1,  1,  4,  1,  1,  3,  4,  15, 1,  3,   2,  4,   4,   2,   3,   8,   2,  20,  1,   8,   7,  13,  4,   1,  26,  6,   2,  9,  34,  4,
+    21,  52, 10, 4,  4,  1,  5,  12, 2,  11, 1,  7,  2,  30, 12,  44, 2,   30,  1,   1,   3,   6,  16,  9,   17,  39, 82,  2,   2,  24,  7,   1,  7,  3,   16,
+    9,   14, 44, 2,  1,  2,  1,  2,  3,  5,  2,  4,  1,  6,  7,   5,  3,   2,   6,   1,   11,  5,  11,  2,   1,   18, 19,  8,   1,  3,   24,  29, 2,  1,   3,
+    5,   2,  2,  1,  13, 6,  5,  1,  46, 11, 3,  5,  1,  1,  5,   8,  2,   10,  6,   12,  6,   3,  7,   11,  2,   4,  16,  13,  2,  5,   1,   1,  2,  2,   5,
+    2,   28, 5,  2,  23, 10, 8,  4,  4,  22, 39, 95, 38, 8,  14,  9,  5,   1,   13,  5,   4,   3,  13,  12,  11,  1,  9,   1,   27, 37,  2,   5,  4,  4,   63,
+    211, 95, 2,  2,  2,  1,  3,  5,  2,  1,  1,  2,  2,  1,  1,   1,  3,   2,   4,   1,   2,   1,  1,   5,   2,   2,  1,   1,   2,  3,   1,   3,  1,  1,   1,
+    3,   1,  4,  2,  1,  3,  6,  1,  1,  3,  7,  15, 5,  3,  2,   5,  3,   9,   11,  4,   2,   22, 1,   6,   3,   8,  7,   1,   4,  28,  4,   16, 3,  3,   25,
+    4,   4,  27, 27, 1,  4,  1,  2,  2,  7,  1,  3,  5,  2,  28,  8,  2,   14,  1,   8,   6,   16, 25,  3,   3,   3,  14,  3,   3,  1,   1,   2,  1,  4,   6,
+    3,   8,  4,  1,  1,  1,  2,  3,  6,  10, 6,  2,  3,  18, 3,   2,  5,   5,   4,   3,   1,   5,  2,   5,   4,   23, 7,   6,   12, 6,   4,   17, 11, 9,   5,
+    1,   1,  10, 5,  12, 1,  1,  11, 26, 33, 7,  3,  6,  1,  17,  7,  1,   5,   12,  1,   11,  2,  4,   1,   8,   14, 17,  23,  1,  2,   1,   7,  8,  16,  11,
+    9,   6,  5,  2,  6,  4,  16, 2,  8,  14, 1,  11, 8,  9,  1,   1,  1,   9,   25,  4,   11,  19, 7,   2,   15,  2,  12,  8,   52, 7,   5,   19, 2,  16,  4,
+    36,  8,  1,  16, 8,  24, 26, 4,  6,  2,  9,  5,  4,  36, 3,   28, 12,  25,  15,  37,  27,  17, 12,  59,  38,  5,  32,  127, 1,  2,   9,   17, 14, 4,   1,
+    2,   1,  1,  8,  11, 50, 4,  14, 2,  19, 16, 4,  17, 5,  4,   5,  26,  12,  45,  2,   23,  45, 104, 30,  12,  8,  3,   10,  2,  2,   3,   3,  1,  4,   20,
+    7,   2,  9,  6,  15, 2,  20, 1,  3,  16, 4,  11, 15, 6,  134, 2,  5,   59,  1,   2,   2,   2,  1,   9,   17,  3,  26,  137, 10, 211, 59,  1,  2,  4,   1,
+    4,   1,  1,  1,  2,  6,  2,  3,  1,  1,  2,  3,  2,  3,  1,   3,  4,   4,   2,   3,   3,   1,  4,   3,   1,   7,  2,   2,   3,  1,   2,   1,  3,  3,   3,
+    2,   2,  3,  2,  1,  3,  14, 6,  1,  3,  2,  9,  6,  15, 27,  9,  34,  145, 1,   1,   2,   1,  1,   1,   1,   2,  1,   1,   1,  1,   2,   2,  2,  3,   1,
+    2,   1,  1,  1,  2,  3,  5,  8,  3,  5,  2,  4,  1,  3,  2,   2,  2,   12,  4,   1,   1,   1,  10,  4,   5,   1,  20,  4,   16, 1,   15,  9,  5,  12,  2,
+    9,   2,  5,  4,  2,  26, 19, 7,  1,  26, 4,  30, 12, 15, 42,  1,  6,   8,   172, 1,   1,   4,  2,   1,   1,   11, 2,   2,   4,  2,   1,   2,  1,  10,  8,
+    1,   2,  1,  4,  5,  1,  2,  5,  1,  8,  4,  1,  3,  4,  2,   1,  6,   2,   1,   3,   4,   1,  2,   1,   1,   1,  1,   12,  5,  7,   2,   4,  3,  1,   1,
+    1,   3,  3,  6,  1,  2,  2,  3,  3,  3,  2,  1,  2,  12, 14,  11, 6,   6,   4,   12,  2,   8,  1,   7,   10,  1,  35,  7,   4,  13,  15,  4,  3,  23,  21,
+    28,  52, 5,  26, 5,  6,  1,  7,  10, 2,  7,  53, 3,  2,  1,   1,  1,   2,   163, 532, 1,   10, 11,  1,   3,   3,  4,   8,   2,  8,   6,   2,  2,  23,  22,
+    4,   2,  2,  4,  2,  1,  3,  1,  3,  3,  5,  9,  8,  2,  1,   2,  8,   1,   10,  2,   12,  21, 20,  15,  105, 2,  3,   1,   1,  3,   2,   3,  1,  1,   2,
+    5,   1,  4,  15, 11, 19, 1,  1,  1,  1,  5,  4,  5,  1,  1,   2,  5,   3,   5,   12,  1,   2,  5,   1,   11,  1,  1,   15,  9,  1,   4,   5,  3,  26,  8,
+    2,   1,  3,  1,  1,  15, 19, 2,  12, 1,  2,  5,  2,  7,  2,   19, 2,   20,  6,   26,  7,   5,  2,   2,   7,   34, 21,  13,  70, 2,   128, 1,  1,  2,   1,
+    1,   2,  1,  1,  3,  2,  2,  2,  15, 1,  4,  1,  3,  4,  42,  10, 6,   1,   49,  85,  8,   1,  2,   1,   1,   4,  4,   2,   3,  6,   1,   5,  7,  4,   3,
+    211, 4,  1,  2,  1,  2,  5,  1,  2,  4,  2,  2,  6,  5,  6,   10, 3,   4,   48,  100, 6,   2,  16,  296, 5,   27, 387, 2,   2,  3,   7,   16, 8,  5,   38,
+    15,  39, 21, 9,  10, 3,  7,  59, 13, 27, 21, 47, 5,  21, 6
   };
   static ImWchar base_ranges[] =  // not zero-terminated
       {
@@ -3109,12 +2989,10 @@ const ImWchar * ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon() {
         0xFF00, 0xFFEF,  // Half-width characters
         0xFFFD, 0xFFFD   // Invalid
       };
-  static ImWchar
-      full_ranges[ IM_ARRAYSIZE( base_ranges ) + IM_ARRAYSIZE( accumulative_offsets_from_0x4E00 ) * 2 + 1 ] = { 0 };
+  static ImWchar full_ranges[ IM_ARRAYSIZE( base_ranges ) + IM_ARRAYSIZE( accumulative_offsets_from_0x4E00 ) * 2 + 1 ] = { 0 };
   if ( !full_ranges[ 0 ] ) {
     memcpy( full_ranges, base_ranges, sizeof( base_ranges ) );
-    UnpackAccumulativeOffsetsIntoRanges( 0x4E00, accumulative_offsets_from_0x4E00,
-                                         IM_ARRAYSIZE( accumulative_offsets_from_0x4E00 ),
+    UnpackAccumulativeOffsetsIntoRanges( 0x4E00, accumulative_offsets_from_0x4E00, IM_ARRAYSIZE( accumulative_offsets_from_0x4E00 ),
                                          full_ranges + IM_ARRAYSIZE( base_ranges ) );
   }
   return &full_ranges[ 0 ];
@@ -3143,117 +3021,87 @@ const ImWchar * ImFontAtlas::GetGlyphRangesJapanese() {
   // ranges derived from this, by merging existing ranges or adding new characters. (Stored as accumulative offsets from
   // the initial unicode codepoint 0x4E00. This encoding is designed to helps us compact the source code size.)
   static const short accumulative_offsets_from_0x4E00[] = {
-    0,  1,  2,  4,   1,  1,  1,   1,  2,  1,  3,  3,  2,  2,  1,   5,  3,  5,   7,  5,  6,  1,  2,   1,  7,  2,  6,
-    3,  1,  8,  1,   1,  4,  1,   1,  18, 2,  11, 2,  6,  2,  1,   2,  1,  5,   1,  2,  1,  3,  1,   2,  1,  2,  3,
-    3,  1,  1,  2,   3,  1,  1,   1,  12, 7,  9,  1,  4,  5,  1,   1,  2,  1,   10, 1,  1,  9,  2,   2,  4,  5,  6,
-    9,  3,  1,  1,   1,  1,  9,   3,  18, 5,  2,  2,  2,  2,  1,   6,  3,  7,   1,  1,  1,  1,  2,   2,  4,  2,  1,
-    23, 2,  10, 4,   3,  5,  2,   4,  10, 2,  4,  13, 1,  6,  1,   9,  3,  1,   1,  6,  6,  7,  6,   3,  1,  2,  11,
-    3,  2,  2,  3,   2,  15, 2,   2,  5,  4,  3,  6,  4,  1,  2,   5,  2,  12,  16, 6,  13, 9,  13,  2,  1,  1,  7,
-    16, 4,  7,  1,   19, 1,  5,   1,  2,  2,  7,  7,  8,  2,  6,   5,  4,  9,   18, 7,  4,  5,  9,   13, 11, 8,  15,
-    2,  1,  1,  1,   2,  1,  2,   2,  1,  2,  2,  8,  2,  9,  3,   3,  1,  1,   4,  4,  1,  1,  1,   4,  9,  1,  4,
-    3,  5,  5,  2,   7,  5,  3,   4,  8,  2,  1,  13, 2,  3,  3,   1,  14, 1,   1,  4,  5,  1,  3,   6,  1,  5,  2,
-    1,  1,  3,  3,   3,  3,  1,   1,  2,  7,  6,  6,  7,  1,  4,   7,  6,  1,   1,  1,  1,  1,  12,  3,  3,  9,  5,
-    2,  6,  1,  5,   6,  1,  2,   3,  18, 2,  4,  14, 4,  1,  3,   6,  1,  1,   6,  3,  5,  5,  3,   2,  2,  2,  2,
-    12, 3,  1,  4,   2,  3,  2,   3,  11, 1,  7,  4,  1,  2,  1,   3,  17, 1,   9,  1,  24, 1,  1,   4,  2,  2,  4,
-    1,  2,  7,  1,   1,  1,  3,   1,  2,  2,  4,  15, 1,  1,  2,   1,  1,  2,   1,  5,  2,  5,  20,  2,  5,  9,  1,
-    10, 8,  7,  6,   1,  1,  1,   1,  1,  1,  6,  2,  1,  2,  8,   1,  1,  1,   1,  5,  1,  1,  3,   1,  1,  1,  1,
-    3,  1,  1,  12,  4,  1,  3,   1,  1,  1,  1,  1,  10, 3,  1,   7,  5,  13,  1,  2,  3,  4,  6,   1,  1,  30, 2,
-    9,  9,  1,  15,  38, 11, 3,   1,  8,  24, 7,  1,  9,  8,  10,  2,  1,  9,   31, 2,  13, 6,  2,   9,  4,  49, 5,
-    2,  15, 2,  1,   10, 2,  1,   1,  1,  2,  2,  6,  15, 30, 35,  3,  14, 18,  8,  1,  16, 10, 28,  12, 19, 45, 38,
-    1,  3,  2,  3,   13, 2,  1,   7,  3,  6,  5,  3,  4,  3,  1,   5,  7,  8,   1,  5,  3,  18, 5,   3,  6,  1,  21,
-    4,  24, 9,  24,  40, 3,  14,  3,  21, 3,  2,  1,  2,  4,  2,   3,  1,  15,  15, 6,  5,  1,  1,   3,  1,  5,  6,
-    1,  9,  7,  3,   3,  2,  1,   4,  3,  8,  21, 5,  16, 4,  5,   2,  10, 11,  11, 3,  6,  3,  2,   9,  3,  6,  13,
-    1,  2,  1,  1,   1,  1,  11,  12, 6,  6,  1,  4,  2,  6,  5,   2,  1,  1,   3,  3,  6,  13, 3,   1,  1,  5,  1,
-    2,  3,  3,  14,  2,  1,  2,   2,  2,  5,  1,  9,  5,  1,  1,   6,  12, 3,   12, 3,  4,  13, 2,   14, 2,  8,  1,
-    17, 5,  1,  16,  4,  2,  2,   21, 8,  9,  6,  23, 20, 12, 25,  19, 9,  38,  8,  3,  21, 40, 25,  33, 13, 4,  3,
-    1,  4,  1,  2,   4,  1,  2,   5,  26, 2,  1,  1,  2,  1,  3,   6,  2,  1,   1,  1,  1,  1,  1,   2,  3,  1,  1,
-    1,  9,  2,  3,   1,  1,  1,   3,  6,  3,  2,  1,  1,  6,  6,   1,  8,  2,   2,  2,  1,  4,  1,   2,  3,  2,  7,
-    3,  2,  4,  1,   2,  1,  2,   2,  1,  1,  1,  1,  1,  3,  1,   2,  5,  4,   10, 9,  4,  9,  1,   1,  1,  1,  1,
-    1,  5,  3,  2,   1,  6,  4,   9,  6,  1,  10, 2,  31, 17, 8,   3,  7,  5,   40, 1,  7,  7,  1,   6,  5,  2,  10,
-    7,  8,  4,  15,  39, 25, 6,   28, 47, 18, 10, 7,  1,  3,  1,   1,  2,  1,   1,  1,  3,  3,  3,   1,  1,  1,  3,
-    4,  2,  1,  4,   1,  3,  6,   10, 7,  8,  6,  2,  2,  1,  3,   3,  2,  5,   8,  7,  9,  12, 2,   15, 1,  1,  4,
-    1,  2,  1,  1,   1,  3,  2,   1,  3,  3,  5,  6,  2,  3,  2,   10, 1,  4,   2,  8,  1,  1,  1,   11, 6,  1,  21,
-    4,  16, 3,  1,   3,  1,  4,   2,  3,  6,  5,  1,  3,  1,  1,   3,  3,  4,   6,  1,  1,  10, 4,   2,  7,  10, 4,
-    7,  4,  2,  9,   4,  3,  1,   1,  1,  4,  1,  8,  3,  4,  1,   3,  1,  6,   1,  4,  2,  1,  4,   7,  2,  1,  8,
-    1,  4,  5,  1,   1,  2,  2,   4,  6,  2,  7,  1,  10, 1,  1,   3,  4,  11,  10, 8,  21, 4,  6,   1,  3,  5,  2,
-    1,  2,  28, 5,   5,  2,  3,   13, 1,  2,  3,  1,  4,  2,  1,   5,  20, 3,   8,  11, 1,  3,  3,   3,  1,  8,  10,
-    9,  2,  10, 9,   2,  3,  1,   1,  2,  4,  1,  8,  3,  6,  1,   7,  8,  6,   11, 1,  4,  29, 8,   4,  3,  1,  2,
-    7,  13, 1,  4,   1,  6,  2,   6,  12, 12, 2,  20, 3,  2,  3,   6,  4,  8,   9,  2,  7,  34, 5,   1,  18, 6,  1,
-    1,  4,  4,  5,   7,  9,  1,   2,  2,  4,  3,  4,  1,  7,  2,   2,  2,  6,   2,  3,  25, 5,  3,   6,  1,  4,  6,
-    7,  4,  2,  1,   4,  2,  13,  6,  4,  4,  3,  1,  5,  3,  4,   4,  3,  2,   1,  1,  4,  1,  2,   1,  1,  3,  1,
-    11, 1,  6,  3,   1,  7,  3,   6,  2,  8,  8,  6,  9,  3,  4,   11, 3,  2,   10, 12, 2,  5,  11,  1,  6,  4,  5,
-    3,  1,  8,  5,   4,  6,  6,   3,  5,  1,  1,  3,  2,  1,  2,   2,  6,  17,  12, 1,  10, 1,  6,   12, 1,  6,  6,
-    19, 9,  6,  16,  1,  13, 4,   4,  15, 7,  17, 6,  11, 9,  15,  12, 6,  7,   2,  1,  2,  2,  15,  9,  3,  21, 4,
-    6,  49, 18, 7,   3,  2,  3,   1,  6,  8,  2,  2,  6,  2,  9,   1,  3,  6,   4,  4,  1,  2,  16,  2,  5,  2,  1,
-    6,  2,  3,  5,   3,  1,  2,   5,  1,  2,  1,  9,  3,  1,  8,   6,  4,  8,   11, 3,  1,  1,  1,   1,  3,  1,  13,
-    8,  4,  1,  3,   2,  2,  1,   4,  1,  11, 1,  5,  2,  1,  5,   2,  5,  8,   6,  1,  1,  7,  4,   3,  8,  3,  2,
-    7,  2,  1,  5,   1,  5,  2,   4,  7,  6,  2,  8,  5,  1,  11,  4,  5,  3,   6,  18, 1,  2,  13,  3,  3,  1,  21,
-    1,  1,  4,  1,   4,  1,  1,   1,  8,  1,  2,  2,  7,  1,  2,   4,  2,  2,   9,  2,  1,  1,  1,   4,  3,  6,  3,
-    12, 5,  1,  1,   1,  5,  6,   3,  2,  4,  8,  2,  2,  4,  2,   7,  1,  8,   9,  5,  2,  3,  2,   1,  3,  2,  13,
-    7,  14, 6,  5,   1,  1,  2,   1,  4,  2,  23, 2,  1,  1,  6,   3,  1,  4,   1,  15, 3,  1,  7,   3,  9,  14, 1,
-    3,  1,  4,  1,   1,  5,  8,   1,  3,  8,  3,  8,  15, 11, 4,   14, 4,  4,   2,  5,  5,  1,  7,   1,  6,  14, 7,
-    7,  8,  5,  15,  4,  8,  6,   5,  6,  2,  1,  13, 1,  20, 15,  11, 9,  2,   5,  6,  2,  11, 2,   6,  2,  5,  1,
-    5,  8,  4,  13,  19, 25, 4,   1,  1,  11, 1,  34, 2,  5,  9,   14, 6,  2,   2,  6,  1,  1,  14,  1,  3,  14, 13,
-    1,  6,  12, 21,  14, 14, 6,   32, 17, 8,  32, 9,  28, 1,  2,   4,  11, 8,   3,  1,  14, 2,  5,   15, 1,  1,  1,
-    1,  3,  6,  4,   1,  3,  4,   11, 3,  1,  1,  11, 30, 1,  5,   1,  4,  1,   5,  8,  1,  1,  3,   2,  4,  3,  17,
-    35, 2,  6,  12,  17, 3,  1,   6,  2,  1,  1,  12, 2,  7,  3,   3,  2,  1,   16, 2,  8,  3,  6,   5,  4,  7,  3,
-    3,  8,  1,  9,   8,  5,  1,   2,  1,  3,  2,  8,  1,  2,  9,   12, 1,  1,   2,  3,  8,  3,  24,  12, 4,  3,  7,
-    5,  8,  3,  3,   3,  3,  3,   3,  1,  23, 10, 3,  1,  2,  2,   6,  3,  1,   16, 1,  16, 22, 3,   10, 4,  11, 6,
-    9,  7,  7,  3,   6,  2,  2,   2,  4,  10, 2,  1,  1,  2,  8,   7,  1,  6,   4,  1,  3,  3,  3,   5,  10, 12, 12,
-    2,  3,  12, 8,   15, 1,  1,   16, 6,  6,  1,  5,  9,  11, 4,   11, 4,  2,   6,  12, 1,  17, 5,   13, 1,  4,  9,
-    5,  1,  11, 2,   1,  8,  1,   5,  7,  28, 8,  3,  5,  10, 2,   17, 3,  38,  22, 1,  2,  18, 12,  10, 4,  38, 18,
-    1,  4,  44, 19,  4,  1,  8,   4,  1,  12, 1,  4,  31, 12, 1,   14, 7,  75,  7,  5,  10, 6,  6,   13, 3,  2,  11,
-    11, 3,  2,  5,   28, 15, 6,   18, 18, 5,  6,  4,  3,  16, 1,   7,  18, 7,   36, 3,  5,  3,  1,   7,  1,  9,  1,
-    10, 7,  2,  4,   2,  6,  2,   9,  7,  4,  3,  32, 12, 3,  7,   10, 2,  23,  16, 3,  1,  12, 3,   31, 4,  11, 1,
-    3,  8,  9,  5,   1,  30, 15,  6,  12, 3,  2,  2,  11, 19, 9,   14, 2,  6,   2,  3,  19, 13, 17,  5,  3,  3,  25,
-    3,  14, 1,  1,   1,  36, 1,   3,  2,  19, 3,  13, 36, 9,  13,  31, 6,  4,   16, 34, 2,  5,  4,   2,  3,  3,  5,
-    1,  1,  1,  4,   3,  1,  17,  3,  2,  3,  5,  3,  1,  3,  2,   3,  5,  6,   3,  12, 11, 1,  3,   1,  2,  26, 7,
-    12, 7,  2,  14,  3,  3,  7,   7,  11, 25, 25, 28, 16, 4,  36,  1,  2,  1,   6,  2,  1,  9,  3,   27, 17, 4,  3,
-    4,  13, 4,  1,   3,  2,  2,   1,  10, 4,  2,  4,  6,  3,  8,   2,  1,  18,  1,  1,  24, 2,  2,   4,  33, 2,  3,
-    63, 7,  1,  6,   40, 7,  3,   4,  4,  2,  4,  15, 18, 1,  16,  1,  1,  11,  2,  41, 14, 1,  3,   18, 13, 3,  2,
-    4,  16, 2,  17,  7,  15, 24,  7,  18, 13, 44, 2,  2,  3,  6,   1,  1,  7,   5,  1,  7,  1,  4,   3,  3,  5,  10,
-    8,  2,  3,  1,   8,  1,  1,   27, 4,  2,  1,  12, 1,  2,  1,   10, 6,  1,   6,  7,  5,  2,  3,   7,  11, 5,  11,
-    3,  6,  6,  2,   3,  15, 4,   9,  1,  1,  2,  1,  2,  11, 2,   8,  12, 8,   5,  4,  2,  3,  1,   5,  2,  2,  1,
-    14, 1,  12, 11,  4,  1,  11,  17, 17, 4,  3,  2,  5,  5,  7,   3,  1,  5,   9,  9,  8,  2,  5,   6,  6,  13, 13,
-    2,  1,  2,  6,   1,  2,  2,   49, 4,  9,  1,  2,  10, 16, 7,   8,  4,  3,   2,  23, 4,  58, 3,   29, 1,  14, 19,
-    19, 11, 11, 2,   7,  5,  1,   3,  4,  6,  2,  18, 5,  12, 12,  17, 17, 3,   3,  2,  4,  1,  6,   2,  3,  4,  3,
-    1,  1,  1,  1,   5,  1,  1,   9,  1,  3,  1,  3,  6,  1,  8,   1,  1,  2,   6,  4,  14, 3,  1,   4,  11, 4,  1,
-    3,  32, 1,  2,   4,  13, 4,   1,  2,  4,  2,  1,  3,  1,  11,  1,  4,  2,   1,  4,  4,  6,  3,   5,  1,  6,  5,
-    7,  6,  3,  23,  3,  5,  3,   5,  3,  3,  13, 3,  9,  10, 1,   12, 10, 2,   3,  18, 13, 7,  160, 52, 4,  2,  2,
-    3,  2,  14, 5,   4,  12, 4,   6,  4,  1,  20, 4,  11, 6,  2,   12, 27, 1,   4,  1,  2,  2,  7,   4,  5,  2,  28,
-    3,  7,  25, 8,   3,  19, 3,   6,  10, 2,  2,  1,  10, 2,  5,   4,  1,  3,   4,  1,  5,  3,  2,   6,  9,  3,  6,
-    2,  16, 3,  3,   16, 4,  5,   5,  3,  2,  1,  2,  16, 15, 8,   2,  6,  21,  2,  4,  1,  22, 5,   8,  1,  1,  21,
-    11, 2,  1,  11,  11, 19, 13,  12, 4,  2,  3,  2,  3,  6,  1,   8,  11, 1,   4,  2,  9,  5,  2,   1,  11, 2,  9,
-    1,  1,  2,  14,  31, 9,  3,   4,  21, 14, 4,  8,  1,  7,  2,   2,  2,  5,   1,  4,  20, 3,  3,   4,  10, 1,  11,
-    9,  8,  2,  1,   4,  5,  14,  12, 14, 2,  17, 9,  6,  31, 4,   14, 1,  20,  13, 26, 5,  2,  7,   3,  6,  13, 2,
-    4,  2,  19, 6,   2,  2,  18,  9,  3,  5,  12, 12, 14, 4,  6,   2,  3,  6,   9,  5,  22, 4,  5,   25, 6,  4,  8,
-    5,  2,  6,  27,  2,  35, 2,   16, 3,  7,  8,  8,  6,  6,  5,   9,  17, 2,   20, 6,  19, 2,  13,  3,  1,  1,  1,
-    4,  17, 12, 2,   14, 7,  1,   4,  18, 12, 38, 33, 2,  10, 1,   1,  2,  13,  14, 17, 11, 50, 6,   33, 20, 26, 74,
-    16, 23, 45, 50,  13, 38, 33,  6,  6,  7,  4,  4,  2,  1,  3,   2,  5,  8,   7,  8,  9,  3,  11,  21, 9,  13, 1,
-    3,  10, 6,  7,   1,  2,  2,   18, 5,  5,  1,  9,  9,  2,  68,  9,  19, 13,  2,  5,  1,  4,  4,   7,  4,  13, 3,
-    9,  10, 21, 17,  3,  26, 2,   1,  5,  2,  4,  5,  4,  1,  7,   4,  7,  3,   4,  2,  1,  6,  1,   1,  20, 4,  1,
-    9,  2,  2,  1,   3,  3,  2,   3,  2,  1,  1,  1,  20, 2,  3,   1,  6,  2,   3,  6,  2,  4,  8,   1,  3,  2,  10,
-    3,  5,  3,  4,   4,  3,  4,   16, 1,  6,  1,  10, 2,  4,  2,   1,  1,  2,   10, 11, 2,  2,  3,   1,  24, 31, 4,
-    10, 10, 2,  5,   12, 16, 164, 15, 4,  16, 7,  9,  15, 19, 17,  1,  2,  1,   1,  5,  1,  1,  1,   1,  1,  3,  1,
-    4,  3,  1,  3,   1,  3,  1,   2,  1,  1,  3,  3,  7,  2,  8,   1,  2,  2,   2,  1,  3,  4,  3,   7,  8,  12, 92,
-    2,  10, 3,  1,   3,  14, 5,   25, 16, 42, 4,  7,  7,  4,  2,   21, 5,  27,  26, 27, 21, 25, 30,  31, 2,  1,  5,
-    13, 3,  22, 5,   6,  6,  11,  9,  12, 1,  5,  9,  7,  5,  5,   22, 60, 3,   5,  13, 1,  1,  8,   1,  1,  3,  3,
-    2,  1,  9,  3,   3,  18, 4,   1,  2,  3,  7,  6,  3,  1,  2,   3,  9,  1,   3,  1,  3,  2,  1,   3,  1,  1,  1,
-    2,  1,  11, 3,   1,  6,  9,   1,  3,  2,  3,  1,  2,  1,  5,   1,  1,  4,   3,  4,  1,  2,  2,   4,  4,  1,  7,
-    2,  1,  2,  2,   3,  5,  13,  18, 3,  4,  14, 9,  9,  4,  16,  3,  7,  5,   8,  2,  6,  48, 28,  3,  1,  1,  4,
-    2,  14, 8,  2,   9,  2,  1,   15, 2,  4,  3,  2,  10, 16, 12,  8,  7,  1,   1,  3,  1,  1,  1,   2,  7,  4,  1,
-    6,  4,  38, 39,  16, 23, 7,   15, 15, 3,  2,  12, 7,  21, 37,  27, 6,  5,   4,  8,  2,  10, 8,   8,  6,  5,  1,
-    2,  1,  3,  24,  1,  16, 17,  9,  23, 10, 17, 6,  1,  51, 55,  44, 13, 294, 9,  3,  6,  2,  4,   2,  2,  15, 1,
-    1,  1,  13, 21,  17, 68, 14,  8,  9,  4,  1,  4,  9,  3,  11,  7,  1,  1,   1,  5,  6,  3,  2,   1,  1,  1,  2,
-    3,  8,  1,  2,   2,  4,  1,   5,  5,  2,  1,  4,  3,  7,  13,  4,  1,  4,   1,  3,  1,  1,  1,   5,  5,  10, 1,
-    6,  1,  5,  2,   1,  5,  2,   4,  1,  4,  5,  7,  3,  18, 2,   9,  11, 32,  4,  3,  3,  2,  4,   7,  11, 16, 9,
-    11, 8,  13, 38,  32, 8,  4,   2,  1,  1,  2,  1,  2,  4,  4,   1,  1,  1,   4,  1,  21, 3,  11,  1,  16, 1,  1,
-    6,  1,  3,  2,   4,  9,  8,   57, 7,  44, 1,  3,  3,  13, 3,   10, 1,  1,   7,  5,  2,  7,  21,  47, 63, 3,  15,
-    4,  7,  1,  16,  1,  1,  2,   8,  2,  3,  42, 15, 4,  1,  29,  7,  22, 10,  3,  78, 16, 12, 20,  18, 4,  67, 11,
-    5,  1,  3,  15,  6,  21, 31,  32, 27, 18, 13, 71, 35, 5,  142, 4,  10, 1,   2,  50, 19, 33, 16,  35, 37, 16, 19,
-    27, 7,  1,  133, 19, 1,  4,   8,  7,  20, 1,  4,  4,  1,  10,  3,  1,  6,   1,  2,  51, 5,  40,  15, 24, 43, 22928,
-    11, 1,  13, 154, 70, 3,  1,   1,  7,  4,  10, 1,  2,  1,  1,   2,  1,  2,   1,  2,  2,  1,  1,   2,  1,  1,  1,
-    1,  1,  2,  1,   1,  1,  1,   1,  1,  1,  1,  1,  1,  1,  1,   1,  2,  1,   1,  1,  3,  2,  1,   1,  1,  1,  2,
+    0,  1,  2,   4,  1,  1,  1,  1,  2,  1,  3,  3,  2,  2,  1,  5,  3,   5,   7,  5,     6,  1,   2,  1,   7,  2,  6,  3,  1,  8,  1,  1,  4,  1,   1,  18, 2,
+    11, 2,  6,   2,  1,  2,  1,  5,  1,  2,  1,  3,  1,  2,  1,  2,  3,   3,   1,  1,     2,  3,   1,  1,   1,  12, 7,  9,  1,  4,  5,  1,  1,  2,   1,  10, 1,
+    1,  9,  2,   2,  4,  5,  6,  9,  3,  1,  1,  1,  1,  9,  3,  18, 5,   2,   2,  2,     2,  1,   6,  3,   7,  1,  1,  1,  1,  2,  2,  4,  2,  1,   23, 2,  10,
+    4,  3,  5,   2,  4,  10, 2,  4,  13, 1,  6,  1,  9,  3,  1,  1,  6,   6,   7,  6,     3,  1,   2,  11,  3,  2,  2,  3,  2,  15, 2,  2,  5,  4,   3,  6,  4,
+    1,  2,  5,   2,  12, 16, 6,  13, 9,  13, 2,  1,  1,  7,  16, 4,  7,   1,   19, 1,     5,  1,   2,  2,   7,  7,  8,  2,  6,  5,  4,  9,  18, 7,   4,  5,  9,
+    13, 11, 8,   15, 2,  1,  1,  1,  2,  1,  2,  2,  1,  2,  2,  8,  2,   9,   3,  3,     1,  1,   4,  4,   1,  1,  1,  4,  9,  1,  4,  3,  5,  5,   2,  7,  5,
+    3,  4,  8,   2,  1,  13, 2,  3,  3,  1,  14, 1,  1,  4,  5,  1,  3,   6,   1,  5,     2,  1,   1,  3,   3,  3,  3,  1,  1,  2,  7,  6,  6,  7,   1,  4,  7,
+    6,  1,  1,   1,  1,  1,  12, 3,  3,  9,  5,  2,  6,  1,  5,  6,  1,   2,   3,  18,    2,  4,   14, 4,   1,  3,  6,  1,  1,  6,  3,  5,  5,  3,   2,  2,  2,
+    2,  12, 3,   1,  4,  2,  3,  2,  3,  11, 1,  7,  4,  1,  2,  1,  3,   17,  1,  9,     1,  24,  1,  1,   4,  2,  2,  4,  1,  2,  7,  1,  1,  1,   3,  1,  2,
+    2,  4,  15,  1,  1,  2,  1,  1,  2,  1,  5,  2,  5,  20, 2,  5,  9,   1,   10, 8,     7,  6,   1,  1,   1,  1,  1,  1,  6,  2,  1,  2,  8,  1,   1,  1,  1,
+    5,  1,  1,   3,  1,  1,  1,  1,  3,  1,  1,  12, 4,  1,  3,  1,  1,   1,   1,  1,     10, 3,   1,  7,   5,  13, 1,  2,  3,  4,  6,  1,  1,  30,  2,  9,  9,
+    1,  15, 38,  11, 3,  1,  8,  24, 7,  1,  9,  8,  10, 2,  1,  9,  31,  2,   13, 6,     2,  9,   4,  49,  5,  2,  15, 2,  1,  10, 2,  1,  1,  1,   2,  2,  6,
+    15, 30, 35,  3,  14, 18, 8,  1,  16, 10, 28, 12, 19, 45, 38, 1,  3,   2,   3,  13,    2,  1,   7,  3,   6,  5,  3,  4,  3,  1,  5,  7,  8,  1,   5,  3,  18,
+    5,  3,  6,   1,  21, 4,  24, 9,  24, 40, 3,  14, 3,  21, 3,  2,  1,   2,   4,  2,     3,  1,   15, 15,  6,  5,  1,  1,  3,  1,  5,  6,  1,  9,   7,  3,  3,
+    2,  1,  4,   3,  8,  21, 5,  16, 4,  5,  2,  10, 11, 11, 3,  6,  3,   2,   9,  3,     6,  13,  1,  2,   1,  1,  1,  1,  11, 12, 6,  6,  1,  4,   2,  6,  5,
+    2,  1,  1,   3,  3,  6,  13, 3,  1,  1,  5,  1,  2,  3,  3,  14, 2,   1,   2,  2,     2,  5,   1,  9,   5,  1,  1,  6,  12, 3,  12, 3,  4,  13,  2,  14, 2,
+    8,  1,  17,  5,  1,  16, 4,  2,  2,  21, 8,  9,  6,  23, 20, 12, 25,  19,  9,  38,    8,  3,   21, 40,  25, 33, 13, 4,  3,  1,  4,  1,  2,  4,   1,  2,  5,
+    26, 2,  1,   1,  2,  1,  3,  6,  2,  1,  1,  1,  1,  1,  1,  2,  3,   1,   1,  1,     9,  2,   3,  1,   1,  1,  3,  6,  3,  2,  1,  1,  6,  6,   1,  8,  2,
+    2,  2,  1,   4,  1,  2,  3,  2,  7,  3,  2,  4,  1,  2,  1,  2,  2,   1,   1,  1,     1,  1,   3,  1,   2,  5,  4,  10, 9,  4,  9,  1,  1,  1,   1,  1,  1,
+    5,  3,  2,   1,  6,  4,  9,  6,  1,  10, 2,  31, 17, 8,  3,  7,  5,   40,  1,  7,     7,  1,   6,  5,   2,  10, 7,  8,  4,  15, 39, 25, 6,  28,  47, 18, 10,
+    7,  1,  3,   1,  1,  2,  1,  1,  1,  3,  3,  3,  1,  1,  1,  3,  4,   2,   1,  4,     1,  3,   6,  10,  7,  8,  6,  2,  2,  1,  3,  3,  2,  5,   8,  7,  9,
+    12, 2,  15,  1,  1,  4,  1,  2,  1,  1,  1,  3,  2,  1,  3,  3,  5,   6,   2,  3,     2,  10,  1,  4,   2,  8,  1,  1,  1,  11, 6,  1,  21, 4,   16, 3,  1,
+    3,  1,  4,   2,  3,  6,  5,  1,  3,  1,  1,  3,  3,  4,  6,  1,  1,   10,  4,  2,     7,  10,  4,  7,   4,  2,  9,  4,  3,  1,  1,  1,  4,  1,   8,  3,  4,
+    1,  3,  1,   6,  1,  4,  2,  1,  4,  7,  2,  1,  8,  1,  4,  5,  1,   1,   2,  2,     4,  6,   2,  7,   1,  10, 1,  1,  3,  4,  11, 10, 8,  21,  4,  6,  1,
+    3,  5,  2,   1,  2,  28, 5,  5,  2,  3,  13, 1,  2,  3,  1,  4,  2,   1,   5,  20,    3,  8,   11, 1,   3,  3,  3,  1,  8,  10, 9,  2,  10, 9,   2,  3,  1,
+    1,  2,  4,   1,  8,  3,  6,  1,  7,  8,  6,  11, 1,  4,  29, 8,  4,   3,   1,  2,     7,  13,  1,  4,   1,  6,  2,  6,  12, 12, 2,  20, 3,  2,   3,  6,  4,
+    8,  9,  2,   7,  34, 5,  1,  18, 6,  1,  1,  4,  4,  5,  7,  9,  1,   2,   2,  4,     3,  4,   1,  7,   2,  2,  2,  6,  2,  3,  25, 5,  3,  6,   1,  4,  6,
+    7,  4,  2,   1,  4,  2,  13, 6,  4,  4,  3,  1,  5,  3,  4,  4,  3,   2,   1,  1,     4,  1,   2,  1,   1,  3,  1,  11, 1,  6,  3,  1,  7,  3,   6,  2,  8,
+    8,  6,  9,   3,  4,  11, 3,  2,  10, 12, 2,  5,  11, 1,  6,  4,  5,   3,   1,  8,     5,  4,   6,  6,   3,  5,  1,  1,  3,  2,  1,  2,  2,  6,   17, 12, 1,
+    10, 1,  6,   12, 1,  6,  6,  19, 9,  6,  16, 1,  13, 4,  4,  15, 7,   17,  6,  11,    9,  15,  12, 6,   7,  2,  1,  2,  2,  15, 9,  3,  21, 4,   6,  49, 18,
+    7,  3,  2,   3,  1,  6,  8,  2,  2,  6,  2,  9,  1,  3,  6,  4,  4,   1,   2,  16,    2,  5,   2,  1,   6,  2,  3,  5,  3,  1,  2,  5,  1,  2,   1,  9,  3,
+    1,  8,  6,   4,  8,  11, 3,  1,  1,  1,  1,  3,  1,  13, 8,  4,  1,   3,   2,  2,     1,  4,   1,  11,  1,  5,  2,  1,  5,  2,  5,  8,  6,  1,   1,  7,  4,
+    3,  8,  3,   2,  7,  2,  1,  5,  1,  5,  2,  4,  7,  6,  2,  8,  5,   1,   11, 4,     5,  3,   6,  18,  1,  2,  13, 3,  3,  1,  21, 1,  1,  4,   1,  4,  1,
+    1,  1,  8,   1,  2,  2,  7,  1,  2,  4,  2,  2,  9,  2,  1,  1,  1,   4,   3,  6,     3,  12,  5,  1,   1,  1,  5,  6,  3,  2,  4,  8,  2,  2,   4,  2,  7,
+    1,  8,  9,   5,  2,  3,  2,  1,  3,  2,  13, 7,  14, 6,  5,  1,  1,   2,   1,  4,     2,  23,  2,  1,   1,  6,  3,  1,  4,  1,  15, 3,  1,  7,   3,  9,  14,
+    1,  3,  1,   4,  1,  1,  5,  8,  1,  3,  8,  3,  8,  15, 11, 4,  14,  4,   4,  2,     5,  5,   1,  7,   1,  6,  14, 7,  7,  8,  5,  15, 4,  8,   6,  5,  6,
+    2,  1,  13,  1,  20, 15, 11, 9,  2,  5,  6,  2,  11, 2,  6,  2,  5,   1,   5,  8,     4,  13,  19, 25,  4,  1,  1,  11, 1,  34, 2,  5,  9,  14,  6,  2,  2,
+    6,  1,  1,   14, 1,  3,  14, 13, 1,  6,  12, 21, 14, 14, 6,  32, 17,  8,   32, 9,     28, 1,   2,  4,   11, 8,  3,  1,  14, 2,  5,  15, 1,  1,   1,  1,  3,
+    6,  4,  1,   3,  4,  11, 3,  1,  1,  11, 30, 1,  5,  1,  4,  1,  5,   8,   1,  1,     3,  2,   4,  3,   17, 35, 2,  6,  12, 17, 3,  1,  6,  2,   1,  1,  12,
+    2,  7,  3,   3,  2,  1,  16, 2,  8,  3,  6,  5,  4,  7,  3,  3,  8,   1,   9,  8,     5,  1,   2,  1,   3,  2,  8,  1,  2,  9,  12, 1,  1,  2,   3,  8,  3,
+    24, 12, 4,   3,  7,  5,  8,  3,  3,  3,  3,  3,  3,  1,  23, 10, 3,   1,   2,  2,     6,  3,   1,  16,  1,  16, 22, 3,  10, 4,  11, 6,  9,  7,   7,  3,  6,
+    2,  2,  2,   4,  10, 2,  1,  1,  2,  8,  7,  1,  6,  4,  1,  3,  3,   3,   5,  10,    12, 12,  2,  3,   12, 8,  15, 1,  1,  16, 6,  6,  1,  5,   9,  11, 4,
+    11, 4,  2,   6,  12, 1,  17, 5,  13, 1,  4,  9,  5,  1,  11, 2,  1,   8,   1,  5,     7,  28,  8,  3,   5,  10, 2,  17, 3,  38, 22, 1,  2,  18,  12, 10, 4,
+    38, 18, 1,   4,  44, 19, 4,  1,  8,  4,  1,  12, 1,  4,  31, 12, 1,   14,  7,  75,    7,  5,   10, 6,   6,  13, 3,  2,  11, 11, 3,  2,  5,  28,  15, 6,  18,
+    18, 5,  6,   4,  3,  16, 1,  7,  18, 7,  36, 3,  5,  3,  1,  7,  1,   9,   1,  10,    7,  2,   4,  2,   6,  2,  9,  7,  4,  3,  32, 12, 3,  7,   10, 2,  23,
+    16, 3,  1,   12, 3,  31, 4,  11, 1,  3,  8,  9,  5,  1,  30, 15, 6,   12,  3,  2,     2,  11,  19, 9,   14, 2,  6,  2,  3,  19, 13, 17, 5,  3,   3,  25, 3,
+    14, 1,  1,   1,  36, 1,  3,  2,  19, 3,  13, 36, 9,  13, 31, 6,  4,   16,  34, 2,     5,  4,   2,  3,   3,  5,  1,  1,  1,  4,  3,  1,  17, 3,   2,  3,  5,
+    3,  1,  3,   2,  3,  5,  6,  3,  12, 11, 1,  3,  1,  2,  26, 7,  12,  7,   2,  14,    3,  3,   7,  7,   11, 25, 25, 28, 16, 4,  36, 1,  2,  1,   6,  2,  1,
+    9,  3,  27,  17, 4,  3,  4,  13, 4,  1,  3,  2,  2,  1,  10, 4,  2,   4,   6,  3,     8,  2,   1,  18,  1,  1,  24, 2,  2,  4,  33, 2,  3,  63,  7,  1,  6,
+    40, 7,  3,   4,  4,  2,  4,  15, 18, 1,  16, 1,  1,  11, 2,  41, 14,  1,   3,  18,    13, 3,   2,  4,   16, 2,  17, 7,  15, 24, 7,  18, 13, 44,  2,  2,  3,
+    6,  1,  1,   7,  5,  1,  7,  1,  4,  3,  3,  5,  10, 8,  2,  3,  1,   8,   1,  1,     27, 4,   2,  1,   12, 1,  2,  1,  10, 6,  1,  6,  7,  5,   2,  3,  7,
+    11, 5,  11,  3,  6,  6,  2,  3,  15, 4,  9,  1,  1,  2,  1,  2,  11,  2,   8,  12,    8,  5,   4,  2,   3,  1,  5,  2,  2,  1,  14, 1,  12, 11,  4,  1,  11,
+    17, 17, 4,   3,  2,  5,  5,  7,  3,  1,  5,  9,  9,  8,  2,  5,  6,   6,   13, 13,    2,  1,   2,  6,   1,  2,  2,  49, 4,  9,  1,  2,  10, 16,  7,  8,  4,
+    3,  2,  23,  4,  58, 3,  29, 1,  14, 19, 19, 11, 11, 2,  7,  5,  1,   3,   4,  6,     2,  18,  5,  12,  12, 17, 17, 3,  3,  2,  4,  1,  6,  2,   3,  4,  3,
+    1,  1,  1,   1,  5,  1,  1,  9,  1,  3,  1,  3,  6,  1,  8,  1,  1,   2,   6,  4,     14, 3,   1,  4,   11, 4,  1,  3,  32, 1,  2,  4,  13, 4,   1,  2,  4,
+    2,  1,  3,   1,  11, 1,  4,  2,  1,  4,  4,  6,  3,  5,  1,  6,  5,   7,   6,  3,     23, 3,   5,  3,   5,  3,  3,  13, 3,  9,  10, 1,  12, 10,  2,  3,  18,
+    13, 7,  160, 52, 4,  2,  2,  3,  2,  14, 5,  4,  12, 4,  6,  4,  1,   20,  4,  11,    6,  2,   12, 27,  1,  4,  1,  2,  2,  7,  4,  5,  2,  28,  3,  7,  25,
+    8,  3,  19,  3,  6,  10, 2,  2,  1,  10, 2,  5,  4,  1,  3,  4,  1,   5,   3,  2,     6,  9,   3,  6,   2,  16, 3,  3,  16, 4,  5,  5,  3,  2,   1,  2,  16,
+    15, 8,  2,   6,  21, 2,  4,  1,  22, 5,  8,  1,  1,  21, 11, 2,  1,   11,  11, 19,    13, 12,  4,  2,   3,  2,  3,  6,  1,  8,  11, 1,  4,  2,   9,  5,  2,
+    1,  11, 2,   9,  1,  1,  2,  14, 31, 9,  3,  4,  21, 14, 4,  8,  1,   7,   2,  2,     2,  5,   1,  4,   20, 3,  3,  4,  10, 1,  11, 9,  8,  2,   1,  4,  5,
+    14, 12, 14,  2,  17, 9,  6,  31, 4,  14, 1,  20, 13, 26, 5,  2,  7,   3,   6,  13,    2,  4,   2,  19,  6,  2,  2,  18, 9,  3,  5,  12, 12, 14,  4,  6,  2,
+    3,  6,  9,   5,  22, 4,  5,  25, 6,  4,  8,  5,  2,  6,  27, 2,  35,  2,   16, 3,     7,  8,   8,  6,   6,  5,  9,  17, 2,  20, 6,  19, 2,  13,  3,  1,  1,
+    1,  4,  17,  12, 2,  14, 7,  1,  4,  18, 12, 38, 33, 2,  10, 1,  1,   2,   13, 14,    17, 11,  50, 6,   33, 20, 26, 74, 16, 23, 45, 50, 13, 38,  33, 6,  6,
+    7,  4,  4,   2,  1,  3,  2,  5,  8,  7,  8,  9,  3,  11, 21, 9,  13,  1,   3,  10,    6,  7,   1,  2,   2,  18, 5,  5,  1,  9,  9,  2,  68, 9,   19, 13, 2,
+    5,  1,  4,   4,  7,  4,  13, 3,  9,  10, 21, 17, 3,  26, 2,  1,  5,   2,   4,  5,     4,  1,   7,  4,   7,  3,  4,  2,  1,  6,  1,  1,  20, 4,   1,  9,  2,
+    2,  1,  3,   3,  2,  3,  2,  1,  1,  1,  20, 2,  3,  1,  6,  2,  3,   6,   2,  4,     8,  1,   3,  2,   10, 3,  5,  3,  4,  4,  3,  4,  16, 1,   6,  1,  10,
+    2,  4,  2,   1,  1,  2,  10, 11, 2,  2,  3,  1,  24, 31, 4,  10, 10,  2,   5,  12,    16, 164, 15, 4,   16, 7,  9,  15, 19, 17, 1,  2,  1,  1,   5,  1,  1,
+    1,  1,  1,   3,  1,  4,  3,  1,  3,  1,  3,  1,  2,  1,  1,  3,  3,   7,   2,  8,     1,  2,   2,  2,   1,  3,  4,  3,  7,  8,  12, 92, 2,  10,  3,  1,  3,
+    14, 5,  25,  16, 42, 4,  7,  7,  4,  2,  21, 5,  27, 26, 27, 21, 25,  30,  31, 2,     1,  5,   13, 3,   22, 5,  6,  6,  11, 9,  12, 1,  5,  9,   7,  5,  5,
+    22, 60, 3,   5,  13, 1,  1,  8,  1,  1,  3,  3,  2,  1,  9,  3,  3,   18,  4,  1,     2,  3,   7,  6,   3,  1,  2,  3,  9,  1,  3,  1,  3,  2,   1,  3,  1,
+    1,  1,  2,   1,  11, 3,  1,  6,  9,  1,  3,  2,  3,  1,  2,  1,  5,   1,   1,  4,     3,  4,   1,  2,   2,  4,  4,  1,  7,  2,  1,  2,  2,  3,   5,  13, 18,
+    3,  4,  14,  9,  9,  4,  16, 3,  7,  5,  8,  2,  6,  48, 28, 3,  1,   1,   4,  2,     14, 8,   2,  9,   2,  1,  15, 2,  4,  3,  2,  10, 16, 12,  8,  7,  1,
+    1,  3,  1,   1,  1,  2,  7,  4,  1,  6,  4,  38, 39, 16, 23, 7,  15,  15,  3,  2,     12, 7,   21, 37,  27, 6,  5,  4,  8,  2,  10, 8,  8,  6,   5,  1,  2,
+    1,  3,  24,  1,  16, 17, 9,  23, 10, 17, 6,  1,  51, 55, 44, 13, 294, 9,   3,  6,     2,  4,   2,  2,   15, 1,  1,  1,  13, 21, 17, 68, 14, 8,   9,  4,  1,
+    4,  9,  3,   11, 7,  1,  1,  1,  5,  6,  3,  2,  1,  1,  1,  2,  3,   8,   1,  2,     2,  4,   1,  5,   5,  2,  1,  4,  3,  7,  13, 4,  1,  4,   1,  3,  1,
+    1,  1,  5,   5,  10, 1,  6,  1,  5,  2,  1,  5,  2,  4,  1,  4,  5,   7,   3,  18,    2,  9,   11, 32,  4,  3,  3,  2,  4,  7,  11, 16, 9,  11,  8,  13, 38,
+    32, 8,  4,   2,  1,  1,  2,  1,  2,  4,  4,  1,  1,  1,  4,  1,  21,  3,   11, 1,     16, 1,   1,  6,   1,  3,  2,  4,  9,  8,  57, 7,  44, 1,   3,  3,  13,
+    3,  10, 1,   1,  7,  5,  2,  7,  21, 47, 63, 3,  15, 4,  7,  1,  16,  1,   1,  2,     8,  2,   3,  42,  15, 4,  1,  29, 7,  22, 10, 3,  78, 16,  12, 20, 18,
+    4,  67, 11,  5,  1,  3,  15, 6,  21, 31, 32, 27, 18, 13, 71, 35, 5,   142, 4,  10,    1,  2,   50, 19,  33, 16, 35, 37, 16, 19, 27, 7,  1,  133, 19, 1,  4,
+    8,  7,  20,  1,  4,  4,  1,  10, 3,  1,  6,  1,  2,  51, 5,  40, 15,  24,  43, 22928, 11, 1,   13, 154, 70, 3,  1,  1,  7,  4,  10, 1,  2,  1,   1,  2,  1,
+    2,  1,  2,   2,  1,  1,  2,  1,  1,  1,  1,  1,  2,  1,  1,  1,  1,   1,   1,  1,     1,  1,   1,  1,   1,  1,  2,  1,  1,  1,  3,  2,  1,  1,   1,  1,  2,
     1,  1,
   };
   static ImWchar base_ranges[] =  // not zero-terminated
@@ -3264,12 +3112,10 @@ const ImWchar * ImFontAtlas::GetGlyphRangesJapanese() {
         0xFF00, 0xFFEF,  // Half-width characters
         0xFFFD, 0xFFFD   // Invalid
       };
-  static ImWchar
-      full_ranges[ IM_ARRAYSIZE( base_ranges ) + IM_ARRAYSIZE( accumulative_offsets_from_0x4E00 ) * 2 + 1 ] = { 0 };
+  static ImWchar full_ranges[ IM_ARRAYSIZE( base_ranges ) + IM_ARRAYSIZE( accumulative_offsets_from_0x4E00 ) * 2 + 1 ] = { 0 };
   if ( !full_ranges[ 0 ] ) {
     memcpy( full_ranges, base_ranges, sizeof( base_ranges ) );
-    UnpackAccumulativeOffsetsIntoRanges( 0x4E00, accumulative_offsets_from_0x4E00,
-                                         IM_ARRAYSIZE( accumulative_offsets_from_0x4E00 ),
+    UnpackAccumulativeOffsetsIntoRanges( 0x4E00, accumulative_offsets_from_0x4E00, IM_ARRAYSIZE( accumulative_offsets_from_0x4E00 ),
                                          full_ranges + IM_ARRAYSIZE( base_ranges ) );
   }
   return &full_ranges[ 0 ];
@@ -3490,15 +3336,14 @@ void ImFont::GrowIndex( int new_size ) {
 // close to zero. Not to be mistaken with texture coordinates, which are held by u0/v0/u1/v1 in normalized format
 // (0.0..1.0 on each texture axis). 'cfg' is not necessarily == 'this->ConfigData' because multiple source fonts+configs
 // can be used to build one target font.
-void ImFont::AddGlyph( const ImFontConfig * cfg, ImWchar codepoint, float x0, float y0, float x1, float y1, float u0,
-                       float v0, float u1, float v1, float advance_x ) {
+void ImFont::AddGlyph( const ImFontConfig * cfg, ImWchar codepoint, float x0, float y0, float x1, float y1, float u0, float v0, float u1, float v1,
+                       float advance_x ) {
   if ( cfg != NULL ) {
     // Clamp & recenter if needed
     const float advance_x_original = advance_x;
     advance_x = ImClamp( advance_x, cfg->GlyphMinAdvanceX, cfg->GlyphMaxAdvanceX );
     if ( advance_x != advance_x_original ) {
-      float char_off_x = cfg->PixelSnapH ? ImFloor( ( advance_x - advance_x_original ) * 0.5f )
-                                         : ( advance_x - advance_x_original ) * 0.5f;
+      float char_off_x = cfg->PixelSnapH ? ImFloor( ( advance_x - advance_x_original ) * 0.5f ) : ( advance_x - advance_x_original ) * 0.5f;
       x0 += char_off_x;
       x1 += char_off_x;
     }
@@ -3530,8 +3375,8 @@ void ImFont::AddGlyph( const ImFontConfig * cfg, ImWchar codepoint, float x0, fl
   // We use (U1-U0)*TexWidth instead of X1-X0 to account for oversampling.
   float pad = ContainerAtlas->TexGlyphPadding + 0.99f;
   DirtyLookupTables = true;
-  MetricsTotalSurface += ( int ) ( ( glyph.U1 - glyph.U0 ) * ContainerAtlas->TexWidth + pad ) *
-                         ( int ) ( ( glyph.V1 - glyph.V0 ) * ContainerAtlas->TexHeight + pad );
+  MetricsTotalSurface +=
+      ( int ) ( ( glyph.U1 - glyph.U0 ) * ContainerAtlas->TexWidth + pad ) * ( int ) ( ( glyph.V1 - glyph.V0 ) * ContainerAtlas->TexHeight + pad );
 }
 
 void ImFont::AddRemapChar( ImWchar dst, ImWchar src, bool overwrite_dst ) {
@@ -3581,8 +3426,7 @@ static inline const char * CalcWordWrapNextLineStartA( const char * text, const 
 // text_end.
 // FIXME: Much possible improvements (don't cut things like "word !", "word!!!" but cut within "word,,,,", more sensible
 // support for punctuations, support for Unicode punctuations, etc.)
-const char * ImFont::CalcWordWrapPositionA( float scale, const char * text, const char * text_end,
-                                            float wrap_width ) const {
+const char * ImFont::CalcWordWrapPositionA( float scale, const char * text, const char * text_end, float wrap_width ) const {
   // For references, possible wrap point marked with ^
   //  "aaa bbb, ccc,ddd. eee   fff. ggg!"
   //      ^    ^    ^   ^   ^__    ^    ^
@@ -3667,8 +3511,7 @@ const char * ImFont::CalcWordWrapPositionA( float scale, const char * text, cons
   return s;
 }
 
-ImVec2 ImFont::CalcTextSizeA( float size, float max_width, float wrap_width, const char * text_begin,
-                              const char * text_end, const char ** remaining ) const {
+ImVec2 ImFont::CalcTextSizeA( float size, float max_width, float wrap_width, const char * text_begin, const char * text_end, const char ** remaining ) const {
   if ( !text_end )
     text_end = text_begin + strlen( text_begin );  // FIXME-OPT: Need to avoid this.
 
@@ -3751,14 +3594,13 @@ void ImFont::RenderChar( ImDrawList * draw_list, float size, const ImVec2 & pos,
   float x = IM_FLOOR( pos.x );
   float y = IM_FLOOR( pos.y );
   draw_list->PrimReserve( 6, 4 );
-  draw_list->PrimRectUV( ImVec2( x + glyph->X0 * scale, y + glyph->Y0 * scale ),
-                         ImVec2( x + glyph->X1 * scale, y + glyph->Y1 * scale ), ImVec2( glyph->U0, glyph->V0 ),
-                         ImVec2( glyph->U1, glyph->V1 ), col );
+  draw_list->PrimRectUV( ImVec2( x + glyph->X0 * scale, y + glyph->Y0 * scale ), ImVec2( x + glyph->X1 * scale, y + glyph->Y1 * scale ),
+                         ImVec2( glyph->U0, glyph->V0 ), ImVec2( glyph->U1, glyph->V1 ), col );
 }
 
 // Note: as with every ImDrawList drawing function, this expects that the font atlas texture is bound.
-void ImFont::RenderText( ImDrawList * draw_list, float size, const ImVec2 & pos, ImU32 col, const ImVec4 & clip_rect,
-                         const char * text_begin, const char * text_end, float wrap_width, bool cpu_fine_clip ) const {
+void ImFont::RenderText( ImDrawList * draw_list, float size, const ImVec2 & pos, ImU32 col, const ImVec4 & clip_rect, const char * text_begin,
+                         const char * text_end, float wrap_width, bool cpu_fine_clip ) const {
   if ( !text_end )
     text_end = text_begin + strlen( text_begin );  // ImGui:: functions generally already provides a valid text_end, so
                                                    // this is merely to handle direct calls.
@@ -4019,20 +3861,16 @@ void ImGui::RenderCheckMark( ImDrawList * draw_list, ImVec2 pos, ImU32 col, floa
 void ImGui::RenderArrowPointingAt( ImDrawList * draw_list, ImVec2 pos, ImVec2 half_sz, ImGuiDir direction, ImU32 col ) {
   switch ( direction ) {
     case ImGuiDir_Left:
-      draw_list->AddTriangleFilled( ImVec2( pos.x + half_sz.x, pos.y - half_sz.y ),
-                                    ImVec2( pos.x + half_sz.x, pos.y + half_sz.y ), pos, col );
+      draw_list->AddTriangleFilled( ImVec2( pos.x + half_sz.x, pos.y - half_sz.y ), ImVec2( pos.x + half_sz.x, pos.y + half_sz.y ), pos, col );
       return;
     case ImGuiDir_Right:
-      draw_list->AddTriangleFilled( ImVec2( pos.x - half_sz.x, pos.y + half_sz.y ),
-                                    ImVec2( pos.x - half_sz.x, pos.y - half_sz.y ), pos, col );
+      draw_list->AddTriangleFilled( ImVec2( pos.x - half_sz.x, pos.y + half_sz.y ), ImVec2( pos.x - half_sz.x, pos.y - half_sz.y ), pos, col );
       return;
     case ImGuiDir_Up:
-      draw_list->AddTriangleFilled( ImVec2( pos.x + half_sz.x, pos.y + half_sz.y ),
-                                    ImVec2( pos.x - half_sz.x, pos.y + half_sz.y ), pos, col );
+      draw_list->AddTriangleFilled( ImVec2( pos.x + half_sz.x, pos.y + half_sz.y ), ImVec2( pos.x - half_sz.x, pos.y + half_sz.y ), pos, col );
       return;
     case ImGuiDir_Down:
-      draw_list->AddTriangleFilled( ImVec2( pos.x - half_sz.x, pos.y - half_sz.y ),
-                                    ImVec2( pos.x + half_sz.x, pos.y - half_sz.y ), pos, col );
+      draw_list->AddTriangleFilled( ImVec2( pos.x - half_sz.x, pos.y - half_sz.y ), ImVec2( pos.x + half_sz.x, pos.y - half_sz.y ), pos, col );
       return;
     case ImGuiDir_None:
     case ImGuiDir_COUNT:
@@ -4051,8 +3889,7 @@ static inline float ImAcos01( float x ) {
 }
 
 // FIXME: Cleanup and move code to ImDrawList.
-void ImGui::RenderRectFilledRangeH( ImDrawList * draw_list, const ImRect & rect, ImU32 col, float x_start_norm,
-                                    float x_end_norm, float rounding ) {
+void ImGui::RenderRectFilledRangeH( ImDrawList * draw_list, const ImRect & rect, ImU32 col, float x_start_norm, float x_end_norm, float rounding ) {
   if ( x_end_norm == x_start_norm )
     return;
   if ( x_start_norm > x_end_norm )
@@ -4065,13 +3902,11 @@ void ImGui::RenderRectFilledRangeH( ImDrawList * draw_list, const ImRect & rect,
     return;
   }
 
-  rounding =
-      ImClamp( ImMin( ( rect.Max.x - rect.Min.x ) * 0.5f, ( rect.Max.y - rect.Min.y ) * 0.5f ) - 1.0f, 0.0f, rounding );
+  rounding = ImClamp( ImMin( ( rect.Max.x - rect.Min.x ) * 0.5f, ( rect.Max.y - rect.Min.y ) * 0.5f ) - 1.0f, 0.0f, rounding );
   const float inv_rounding = 1.0f / rounding;
   const float arc0_b = ImAcos01( 1.0f - ( p0.x - rect.Min.x ) * inv_rounding );
   const float arc0_e = ImAcos01( 1.0f - ( p1.x - rect.Min.x ) * inv_rounding );
-  const float half_pi =
-      IM_PI * 0.5f;  // We will == compare to this because we know this is the exact value ImAcos01 can return.
+  const float half_pi = IM_PI * 0.5f;  // We will == compare to this because we know this is the exact value ImAcos01 can return.
   const float x0 = ImMax( p0.x, rect.Min.x + rounding );
   if ( arc0_b == arc0_e ) {
     draw_list->PathLineTo( ImVec2( x0, p1.y ) );
@@ -4101,8 +3936,7 @@ void ImGui::RenderRectFilledRangeH( ImDrawList * draw_list, const ImRect & rect,
   draw_list->PathFillConvex( col );
 }
 
-void ImGui::RenderRectFilledWithHole( ImDrawList * draw_list, const ImRect & outer, const ImRect & inner, ImU32 col,
-                                      float rounding ) {
+void ImGui::RenderRectFilledWithHole( ImDrawList * draw_list, const ImRect & outer, const ImRect & inner, ImU32 col, float rounding ) {
   const bool fill_L = ( inner.Min.x > outer.Min.x );
   const bool fill_R = ( inner.Max.x < outer.Max.x );
   const bool fill_U = ( inner.Min.y > outer.Min.y );
@@ -4124,17 +3958,13 @@ void ImGui::RenderRectFilledWithHole( ImDrawList * draw_list, const ImRect & out
                               ImDrawFlags_RoundCornersNone | ( fill_L ? 0 : ImDrawFlags_RoundCornersBottomLeft ) |
                                   ( fill_R ? 0 : ImDrawFlags_RoundCornersBottomRight ) );
   if ( fill_L && fill_U )
-    draw_list->AddRectFilled( ImVec2( outer.Min.x, outer.Min.y ), ImVec2( inner.Min.x, inner.Min.y ), col, rounding,
-                              ImDrawFlags_RoundCornersTopLeft );
+    draw_list->AddRectFilled( ImVec2( outer.Min.x, outer.Min.y ), ImVec2( inner.Min.x, inner.Min.y ), col, rounding, ImDrawFlags_RoundCornersTopLeft );
   if ( fill_R && fill_U )
-    draw_list->AddRectFilled( ImVec2( inner.Max.x, outer.Min.y ), ImVec2( outer.Max.x, inner.Min.y ), col, rounding,
-                              ImDrawFlags_RoundCornersTopRight );
+    draw_list->AddRectFilled( ImVec2( inner.Max.x, outer.Min.y ), ImVec2( outer.Max.x, inner.Min.y ), col, rounding, ImDrawFlags_RoundCornersTopRight );
   if ( fill_L && fill_D )
-    draw_list->AddRectFilled( ImVec2( outer.Min.x, inner.Max.y ), ImVec2( inner.Min.x, outer.Max.y ), col, rounding,
-                              ImDrawFlags_RoundCornersBottomLeft );
+    draw_list->AddRectFilled( ImVec2( outer.Min.x, inner.Max.y ), ImVec2( inner.Min.x, outer.Max.y ), col, rounding, ImDrawFlags_RoundCornersBottomLeft );
   if ( fill_R && fill_D )
-    draw_list->AddRectFilled( ImVec2( inner.Max.x, inner.Max.y ), ImVec2( outer.Max.x, outer.Max.y ), col, rounding,
-                              ImDrawFlags_RoundCornersBottomRight );
+    draw_list->AddRectFilled( ImVec2( inner.Max.x, inner.Max.y ), ImVec2( outer.Max.x, outer.Max.y ), col, rounding, ImDrawFlags_RoundCornersBottomRight );
 }
 
 // Helper for ColorPicker4()
@@ -4143,9 +3973,8 @@ void ImGui::RenderRectFilledWithHole( ImDrawList * draw_list, const ImRect & out
 // right for ColorButton with rounding+anti-aliasing+ImGuiColorEditFlags_HalfAlphaPreview flag + various grid sizes and
 // offsets, and eventually gave up... probably more reasonable to disable rounding altogether.
 // FIXME: uses ImGui::GetColorU32
-void ImGui::RenderColorRectWithAlphaCheckerboard( ImDrawList * draw_list, ImVec2 p_min, ImVec2 p_max, ImU32 col,
-                                                  float grid_step, ImVec2 grid_off, float rounding,
-                                                  ImDrawFlags flags ) {
+void ImGui::RenderColorRectWithAlphaCheckerboard( ImDrawList * draw_list, ImVec2 p_min, ImVec2 p_max, ImU32 col, float grid_step, ImVec2 grid_off,
+                                                  float rounding, ImDrawFlags flags ) {
   if ( ( flags & ImDrawFlags_RoundCornersMask_ ) == 0 )
     flags = ImDrawFlags_RoundCornersDefault_;
   if ( ( ( col & IM_COL32_A_MASK ) >> IM_COL32_A_SHIFT ) < 0xFF ) {
@@ -4177,9 +4006,8 @@ void ImGui::RenderColorRectWithAlphaCheckerboard( ImDrawList * draw_list, ImVec2
         }
 
         // Combine flags
-        cell_flags = ( flags == ImDrawFlags_RoundCornersNone || cell_flags == ImDrawFlags_RoundCornersNone )
-                         ? ImDrawFlags_RoundCornersNone
-                         : ( cell_flags & flags );
+        cell_flags =
+            ( flags == ImDrawFlags_RoundCornersNone || cell_flags == ImDrawFlags_RoundCornersNone ) ? ImDrawFlags_RoundCornersNone : ( cell_flags & flags );
         draw_list->AddRectFilled( ImVec2( x1, y1 ), ImVec2( x2, y2 ), col_bg2, rounding, cell_flags );
       }
     }

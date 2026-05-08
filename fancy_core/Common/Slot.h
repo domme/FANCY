@@ -22,10 +22,9 @@ namespace Fancy {
     }
     //---------------------------------------------------------------------------//
     void Connect( std::function< ReturnT( Args... ) > & aFunction, void * anInstance = nullptr ) {
-      if ( anInstance != nullptr &&
-           std::find_if( myCallbacks.begin(), myCallbacks.end(), [ anInstance ]( const CallbackT & entry ) {
-             return entry.myInstance == anInstance;
-           } ) != myCallbacks.end() ) {
+      if ( anInstance != nullptr && std::find_if( myCallbacks.begin(), myCallbacks.end(), [ anInstance ]( const CallbackT & entry ) {
+                                      return entry.myInstance == anInstance;
+                                    } ) != myCallbacks.end() ) {
         return;
       }
 
@@ -40,8 +39,7 @@ namespace Fancy {
       if ( anObserver == nullptr )
         return;
 
-      eastl::remove_if( myCallbacks.begin(), myCallbacks.end(),
-                        [ anObserver ]( const CallbackT & entry ) { return entry.myInstance == anObserver; } );
+      eastl::remove_if( myCallbacks.begin(), myCallbacks.end(), [ anObserver ]( const CallbackT & entry ) { return entry.myInstance == anObserver; } );
     }
     //---------------------------------------------------------------------------//
   private:

@@ -17,14 +17,11 @@ namespace Fancy {
     // Keep in sync with resources/Shader/RootSignature.h
     const uint numGlobalResourceArrays = GLOBAL_RESOURCE_NUM;
 
-    const uint numRootParamsNeeded =
-        2 + someProperties.myNumLocalCBuffers + someProperties.myNumLocalBuffers * 2;  // buffers and rwbuffers
+    const uint numRootParamsNeeded = 2 + someProperties.myNumLocalCBuffers + someProperties.myNumLocalBuffers * 2;  // buffers and rwbuffers
     const uint numRangesNeeded = numGlobalResourceArrays + numRootParamsNeeded;
 
-    D3D12_ROOT_PARAMETER1 * rootParams =
-        static_cast< D3D12_ROOT_PARAMETER1 * >( alloca( sizeof( D3D12_ROOT_PARAMETER1 ) * numRootParamsNeeded ) );
-    D3D12_DESCRIPTOR_RANGE1 * ranges =
-        static_cast< D3D12_DESCRIPTOR_RANGE1 * >( alloca( sizeof( D3D12_DESCRIPTOR_RANGE1 ) * numRangesNeeded ) );
+    D3D12_ROOT_PARAMETER1 *   rootParams = static_cast< D3D12_ROOT_PARAMETER1 * >( alloca( sizeof( D3D12_ROOT_PARAMETER1 ) * numRootParamsNeeded ) );
+    D3D12_DESCRIPTOR_RANGE1 * ranges = static_cast< D3D12_DESCRIPTOR_RANGE1 * >( alloca( sizeof( D3D12_DESCRIPTOR_RANGE1 ) * numRangesNeeded ) );
     memset( rootParams, 0, sizeof( D3D12_ROOT_PARAMETER1 ) * numRootParamsNeeded );
     memset( ranges, 0, sizeof( D3D12_DESCRIPTOR_RANGE1 ) * numRangesNeeded );
 
@@ -89,14 +86,12 @@ namespace Fancy {
 
     // SRVs and UAVs
     for ( uint i = GLOBAL_RESOURCE_SRV_START; i < GLOBAL_RESOURCE_UAV_END; ++i ) {
-      const uint numDescriptors =
-          RenderCore::GetNumDescriptors( static_cast< GlobalResourceType >( i ), someProperties );
+      const uint numDescriptors = RenderCore::GetNumDescriptors( static_cast< GlobalResourceType >( i ), someProperties );
 
       D3D12_DESCRIPTOR_RANGE1 * range = &ranges[ usedRanges++ ];
       range->BaseShaderRegister = 0;
       range->NumDescriptors = numDescriptors;
-      range->RangeType =
-          i < GLOBAL_RESOURCE_UAV_START ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV : D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+      range->RangeType = i < GLOBAL_RESOURCE_UAV_START ? D3D12_DESCRIPTOR_RANGE_TYPE_SRV : D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
       range->OffsetInDescriptorsFromTableStart = offsetInDescriptorHeap;
       range->RegisterSpace = registerSpace++;
       range->Flags = bindlessRangeFlags;
@@ -133,7 +128,7 @@ namespace Fancy {
 
     Microsoft::WRL::ComPtr< ID3DBlob > serializedRootSig;
     Microsoft::WRL::ComPtr< ID3DBlob > error;
-    HRESULT success = D3D12SerializeVersionedRootSignature( &rootSigDesc, &serializedRootSig, &error );
+    HRESULT                            success = D3D12SerializeVersionedRootSignature( &rootSigDesc, &serializedRootSig, &error );
     if ( success != S_OK ) {
       if ( error ) {
         const char * errorMsg = static_cast< const char * >( error->GetBufferPointer() );
@@ -143,8 +138,7 @@ namespace Fancy {
       ASSERT( false );
     }
 
-    success = RenderCore::GetPlatformDX12()->GetDevice()->CreateRootSignature( 0, serializedRootSig->GetBufferPointer(),
-                                                                               serializedRootSig->GetBufferSize(),
+    success = RenderCore::GetPlatformDX12()->GetDevice()->CreateRootSignature( 0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(),
                                                                                IID_PPV_ARGS( &myRootSignature ) );
     ASSERT( success == S_OK );
   }

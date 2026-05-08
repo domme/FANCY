@@ -167,8 +167,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  bool ShaderCompilerDX12::Compile_Internal( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc,
-                                             ShaderCompilerResult * anOutput ) const {
+  bool ShaderCompilerDX12::Compile_Internal( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, ShaderCompilerResult * anOutput ) const {
     DxcShaderCompiler::Config config = { true, GetHLSLprofileString( ( ShaderStage ) aDesc.myShaderStage ).c_str() };
 
     DxcShaderCompiler::IncludeInfo     includeInfo;
@@ -186,12 +185,10 @@ namespace Fancy {
     ShaderCompiledDataDX12 compiledNativeData;
 
     uint rootSigPartIdx;
-    ASSERT( S_OK != dxcReflection->FindFirstPartKind( DXC_PART_ROOT_SIGNATURE, &rootSigPartIdx ),
-            "Custom HLSL-specified root signatures are not supported" );
+    ASSERT( S_OK != dxcReflection->FindFirstPartKind( DXC_PART_ROOT_SIGNATURE, &rootSigPartIdx ), "Custom HLSL-specified root signatures are not supported" );
 
-    if ( !IsRaytracingStage(
-             static_cast< ShaderStage >( aDesc.myShaderStage ) ) )  // Raytracing-shaders are always compiled as library
-                                                                    // shaders and can't be reflected
+    if ( !IsRaytracingStage( static_cast< ShaderStage >( aDesc.myShaderStage ) ) )  // Raytracing-shaders are always compiled as library
+                                                                                    // shaders and can't be reflected
     {
       // Shader reflection
       //---------------------------------------------------------------------------//
@@ -229,10 +226,8 @@ namespace Fancy {
         VertexInputLayoutProperties props;
         for ( uint i = 0u; i < vertexAttributes.size(); ++i ) {
           const VertexShaderAttributeDesc & shaderAttribute = vertexAttributes[ i ];
-          props.myAttributes.push_back(
-              { shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u } );
-          overallVertexSize +=
-              BITS_TO_BYTES( DataFormatInfo::GetFormatInfo( shaderAttribute.myFormat ).myBitsPerPixel );
+          props.myAttributes.push_back( { shaderAttribute.myFormat, shaderAttribute.mySemantic, shaderAttribute.mySemanticIndex, 0u } );
+          overallVertexSize += BITS_TO_BYTES( DataFormatInfo::GetFormatInfo( shaderAttribute.myFormat ).myBitsPerPixel );
         }
 
         props.myBufferBindings.push_back( { overallVertexSize, VertexInputRate::PER_VERTEX } );
@@ -240,14 +235,12 @@ namespace Fancy {
       } else if ( aDesc.myShaderStage == static_cast< uint >( ShaderStage::SHADERSTAGE_COMPUTE ) ) {
         uint x, y, z;
         reflector->GetThreadGroupSize( &x, &y, &z );
-        anOutput->myProperties.myNumGroupThreads =
-            glm::int3( static_cast< int >( x ), static_cast< int >( y ), static_cast< int >( z ) );
+        anOutput->myProperties.myNumGroupThreads = glm::int3( static_cast< int >( x ), static_cast< int >( y ), static_cast< int >( z ) );
       }
     }
 
     compiledNativeData.myBytecode.resize( compiledShaderBytecode->GetBufferSize() );
-    memcpy( compiledNativeData.myBytecode.data(), compiledShaderBytecode->GetBufferPointer(),
-            compiledShaderBytecode->GetBufferSize() );
+    memcpy( compiledNativeData.myBytecode.data(), compiledShaderBytecode->GetBufferPointer(), compiledShaderBytecode->GetBufferSize() );
 
     anOutput->myDx12Data = compiledNativeData;
     anOutput->myIncludedFilePaths = includeInfo.myIncludedFiles;

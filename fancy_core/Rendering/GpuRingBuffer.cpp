@@ -14,8 +14,7 @@ namespace Fancy {
     myData = nullptr;
   }
   //---------------------------------------------------------------------------//
-  void GpuRingBuffer::Create( const GpuBufferProperties & someParameters, const char * aName /*= nullptr*/,
-                              const void * pInitialData ) {
+  void GpuRingBuffer::Create( const GpuBufferProperties & someParameters, const char * aName /*= nullptr*/, const void * pInitialData ) {
     Reset();
 
     if ( myBuffer.IsValid() && myData != nullptr )
@@ -38,8 +37,7 @@ namespace Fancy {
     return bufferSize - alignedOffset;
   }
   //---------------------------------------------------------------------------//
-  bool GpuRingBuffer::AllocateAndWrite( const void * someData, uint64 aDataSize, uint64 & anOffsetOut,
-                                        uint64 anAlignment /*= 0*/ ) {
+  bool GpuRingBuffer::AllocateAndWrite( const void * someData, uint64 aDataSize, uint64 & anOffsetOut, uint64 anAlignment /*= 0*/ ) {
     ASSERT( myData != nullptr );
 
     if ( GetFreeDataSize( anAlignment ) < aDataSize )

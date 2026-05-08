@@ -34,8 +34,7 @@ namespace Fancy {
     };
 
     CircularArray( uint aCapacity )
-        : myBuffer( new T[ aCapacity ] ), myHead( 0u ), myTail( 0u ), mySize( 0u ), myCapacity( aCapacity ),
-          myHasBufferOnHeap( true ) {}
+        : myBuffer( new T[ aCapacity ] ), myHead( 0u ), myTail( 0u ), mySize( 0u ), myCapacity( aCapacity ), myHasBufferOnHeap( true ) {}
 
     ~CircularArray() {
       if ( myHasBufferOnHeap )
@@ -141,8 +140,7 @@ namespace Fancy {
 
   protected:
     CircularArray( uint aCapacity, T * aBuffer )
-        : myBuffer( aBuffer ), myHead( 0u ), myTail( 0u ), mySize( 0u ), myCapacity( aCapacity ),
-          myHasBufferOnHeap( false ) {}
+        : myBuffer( aBuffer ), myHead( 0u ), myTail( 0u ), mySize( 0u ), myCapacity( aCapacity ), myHasBufferOnHeap( false ) {}
 
     T *        myBuffer;
     uint       myHead;

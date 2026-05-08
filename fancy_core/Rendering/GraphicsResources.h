@@ -9,8 +9,8 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   struct GpuBufferResourceProperties {
     GpuBufferResourceProperties()
-        : myFormat( DataFormat::UNKNOWN ), myStructureSize( 0u ), myIsStructured( false ), myIsRaw( false ),
-          myIsShaderResource( true ), myIsShaderWritable( false ) {}
+        : myFormat( DataFormat::UNKNOWN ), myStructureSize( 0u ), myIsStructured( false ), myIsRaw( false ), myIsShaderResource( true ),
+          myIsShaderWritable( false ) {}
 
     GpuBufferProperties myBufferProperties;
 

@@ -33,8 +33,7 @@ namespace Fancy {
 
   protected:
     virtual uint64 ExecuteCommandListInternal( CommandList * aContext, SyncMode aSyncMode = SyncMode::ASYNC ) = 0;
-    virtual uint64 ExecuteAndResetCommandListInternal( CommandList * aContext,
-                                                       SyncMode      aSyncMode = SyncMode::ASYNC ) = 0;
+    virtual uint64 ExecuteAndResetCommandListInternal( CommandList * aContext, SyncMode aSyncMode = SyncMode::ASYNC ) = 0;
 
     void FreeCommandList( CommandList * aCommandList );
 

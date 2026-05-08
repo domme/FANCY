@@ -11,8 +11,7 @@ namespace Fancy {
     ~ShaderCompilerDX12() override = default;
 
   protected:
-    bool Compile_Internal( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc,
-                           ShaderCompilerResult * aCompilerOutput ) const override;
+    bool Compile_Internal( const char * anHlslSrcPathAbs, const ShaderDesc & aDesc, ShaderCompilerResult * aCompilerOutput ) const override;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

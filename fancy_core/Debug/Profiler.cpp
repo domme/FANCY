@@ -30,10 +30,9 @@ namespace Fancy {
   Profiler::SampleHandle locTailSampleStack[ Profiler::TIMELINE_NUM ][ Profiler::MAX_SAMPLE_DEPTH ];
   //}
 
-  bool                                  Profiler::ourPauseRequested = false;
-  CircularArray< Profiler::FrameData >  Profiler::ourRecordedFrames[ TIMELINE_NUM ]{ FRAME_POOL_SIZE, FRAME_POOL_SIZE };
-  CircularArray< Profiler::SampleNode > Profiler::ourRecordedSamples[ TIMELINE_NUM ]{ SAMPLE_POOL_SIZE,
-                                                                                      SAMPLE_POOL_SIZE };
+  bool                                                   Profiler::ourPauseRequested = false;
+  CircularArray< Profiler::FrameData >                   Profiler::ourRecordedFrames[ TIMELINE_NUM ]{ FRAME_POOL_SIZE, FRAME_POOL_SIZE };
+  CircularArray< Profiler::SampleNode >                  Profiler::ourRecordedSamples[ TIMELINE_NUM ]{ SAMPLE_POOL_SIZE, SAMPLE_POOL_SIZE };
   std::unordered_map< uint64, Profiler::SampleNodeInfo > Profiler::ourNodeInfoPool;
   //---------------------------------------------------------------------------//
 
@@ -48,8 +47,7 @@ namespace Fancy {
     PopMarker();
   }
   //---------------------------------------------------------------------------//
-  Profiler::ScopedGpuMarker::ScopedGpuMarker( CommandList * aCommandList, const char * aName, uint16 aTag )
-      : myCtx( aCommandList ) {
+  Profiler::ScopedGpuMarker::ScopedGpuMarker( CommandList * aCommandList, const char * aName, uint16 aTag ) : myCtx( aCommandList ) {
     Profiler::PushGpuMarker( aCommandList, aName, aTag );
   }
   //---------------------------------------------------------------------------//
@@ -58,8 +56,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   Profiler::SampleNode & Profiler::OpenMarker( const char * aName, uint16 aTag, Timeline aTimeline ) {
-    ASSERT( ( aTimeline == TIMELINE_GPU && locAcceptsNewSamplesGPU ) ||
-                ( aTimeline != TIMELINE_GPU && locAcceptsNewSamples ),
+    ASSERT( ( aTimeline == TIMELINE_GPU && locAcceptsNewSamplesGPU ) || ( aTimeline != TIMELINE_GPU && locAcceptsNewSamples ),
             "Attempted to add a profile-sample outside of the profiler's frame scope" );
 
     uint & sampleDepth = locSampleDepth[ aTimeline ];
@@ -104,8 +101,7 @@ namespace Fancy {
     if ( sampleDepth == 0 && currFrame.myFirstSample == UINT_MAX )  // First child of frame?
     {
       currFrame.myFirstSample = sampleHandle;
-    } else if ( sampleDepth > 0 &&
-                recordedSamples[ sampleStack[ sampleDepth - 1 ] ].myChild == UINT_MAX )  // First child of parent?
+    } else if ( sampleDepth > 0 && recordedSamples[ sampleStack[ sampleDepth - 1 ] ].myChild == UINT_MAX )  // First child of parent?
     {
       recordedSamples[ sampleStack[ sampleDepth - 1 ] ].myChild = sampleHandle;
     } else {
@@ -123,8 +119,7 @@ namespace Fancy {
     ourRecordedFrames[ aTimeline ].RemoveFirstElement();
 
     const FrameData & nextFrame = ourRecordedFrames[ aTimeline ][ 0 ];
-    while ( !ourRecordedSamples[ aTimeline ].IsEmpty() &&
-            ourRecordedSamples[ aTimeline ].GetHandle( 0 ) != nextFrame.myFirstSample )
+    while ( !ourRecordedSamples[ aTimeline ].IsEmpty() && ourRecordedSamples[ aTimeline ].GetHandle( 0 ) != nextFrame.myFirstSample )
       ourRecordedSamples[ aTimeline ].RemoveFirstElement();
   }
   //---------------------------------------------------------------------------//
@@ -139,8 +134,7 @@ namespace Fancy {
     const float64 timeTicksToMs[] = { ( float64 ) RenderCore::GetGpuTicksToMsFactor( CommandListType::Graphics ),
                                       ( float64 ) RenderCore::GetGpuTicksToMsFactor( CommandListType::Compute ) };
 
-    const auto ReadQueryTime = [ timeStampDataSize, &timeTicksToMs ]( const uint8 * aQueryDataBuf,
-                                                                      TimeSample &  aSample ) {
+    const auto ReadQueryTime = [ timeStampDataSize, &timeTicksToMs ]( const uint8 * aQueryDataBuf, TimeSample & aSample ) {
       uint64 timeStampData = 0u;
       memcpy( &timeStampData, aQueryDataBuf + aSample.myQueryInfo.myIndex * timeStampDataSize, timeStampDataSize );
 
@@ -185,8 +179,7 @@ namespace Fancy {
           }
         }
 
-        locNextGpuFrameToUpdate =
-            frameIdx + 1 < recordedFrames.Size() ? recordedFrames.GetHandle( frameIdx + 1 ) : FrameHandle();
+        locNextGpuFrameToUpdate = frameIdx + 1 < recordedFrames.Size() ? recordedFrames.GetHandle( frameIdx + 1 ) : FrameHandle();
         RenderCore::EndQueryDataReadback( GpuQueryType::TIMESTAMP );
       }
     }

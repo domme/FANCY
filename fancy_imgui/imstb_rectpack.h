@@ -160,11 +160,7 @@ STBRP_DEF void stbrp_setup_heuristic( stbrp_context * context, int heuristic );
 // heuristics will produce better/worse results for different data sets.
 // If you call init again, this will be reset to the default.
 
-enum {
-  STBRP_HEURISTIC_Skyline_default = 0,
-  STBRP_HEURISTIC_Skyline_BL_sortHeight = STBRP_HEURISTIC_Skyline_default,
-  STBRP_HEURISTIC_Skyline_BF_sortHeight
-};
+enum { STBRP_HEURISTIC_Skyline_default = 0, STBRP_HEURISTIC_Skyline_BL_sortHeight = STBRP_HEURISTIC_Skyline_default, STBRP_HEURISTIC_Skyline_BF_sortHeight };
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -223,8 +219,7 @@ enum { STBRP__INIT_skyline = 1 };
 STBRP_DEF void stbrp_setup_heuristic( stbrp_context * context, int heuristic ) {
   switch ( context->init_mode ) {
     case STBRP__INIT_skyline:
-      STBRP_ASSERT( heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight ||
-                    heuristic == STBRP_HEURISTIC_Skyline_BF_sortHeight );
+      STBRP_ASSERT( heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight || heuristic == STBRP_HEURISTIC_Skyline_BF_sortHeight );
       context->heuristic = heuristic;
       break;
     default:

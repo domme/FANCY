@@ -76,10 +76,10 @@ ShaderPipelineHandle    RenderCore::ourMipDownsampleShader;
 
 eastl::hash_map< uint64, TextureViewHandle > RenderCore::ourTexturePathCache;
 
-ResourcePool< Texture, 2048 >     RenderCore::ourTexturePool;
-ResourcePool< GpuBuffer, 2048 >   RenderCore::ourBufferPool;
-ResourcePool< TextureView, 2048 > RenderCore::ourTextureViewPool;
-ResourcePool< GpuBufferView, 2048 > RenderCore::ourBufferViewPool;
+ResourcePool< Texture, 2048 >                                        RenderCore::ourTexturePool;
+ResourcePool< GpuBuffer, 2048 >                                      RenderCore::ourBufferPool;
+ResourcePool< TextureView, 2048 >                                    RenderCore::ourTextureViewPool;
+ResourcePool< GpuBufferView, 2048 >                                  RenderCore::ourBufferViewPool;
 ResourcePool< Shader, 1024, ShaderDesc >                             RenderCore::ourShaderPool;
 ResourcePool< ShaderPipeline, 1024, ShaderPipelineDesc >             RenderCore::ourShaderPipelinePool;
 ResourcePool< BlendState, 1024, BlendStateProperties >               RenderCore::ourBlendStatePool;
@@ -173,8 +173,7 @@ TextureViewHandle RenderCore::LoadTexture( const char * aPath, uint someLoadFlag
 
   if ( ( someLoadFlags & Assets::NO_MEM_CACHE ) == 0 ) {
     TextureViewHandle cached = GetTextureByPath( texPathRel.c_str(), someLoadFlags );
-    if ( cached.IsValid() && GetTextureView( cached )->GetProperties().myIsShaderWritable ==
-                                 ( ( someLoadFlags & Assets::SHADER_WRITABLE ) != 0 ) )
+    if ( cached.IsValid() && GetTextureView( cached )->GetProperties().myIsShaderWritable == ( ( someLoadFlags & Assets::SHADER_WRITABLE ) != 0 ) )
       return cached;
   }
 
@@ -187,15 +186,13 @@ TextureViewHandle RenderCore::LoadTexture( const char * aPath, uint someLoadFlag
     return TextureViewHandle{};
   }
 
-  TextureHandle texHandle = CreateTexture( image.myProperties, texPathRel.c_str(), image.myData.mySubDatas.data(),
-                                           ( uint ) image.myData.mySubDatas.size() );
+  TextureHandle texHandle = CreateTexture( image.myProperties, texPathRel.c_str(), image.myData.mySubDatas.data(), ( uint ) image.myData.mySubDatas.size() );
   if ( !texHandle.IsValid() ) {
     LOG_ERROR( "Failed to create loaded texture at path %s", texPathAbs.c_str() );
     return TextureViewHandle{};
   }
 
-  if ( GetTexture( texHandle )->GetProperties().myNumMipLevels == 1 &&
-       ( someLoadFlags & Assets::NO_MIP_GENERATION ) == 0 )
+  if ( GetTexture( texHandle )->GetProperties().myNumMipLevels == 1 && ( someLoadFlags & Assets::NO_MIP_GENERATION ) == 0 )
     ComputeMipmaps( texHandle );
 
   Texture *             tex = GetTexture( texHandle );
@@ -417,18 +414,14 @@ CommandListType RenderCore::ResolveSupportedCommandListType( CommandListType aTy
 //---------------------------------------------------------------------------//
 RenderCore_PlatformDX12 * RenderCore::GetPlatformDX12() {
 #if FANCY_ENABLE_DX12
-  return GetPlatformType() == RenderPlatformType::DX12
-             ? static_cast< RenderCore_PlatformDX12 * >( ourPlatformImpl.get() )
-             : nullptr;
+  return GetPlatformType() == RenderPlatformType::DX12 ? static_cast< RenderCore_PlatformDX12 * >( ourPlatformImpl.get() ) : nullptr;
 #else
   return nullptr;
 #endif
 }
 //---------------------------------------------------------------------------//
-GpuRingBuffer * RenderCore::AllocateRingBuffer( CpuMemoryAccessType aCpuAccess, uint someBindFlags,
-                                                uint64 aNeededByteSize, const char * aName /*= nullptr*/ ) {
-  ASSERT( aCpuAccess != CpuMemoryAccessType::NO_CPU_ACCESS,
-          "Ring buffers are expected to be either readable or writable from CPU" );
+GpuRingBuffer * RenderCore::AllocateRingBuffer( CpuMemoryAccessType aCpuAccess, uint someBindFlags, uint64 aNeededByteSize, const char * aName /*= nullptr*/ ) {
+  ASSERT( aCpuAccess != CpuMemoryAccessType::NO_CPU_ACCESS, "Ring buffers are expected to be either readable or writable from CPU" );
 
   UpdateAvailableRingBuffers();
 
@@ -436,10 +429,9 @@ GpuRingBuffer * RenderCore::AllocateRingBuffer( CpuMemoryAccessType aCpuAccess, 
     GpuRingBuffer *             buffer = *it;
     const GpuBufferProperties & bufferProps = buffer->GetBuffer()->GetProperties();
     if ( buffer->GetBuffer()->GetByteSize() >= aNeededByteSize && bufferProps.myCpuAccess == aCpuAccess &&
-         bufferProps.myBindFlags ==
-             someBindFlags )  // We could also re-use buffers with more general bind flags, but since this method is
-                              // likely to be called with the same arguments each frame, it might be beneficial to use
-                              // the best match all the time
+         bufferProps.myBindFlags == someBindFlags )  // We could also re-use buffers with more general bind flags, but since this method is
+                                                     // likely to be called with the same arguments each frame, it might be beneficial to use
+                                                     // the best match all the time
     {
       ourAvailableRingBuffers.erase( it );
       return buffer;
@@ -464,21 +456,16 @@ GpuRingBuffer * RenderCore::AllocateRingBuffer( CpuMemoryAccessType aCpuAccess, 
 //---------------------------------------------------------------------------//
 void RenderCore::ReleaseRingBuffer( GpuRingBuffer * aBuffer, uint64 aFenceVal ) {
 #if FANCY_RENDERER_USE_VALIDATION
-  auto predicate = [ aBuffer ]( const eastl::pair< uint64, GpuRingBuffer * > & aPair ) {
-    return aPair.second == aBuffer;
-  };
-  ASSERT( eastl::find_if( ourUsedRingBuffers.begin(), ourUsedRingBuffers.end(), predicate ) ==
-          ourUsedRingBuffers.end() );
-  ASSERT( eastl::find( ourAvailableRingBuffers.begin(), ourAvailableRingBuffers.end(), aBuffer ) ==
-          ourAvailableRingBuffers.end() );
+  auto predicate = [ aBuffer ]( const eastl::pair< uint64, GpuRingBuffer * > & aPair ) { return aPair.second == aBuffer; };
+  ASSERT( eastl::find_if( ourUsedRingBuffers.begin(), ourUsedRingBuffers.end(), predicate ) == ourUsedRingBuffers.end() );
+  ASSERT( eastl::find( ourAvailableRingBuffers.begin(), ourAvailableRingBuffers.end(), aBuffer ) == ourAvailableRingBuffers.end() );
 #endif
 
   aBuffer->Reset();
   ourUsedRingBuffers.push_back( eastl::make_pair( aFenceVal, aBuffer ) );
 }
 //---------------------------------------------------------------------------//
-GpuBuffer * RenderCore::AllocateReadbackBuffer( uint64 aBlockSize, uint anOffsetAlignment,
-                                                uint64 & anOffsetToBlockOut ) {
+GpuBuffer * RenderCore::AllocateReadbackBuffer( uint64 aBlockSize, uint anOffsetAlignment, uint64 & anOffsetToBlockOut ) {
   for ( UniquePtr< GpuReadbackBuffer > & readbackBuffer : ourReadbackBuffers ) {
     uint64      offset;
     GpuBuffer * buffer = readbackBuffer->AllocateBlock( aBlockSize, anOffsetAlignment, offset );
@@ -528,8 +515,7 @@ TextureReadbackTask RenderCore::ReadbackTexture( Texture * aTexture, const Subre
   const DataFormatInfo &     dataFormatInfo = DataFormatInfo::GetFormatInfo( texProps.myFormat );
   const RenderPlatformCaps & caps = GetPlatformCaps();
 
-  uint64 * alignedSubresourceSizes =
-      static_cast< uint64 * >( alloca( sizeof( uint64 ) * aSubresourceRange.GetNumSubresources() ) );
+  uint64 * alignedSubresourceSizes = static_cast< uint64 * >( alloca( sizeof( uint64 ) * aSubresourceRange.GetNumSubresources() ) );
 
   uint64 requiredBufferSize = 0u;
   uint   i = 0u;
@@ -539,19 +525,16 @@ TextureReadbackTask RenderCore::ReadbackTexture( Texture * aTexture, const Subre
     uint width, height, depth;
     texProps.GetSize( subResource.myMipLevel, width, height, depth );
 
-    const uint64 rowSize = MathUtil::Align(
-        BITS_TO_BYTES( width * dataFormatInfo.myCopyableBitsPerPixelPerPlane[ subResource.myPlaneIndex ] ),
-        caps.myTextureRowAlignment );
-    const uint64 subresourceSize =
-        MathUtil::Align( rowSize * height * depth, ( uint64 ) caps.myTextureSubresourceBufferAlignment );
+    const uint64 rowSize =
+        MathUtil::Align( BITS_TO_BYTES( width * dataFormatInfo.myCopyableBitsPerPixelPerPlane[ subResource.myPlaneIndex ] ), caps.myTextureRowAlignment );
+    const uint64 subresourceSize = MathUtil::Align( rowSize * height * depth, ( uint64 ) caps.myTextureSubresourceBufferAlignment );
     alignedSubresourceSizes[ i++ ] = subresourceSize;
 
     requiredBufferSize += subresourceSize;
   }
 
   uint64      offsetToReadbackBuffer;
-  GpuBuffer * readbackBuffer =
-      AllocateReadbackBuffer( requiredBufferSize, caps.myTextureSubresourceBufferAlignment, offsetToReadbackBuffer );
+  GpuBuffer * readbackBuffer = AllocateReadbackBuffer( requiredBufferSize, caps.myTextureSubresourceBufferAlignment, offsetToReadbackBuffer );
   ASSERT( readbackBuffer != nullptr );
 
   CommandList * ctx = BeginCommandList( aCommandListType );
@@ -601,11 +584,9 @@ void RenderCore::Init_0_Platform( const RenderPlatformProperties & somePropertie
 
   ourPlatformImpl = eastl::make_unique< RenderCore_PlatformDX12 >( someProperties );
 
-  ourCommandQueues[ ( uint ) CommandListType::Graphics ].reset(
-      ourPlatformImpl->CreateCommandQueue( CommandListType::Graphics ) );
+  ourCommandQueues[ ( uint ) CommandListType::Graphics ].reset( ourPlatformImpl->CreateCommandQueue( CommandListType::Graphics ) );
   if ( GetPlatformCaps().myHasAsyncCopy )
-    ourCommandQueues[ ( uint ) CommandListType::Compute ].reset(
-        ourPlatformImpl->CreateCommandQueue( CommandListType::Compute ) );
+    ourCommandQueues[ ( uint ) CommandListType::Compute ].reset( ourPlatformImpl->CreateCommandQueue( CommandListType::Compute ) );
 
   // From here, resources can be created that depend on ourPlatformImpl
   ourPlatformImpl->InitInternalResources();
@@ -697,8 +678,7 @@ void RenderCore::Init_2_Resources() {
 
   for ( uint i = 0u; i < NUM_QUEUED_FRAMES; ++i ) {
     for ( uint queryType = 0u; queryType < ( uint ) GpuQueryType::NUM; ++queryType )
-      ourQueryHeaps[ i ][ queryType ].reset(
-          ourPlatformImpl->CreateQueryHeap( ( GpuQueryType ) queryType, numQueriesPerType[ queryType ] ) );
+      ourQueryHeaps[ i ][ queryType ].reset( ourPlatformImpl->CreateQueryHeap( ( GpuQueryType ) queryType, numQueriesPerType[ queryType ] ) );
   }
 
   GpuBufferProperties bufferProps;
@@ -798,9 +778,8 @@ void RenderCore::ResolveUsedQueryData() {
       continue;
 
     const uint                  numUsedQueryRanges = ( uint ) ourUsedQueryRanges[ queryType ].size();
-    eastl::pair< uint, uint > * mergedRanges =
-        ( eastl::pair< uint, uint > * ) alloca( sizeof( eastl::pair< uint, uint > ) * numUsedQueryRanges );
-    uint numUsedMergedRanges = 0u;
+    eastl::pair< uint, uint > * mergedRanges = ( eastl::pair< uint, uint > * ) alloca( sizeof( eastl::pair< uint, uint > ) * numUsedQueryRanges );
+    uint                        numUsedMergedRanges = 0u;
 
     eastl::pair< uint, uint > currMergedRange = ourUsedQueryRanges[ queryType ][ 0 ];
     for ( uint i = 1u; i < numUsedQueryRanges; ++i ) {
@@ -834,7 +813,7 @@ void RenderCore::UpdateChangedShaders() {
     const auto & shaderCache = ourShaderPool.GetCache();
     for ( const auto & entry : shaderCache ) {
       ShaderHandle h = entry.second;
-      Shader * program = ourShaderPool.Get( h );
+      Shader *     program = ourShaderPool.Get( h );
 
       const ShaderDesc & desc = program->GetDescription();
       eastl::string      actualShaderPath = Path::GetAbsolutePath( desc.myPath.c_str() );
@@ -857,10 +836,10 @@ void RenderCore::UpdateChangedShaders() {
 
   // Check which pipelines need to be updated...
   eastl::fixed_vector< ShaderPipeline *, 8 > changedPipelines;
-  const auto & pipelineCache = ourShaderPipelinePool.GetCache();
+  const auto &                               pipelineCache = ourShaderPipelinePool.GetCache();
   for ( const auto & entry : pipelineCache ) {
     ShaderPipelineHandle h = entry.second;
-    ShaderPipeline * pipeline = ourShaderPipelinePool.Get( h );
+    ShaderPipeline *     pipeline = ourShaderPipelinePool.Get( h );
 
     for ( uint i = 0u; i < ( uint ) shadersToRecompile.size(); ++i ) {
       Shader *   changedShader = shadersToRecompile[ i ];
@@ -887,7 +866,7 @@ void RenderCore::UpdateChangedShaders() {
     const auto & rtPsoCache = ourRtPipelineStatePool.GetCache();
     for ( const auto & entry : rtPsoCache ) {
       RtPipelineStateHandle h = entry.second;
-      RtPipelineState * rtPso = ourRtPipelineStatePool.Get( h );
+      RtPipelineState *     rtPso = ourRtPipelineStatePool.Get( h );
       if ( rtPso->HasShader( shader ) )
         changedRtPsos.push_back( rtPso );
     }
@@ -899,8 +878,7 @@ void RenderCore::UpdateChangedShaders() {
   }
 }
 //---------------------------------------------------------------------------//
-RenderOutputHandle RenderCore::CreateRenderOutput( void *                   aNativeInstanceHandle,
-                                                   const WindowParameters & someWindowParams ) {
+RenderOutputHandle RenderCore::CreateRenderOutput( void * aNativeInstanceHandle, const WindowParameters & someWindowParams ) {
   RenderOutput * output = ourPlatformImpl->CreateRenderOutput( aNativeInstanceHandle, someWindowParams );
   return ourRenderOutputPool.Add( output );
 }
@@ -946,9 +924,7 @@ ShaderPipelineHandle RenderCore::CreateShaderPipeline( const ShaderPipelineDesc 
   return ourShaderPipelinePool.Add( pipeline, aDesc );
 }
 //---------------------------------------------------------------------------//
-ShaderPipelineHandle RenderCore::CreateVertexPixelShaderPipeline( const char * aShaderPath,
-                                                                  const char * aMainVtxFunction,
-                                                                  const char * aMainFragmentFunction,
+ShaderPipelineHandle RenderCore::CreateVertexPixelShaderPipeline( const char * aShaderPath, const char * aMainVtxFunction, const char * aMainFragmentFunction,
                                                                   const char * someDefines ) {
   eastl::vector< eastl::string > defines;
   if ( someDefines )
@@ -971,8 +947,7 @@ ShaderPipelineHandle RenderCore::CreateVertexPixelShaderPipeline( const char * a
   return CreateShaderPipeline( pipelineDesc );
 }
 //---------------------------------------------------------------------------//
-ShaderPipelineHandle RenderCore::CreateComputeShaderPipeline( const char * aShaderPath, const char * aMainFunction,
-                                                              const char * someDefines ) {
+ShaderPipelineHandle RenderCore::CreateComputeShaderPipeline( const char * aShaderPath, const char * aMainFunction, const char * someDefines ) {
   eastl::vector< eastl::string > defines;
   if ( someDefines )
     StringUtil::Tokenize( someDefines, ",", defines );
@@ -990,7 +965,7 @@ ShaderPipelineHandle RenderCore::CreateComputeShaderPipeline( const char * aShad
 //---------------------------------------------------------------------------//
 ShaderHandle RenderCore::GetShader( uint64 aDescHash ) {
   const auto & cache = ourShaderPool.GetCache();
-  auto it = cache.find( aDescHash );
+  auto         it = cache.find( aDescHash );
   if ( it != cache.end() )
     return it->second;
   return ShaderHandle{};
@@ -998,7 +973,7 @@ ShaderHandle RenderCore::GetShader( uint64 aDescHash ) {
 //---------------------------------------------------------------------------//
 ShaderPipelineHandle RenderCore::GetShaderPipeline( uint64 aDescHash ) {
   const auto & cache = ourShaderPipelinePool.GetCache();
-  auto it = cache.find( aDescHash );
+  auto         it = cache.find( aDescHash );
   if ( it != cache.end() )
     return it->second;
   return ShaderPipelineHandle{};
@@ -1052,8 +1027,8 @@ RenderCore_Platform * RenderCore::GetPlatform() {
   return ourPlatformImpl.get();
 }
 //---------------------------------------------------------------------------//
-TextureHandle RenderCore::CreateTexture( const TextureProperties & someProperties, const char * aName /*= nullptr*/,
-                                         TextureSubData * someUploadDatas, uint aNumUploadDatas ) {
+TextureHandle RenderCore::CreateTexture( const TextureProperties & someProperties, const char * aName /*= nullptr*/, TextureSubData * someUploadDatas,
+                                         uint aNumUploadDatas ) {
   Texture * tex = ourPlatformImpl->CreateTexture();
   if ( !tex )
     return TextureHandle{};
@@ -1080,18 +1055,14 @@ GpuBufferHandle RenderCore::CreateBuffer( const GpuBufferProperties & someProper
   return ourBufferPool.Add( buffer );
 }
 //---------------------------------------------------------------------------//
-TextureViewHandle RenderCore::CreateTextureView( Texture * aTexture, const TextureViewProperties & someProperties,
-                                                 const char * aName /*= nullptr*/ ) {
+TextureViewHandle RenderCore::CreateTextureView( Texture * aTexture, const TextureViewProperties & someProperties, const char * aName /*= nullptr*/ ) {
   const TextureProperties & texProps = aTexture->GetProperties();
   TextureViewProperties     viewProps = someProperties;
   viewProps.myFormat = viewProps.myFormat != DataFormat::UNKNOWN ? viewProps.myFormat : texProps.myFormat;
-  viewProps.myDimension =
-      viewProps.myDimension != GpuResourceDimension::UNKONWN ? viewProps.myDimension : texProps.myDimension;
-  viewProps.mySubresourceRange.myNumMipLevels =
-      glm::max( 1u, glm::min( viewProps.mySubresourceRange.myNumMipLevels, texProps.myNumMipLevels ) );
+  viewProps.myDimension = viewProps.myDimension != GpuResourceDimension::UNKONWN ? viewProps.myDimension : texProps.myDimension;
+  viewProps.mySubresourceRange.myNumMipLevels = glm::max( 1u, glm::min( viewProps.mySubresourceRange.myNumMipLevels, texProps.myNumMipLevels ) );
   viewProps.mySubresourceRange.myNumArrayIndices =
-      glm::max( 1u, glm::min( viewProps.mySubresourceRange.myNumArrayIndices,
-                              texProps.GetArraySize() - viewProps.mySubresourceRange.myFirstArrayIndex ) );
+      glm::max( 1u, glm::min( viewProps.mySubresourceRange.myNumArrayIndices, texProps.GetArraySize() - viewProps.mySubresourceRange.myFirstArrayIndex ) );
   viewProps.myZSize = glm::max( 1u, glm::min( viewProps.myZSize, texProps.GetDepthSize() - viewProps.myFirstZindex ) );
 
   const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( viewProps.myFormat );
@@ -1103,33 +1074,23 @@ TextureViewHandle RenderCore::CreateTextureView( Texture * aTexture, const Textu
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-GpuBufferViewHandle RenderCore::CreateBufferView( GpuBuffer * aBuffer, GpuBufferViewProperties someProperties,
-                                                  const char * aName /*=nullptr*/ ) {
+GpuBufferViewHandle RenderCore::CreateBufferView( GpuBuffer * aBuffer, GpuBufferViewProperties someProperties, const char * aName /*=nullptr*/ ) {
   if ( someProperties.mySize == UINT64_MAX )
     someProperties.mySize = aBuffer->GetByteSize() - someProperties.myOffset;
 
   const DataFormat       format = someProperties.myFormat;
   const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( format );
 
-  ASSERT( aBuffer->GetByteSize() >= someProperties.myOffset + someProperties.mySize ||
-              someProperties.myIsRtAccelerationStructure,
-          "Invalid buffer range" );
-  ASSERT( !someProperties.myIsStructured || someProperties.myStructureSize > 0u,
-          "Structured buffer views need a valid structure size" );
-  ASSERT( !someProperties.myIsStructured || !someProperties.myIsRaw,
-          "Raw and structured buffer views are mutually exclusive" );
+  ASSERT( aBuffer->GetByteSize() >= someProperties.myOffset + someProperties.mySize || someProperties.myIsRtAccelerationStructure, "Invalid buffer range" );
+  ASSERT( !someProperties.myIsStructured || someProperties.myStructureSize > 0u, "Structured buffer views need a valid structure size" );
+  ASSERT( !someProperties.myIsStructured || !someProperties.myIsRaw, "Raw and structured buffer views are mutually exclusive" );
   ASSERT( !someProperties.myIsShaderWritable || aBuffer->GetProperties().myIsShaderWritable,
           "A shader-writable buffer view requires a shader-writable buffer" );
-  ASSERT( !someProperties.myIsStructured || format == DataFormat::UNKNOWN,
-          "Structured buffer views can't have a format" );
-  ASSERT( !someProperties.myIsRaw || format == DataFormat::UNKNOWN || format == DataFormat::R_32UI,
-          "Raw buffer views can't have a format other than R32" );
-  ASSERT( !someProperties.myIsShaderWritable || !someProperties.myIsRtAccelerationStructure,
-          "Rt acceleration structures can only be SRVs" );
-  ASSERT( !someProperties.myIsStructured || !someProperties.myIsRtAccelerationStructure,
-          "Rt acceleration structures can't be structured" );
-  ASSERT( !someProperties.myIsRtAccelerationStructure || format == DataFormat::UNKNOWN,
-          "Rt acceleration structures can't have formats" );
+  ASSERT( !someProperties.myIsStructured || format == DataFormat::UNKNOWN, "Structured buffer views can't have a format" );
+  ASSERT( !someProperties.myIsRaw || format == DataFormat::UNKNOWN || format == DataFormat::R_32UI, "Raw buffer views can't have a format other than R32" );
+  ASSERT( !someProperties.myIsShaderWritable || !someProperties.myIsRtAccelerationStructure, "Rt acceleration structures can only be SRVs" );
+  ASSERT( !someProperties.myIsStructured || !someProperties.myIsRtAccelerationStructure, "Rt acceleration structures can't be structured" );
+  ASSERT( !someProperties.myIsRtAccelerationStructure || format == DataFormat::UNKNOWN, "Rt acceleration structures can't have formats" );
 
   GpuBufferView * view = ourPlatformImpl->CreateBufferView( aBuffer, someProperties, aName );
   return ourBufferViewPool.Add( view );
@@ -1137,25 +1098,21 @@ GpuBufferViewHandle RenderCore::CreateBufferView( GpuBuffer * aBuffer, GpuBuffer
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
-RtAccelerationStructureHandle
-RenderCore::CreateRtBottomLevelAccelerationStructure( const RtAccelerationStructureGeometryData * someGeometries,
-                                                      uint aNumGeometries, uint aSomeFlags, const char * aName ) {
+RtAccelerationStructureHandle RenderCore::CreateRtBottomLevelAccelerationStructure( const RtAccelerationStructureGeometryData * someGeometries,
+                                                                                    uint aNumGeometries, uint aSomeFlags, const char * aName ) {
   if ( !GetPlatformCaps().mySupportsRaytracing )
     return RtAccelerationStructureHandle{};
 
-  RtAccelerationStructure * as =
-      ourPlatformImpl->CreateRtBottomLevelAccelerationStructure( someGeometries, aNumGeometries, aSomeFlags, aName );
+  RtAccelerationStructure * as = ourPlatformImpl->CreateRtBottomLevelAccelerationStructure( someGeometries, aNumGeometries, aSomeFlags, aName );
   return ourRtAccelerationStructurePool.Add( as );
 }
 //---------------------------------------------------------------------------//
-RtAccelerationStructureHandle
-RenderCore::CreateRtTopLevelAccelerationStructure( const RtAccelerationStructureInstanceData * someInstances,
-                                                   uint aNumInstances, uint someFlags, const char * aName ) {
+RtAccelerationStructureHandle RenderCore::CreateRtTopLevelAccelerationStructure( const RtAccelerationStructureInstanceData * someInstances, uint aNumInstances,
+                                                                                 uint someFlags, const char * aName ) {
   if ( !GetPlatformCaps().mySupportsRaytracing )
     return RtAccelerationStructureHandle{};
 
-  RtAccelerationStructure * as =
-      ourPlatformImpl->CreateRtTopLevelAccelerationStructure( someInstances, aNumInstances, someFlags, aName );
+  RtAccelerationStructure * as = ourPlatformImpl->CreateRtTopLevelAccelerationStructure( someInstances, aNumInstances, someFlags, aName );
   return ourRtAccelerationStructurePool.Add( as );
 }
 //---------------------------------------------------------------------------//
@@ -1249,8 +1206,7 @@ uint RenderCore::GetQueryTypeDataSize( GpuQueryType aType ) {
 }
 //---------------------------------------------------------------------------//
 CommandList * RenderCore::BeginCommandList( CommandListType aType ) {
-  ASSERT( aType == CommandListType::Graphics || aType == CommandListType::Compute,
-          "CommandList type %d not implemented", ( uint ) aType );
+  ASSERT( aType == CommandListType::Graphics || aType == CommandListType::Compute, "CommandList type %d not implemented", ( uint ) aType );
 
   CommandQueue * queue = GetCommandQueue( aType );
   return queue->BeginCommandList();
@@ -1258,8 +1214,7 @@ CommandList * RenderCore::BeginCommandList( CommandListType aType ) {
 //---------------------------------------------------------------------------//
 uint64 RenderCore::ExecuteAndFreeCommandList( class CommandList * aCommandList, SyncMode aSyncMode ) {
   CommandListType type = aCommandList->GetType();
-  ASSERT( type == CommandListType::Graphics || type == CommandListType::Compute, "CommandList type %d not implemented",
-          ( uint ) type );
+  ASSERT( type == CommandListType::Graphics || type == CommandListType::Compute, "CommandList type %d not implemented", ( uint ) type );
 
   ASSERT( aCommandList->IsOpen(), "CommandList is not open (already executed?)" );
 
@@ -1269,8 +1224,7 @@ uint64 RenderCore::ExecuteAndFreeCommandList( class CommandList * aCommandList, 
 //---------------------------------------------------------------------------//
 uint64 RenderCore::ExecuteAndResetCommandList( CommandList * aCommandList, SyncMode aSyncMode ) {
   CommandListType type = aCommandList->GetType();
-  ASSERT( type == CommandListType::Graphics || type == CommandListType::Compute, "CommandList type %d not implemented",
-          ( uint ) type );
+  ASSERT( type == CommandListType::Graphics || type == CommandListType::Compute, "CommandList type %d not implemented", ( uint ) type );
 
   ASSERT( aCommandList->IsOpen(), "CommandList is not open (already executed?)" );
 
@@ -1278,13 +1232,11 @@ uint64 RenderCore::ExecuteAndResetCommandList( CommandList * aCommandList, SyncM
   return queue->ExecuteAndResetCommandList( aCommandList, aSyncMode );
 }
 //---------------------------------------------------------------------------//
-TempTextureResource RenderCore::AllocateTempTexture( const TextureResourceProperties & someProps, uint someFlags,
-                                                     const char * aName ) {
+TempTextureResource RenderCore::AllocateTempTexture( const TextureResourceProperties & someProps, uint someFlags, const char * aName ) {
   return ourTempResourcePool->AllocateTexture( someProps, someFlags, aName );
 }
 //---------------------------------------------------------------------------//
-TempBufferResource RenderCore::AllocateTempBuffer( const GpuBufferResourceProperties & someProps, uint someFlags,
-                                                   const char * aName ) {
+TempBufferResource RenderCore::AllocateTempBuffer( const GpuBufferResourceProperties & someProps, uint someFlags, const char * aName ) {
   return ourTempResourcePool->AllocateBuffer( someProps, someFlags, aName );
 }
 //---------------------------------------------------------------------------//
@@ -1305,14 +1257,12 @@ void RenderCore::FreeQueryRange( GpuQueryType aType, uint aFirstQuery, uint aNum
     ourUsedQueryRanges[ ( uint ) aType ].push_back( { aFirstQuery, aFirstQuery + aNumUsedQueries } );
 }
 //---------------------------------------------------------------------------//
-bool RenderCore::BeginQueryDataReadback( GpuQueryType aType, uint64 aFrameIdx,
-                                         const uint8 ** aDataPtrOut /*= nullptr*/ ) {
+bool RenderCore::BeginQueryDataReadback( GpuQueryType aType, uint64 aFrameIdx, const uint8 ** aDataPtrOut /*= nullptr*/ ) {
   if ( !IsFrameDone( aFrameIdx ) )
     return false;
 
   const uint type = ( uint ) aType;
-  if ( ourMappedQueryBufferData[ type ] != nullptr &&
-       ourQueryBufferFrames[ ourMappedQueryBufferIdx[ type ] ] == aFrameIdx ) {
+  if ( ourMappedQueryBufferData[ type ] != nullptr && ourQueryBufferFrames[ ourMappedQueryBufferIdx[ type ] ] == aFrameIdx ) {
     if ( aDataPtrOut != nullptr )
       *aDataPtrOut = ourMappedQueryBufferData[ type ];
 
@@ -1381,8 +1331,7 @@ bool RenderCore::IsFenceDone( uint64 aFenceVal ) {
 }
 //---------------------------------------------------------------------------//
 bool RenderCore::IsFrameDone( uint64 aFrameIdx ) {
-  if ( ourLastFrameDoneFences.IsEmpty() ||
-       ourLastFrameDoneFences[ ourLastFrameDoneFences.Size() - 1 ].first < aFrameIdx )
+  if ( ourLastFrameDoneFences.IsEmpty() || ourLastFrameDoneFences[ ourLastFrameDoneFences.Size() - 1 ].first < aFrameIdx )
     return false;
 
   CommandQueue * queue = GetCommandQueue( CommandListType::Graphics );
@@ -1395,8 +1344,7 @@ bool RenderCore::IsFrameDone( uint64 aFrameIdx ) {
 }
 //---------------------------------------------------------------------------//
 void RenderCore::WaitForFrame( uint64 aFrameIdx ) {
-  if ( ourLastFrameDoneFences.IsEmpty() ||
-       ourLastFrameDoneFences[ ourLastFrameDoneFences.Size() - 1 ].first < aFrameIdx ) {
+  if ( ourLastFrameDoneFences.IsEmpty() || ourLastFrameDoneFences[ ourLastFrameDoneFences.Size() - 1 ].first < aFrameIdx ) {
     WaitForIdle( CommandListType::Graphics );
     return;
   }

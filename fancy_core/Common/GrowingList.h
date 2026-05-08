@@ -114,23 +114,20 @@ namespace Fancy {
 
   //---------------------------------------------------------------------------//
   template < class T, uint64 PageSize > GrowingList< T, PageSize >::Page::Page() {
-    myElements = static_cast< Element * >(
-        malloc( sizeof( Element ) * PageSize ) );  // Malloc: don't call constructor for "Element", which might have a
-                                                   // non-trivial constructor due to T
+    myElements = static_cast< Element * >( malloc( sizeof( Element ) * PageSize ) );  // Malloc: don't call constructor for "Element", which might have a
+                                                                                      // non-trivial constructor due to T
   }
   //---------------------------------------------------------------------------//
   template < class T, uint64 PageSize > GrowingList< T, PageSize >::Page::~Page() {
     free( myElements );
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Iterator::operator++() {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Iterator::operator++() {
     myElement = myElement->myNext;
     return *this;
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Iterator::operator--() {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Iterator::operator--() {
     myElement = myElement->myPrev;
     return *this;
   }
@@ -143,8 +140,7 @@ namespace Fancy {
     DestroyAll();
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Begin() {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Begin() {
     return Iterator( myHeadElement );
   }
   //---------------------------------------------------------------------------//
@@ -153,18 +149,15 @@ namespace Fancy {
     return myTailElement->myData;
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Last() {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Last() {
     return Iterator( myTailElement );
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Invalid() {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Invalid() {
     return Iterator( nullptr );
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Add( T aData ) {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Add( T aData ) {
     Element * newElement = AllocateElement();
     newElement->myData = std::move( aData );
 
@@ -184,8 +177,7 @@ namespace Fancy {
     return Iterator( newElement );
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::AddBefore( Iterator aPos, T aData ) {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::AddBefore( Iterator aPos, T aData ) {
     ASSERT( aPos );
     ASSERT( FindPage( aPos ) != nullptr );
 
@@ -210,8 +202,7 @@ namespace Fancy {
     return Iterator( newElement );
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::AddAfter( Iterator aPos, T aData ) {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::AddAfter( Iterator aPos, T aData ) {
     ASSERT( aPos );
     ASSERT( FindPage( aPos ) != nullptr );
 
@@ -236,19 +227,16 @@ namespace Fancy {
     return Iterator( newElement );
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::RemoveGetNext( Iterator aPos ) {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::RemoveGetNext( Iterator aPos ) {
     return RemoveInternal( aPos, false );
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::RemoveGetPrev( Iterator aPos ) {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::RemoveGetPrev( Iterator aPos ) {
     return RemoveInternal( aPos, true );
   }
   //---------------------------------------------------------------------------//
   template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::RemoveInternal( Iterator aPos,
-                                                                                            bool     aReverse ) {
+  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::RemoveInternal( Iterator aPos, bool aReverse ) {
     ASSERT( aPos );
     Page * page = FindPage( aPos );
     ASSERT( page != nullptr );
@@ -312,8 +300,7 @@ namespace Fancy {
     return aReverse ? Iterator( prev ) : Iterator( next );
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Find( const T & aData ) {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Find( const T & aData ) {
     Iterator it = Begin();
     Iterator end = Invalid();
     while ( it != end ) {
@@ -327,8 +314,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator
-  GrowingList< T, PageSize >::Find( std::function< bool( const T & ) > aPredicate ) {
+  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::Find( std::function< bool( const T & ) > aPredicate ) {
     Iterator it = Begin();
     Iterator end = Invalid();
     while ( it != end ) {
@@ -341,8 +327,7 @@ namespace Fancy {
     return end;
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::FindAtIndex( uint anIndex ) {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::FindAtIndex( uint anIndex ) {
     ASSERT( anIndex < mySize );
     Iterator it( myHeadElement );
     while ( anIndex != 0 ) {
@@ -353,8 +338,7 @@ namespace Fancy {
     return it;
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::ReverseFind( const T & aData ) {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::ReverseFind( const T & aData ) {
     Iterator it( myTailElement );
     while ( it.myElement != nullptr ) {
       if ( ( *it ) == aData )
@@ -367,8 +351,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Iterator
-  GrowingList< T, PageSize >::ReverseFind( std::function< bool( const T & ) > aPredicate ) {
+  typename GrowingList< T, PageSize >::Iterator GrowingList< T, PageSize >::ReverseFind( std::function< bool( const T & ) > aPredicate ) {
     Iterator it( myTailElement );
     while ( it.myElement != nullptr ) {
       if ( aPredicate( *it ) )
@@ -396,8 +379,7 @@ namespace Fancy {
     myTailPage = nullptr;
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Element * GrowingList< T, PageSize >::AllocateElement() {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Element * GrowingList< T, PageSize >::AllocateElement() {
     if ( myTailPage == nullptr || myTailPage->myNextFreeElementIdx == PageSize )  // A new page is needed
     {
       Page * newPage = new Page;
@@ -417,8 +399,7 @@ namespace Fancy {
     return &myTailPage->myElements[ myTailPage->myNextFreeElementIdx++ ];
   }
   //---------------------------------------------------------------------------//
-  template < class T, uint64 PageSize >
-  typename GrowingList< T, PageSize >::Page * GrowingList< T, PageSize >::FindPage( Iterator aPos ) {
+  template < class T, uint64 PageSize > typename GrowingList< T, PageSize >::Page * GrowingList< T, PageSize >::FindPage( Iterator aPos ) {
     Page * page = myHeadPage;
     while ( page != nullptr ) {
       if ( ( void * ) aPos.myElement >= ( void * ) page->myElements &&

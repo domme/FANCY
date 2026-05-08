@@ -9,11 +9,9 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
-  StaticDescriptorAllocatorDX12::StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE aType,
-                                                                uint64                     aNumDescriptorsPerHeap )
+  StaticDescriptorAllocatorDX12::StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE aType, uint64 aNumDescriptorsPerHeap )
       : PagedLinearAllocator( aNumDescriptorsPerHeap ),
-        myHandleIncrementSize( RenderCore::GetPlatformDX12()->GetDevice()->GetDescriptorHandleIncrementSize( aType ) ),
-        myType( aType ) {}
+        myHandleIncrementSize( RenderCore::GetPlatformDX12()->GetDevice()->GetDescriptorHandleIncrementSize( aType ) ), myType( aType ) {}
   //---------------------------------------------------------------------------//
   StaticDescriptorAllocatorDX12::~StaticDescriptorAllocatorDX12() {
     ASSERT( IsEmpty(), "There are still static descriptors allocated when destroying the descriptor allocator" );
@@ -45,8 +43,7 @@ namespace Fancy {
     const Page * page = PagedLinearAllocator::FindPage( [ this, aDescriptor ]( const Page & aPage ) {
       const Heap & heapData = eastl::any_cast< const Heap & >( aPage.myData );
       const uint64 firstHeapAddess = heapData.myCpuHeapStart.ptr;
-      const uint64 lastHeapAddress =
-          heapData.myCpuHeapStart.ptr + ( aPage.myEnd - aPage.myStart ) * myHandleIncrementSize;
+      const uint64 lastHeapAddress = heapData.myCpuHeapStart.ptr + ( aPage.myEnd - aPage.myStart ) * myHandleIncrementSize;
       return aDescriptor.myCpuHandle.ptr >= firstHeapAddess && aDescriptor.myCpuHandle.ptr <= lastHeapAddress;
     } );
     ASSERT( page != nullptr );

@@ -13,12 +13,11 @@ namespace Fancy {
     uint AddRayGenShader( ShaderHandle aShader );
     uint AddMissShader( const char * aPath, const char * aMainFunction, const char * someDefines = nullptr );
     uint AddMissShader( ShaderHandle aShader );
-    uint AddHitGroup( const wchar_t * aName, RtHitGroupType aType, ShaderHandle anIntersectionShader,
-                      ShaderHandle anAnyHitShader, ShaderHandle aClosestHitShader );
-    uint AddHitGroup( const wchar_t * aName, RtHitGroupType aType, const char * anIntersectionPath,
-                      const char * anIntersectionMainFunction, const char * anAnyHitPath,
-                      const char * anAnyHitMainFunction, const char * aClosestHitPath,
-                      const char * aClosestHitMainFunction, const char * someDefines = nullptr );
+    uint AddHitGroup( const wchar_t * aName, RtHitGroupType aType, ShaderHandle anIntersectionShader, ShaderHandle anAnyHitShader,
+                      ShaderHandle aClosestHitShader );
+    uint AddHitGroup( const wchar_t * aName, RtHitGroupType aType, const char * anIntersectionPath, const char * anIntersectionMainFunction,
+                      const char * anAnyHitPath, const char * anAnyHitMainFunction, const char * aClosestHitPath, const char * aClosestHitMainFunction,
+                      const char * someDefines = nullptr );
     void SetMaxPayloadSize( uint aSizeBytes ) {
       myMaxPayloadSizeBytes = aSizeBytes;
     }
@@ -75,11 +74,9 @@ namespace Fancy {
     RtPipelineStateProperties myProperties;
 
   protected:
-    virtual void GetShaderIdentifierDataInternal( uint                                           aShaderIndexInRtPso,
-                                                  const RtPipelineStateProperties::ShaderEntry & aShaderEntry,
-                                                  RtShaderIdentifier &                           someDataOut ) = 0;
-    virtual void GetShaderIdentifierDataInternal( uint                                        aShaderIndexInRtPso,
-                                                  const RtPipelineStateProperties::HitGroup & aShaderEntry,
-                                                  RtShaderIdentifier &                        someDataOut ) = 0;
+    virtual void GetShaderIdentifierDataInternal( uint aShaderIndexInRtPso, const RtPipelineStateProperties::ShaderEntry & aShaderEntry,
+                                                  RtShaderIdentifier & someDataOut ) = 0;
+    virtual void GetShaderIdentifierDataInternal( uint aShaderIndexInRtPso, const RtPipelineStateProperties::HitGroup & aShaderEntry,
+                                                  RtShaderIdentifier & someDataOut ) = 0;
   };
 }  // namespace Fancy

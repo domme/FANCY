@@ -26,8 +26,7 @@ using namespace Fancy;
 
 bool ourDrawInstanced = false;
 
-static SharedPtr< ShaderPipeline > locLoadShader( const char * aShaderPath, const char * aMainVtxFunction = "main",
-                                                  const char * aMainFragmentFunction = "main",
+static SharedPtr< ShaderPipeline > locLoadShader( const char * aShaderPath, const char * aMainVtxFunction = "main", const char * aMainFragmentFunction = "main",
                                                   const char * someDefines = nullptr ) {
   eastl::vector< eastl::string > defines;
   if ( someDefines )
@@ -52,14 +51,13 @@ static SharedPtr< ShaderPipeline > locLoadShader( const char * aShaderPath, cons
 
 //---------------------------------------------------------------------------//
 
-Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow,
-                                    Fancy::RenderOutput * aRenderOutput, Fancy::InputState * anInputState )
+Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput,
+                                    Fancy::InputState * anInputState )
     : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "Model Viewer" ), myCameraController( &myCamera ) {
   myUnlitTexturedShader = locLoadShader( "fancy/resources/shaders/Unlit_Textured.hlsl" );
   ASSERT( myUnlitTexturedShader != nullptr );
 
-  myInstancedUnlitTexturedShader =
-      locLoadShader( "fancy/resources/shaders/Unlit_Textured.hlsl", "main", "main", "INSTANCED" );
+  myInstancedUnlitTexturedShader = locLoadShader( "fancy/resources/shaders/Unlit_Textured.hlsl", "main", "main", "INSTANCED" );
   ASSERT( myInstancedUnlitTexturedShader != nullptr );
 
   myUnlitVertexColorShader = locLoadShader( "fancy/resources/shaders/Unlit_Colored.hlsl" );
@@ -77,8 +75,7 @@ Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy:
   mySampler = RenderCore::CreateTextureSampler( samplerProps );
 
   myCamera.myPosition = glm::float3( 0.0f, 0.0f, -10.0f );
-  myCamera.myOrientation = glm::quat_cast( glm::lookAt(
-      glm::float3( 0.0f, 0.0f, 10.0f ), glm::float3( 0.0f, 0.0f, 0.0f ), glm::float3( 0.0f, 1.0f, 0.0f ) ) );
+  myCamera.myOrientation = glm::quat_cast( glm::lookAt( glm::float3( 0.0f, 0.0f, 10.0f ), glm::float3( 0.0f, 0.0f, 0.0f ), glm::float3( 0.0f, 1.0f, 0.0f ) ) );
 
   myCameraController.myMoveSpeed = 50.0f;
 
@@ -104,8 +101,7 @@ Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy:
   myScene = eastl::make_shared< Scene >( sceneData, myAssetManager );
 
   VertexInputLayoutProperties instancedVertexLayoutProps = sceneData.myVertexInputLayoutProperties;
-  instancedVertexLayoutProps.myAttributes.push_back(
-      { DataFormat::RGB_32F, VertexAttributeSemantic::POSITION, 1u, 1u } );
+  instancedVertexLayoutProps.myAttributes.push_back( { DataFormat::RGB_32F, VertexAttributeSemantic::POSITION, 1u, 1u } );
   instancedVertexLayoutProps.myBufferBindings.push_back( { 12u, VertexInputRate::PER_INSTANCE } );
   myInstancedVertexLayout = RenderCore::CreateVertexInputLayout( instancedVertexLayoutProps );
 
@@ -118,15 +114,13 @@ Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy:
   for ( int x = -numInstancesOneSide / 2; x < numInstancesOneSide / 2; ++x )
     for ( int y = -numInstancesOneSide / 2; y < numInstancesOneSide / 2; ++y )
       for ( int z = -numInstancesOneSide / 2; z < numInstancesOneSide / 2; ++z )
-        instancePositions.push_back(
-            glm::float3( x * offsetBetweenInstances, y * offsetBetweenInstances, z * offsetBetweenInstances ) );
+        instancePositions.push_back( glm::float3( x * offsetBetweenInstances, y * offsetBetweenInstances, z * offsetBetweenInstances ) );
 
   GpuBufferProperties bufferProps;
   bufferProps.myBindFlags = ( uint ) GpuBufferBindFlags::VERTEX_BUFFER;
   bufferProps.myElementSizeBytes = sizeof( glm::float3 );
   bufferProps.myNumElements = numInstances;
-  myInstancePositions =
-      RenderCore::CreateBuffer( bufferProps, "Test_ModelViewer/InstancePositions", instancePositions.data() );
+  myInstancePositions = RenderCore::CreateBuffer( bufferProps, "Test_ModelViewer/InstancePositions", instancePositions.data() );
 
   UpdateDepthbuffer();
 }
@@ -252,8 +246,7 @@ void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
       uint64            sizes[] = { meshPart->myVertexBuffer->GetByteSize(), myInstancePositions->GetByteSize() };
       const GpuBuffer * buffers[] = { meshPart->myVertexBuffer.get(), myInstancePositions.get() };
       ctx->BindVertexBuffers( buffers, offsets, sizes, ourDrawInstanced ? 2u : 1u );
-      ctx->BindIndexBuffer( meshPart->myIndexBuffer.get(),
-                            meshPart->myIndexBuffer->GetProperties().myElementSizeBytes );
+      ctx->BindIndexBuffer( meshPart->myIndexBuffer.get(), meshPart->myIndexBuffer->GetProperties().myElementSizeBytes );
 
       ctx->Render( meshPart->myIndexBuffer->GetProperties().myNumElements, numInstances, 0, 0, 0 );
     }
@@ -269,8 +262,7 @@ void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
       uint          myTextureIndex;
       uint          mySamplerIndex;
     };
-    Cbuffer_PerObject cbuffer_perObject{ myCamera.myViewProj * transform, UINT_MAX,
-                                         mySampler->GetGlobalDescriptorIndex() };
+    Cbuffer_PerObject cbuffer_perObject{ myCamera.myViewProj * transform, UINT_MAX, mySampler->GetGlobalDescriptorIndex() };
 
     const GpuResourceView * diffuseTex = material->myTextures[ ( uint ) MaterialTextureType::BASE_COLOR ].get();
     if ( diffuseTex ) {

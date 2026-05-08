@@ -36,10 +36,8 @@ namespace Fancy {
   }  // namespace Priv_TempResourcePool
   //---------------------------------------------------------------------------//
   TempResourcePool::~TempResourcePool() {
-    ASSERT( myNumOpenBufferAllocs == 0, "%d open temp buffer allocs when destroying the temp resource pool",
-            myNumOpenBufferAllocs );
-    ASSERT( myNumOpenTextureAllocs == 0, "%d open temp texture allocs when destroying the temp resource pool",
-            myNumOpenTextureAllocs );
+    ASSERT( myNumOpenBufferAllocs == 0, "%d open temp buffer allocs when destroying the temp resource pool", myNumOpenBufferAllocs );
+    ASSERT( myNumOpenTextureAllocs == 0, "%d open temp texture allocs when destroying the temp resource pool", myNumOpenTextureAllocs );
   }
   //---------------------------------------------------------------------------//
   void TempResourcePool::Reset() {
@@ -47,8 +45,7 @@ namespace Fancy {
     ASSERT( myNumOpenTextureAllocs == 0, "%d open temp texture allocs accross frame boundary", myNumOpenTextureAllocs );
   }
   //---------------------------------------------------------------------------//
-  TempTextureResource TempResourcePool::AllocateTexture( const TextureResourceProperties & someProps, uint someFlags,
-                                                         const char * aName ) {
+  TempTextureResource TempResourcePool::AllocateTexture( const TextureResourceProperties & someProps, uint someFlags, const char * aName ) {
     const uint64 key = Priv_TempResourcePool::GetHash( someProps, someFlags );
 
     std::list< TextureResource * > & availableList = myAvailableTextureBuckets[ key ];
@@ -57,12 +54,10 @@ namespace Fancy {
         const TextureProperties & texProps = RenderCore::GetTexture( aResource->myTexture )->GetProperties();
 
         if ( someFlags & FORCE_SIZE )
-          return texProps.myWidth == someProps.myTextureProperties.myWidth &&
-                 texProps.myHeight == someProps.myTextureProperties.myHeight &&
+          return texProps.myWidth == someProps.myTextureProperties.myWidth && texProps.myHeight == someProps.myTextureProperties.myHeight &&
                  texProps.myDepthOrArraySize == someProps.myTextureProperties.myDepthOrArraySize;
 
-        return texProps.myWidth >= someProps.myTextureProperties.myWidth &&
-               texProps.myHeight >= someProps.myTextureProperties.myHeight &&
+        return texProps.myWidth >= someProps.myTextureProperties.myWidth && texProps.myHeight >= someProps.myTextureProperties.myHeight &&
                texProps.myDepthOrArraySize >= someProps.myTextureProperties.myDepthOrArraySize;
       } );
 
@@ -74,8 +69,7 @@ namespace Fancy {
         returnRes.myTexture = RenderCore::GetTexture( res->myTexture );
         returnRes.myReadView = res->myReadView.IsValid() ? RenderCore::GetTextureView( res->myReadView ) : nullptr;
         returnRes.myWriteView = res->myWriteView.IsValid() ? RenderCore::GetTextureView( res->myWriteView ) : nullptr;
-        returnRes.myRenderTargetView =
-            res->myRenderTargetView.IsValid() ? RenderCore::GetTextureView( res->myRenderTargetView ) : nullptr;
+        returnRes.myRenderTargetView = res->myRenderTargetView.IsValid() ? RenderCore::GetTextureView( res->myRenderTargetView ) : nullptr;
         returnRes.myKeepAlive.reset( new TempResourceKeepAlive( this, returnRes.myTexture, key ) );
         ++myNumOpenTextureAllocs;
         return returnRes;
@@ -91,27 +85,22 @@ namespace Fancy {
     returnRes.myTexture = RenderCore::GetTexture( res.myTexture );
     returnRes.myReadView = res.myReadView.IsValid() ? RenderCore::GetTextureView( res.myReadView ) : nullptr;
     returnRes.myWriteView = res.myWriteView.IsValid() ? RenderCore::GetTextureView( res.myWriteView ) : nullptr;
-    returnRes.myRenderTargetView =
-        res.myRenderTargetView.IsValid() ? RenderCore::GetTextureView( res.myRenderTargetView ) : nullptr;
+    returnRes.myRenderTargetView = res.myRenderTargetView.IsValid() ? RenderCore::GetTextureView( res.myRenderTargetView ) : nullptr;
     returnRes.myKeepAlive.reset( new TempResourceKeepAlive( this, returnRes.myTexture, key ) );
     ++myNumOpenTextureAllocs;
     return returnRes;
   }
   //---------------------------------------------------------------------------//
-  TempBufferResource TempResourcePool::AllocateBuffer( const GpuBufferResourceProperties & someProps, uint someFlags,
-                                                       const char * aName ) {
-    const uint64 desiredSize =
-        someProps.myBufferProperties.myNumElements * someProps.myBufferProperties.myElementSizeBytes;
+  TempBufferResource TempResourcePool::AllocateBuffer( const GpuBufferResourceProperties & someProps, uint someFlags, const char * aName ) {
+    const uint64 desiredSize = someProps.myBufferProperties.myNumElements * someProps.myBufferProperties.myElementSizeBytes;
 
     const uint64                       key = Priv_TempResourcePool::GetHash( someProps, someFlags );
     std::list< GpuBufferResource * > & availableList = myAvailableBufferBuckets[ key ];
     if ( !availableList.empty() ) {
-      auto it =
-          std::find_if( availableList.begin(), availableList.end(),
-                        [ desiredSize, someFlags ]( const GpuBufferResource * aResource ) {
-                          const uint64 currSize = RenderCore::GetBuffer( aResource->myBuffer )->GetByteSize();
-                          return ( someFlags & FORCE_SIZE ) > 0 ? currSize == desiredSize : currSize >= desiredSize;
-                        } );
+      auto it = std::find_if( availableList.begin(), availableList.end(), [ desiredSize, someFlags ]( const GpuBufferResource * aResource ) {
+        const uint64 currSize = RenderCore::GetBuffer( aResource->myBuffer )->GetByteSize();
+        return ( someFlags & FORCE_SIZE ) > 0 ? currSize == desiredSize : currSize >= desiredSize;
+      } );
 
       if ( it != availableList.end() ) {
         GpuBufferResource * res = ( *it );

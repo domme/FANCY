@@ -10,11 +10,9 @@ namespace Fancy {
     void Render();
 
   private:
-    void ScrollAndScale( float64 aMinStartTime, float64 aMaxEndTime, float aRectMinX, float aRectMinY, float aRectMaxX,
-                         float aRectMaxY );
+    void ScrollAndScale( float64 aMinStartTime, float64 aMaxEndTime, float aRectMinX, float aRectMinY, float aRectMaxX, float aRectMaxY );
     void RenderRuler( float64 aMinStartTime );
-    void RenderTimelines( float64 aMinStartTime, float64 aMaxEndTime, uint & aFirstRenderedFrame,
-                          uint & aLastRenderedFrame );
+    void RenderTimelines( float64 aMinStartTime, float64 aMaxEndTime, uint & aFirstRenderedFrame, uint & aLastRenderedFrame );
 
     bool  myIsPaused;
     bool  myIsShowingTimeline[ 2 ];

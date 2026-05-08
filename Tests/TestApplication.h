@@ -26,8 +26,7 @@ namespace Fancy {
 class TestApplication : public Fancy::Application {
 public:
   TestApplication( HINSTANCE anInstanceHandle, const char ** someArguments, uint aNumArguments, const char * aName,
-                   const Fancy::RenderPlatformProperties & someRenderProperties,
-                   const Fancy::WindowParameters &         someWindowParams );
+                   const Fancy::RenderPlatformProperties & someRenderProperties, const Fancy::WindowParameters & someWindowParams );
 
   ~TestApplication() override;
   void OnWindowResized( uint aWidth, uint aHeight ) override;
@@ -42,8 +41,7 @@ private:
       myTests.erase_first_unsorted( aTestPtr.get() );
       aTestPtr.reset();
     } else {
-      aTestPtr = eastl::make_unique< T >( myAssetManager.get(), myRenderOutput->GetWindow(), myRenderOutput.get(),
-                                          &myInputState );
+      aTestPtr = eastl::make_unique< T >( myAssetManager.get(), myRenderOutput->GetWindow(), myRenderOutput.get(), &myInputState );
       myTests.push_back( aTestPtr.get() );
     }
   }

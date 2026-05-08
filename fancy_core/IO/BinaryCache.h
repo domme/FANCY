@@ -24,17 +24,14 @@ namespace Fancy {
     static void WriteScene( const char * aSourceFilePath, SceneData & aSceneData );
     static bool ReadScene( const char * aSourceFilePath, SceneData & aSceneData );
 
-    static void WriteTextureData( const char * aSourceFilePath, TextureProperties & someTexProps,
-                                  TextureData & aTextureData );
-    static bool ReadTextureData( const char * aSourceFilePath, TextureProperties & someTexProps,
-                                 TextureData & aTextureData );
+    static void WriteTextureData( const char * aSourceFilePath, TextureProperties & someTexProps, TextureData & aTextureData );
+    static bool ReadTextureData( const char * aSourceFilePath, TextureProperties & someTexProps, TextureData & aTextureData );
 
   private:
     static bool HasValidDiskCache( const char * aPath );
 
     static bool SerializeScene( BinarySerializer & aSerializer, SceneData & aSceneData );
-    static bool SerializeTextureData( BinarySerializer & aSerializer, TextureProperties & someTexProps,
-                                      TextureData & aTextureData );
+    static bool SerializeTextureData( BinarySerializer & aSerializer, TextureProperties & someTexProps, TextureData & aTextureData );
     //---------------------------------------------------------------------------//
   };
 }  // namespace Fancy

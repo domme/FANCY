@@ -69,8 +69,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   ShaderVisibleDescriptorHeapDX12::ShaderVisibleDescriptorHeapDX12( const RenderPlatformProperties & someProperties ) {
     for ( uint i = 0; i < GLOBAL_RESOURCE_NUM; ++i ) {
-      const uint numDescriptors =
-          RenderCore::GetNumDescriptors( static_cast< GlobalResourceType >( i ), someProperties );
+      const uint numDescriptors = RenderCore::GetNumDescriptors( static_cast< GlobalResourceType >( i ), someProperties );
       myNumGlobalDescriptors[ i ] = numDescriptors;
       myAllocators[ i ] = PagedLinearAllocator( numDescriptors );
     }
@@ -119,22 +118,20 @@ namespace Fancy {
 
     // Initialize heaps with null-descriptors
     for ( uint i = 0; i < GLOBAL_RESOURCE_NUM; ++i ) {
-      const uint handleIncrementSize =
-          i == GLOBAL_RESOURCE_SAMPLER ? mySamplerHandleIncrementSize : myResourceHandleIncrementSize;
+      const uint handleIncrementSize = i == GLOBAL_RESOURCE_SAMPLER ? mySamplerHandleIncrementSize : myResourceHandleIncrementSize;
 
       if ( myNumGlobalDescriptors[ i ] > 0 ) {
         const GlobalResourceType GlobalType = static_cast< GlobalResourceType >( i );
 
-        const DescriptorDX12 & nullDescriptor = RenderCore::GetPlatformDX12()->GetNullDescriptor(
-            Private::GetDescriptorRangeType( GlobalType ), Private::GetResourceDimension( GlobalType ) );
+        const DescriptorDX12 & nullDescriptor =
+            RenderCore::GetPlatformDX12()->GetNullDescriptor( Private::GetDescriptorRangeType( GlobalType ), Private::GetResourceDimension( GlobalType ) );
 
         for ( uint k = 0; k < myNumGlobalDescriptors[ i ]; ++k ) {
           D3D12_CPU_DESCRIPTOR_HANDLE dstDescriptor = myGlobalDescriptorCpuHeapStart[ i ];
           dstDescriptor.ptr += k * handleIncrementSize;
 
           device->CopyDescriptorsSimple( 1, dstDescriptor, nullDescriptor.myCpuHandle,
-                                         i == GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER
-                                                                      : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV );
+                                         i == GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV );
         }
       }
     }
@@ -157,25 +154,22 @@ namespace Fancy {
       // For debugging, this could also become a special error-resource for detecting if something deleted is accessed
       // in a shader.
 
-      const DescriptorDX12 & nullDescriptor = RenderCore::GetPlatformDX12()->GetNullDescriptor(
-          Private::GetDescriptorRangeType( resourceType ), Private::GetResourceDimension( resourceType ) );
+      const DescriptorDX12 & nullDescriptor =
+          RenderCore::GetPlatformDX12()->GetNullDescriptor( Private::GetDescriptorRangeType( resourceType ), Private::GetResourceDimension( resourceType ) );
 
       D3D12_CPU_DESCRIPTOR_HANDLE dst;
       dst.ptr = myGlobalDescriptorCpuHeapStart[ resourceType ].ptr +
-                descriptorToFree.myIndex * ( resourceType == GLOBAL_RESOURCE_SAMPLER ? mySamplerHandleIncrementSize
-                                                                                     : myResourceHandleIncrementSize );
+                descriptorToFree.myIndex * ( resourceType == GLOBAL_RESOURCE_SAMPLER ? mySamplerHandleIncrementSize : myResourceHandleIncrementSize );
       RenderCore::GetPlatformDX12()->GetDevice()->CopyDescriptorsSimple( 1, dst, nullDescriptor.myCpuHandle,
-                                                                         resourceType == GLOBAL_RESOURCE_SAMPLER
-                                                                             ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER
-                                                                             : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV );
+                                                                         resourceType == GLOBAL_RESOURCE_SAMPLER ? D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER
+                                                                                                                 : D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV );
 #endif
     }
 
     myDescriptorsToFree[ freeListToProcess ].clear();
   }
   //---------------------------------------------------------------------------//
-  DescriptorDX12 ShaderVisibleDescriptorHeapDX12::AllocateDescriptor( GlobalResourceType aType,
-                                                                      const char *       aDebugName ) {
+  DescriptorDX12 ShaderVisibleDescriptorHeapDX12::AllocateDescriptor( GlobalResourceType aType, const char * aDebugName ) {
     ASSERT( myAllocators[ aType ].GetPageSize() != 0 );
 
     uint64                             offset;
@@ -192,14 +186,12 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void ShaderVisibleDescriptorHeapDX12::FreeDescriptorAfterFrameDone( const DescriptorDX12 & aDescriptor ) {
-    ASSERT( aDescriptor.myGlobalResourceType != GLOBAL_RESOURCE_NUM && aDescriptor.myIsShaderVisible &&
-            aDescriptor.myIsManagedByAllocator );
+    ASSERT( aDescriptor.myGlobalResourceType != GLOBAL_RESOURCE_NUM && aDescriptor.myIsShaderVisible && aDescriptor.myIsManagedByAllocator );
     ASSERT( myAllocators[ aDescriptor.myGlobalResourceType ].GetPageSize() != 0 );
     ASSERT( aDescriptor.myGlobalResourceIndex < myNumGlobalDescriptors[ aDescriptor.myGlobalResourceType ] );
 
     const uint freeListIdx = Time::ourFrameIdx % ourNumGlobalFreeLists;
-    myDescriptorsToFree[ freeListIdx ].push_back(
-        { aDescriptor.myGlobalResourceType, aDescriptor.myGlobalResourceIndex } );
+    myDescriptorsToFree[ freeListIdx ].push_back( { aDescriptor.myGlobalResourceType, aDescriptor.myGlobalResourceIndex } );
   }
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

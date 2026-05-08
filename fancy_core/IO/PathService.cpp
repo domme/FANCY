@@ -203,8 +203,7 @@ namespace Fancy {
 
       CloseHandle( hFile );
 
-      lastWriteTimeStamp =
-          ( static_cast< uint64 >( lastWriteTime.dwHighDateTime ) << 32 ) | lastWriteTime.dwLowDateTime;
+      lastWriteTimeStamp = ( static_cast< uint64 >( lastWriteTime.dwHighDateTime ) << 32 ) | lastWriteTime.dwLowDateTime;
 
       return lastWriteTimeStamp;
     }

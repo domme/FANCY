@@ -8,25 +8,20 @@
 using namespace Fancy;
 
 RtShaderBindingTable::RtShaderBindingTable( const RtShaderBindingTableProperties & someProps )
-    : myProperties( someProps ), myMappedSbtData( nullptr ), myAlignedShaderRecordSizeBytes( 0u ), myRecordTypeOffset{},
-      myNumUsedRecords{}, myMaxNumRecords{} {
+    : myProperties( someProps ), myMappedSbtData( nullptr ), myAlignedShaderRecordSizeBytes( 0u ), myRecordTypeOffset{}, myNumUsedRecords{}, myMaxNumRecords{} {
   const RenderPlatformCaps & caps = RenderCore::GetPlatformCaps();
 
-  myAlignedShaderRecordSizeBytes =
-      ( uint ) MathUtil::Align( caps.myRaytracingShaderIdentifierSizeBytes, caps.myRaytracingShaderRecordAlignment );
+  myAlignedShaderRecordSizeBytes = ( uint ) MathUtil::Align( caps.myRaytracingShaderIdentifierSizeBytes, caps.myRaytracingShaderRecordAlignment );
   ASSERT( myAlignedShaderRecordSizeBytes > 0 && myAlignedShaderRecordSizeBytes < caps.myRaytracingMaxShaderRecordSize );
-  ASSERT(
-      MathUtil::IsAligned( caps.myRaytracingShaderTableAddressAlignment,
-                           myAlignedShaderRecordSizeBytes ) );  // Make sure the table address alignment is a multiple
-                                                                // of the shaderRecord size. The code below assumes we
-                                                                // can express table-ranges as number of records
+  ASSERT( MathUtil::IsAligned( caps.myRaytracingShaderTableAddressAlignment,
+                               myAlignedShaderRecordSizeBytes ) );  // Make sure the table address alignment is a multiple
+                                                                    // of the shaderRecord size. The code below assumes we
+                                                                    // can express table-ranges as number of records
 
-  uint tableAddressAlignmentInNumRecords =
-      caps.myRaytracingShaderTableAddressAlignment / myAlignedShaderRecordSizeBytes;
+  uint tableAddressAlignmentInNumRecords = caps.myRaytracingShaderTableAddressAlignment / myAlignedShaderRecordSizeBytes;
   ASSERT( tableAddressAlignmentInNumRecords > 0 );
 
-  const uint numRecords[] = { myProperties.myNumRaygenShaderRecords, myProperties.myNumMissShaderRecords,
-                              myProperties.myNumHitShaderRecords };
+  const uint numRecords[] = { myProperties.myNumRaygenShaderRecords, myProperties.myNumMissShaderRecords, myProperties.myNumHitShaderRecords };
   static_assert( ARRAY_LENGTH( numRecords ) == RT_SHADER_IDENTIFIER_TYPE_NUM, "Invalid array size" );
 
   uint overallNumRecords = 0;

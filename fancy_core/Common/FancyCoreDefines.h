@@ -8,13 +8,13 @@
 using FixedShortString = eastl::fixed_string< char, 32 >;
 
 // Common MACRO defines
-#define SAFE_DELETE( p )                                                                                               \
-  if ( p ) {                                                                                                           \
-    delete p;                                                                                                          \
-    p = NULL;                                                                                                          \
+#define SAFE_DELETE( p )                                                                                                                                       \
+  if ( p ) {                                                                                                                                                   \
+    delete p;                                                                                                                                                  \
+    p = NULL;                                                                                                                                                  \
   }
-#define SAFE_DELETE_ARR( p )                                                                                           \
-  if ( p[ 0 ] )                                                                                                        \
+#define SAFE_DELETE_ARR( p )                                                                                                                                   \
+  if ( p[ 0 ] )                                                                                                                                                \
     delete[] p;
 #define BUFFER_OFFSET( i ) ( ( char * ) NULL + ( i ) )
 #define SIZE_MB ( 1024 * 1024 )

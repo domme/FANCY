@@ -42,7 +42,7 @@ namespace Fancy {
     void         UpdateShaderByteCodeHash();
 
     Shader * myShaders[ SHADERSTAGE_NUM ];
-    uint64 myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
+    uint64   myShaderByteCodeHash;  /// Can be used as "deep" comparison that is also affected when shaders are recompiled
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

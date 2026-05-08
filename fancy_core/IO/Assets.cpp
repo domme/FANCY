@@ -9,8 +9,8 @@
 #include "Common/CommandLine.h"
 
 namespace Fancy {
-  ResourcePool< Mesh, 2048, MeshDesc >           Assets::ourMeshPool;
-  ResourcePool< Material, 2048, MaterialDesc >   Assets::ourMaterialPool;
+  ResourcePool< Mesh, 2048, MeshDesc >         Assets::ourMeshPool;
+  ResourcePool< Material, 2048, MaterialDesc > Assets::ourMaterialPool;
   //---------------------------------------------------------------------------//
   void Assets::Init() {
     // Shader resources and texture caching are now managed by RenderCore
@@ -57,8 +57,7 @@ namespace Fancy {
       bufferParams.myNumElements = numVertices;
       bufferParams.myElementSizeBytes = overallVertexSize;
 
-      StaticString< 256 > name( "VertexBuffer_Mesh_%d_%s_%lld", i, aMeshData.myDesc.myName.c_str(),
-                                aMeshData.myDesc.myHash );
+      StaticString< 256 > name( "VertexBuffer_Mesh_%d_%s_%lld", i, aMeshData.myDesc.myName.c_str(), aMeshData.myDesc.myHash );
       meshPart->myVertexBuffer = RenderCore::CreateBuffer( bufferParams, name, ptrToVertexData );
 
       const uint8 * ptrToIndexData = partData.myIndexData.data();
@@ -83,8 +82,7 @@ namespace Fancy {
     MathUtil::BeginMultiHash();
 
     for ( uint i = 0u; i < aNumParts; ++i )
-      MathUtil::AddToMultiHash( someMeshPartDatas[ i ].myVertexData.data(),
-                                VECTOR_BYTESIZE( someMeshPartDatas[ i ].myVertexData ) );
+      MathUtil::AddToMultiHash( someMeshPartDatas[ i ].myVertexData.data(), VECTOR_BYTESIZE( someMeshPartDatas[ i ].myVertexData ) );
 
     return MathUtil::EndMultiHash();
   }

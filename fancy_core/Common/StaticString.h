@@ -113,8 +113,7 @@ namespace Fancy {
     void AppendInternal( const char * aFormatString, va_list args ) {
       const uint remainingSize = BufferSize - myNextFree;
       ASSERT( remainingSize > 0 );
-      const int numCharsNeeded =
-          vsnprintf( myBuffer + myNextFree, static_cast< size_t >( remainingSize ), aFormatString, args ) + 1;
+      const int numCharsNeeded = vsnprintf( myBuffer + myNextFree, static_cast< size_t >( remainingSize ), aFormatString, args ) + 1;
       ASSERT( numCharsNeeded - 1 <= ( int ) remainingSize );
       myNextFree += numCharsNeeded - 1;
     }

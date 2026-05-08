@@ -9,8 +9,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   template < class T > class SmallObjectAllocator {
   public:
-    SmallObjectAllocator( uint aPageSize )
-        : myPageSize( aPageSize ), myNextFreeEntry( nullptr ), myLastAllocatedPage( nullptr ) {
+    SmallObjectAllocator( uint aPageSize ) : myPageSize( aPageSize ), myNextFreeEntry( nullptr ), myLastAllocatedPage( nullptr ) {
       AllocateNewPage();
     }
     //---------------------------------------------------------------------------//
@@ -62,8 +61,7 @@ namespace Fancy {
     AllocatedPage * myLastAllocatedPage;
     //---------------------------------------------------------------------------//
     void AllocateNewPage() {
-      AllocatedPage * newPage =
-          ( AllocatedPage * ) malloc( sizeof( AllocatedPage ) + ( sizeof( Entry ) * myPageSize ) );
+      AllocatedPage * newPage = ( AllocatedPage * ) malloc( sizeof( AllocatedPage ) + ( sizeof( Entry ) * myPageSize ) );
       newPage->myNext = myLastAllocatedPage;
       myLastAllocatedPage = newPage;
 

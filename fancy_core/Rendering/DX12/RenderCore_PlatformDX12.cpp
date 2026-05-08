@@ -883,8 +883,7 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
     uint            i = 0;
     IDXGIAdapter1 * adapter;
     eastl::string   defaultAdapterName;
-    while ( dxgiFactory->EnumAdapterByGpuPreference( i, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
-                                                     IID_PPV_ARGS( &adapter ) ) != DXGI_ERROR_NOT_FOUND ) {
+    while ( dxgiFactory->EnumAdapterByGpuPreference( i, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS( &adapter ) ) != DXGI_ERROR_NOT_FOUND ) {
       DXGI_ADAPTER_DESC1 desc;
       adapter->GetDesc1( &desc );
 
@@ -968,9 +967,9 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
   myCaps.myHasAsyncCopy = true;
 
   D3D12_FEATURE_DATA_D3D12_OPTIONS5 options;
-  HRESULT result = ourDevice->CheckFeatureSupport( D3D12_FEATURE_D3D12_OPTIONS5, &options, sizeof( options ) );
-  myCaps.mySupportsRaytracing = result == S_OK && options.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED &&
-                                !CommandLine::GetInstance()->HasArgument( "noRT" );
+  HRESULT                           result = ourDevice->CheckFeatureSupport( D3D12_FEATURE_D3D12_OPTIONS5, &options, sizeof( options ) );
+  myCaps.mySupportsRaytracing =
+      result == S_OK && options.RaytracingTier != D3D12_RAYTRACING_TIER_NOT_SUPPORTED && !CommandLine::GetInstance()->HasArgument( "noRT" );
   if ( myCaps.mySupportsRaytracing )
     LOG_INFO( "DXR Raytracing is supported with RT tier %i", ( int ) options.RaytracingTier );
   else
@@ -982,16 +981,17 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
     // D3D12_FEATURE_D3D12_OPTIONS12 is only recognised by the Agility SDK runtime. If result is
     // E_INVALIDARG / DXGI_ERROR_UNSUPPORTED the inbox D3D12.dll is being used instead — check that
     // D3D12Core.dll is next to the .exe and that D3D12SDKVersion / D3D12SDKPath are exported.
-    ASSERT( false, "CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12) failed (HRESULT 0x%08X). "
-                   "The Agility SDK may not be loading — verify D3D12Core.dll is in the same "
-                   "directory as the executable and that D3D12SDKVersion / D3D12SDKPath are "
-                   "exported from the main module.", result );
+    ASSERT( false,
+            "CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12) failed (HRESULT 0x%08X). "
+            "The Agility SDK may not be loading — verify D3D12Core.dll is in the same "
+            "directory as the executable and that D3D12SDKVersion / D3D12SDKPath are "
+            "exported from the main module.",
+            result );
   }
   // EnhancedBarriersSupported requires the GPU driver to explicitly opt in.
   // NVIDIA: driver >= 527.37 (Nov 2022). AMD: driver >= 22.11.1. Intel: driver >= 30.0.101.1191.
-  ASSERT( options12.EnhancedBarriersSupported,
-          "D3D12 Enhanced Barriers are not supported. Update your GPU driver: "
-          "NVIDIA >= 527.37 (Nov 2022), AMD >= 22.11.1, Intel >= 30.0.101.1191" );
+  ASSERT( options12.EnhancedBarriersSupported, "D3D12 Enhanced Barriers are not supported. Update your GPU driver: "
+                                               "NVIDIA >= 527.37 (Nov 2022), AMD >= 22.11.1, Intel >= 30.0.101.1191" );
   LOG_INFO( "D3D12 Enhanced Barriers supported" );
 }
 //---------------------------------------------------------------------------//
@@ -1000,11 +1000,9 @@ void RenderCore_PlatformDX12::BeginFrame() {
 }
 //---------------------------------------------------------------------------//
 bool RenderCore_PlatformDX12::InitInternalResources() {
-  ourCommandAllocatorPools[ ( uint ) CommandListType::Graphics ].reset(
-      new CommandAllocatorPoolDX12( CommandListType::Graphics ) );
+  ourCommandAllocatorPools[ ( uint ) CommandListType::Graphics ].reset( new CommandAllocatorPoolDX12( CommandListType::Graphics ) );
   if ( myCaps.myHasAsyncCompute )
-    ourCommandAllocatorPools[ ( uint ) CommandListType::Compute ].reset(
-        new CommandAllocatorPoolDX12( CommandListType::Compute ) );
+    ourCommandAllocatorPools[ ( uint ) CommandListType::Compute ].reset( new CommandAllocatorPoolDX12( CommandListType::Compute ) );
 
   myGpuMemoryAllocators[ ( uint ) GpuMemoryType::BUFFER ][ ( uint ) CpuMemoryAccessType::NO_CPU_ACCESS ].reset(
       new GpuMemoryAllocatorDX12( GpuMemoryType::BUFFER, CpuMemoryAccessType::NO_CPU_ACCESS, 64 * SIZE_MB ) );
@@ -1029,12 +1027,9 @@ bool RenderCore_PlatformDX12::InitInternalResources() {
 
   myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ].reset(
       new StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1024u ) );
-  myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ].reset(
-      new StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 512u ) );
-  myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_RTV ].reset(
-      new StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 64u ) );
-  myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_DSV ].reset(
-      new StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 64u ) );
+  myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ].reset( new StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 512u ) );
+  myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_RTV ].reset( new StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 64u ) );
+  myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_DSV ].reset( new StaticDescriptorAllocatorDX12( D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 64u ) );
 
   InitNullDescriptors();  // Must be available before creating dynamic descriptor heaps
 
@@ -1220,14 +1215,11 @@ void RenderCore_PlatformDX12::ReleaseCommandAllocator( ID3D12CommandAllocator * 
   ourCommandAllocatorPools[ ( uint ) type ]->ReleaseAllocator( anAllocator, aFenceVal );
 }
 //---------------------------------------------------------------------------//
-DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE aHeapType,
-                                                            const char *               aDebugName /* = nullptr*/ ) {
+DescriptorDX12 RenderCore_PlatformDX12::AllocateDescriptor( D3D12_DESCRIPTOR_HEAP_TYPE aHeapType, const char * aDebugName /* = nullptr*/ ) {
   return myStaticDescriptorAllocators[ ( uint ) aHeapType ]->AllocateDescriptor( aDebugName );
 }
 //---------------------------------------------------------------------------//
-DescriptorDX12
-RenderCore_PlatformDX12::AllocateShaderVisibleDescriptorForGlobalResource( GlobalResourceType aGlobalResourceType,
-                                                                           const char *       aDebugName ) {
+DescriptorDX12 RenderCore_PlatformDX12::AllocateShaderVisibleDescriptorForGlobalResource( GlobalResourceType aGlobalResourceType, const char * aDebugName ) {
   return myShaderVisibleDescriptorHeap->AllocateDescriptor( aGlobalResourceType, aDebugName );
 }
 //---------------------------------------------------------------------------//
@@ -1244,22 +1236,18 @@ CommandQueueDX12 * RenderCore_PlatformDX12::GetCommandQueueDX12( CommandListType
   return static_cast< CommandQueueDX12 * >( RenderCore::GetCommandQueue( aCommandListType ) );
 }
 //---------------------------------------------------------------------------//
-GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory( GpuMemoryType       aType,
-                                                                    CpuMemoryAccessType anAccessType, uint64 aSize,
-                                                                    uint         anAlignment,
+GpuMemoryAllocationDX12 RenderCore_PlatformDX12::AllocateGpuMemory( GpuMemoryType aType, CpuMemoryAccessType anAccessType, uint64 aSize, uint anAlignment,
                                                                     const char * aDebugName /*= nullptr*/ ) {
   return myGpuMemoryAllocators[ ( uint ) aType ][ ( uint ) anAccessType ]->Allocate( aSize, anAlignment, aDebugName );
 }
 //---------------------------------------------------------------------------//
 void RenderCore_PlatformDX12::ReleaseGpuMemory( GpuMemoryAllocationDX12 & anAllocation ) {
   GpuMemoryType       type = Adapter::ResolveGpuMemoryType( anAllocation.myHeap->GetDesc().Flags );
-  CpuMemoryAccessType accessType =
-      Adapter::ResolveGpuMemoryAccessType( anAllocation.myHeap->GetDesc().Properties.Type );
+  CpuMemoryAccessType accessType = Adapter::ResolveGpuMemoryAccessType( anAllocation.myHeap->GetDesc().Properties.Type );
   myGpuMemoryAllocators[ ( uint ) type ][ ( uint ) accessType ]->Free( anAllocation );
 }
 //---------------------------------------------------------------------------//
-RenderOutput * RenderCore_PlatformDX12::CreateRenderOutput( void *                   aNativeInstanceHandle,
-                                                            const WindowParameters & someWindowParams ) {
+RenderOutput * RenderCore_PlatformDX12::CreateRenderOutput( void * aNativeInstanceHandle, const WindowParameters & someWindowParams ) {
   return new RenderOutputDX12( aNativeInstanceHandle, someWindowParams );
 }
 //---------------------------------------------------------------------------//
@@ -1295,27 +1283,23 @@ CommandQueue * RenderCore_PlatformDX12::CreateCommandQueue( CommandListType aTyp
   return new CommandQueueDX12( aType );
 }
 //---------------------------------------------------------------------------//
-TextureView * RenderCore_PlatformDX12::CreateTextureView( Texture *                     aTexture,
-                                                          const TextureViewProperties & someProperties,
-                                                          const char *                  aDebugName /* = nullptr */ ) {
+TextureView * RenderCore_PlatformDX12::CreateTextureView( Texture * aTexture, const TextureViewProperties & someProperties,
+                                                          const char * aDebugName /* = nullptr */ ) {
   return new TextureViewDX12( aTexture, someProperties, aDebugName );
 }
 //---------------------------------------------------------------------------//
-GpuBufferView * RenderCore_PlatformDX12::CreateBufferView( GpuBuffer *                     aBuffer,
-                                                           const GpuBufferViewProperties & someProperties,
+GpuBufferView * RenderCore_PlatformDX12::CreateBufferView( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
                                                            const char * aDebugName /* = nullptr */ ) {
   return new GpuBufferViewDX12( aBuffer, someProperties, aDebugName );
 }
 //---------------------------------------------------------------------------//
-RtAccelerationStructure * RenderCore_PlatformDX12::CreateRtBottomLevelAccelerationStructure(
-    const RtAccelerationStructureGeometryData * someGeometries, uint aNumGeometries, uint aSomeFlags,
-    const char * aName ) {
+RtAccelerationStructure * RenderCore_PlatformDX12::CreateRtBottomLevelAccelerationStructure( const RtAccelerationStructureGeometryData * someGeometries,
+                                                                                             uint aNumGeometries, uint aSomeFlags, const char * aName ) {
   return new RtAccelerationStructureDX12( someGeometries, aNumGeometries, aSomeFlags, aName );
 }
 //---------------------------------------------------------------------------//
-RtAccelerationStructure * RenderCore_PlatformDX12::CreateRtTopLevelAccelerationStructure(
-    const RtAccelerationStructureInstanceData * someInstances, uint aNumInstances, uint someFlags,
-    const char * aName ) {
+RtAccelerationStructure * RenderCore_PlatformDX12::CreateRtTopLevelAccelerationStructure( const RtAccelerationStructureInstanceData * someInstances,
+                                                                                          uint aNumInstances, uint someFlags, const char * aName ) {
   return new RtAccelerationStructureDX12( someInstances, aNumInstances, someFlags, aName );
 }
 //---------------------------------------------------------------------------//
@@ -1346,21 +1330,18 @@ float64 RenderCore_PlatformDX12::GetGpuTicksToMsFactor( CommandListType aCommand
   return 1000.0f / timestampFrequency;
 }
 //---------------------------------------------------------------------------//
-Microsoft::WRL::ComPtr< IDXGISwapChain >
-RenderCore_PlatformDX12::CreateSwapChain( const DXGI_SWAP_CHAIN_DESC & aSwapChainDesc ) {
+Microsoft::WRL::ComPtr< IDXGISwapChain > RenderCore_PlatformDX12::CreateSwapChain( const DXGI_SWAP_CHAIN_DESC & aSwapChainDesc ) {
   Microsoft::WRL::ComPtr< IDXGIFactory4 > dxgiFactory;
   ASSERT_HRESULT( CreateDXGIFactory1( IID_PPV_ARGS( &dxgiFactory ) ) );
 
   DXGI_SWAP_CHAIN_DESC swapChainDesc = aSwapChainDesc;
 
   Microsoft::WRL::ComPtr< IDXGISwapChain > swapChain;
-  ASSERT_HRESULT( dxgiFactory->CreateSwapChain( GetCommandQueueDX12( CommandListType::Graphics )->myQueue.Get(),
-                                                &swapChainDesc, &swapChain ) );
+  ASSERT_HRESULT( dxgiFactory->CreateSwapChain( GetCommandQueueDX12( CommandListType::Graphics )->myQueue.Get(), &swapChainDesc, &swapChain ) );
   return swapChain;
 }
 //---------------------------------------------------------------------------//
-const DescriptorDX12 & RenderCore_PlatformDX12::GetNullDescriptor( D3D12_DESCRIPTOR_RANGE_TYPE aType,
-                                                                   GpuResourceDimension aResouceDimension ) const {
+const DescriptorDX12 & RenderCore_PlatformDX12::GetNullDescriptor( D3D12_DESCRIPTOR_RANGE_TYPE aType, GpuResourceDimension aResouceDimension ) const {
   switch ( aType ) {
     case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
       return mySRVNullDescriptors[ ( uint ) aResouceDimension ];

@@ -111,8 +111,7 @@ namespace Fancy {
     }
   }
   //---------------------------------------------------------------------------//
-  D3D12_RESOURCE_DIMENSION Adapter::ResolveResourceDimension( GpuResourceDimension aDimension, bool & aCubeMapOut,
-                                                              bool & anArrayOut ) {
+  D3D12_RESOURCE_DIMENSION Adapter::ResolveResourceDimension( GpuResourceDimension aDimension, bool & aCubeMapOut, bool & anArrayOut ) {
     aCubeMapOut = false;
     anArrayOut = false;
 

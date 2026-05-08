@@ -16,8 +16,7 @@ namespace Fancy {
     const bool isCpuWritable = myProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE;
     const bool isCpuReadable = myProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ;
 
-    const bool wantsWrite =
-        aMapMode == GpuResourceMapMode::WRITE_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::WRITE;
+    const bool wantsWrite = aMapMode == GpuResourceMapMode::WRITE_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::WRITE;
     const bool wantsRead = aMapMode == GpuResourceMapMode::READ_UNSYNCHRONIZED || aMapMode == GpuResourceMapMode::READ;
 
     if ( ( wantsWrite && !isCpuWritable ) || ( wantsRead && !isCpuReadable ) )
@@ -44,8 +43,7 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
 
   //---------------------------------------------------------------------------//
-  GpuBufferView::GpuBufferView( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties,
-                                const char * aName )
+  GpuBufferView::GpuBufferView( GpuBuffer * aBuffer, const GpuBufferViewProperties & someProperties, const char * aName )
       : GpuResourceView( aBuffer, aName ), myProperties( someProperties ) {
     if ( someProperties.myIsConstantBuffer ) {
       myType = GpuResourceViewType::CBV;

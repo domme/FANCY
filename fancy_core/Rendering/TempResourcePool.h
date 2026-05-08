@@ -22,10 +22,8 @@ namespace Fancy {
     ~TempResourcePool();
 
     void                Reset();
-    TempTextureResource AllocateTexture( const TextureResourceProperties & someProps, uint someFlags,
-                                         const char * aName = nullptr );
-    TempBufferResource  AllocateBuffer( const GpuBufferResourceProperties & someProps, uint someFlags,
-                                        const char * aName = nullptr );
+    TempTextureResource AllocateTexture( const TextureResourceProperties & someProps, uint someFlags, const char * aName = nullptr );
+    TempBufferResource  AllocateBuffer( const GpuBufferResourceProperties & someProps, uint someFlags, const char * aName = nullptr );
 
   private:
     void FreeResource( void * aResource, uint64 aBucketHash );

@@ -17,9 +17,8 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   bool SubresourceRange::operator==( const SubresourceRange & anOther ) const {
-    return myFirstMipLevel == anOther.myFirstMipLevel && myFirstArrayIndex == anOther.myFirstArrayIndex &&
-           myFirstPlane == anOther.myFirstPlane && myNumMipLevels == anOther.myNumMipLevels &&
-           myNumArrayIndices == anOther.myNumArrayIndices && myNumPlanes == anOther.myNumPlanes;
+    return myFirstMipLevel == anOther.myFirstMipLevel && myFirstArrayIndex == anOther.myFirstArrayIndex && myFirstPlane == anOther.myFirstPlane &&
+           myNumMipLevels == anOther.myNumMipLevels && myNumArrayIndices == anOther.myNumArrayIndices && myNumPlanes == anOther.myNumPlanes;
   }
   //---------------------------------------------------------------------------//
   SubresourceIterator SubresourceRange::Begin() const {
@@ -77,8 +76,7 @@ namespace Fancy {
     if ( IsEnd() && anOther.IsEnd() )
       return true;
 
-    return myCurrentLocation.myMipLevel == anOther.myCurrentLocation.myMipLevel &&
-           myCurrentLocation.myArrayIndex == anOther.myCurrentLocation.myArrayIndex &&
+    return myCurrentLocation.myMipLevel == anOther.myCurrentLocation.myMipLevel && myCurrentLocation.myArrayIndex == anOther.myCurrentLocation.myArrayIndex &&
            myCurrentLocation.myPlaneIndex == anOther.myCurrentLocation.myPlaneIndex;
   }
   //---------------------------------------------------------------------------//
@@ -101,24 +99,20 @@ namespace Fancy {
 
     uint64 pitchSizeBytes;
     uint   heightBlocksOrPixels;
-    TextureData::ComputeRowPitchSizeAndBlockHeight( someProperties.myFormat, width, height, pitchSizeBytes,
-                                                    heightBlocksOrPixels );
+    TextureData::ComputeRowPitchSizeAndBlockHeight( someProperties.myFormat, width, height, pitchSizeBytes, heightBlocksOrPixels );
 
     myRowSizeBytes = pitchSizeBytes;
     mySliceSizeBytes = heightBlocksOrPixels * myRowSizeBytes;
     myTotalSizeBytes = depth * mySliceSizeBytes;
   }
   //---------------------------------------------------------------------------//
-  void TextureData::ComputeRowPitchSizeAndBlockHeight( DataFormat aFormat, uint aWidth, uint aHeight,
-                                                       uint64 & rowPitchSize, uint & aHeightBlocksOrPixels,
+  void TextureData::ComputeRowPitchSizeAndBlockHeight( DataFormat aFormat, uint aWidth, uint aHeight, uint64 & rowPitchSize, uint & aHeightBlocksOrPixels,
                                                        uint aPlane /*= 0*/ ) {
     const DataFormatInfo formatInfo( aFormat );
     if ( formatInfo.myIsCompressed )
-      rowPitchSize = static_cast< uint64 >( glm::max( 1u, MathUtil::DivideRoundUp( aWidth, 4u ) ) *
-                                            formatInfo.myCompressedBlockSizeBytes );
+      rowPitchSize = static_cast< uint64 >( glm::max( 1u, MathUtil::DivideRoundUp( aWidth, 4u ) ) * formatInfo.myCompressedBlockSizeBytes );
     else
-      rowPitchSize = static_cast< uint64 >(
-          MathUtil::DivideRoundUp( aWidth * formatInfo.myCopyableBitsPerPixelPerPlane[ aPlane ], 8u ) );
+      rowPitchSize = static_cast< uint64 >( MathUtil::DivideRoundUp( aWidth * formatInfo.myCopyableBitsPerPixelPerPlane[ aPlane ], 8u ) );
 
     aHeightBlocksOrPixels = formatInfo.myIsCompressed ? MathUtil::DivideRoundUp( aHeight, 4u ) : aHeight;
   }

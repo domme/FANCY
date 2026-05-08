@@ -7,8 +7,8 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   Camera::Camera()
-      : myIsOrtho( false ), myFovDeg( 0.0f ), myFar( 0.0f ), myNear( 0.0f ), myWidth( 0.0f ), myHeight( 0.0f ),
-        myLeft( 0.0f ), myRight( 0.0f ), myBottom( 0.0f ), myTop( 0.0f ) {}
+      : myIsOrtho( false ), myFovDeg( 0.0f ), myFar( 0.0f ), myNear( 0.0f ), myWidth( 0.0f ), myHeight( 0.0f ), myLeft( 0.0f ), myRight( 0.0f ),
+        myBottom( 0.0f ), myTop( 0.0f ) {}
   //---------------------------------------------------------------------------//
   Camera::~Camera() {}
   //---------------------------------------------------------------------------//
@@ -32,9 +32,7 @@ namespace Fancy {
   //|    |
   // 0----1
   void Camera::GetVerticesOnNearPlane( eastl::fixed_vector< glm::float3, 4 > & someVerticesOut ) {
-    glm::float3 verts[ 4 ] = {
-      { -1.0f, -1.0f, 0.0f }, { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, { -1.0f, 1.0f, 0.0f }
-    };
+    glm::float3 verts[ 4 ] = { { -1.0f, -1.0f, 0.0f }, { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, { -1.0f, 1.0f, 0.0f } };
 
     glm::float4x4 viewProjInv = glm::inverse( myViewProj );
 

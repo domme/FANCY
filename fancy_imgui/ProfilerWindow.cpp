@@ -25,10 +25,10 @@ namespace Fancy {
   static const float   kFrameGraphHeightScale = 0.45f;
   static const ImGuiID kFrameId_FrameGraph[ Profiler::TIMELINE_NUM ] = { 1, 2 };
   static const uint    kNumGraphFrames = 200;
-  static const float kRulerSubMarkerVerticalOffset = ( kRulerMarkerVerticalSize - kSubRulerMarkerVerticalSize ) * 0.5f;
-  static const ImU32 kRulerMarkerColor = ImGui::ColorConvertFloat4ToU32( ImVec4( .5f, .5f, .5f, .8f ) );
-  static const float kRulerMainMarkerThickness = 1.5f;
-  static const float kRulerSubMarkerThickness = 1.0f;
+  static const float   kRulerSubMarkerVerticalOffset = ( kRulerMarkerVerticalSize - kSubRulerMarkerVerticalSize ) * 0.5f;
+  static const ImU32   kRulerMarkerColor = ImGui::ColorConvertFloat4ToU32( ImVec4( .5f, .5f, .5f, .8f ) );
+  static const float   kRulerMainMarkerThickness = 1.5f;
+  static const float   kRulerSubMarkerThickness = 1.0f;
 
   static const char * kTimeUnitLabels[] = { "s", "ms", "us", "ns" };
 
@@ -128,15 +128,13 @@ namespace Fancy {
     ImGui::PopStyleColor( 1 );
 
     if ( ImGui::IsItemHovered() )
-      ImGui::SetTooltip( "%s \n  \t Start: %.6fms \n  \t Duration: %.3fms \n", nodeInfo.myName, aNode.myStart,
-                         aNode.myDuration );
+      ImGui::SetTooltip( "%s \n  \t Start: %.6fms \n  \t Duration: %.3fms \n", nodeInfo.myName, aNode.myStart, aNode.myDuration );
 
     return pressed;
   }
   //---------------------------------------------------------------------------//
-  static void RenderSampleRecursive( const Profiler::SampleNode & aNode, float64 aTimeToPixelScale,
-                                     float64 aMinStartTime, float aPixelOffset, float aFramePosLocalY, int aDepth,
-                                     Profiler::Timeline aTimeline ) {
+  static void RenderSampleRecursive( const Profiler::SampleNode & aNode, float64 aTimeToPixelScale, float64 aMinStartTime, float aPixelOffset,
+                                     float aFramePosLocalY, int aDepth, Profiler::Timeline aTimeline ) {
     if ( !aNode.myHasValidTimes )
       return;
 
@@ -152,14 +150,12 @@ namespace Fancy {
 
     if ( aNode.myChild != UINT_MAX ) {
       const Profiler::SampleNode & firstChild = recordedSamples[ aNode.myChild ];
-      RenderSampleRecursive( firstChild, aTimeToPixelScale, aMinStartTime, aPixelOffset, aFramePosLocalY, aDepth + 1,
-                             aTimeline );
+      RenderSampleRecursive( firstChild, aTimeToPixelScale, aMinStartTime, aPixelOffset, aFramePosLocalY, aDepth + 1, aTimeline );
     }
 
     if ( aNode.myNext != UINT_MAX ) {
       const Profiler::SampleNode & nextNode = recordedSamples[ aNode.myNext ];
-      RenderSampleRecursive( nextNode, aTimeToPixelScale, aMinStartTime, aPixelOffset, aFramePosLocalY, aDepth,
-                             aTimeline );
+      RenderSampleRecursive( nextNode, aTimeToPixelScale, aMinStartTime, aPixelOffset, aFramePosLocalY, aDepth, aTimeline );
     }
   }
   //---------------------------------------------------------------------------//
@@ -197,13 +193,11 @@ namespace Fancy {
       dl->AddLine( startPosGlobal, end, kFrameHeaderColor, kDefaultLineWidth );
     }
 
-    if ( ImGui::IsMouseHoveringRect( startPosGlobal,
-                                     ImVec2( startPosGlobal.x + aWidth, startPosGlobal.y + aWholeFrameHeight ) ) ) {
+    if ( ImGui::IsMouseHoveringRect( startPosGlobal, ImVec2( startPosGlobal.x + aWidth, startPosGlobal.y + aWholeFrameHeight ) ) ) {
       text = FormatString( "Frame %d - %.3fms\n"
                            "Start: %.3fms\n"
                            "End: %.3fms",
-                           aFrameData.myFrame, aFrameData.myDuration, ( float ) aFrameData.myStart.myTime,
-                           ( float ) aFrameData.myEnd.myTime );
+                           aFrameData.myFrame, aFrameData.myDuration, ( float ) aFrameData.myStart.myTime, ( float ) aFrameData.myEnd.myTime );
 
       ImGui::SetTooltip( text );
     }
@@ -221,8 +215,8 @@ namespace Fancy {
     window->DrawList->AddLine( start, end, kFrameBoundaryColor, kDefaultLineWidth );
   }
   //---------------------------------------------------------------------------//
-  static void RenderFrameTimeGraph( uint aFirstWindowFrame, uint aLastWindowFrame, float64 aMaxFrameTimePixelHeight,
-                                    float64 aMaxFrameTime, Profiler::Timeline aTimeline ) {
+  static void RenderFrameTimeGraph( uint aFirstWindowFrame, uint aLastWindowFrame, float64 aMaxFrameTimePixelHeight, float64 aMaxFrameTime,
+                                    Profiler::Timeline aTimeline ) {
     if ( aFirstWindowFrame == UINT_MAX )
       return;
 
@@ -233,8 +227,7 @@ namespace Fancy {
     uint lastGraphFrame = aLastWindowFrame;
     uint numGraphFrames = ( aLastWindowFrame - aFirstWindowFrame ) + 1u;
 
-    while ( numGraphFrames < kNumGraphFrames &&
-            ( firstGraphFrame != 0 || lastGraphFrame != recordedFrames.Size() - 1u ) ) {
+    while ( numGraphFrames < kNumGraphFrames && ( firstGraphFrame != 0 || lastGraphFrame != recordedFrames.Size() - 1u ) ) {
       if ( firstGraphFrame != 0 ) {
         --firstGraphFrame;
         ++numGraphFrames;
@@ -288,13 +281,11 @@ namespace Fancy {
 
   //---------------------------------------------------------------------------//
   ProfilerWindow::ProfilerWindow()
-      : myIsPaused( false ), myIsShowingTimeline{ true, true }, myFocusedTimeline( 0 ), myHorizontalOffset( 0.0f ),
-        myTimeToPixelScale( 40.0f ) {}
+      : myIsPaused( false ), myIsShowingTimeline{ true, true }, myFocusedTimeline( 0 ), myHorizontalOffset( 0.0f ), myTimeToPixelScale( 40.0f ) {}
   //---------------------------------------------------------------------------//
   ProfilerWindow::~ProfilerWindow() {}
   //---------------------------------------------------------------------------//
-  void ProfilerWindow::ScrollAndScale( float64 aMinStartTime, float64 aMaxEndTime, float aRectMinX, float aRectMinY,
-                                       float aRectMaxX, float aRectMaxY ) {
+  void ProfilerWindow::ScrollAndScale( float64 aMinStartTime, float64 aMaxEndTime, float aRectMinX, float aRectMinY, float aRectMaxX, float aRectMaxY ) {
     const ImVec2 frameGraphRect_min( aRectMinX, aRectMinY );
     const ImVec2 frameGraphRect_max( aRectMaxX, aRectMaxY );
 
@@ -317,8 +308,7 @@ namespace Fancy {
         // Adjust offset so the current mouse pos stays centered
         const float timelineSpace = -myHorizontalOffset;
         const float mousePos_TimelineSpace = glm::max( 0.0f, ToLocalPos( ImGui::GetMousePos() ).x - timelineSpace );
-        const float mouseAlongFrame =
-            overallTimelineWidth < FLT_EPSILON ? 0.0f : mousePos_TimelineSpace / overallTimelineWidth;
+        const float mouseAlongFrame = overallTimelineWidth < FLT_EPSILON ? 0.0f : mousePos_TimelineSpace / overallTimelineWidth;
 
         const float newTimelineSize = static_cast< float >( overallTimelineDuration * myTimeToPixelScale );
         const float newMousePos_TimelineSpace = mouseAlongFrame * newTimelineSize;
@@ -335,8 +325,7 @@ namespace Fancy {
     const char * mainMarkerTimeUnitLabel = kTimeUnitLabels[ 0 ];
     float        mainMarkerDurationMs = kTimeUnitToMsFactors[ 0 ];
     int          mainMarkerUnitIdx = 0;
-    while ( mainMarkerDurationMs * myTimeToPixelScale > 500 &&
-            mainMarkerUnitIdx < ARRAYSIZE( kMsToTimeUnitFactors ) - 1 ) {
+    while ( mainMarkerDurationMs * myTimeToPixelScale > 500 && mainMarkerUnitIdx < ARRAYSIZE( kMsToTimeUnitFactors ) - 1 ) {
       mainMarkerDurationMs /= 10.0f;
       if ( mainMarkerDurationMs <= kTimeUnitToMsFactors[ mainMarkerUnitIdx ] ) {
         ++mainMarkerUnitIdx;
@@ -346,8 +335,7 @@ namespace Fancy {
     }
 
     const float64 timeOffset = glm::max( 0.0f, myHorizontalOffset / myTimeToPixelScale );
-    const int     mainMarkerIndex =
-        static_cast< int >( glm::floor( ( aMinStartTime + timeOffset ) / mainMarkerDurationMs ) );
+    const int     mainMarkerIndex = static_cast< int >( glm::floor( ( aMinStartTime + timeOffset ) / mainMarkerDurationMs ) );
     const float64 firstMarkerTime = static_cast< float >( mainMarkerIndex ) * mainMarkerDurationMs;
     const float64 mainMarkerSize = mainMarkerDurationMs * myTimeToPixelScale;
     const float   subMarkerSize = mainMarkerSize / 10.0f;
@@ -365,8 +353,7 @@ namespace Fancy {
     const int   labelFrequency = glm::max( 1, ( int ) glm::ceil( expectedLabelSize / mainMarkerSize ) );
 
     float64 currMainMarkerTime = firstMarkerTime;
-    posGlobal.x =
-        ImGui::GetWindowPos().x + ( currMainMarkerTime - aMinStartTime ) * myTimeToPixelScale - myHorizontalOffset;
+    posGlobal.x = ImGui::GetWindowPos().x + ( currMainMarkerTime - aMinStartTime ) * myTimeToPixelScale - myHorizontalOffset;
     const float windowEndGlobalX = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() + mainMarkerSize;
     int         labelIndex = -( mainMarkerIndex % labelFrequency );
     while ( posGlobal.x < windowEndGlobalX ) {
@@ -376,11 +363,9 @@ namespace Fancy {
       // Small submarkers
       if ( subMarkerSize > 2 ) {
         for ( uint iSub = 0u; iSub < 9; ++iSub ) {
-          const ImVec2 subLineStartGlobal( markerLineStartG.x + ( iSub + 1 ) * subMarkerSize,
-                                           markerLineStartG.y + kRulerSubMarkerVerticalOffset );
+          const ImVec2 subLineStartGlobal( markerLineStartG.x + ( iSub + 1 ) * subMarkerSize, markerLineStartG.y + kRulerSubMarkerVerticalOffset );
           const ImVec2 subLineEndGlobal( subLineStartGlobal.x, markerLineEndG.y - 1.0f );
-          window->DrawList->AddLine( subLineStartGlobal, subLineEndGlobal, kRulerMarkerColor,
-                                     kRulerSubMarkerThickness );
+          window->DrawList->AddLine( subLineStartGlobal, subLineEndGlobal, kRulerMarkerColor, kRulerSubMarkerThickness );
         }
       }
 
@@ -390,8 +375,7 @@ namespace Fancy {
 
         if ( labelIndex == 0 ) {
           labelIndex -= labelFrequency;
-          const char * label =
-              FormatString( "%d%s", ( int ) ( currMainMarkerTime - firstMarkerTime ), mainMarkerTimeUnitLabel );
+          const char * label = FormatString( "%d%s", ( int ) ( currMainMarkerTime - firstMarkerTime ), mainMarkerTimeUnitLabel );
           const float  textWidth = ImGui::CalcTextSize( label ).x;
           const ImVec2 labelPos( markerLineEndG.x - textWidth * 0.5f, markerLineEndG.y + kLabelVerticalOffset );
           window->DrawList->AddText( labelPos, kRulerMarkerColor, label );
@@ -404,14 +388,11 @@ namespace Fancy {
       posGlobal.x += mainMarkerSize;
     }
 
-    ImGui::SetCursorPos(
-        ImVec2( initialCursorPos.x, ( posGlobal.y - ImGui::GetWindowPos().y ) + kRulerMarkerVerticalSize + 20.0f ) );
+    ImGui::SetCursorPos( ImVec2( initialCursorPos.x, ( posGlobal.y - ImGui::GetWindowPos().y ) + kRulerMarkerVerticalSize + 20.0f ) );
   }
   //---------------------------------------------------------------------------//
-  void ProfilerWindow::RenderTimelines( float64 aMinStartTime, float64 aMaxEndTime, uint & aFirstRenderedFrame,
-                                        uint & aLastRenderedFrame ) {
-    const ImVec2 timelineRectSize( ImGui::GetWindowWidth(),
-                                   ( ImGui::GetWindowHeight() * kFrameGraphHeightScale ) / Profiler::TIMELINE_NUM );
+  void ProfilerWindow::RenderTimelines( float64 aMinStartTime, float64 aMaxEndTime, uint & aFirstRenderedFrame, uint & aLastRenderedFrame ) {
+    const ImVec2 timelineRectSize( ImGui::GetWindowWidth(), ( ImGui::GetWindowHeight() * kFrameGraphHeightScale ) / Profiler::TIMELINE_NUM );
     const char * timelineNames[ Profiler::TIMELINE_NUM ] = { "Main", "GPU" };
 
     uint firstWindowFrame = UINT_MAX;
@@ -424,8 +405,8 @@ namespace Fancy {
         timelineMinY = ImGui::GetCursorPosY();
         const ImVec2 timelineRectMinLocal = ImGui::GetCursorPos();
         const ImVec2 timelineRectMinGlobal = ToGlobalPos( timelineRectMinLocal );
-        ScrollAndScale( aMinStartTime, aMaxEndTime, timelineRectMinGlobal.x, timelineRectMinGlobal.y,
-                        timelineRectMinGlobal.x + timelineRectSize.x, timelineRectMinGlobal.y + timelineRectSize.y );
+        ScrollAndScale( aMinStartTime, aMaxEndTime, timelineRectMinGlobal.x, timelineRectMinGlobal.y, timelineRectMinGlobal.x + timelineRectSize.x,
+                        timelineRectMinGlobal.y + timelineRectSize.y );
 
         const Profiler::Timeline                      timeline = static_cast< Profiler::Timeline >( iTimeline );
         const CircularArray< Profiler::FrameData > &  recordedFrames = Profiler::GetRecordedFrames( timeline );
@@ -436,8 +417,7 @@ namespace Fancy {
           if ( !frameData.myHasValidTimes )
             continue;
 
-          const float frameMinX =
-              ( frameData.myStart.myTime - aMinStartTime ) * myTimeToPixelScale - myHorizontalOffset;
+          const float frameMinX = ( frameData.myStart.myTime - aMinStartTime ) * myTimeToPixelScale - myHorizontalOffset;
           if ( frameMinX > ImGui::GetWindowWidth() )
             break;
 
@@ -459,8 +439,7 @@ namespace Fancy {
           if ( frameData.myNumSamples > 0u ) {
             ASSERT( frameData.myFirstSample != UINT_MAX );
             const Profiler::SampleNode & node = recordedSamples[ frameData.myFirstSample ];
-            RenderSampleRecursive( node, myTimeToPixelScale, aMinStartTime, myHorizontalOffset, ImGui::GetCursorPosY(),
-                                   0, timeline );
+            RenderSampleRecursive( node, myTimeToPixelScale, aMinStartTime, myHorizontalOffset, ImGui::GetCursorPosY(), 0, timeline );
           }
 
           ImGui::SetCursorPos( ImVec2( frameMinX + frameSize, timelineMinY ) );
@@ -485,8 +464,7 @@ namespace Fancy {
     if ( !Profiler::GetRecordedFrames( ( Profiler::Timeline ) 0 ).IsEmpty() ) {
       float64 minStartTime, maxEndTime;
       GetTimeRange( minStartTime, maxEndTime );
-      const float maxOffset = static_cast< float >(
-          glm::max( 0.0, ( maxEndTime - minStartTime ) * myTimeToPixelScale - ImGui::GetWindowWidth() - 1.0f ) );
+      const float maxOffset = static_cast< float >( glm::max( 0.0, ( maxEndTime - minStartTime ) * myTimeToPixelScale - ImGui::GetWindowWidth() - 1.0f ) );
 
       if ( !myIsPaused )
         myHorizontalOffset = maxOffset;

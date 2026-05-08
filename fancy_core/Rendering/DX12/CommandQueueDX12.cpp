@@ -15,8 +15,7 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
-  CommandQueueDX12::CommandQueueDX12( CommandListType aType )
-      : CommandQueue( aType ), myFenceCompletedEvent( nullptr ) {
+  CommandQueueDX12::CommandQueueDX12( CommandListType aType ) : CommandQueue( aType ), myFenceCompletedEvent( nullptr ) {
     ID3D12Device * device = RenderCore::GetPlatformDX12()->GetDevice();
 
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -64,14 +63,12 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void CommandQueueDX12::StallForFence( uint64 aFenceVal ) {
-    const CommandQueueDX12 * otherQueue =
-        static_cast< const CommandQueueDX12 * >( RenderCore::GetCommandQueue( aFenceVal ) );
+    const CommandQueueDX12 * otherQueue = static_cast< const CommandQueueDX12 * >( RenderCore::GetCommandQueue( aFenceVal ) );
     if ( otherQueue != this )
       ASSERT_HRESULT( myQueue->Wait( otherQueue->myFence.Get(), aFenceVal ) );
   }
   //---------------------------------------------------------------------------//
-  uint64 CommandQueueDX12::ExecuteCommandListInternal( CommandList * aCommandList,
-                                                       SyncMode      aSyncMode /* = SyncMode::ASYNC*/ ) {
+  uint64 CommandQueueDX12::ExecuteCommandListInternal( CommandList * aCommandList, SyncMode aSyncMode /* = SyncMode::ASYNC*/ ) {
     ASSERT( aCommandList->GetType() == myType );
     ASSERT( aCommandList->IsOpen() );
 

@@ -17,8 +17,7 @@ namespace Fancy {
     enum SERIALIZE_MODE { READ, WRITE };
 
     BinarySerializer( const char * aPath, SERIALIZE_MODE aMode )
-        : myMode( aMode ),
-          myStream( std::fstream( aPath, std::ios::binary | ( aMode == WRITE ? std::ios::out : std::ios::in ) ) ) {}
+        : myMode( aMode ), myStream( std::fstream( aPath, std::ios::binary | ( aMode == WRITE ? std::ios::out : std::ios::in ) ) ) {}
 
     bool IsGood() const {
       return myStream.good();

@@ -48,14 +48,14 @@ namespace Fancy {
     static MaterialHandle CreateMaterialHandle( const MaterialDesc & aDesc );
 
     static const eastl::hash_map< uint64, TextureViewHandle > & GetTextures();
-    static TextureViewHandle GetTexture( const char * aPath, uint someLoadFlags = 0 );
-    static TextureViewHandle LoadTexture( const char * aPath, uint someLoadFlags = 0 );
-    static void              ComputeMipmaps( TextureHandle aTexture, ResampleFilter aFilter = FILTER_LANCZOS );
+    static TextureViewHandle                                    GetTexture( const char * aPath, uint someLoadFlags = 0 );
+    static TextureViewHandle                                    LoadTexture( const char * aPath, uint someLoadFlags = 0 );
+    static void                                                 ComputeMipmaps( TextureHandle aTexture, ResampleFilter aFilter = FILTER_LANCZOS );
 
     static const ShaderPipeline * GetMipDownsampleShader();
 
   private:
-    static ResourcePool< Mesh, 2048, MeshDesc >           ourMeshPool;
-    static ResourcePool< Material, 2048, MaterialDesc >   ourMaterialPool;
+    static ResourcePool< Mesh, 2048, MeshDesc >         ourMeshPool;
+    static ResourcePool< Material, 2048, MaterialDesc > ourMaterialPool;
   };
 }  // namespace Fancy

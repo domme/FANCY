@@ -21,8 +21,8 @@ namespace Fancy {
     friend struct GpuResourceViewDestructor;
 
     explicit GpuResourceView( GpuResource * aResource, const char * aName )
-        : myResource( aResource ), myCoversAllSubresources( true ), myType( GpuResourceViewType::NONE ),
-          myGlobalDescriptorIndex( UINT_MAX ), myName( aName != nullptr ? aName : "" ) {}
+        : myResource( aResource ), myCoversAllSubresources( true ), myType( GpuResourceViewType::NONE ), myGlobalDescriptorIndex( UINT_MAX ),
+          myName( aName != nullptr ? aName : "" ) {}
 
     GpuResource * GetResource() const {
       return myResource;

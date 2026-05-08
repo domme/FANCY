@@ -35,10 +35,9 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   class TextureReadbackTask : public ReadbackTask {
   public:
-    TextureReadbackTask( TextureProperties someTextureProperties, SubresourceRange aSubresourceRange,
-                         SharedPtr< ReadbackBufferAllocation > aBufferAllocation, uint64 aFence )
-        : ReadbackTask( std::move( aBufferAllocation ), std::move( aFence ) ),
-          myTextureProperties( std::move( someTextureProperties ) ),
+    TextureReadbackTask( TextureProperties someTextureProperties, SubresourceRange aSubresourceRange, SharedPtr< ReadbackBufferAllocation > aBufferAllocation,
+                         uint64 aFence )
+        : ReadbackTask( std::move( aBufferAllocation ), std::move( aFence ) ), myTextureProperties( std::move( someTextureProperties ) ),
           mySubresourceRange( std::move( aSubresourceRange ) ) {}
 
     void GetData( TextureData & aDataOut ) const;

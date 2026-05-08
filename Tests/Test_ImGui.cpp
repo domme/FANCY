@@ -1,8 +1,7 @@
 #include "Test_ImGui.h"
 #include "imgui.h"
 
-Test_ImGui::Test_ImGui( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow,
-                        Fancy::RenderOutput * aRenderOutput, Fancy::InputState * anInputState )
+Test_ImGui::Test_ImGui( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput, Fancy::InputState * anInputState )
     : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "ImGui" ) {}
 
 void Test_ImGui::OnUpdate( bool aDrawProperties ) {

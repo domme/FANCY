@@ -94,19 +94,13 @@ namespace Fancy {
       rtBlendDesc.BlendEnable = rtBlendProps.myBlendEnabled;
 
       rtBlendDesc.BlendOp = Adapter::toNativeType( rtBlendProps.myBlendOp );
-      rtBlendDesc.BlendOpAlpha = rtBlendProps.myAlphaSeparateBlend
-                                     ? Adapter::toNativeType( rtBlendProps.myBlendOpAlpha )
-                                     : rtBlendDesc.BlendOp;
+      rtBlendDesc.BlendOpAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType( rtBlendProps.myBlendOpAlpha ) : rtBlendDesc.BlendOp;
 
       rtBlendDesc.DestBlend = Adapter::toNativeType( rtBlendProps.myDstBlendFactor );
-      rtBlendDesc.DestBlendAlpha = rtBlendProps.myAlphaSeparateBlend
-                                       ? Adapter::toNativeType( rtBlendProps.myDstBlendAlphaFactor )
-                                       : rtBlendDesc.DestBlend;
+      rtBlendDesc.DestBlendAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType( rtBlendProps.myDstBlendAlphaFactor ) : rtBlendDesc.DestBlend;
 
       rtBlendDesc.SrcBlend = Adapter::toNativeType( rtBlendProps.mySrcBlendFactor );
-      rtBlendDesc.SrcBlendAlpha = rtBlendProps.myAlphaSeparateBlend
-                                      ? Adapter::toNativeType( rtBlendProps.mySrcBlendAlphaFactor )
-                                      : rtBlendDesc.SrcBlend;
+      rtBlendDesc.SrcBlendAlpha = rtBlendProps.myAlphaSeparateBlend ? Adapter::toNativeType( rtBlendProps.mySrcBlendAlphaFactor ) : rtBlendDesc.SrcBlend;
 
       rtBlendDesc.LogicOpEnable = blendProps.myLogicOpEnabled;
       rtBlendDesc.LogicOp = RenderCore_PlatformDX12::ResolveLogicOp( blendProps.myLogicOp );
@@ -181,11 +175,9 @@ namespace Fancy {
     }
 
     // INPUT LAYOUT
-    const ShaderDX12 * vertexShader =
-        static_cast< const ShaderDX12 * >( aState.myShaderPipeline->GetShader( ShaderStage::SHADERSTAGE_VERTEX ) );
+    const ShaderDX12 *        vertexShader = static_cast< const ShaderDX12 * >( aState.myShaderPipeline->GetShader( ShaderStage::SHADERSTAGE_VERTEX ) );
     const VertexInputLayout * inputLayout =
-        aState.myVertexInputLayout ? aState.myVertexInputLayout
-                                   : RenderCore::GetVertexInputLayout( vertexShader->myDefaultVertexInputLayout );
+        aState.myVertexInputLayout ? aState.myVertexInputLayout : RenderCore::GetVertexInputLayout( vertexShader->myDefaultVertexInputLayout );
     ASSERT( inputLayout );
     const VertexInputLayoutProperties & inputLayoutProps = inputLayout->myProperties;
 
@@ -199,8 +191,7 @@ namespace Fancy {
       int inputAttributeIndex = -1;
       for ( uint k = 0u; k < inputAttributes.size(); ++k ) {
         const VertexInputAttributeDesc & input = inputAttributes[ k ];
-        if ( shaderAttribute.mySemantic == input.mySemantic &&
-             shaderAttribute.mySemanticIndex == input.mySemanticIndex ) {
+        if ( shaderAttribute.mySemantic == input.mySemantic && shaderAttribute.mySemanticIndex == input.mySemanticIndex ) {
           inputAttributeIndex = ( int ) k;
           break;
         }
@@ -218,9 +209,8 @@ namespace Fancy {
         elementDesc.InputSlot = input.myBufferIndex;
 
         const VertexBufferBindDesc & bufferBindDesc = inputLayoutProps.myBufferBindings[ input.myBufferIndex ];
-        elementDesc.InputSlotClass = bufferBindDesc.myInputRate == VertexInputRate::PER_INSTANCE
-                                         ? D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA
-                                         : D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+        elementDesc.InputSlotClass = bufferBindDesc.myInputRate == VertexInputRate::PER_INSTANCE ? D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA
+                                                                                                 : D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
         elementDesc.InstanceDataStepRate = bufferBindDesc.myInputRate == VertexInputRate::PER_INSTANCE ? 1 : 0;
       }
     }
@@ -244,8 +234,7 @@ namespace Fancy {
     }
 
     // DSV FORMAT
-    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat(
-        RenderCore_PlatformDX12::ResolveFormat( aState.myDSVformat ) );
+    psoDesc.DSVFormat = RenderCore_PlatformDX12::GetDepthStencilViewFormat( RenderCore_PlatformDX12::ResolveFormat( aState.myDSVformat ) );
 
     // NODE MASK
     psoDesc.NodeMask = 0u;
@@ -256,8 +245,7 @@ namespace Fancy {
       return it->second;
 
     ID3D12PipelineState * pso = nullptr;
-    ASSERT_HRESULT(
-        RenderCore::GetPlatformDX12()->GetDevice()->CreateGraphicsPipelineState( &psoDesc, IID_PPV_ARGS( &pso ) ) );
+    ASSERT_HRESULT( RenderCore::GetPlatformDX12()->GetDevice()->CreateGraphicsPipelineState( &psoDesc, IID_PPV_ARGS( &pso ) ) );
     myGraphicsPsoCache[ hash ] = pso;
 
     return pso;
@@ -267,8 +255,7 @@ namespace Fancy {
     ASSERT( aState.myShaderPipeline != nullptr );
     const ShaderPipelineDX12 * shaderPipeline = static_cast< const ShaderPipelineDX12 * >( aState.myShaderPipeline );
     ASSERT( shaderPipeline->IsComputePipeline() );
-    const ShaderDX12 * computeShader =
-        static_cast< const ShaderDX12 * >( shaderPipeline->GetShader( ShaderStage::SHADERSTAGE_COMPUTE ) );
+    const ShaderDX12 * computeShader = static_cast< const ShaderDX12 * >( shaderPipeline->GetShader( ShaderStage::SHADERSTAGE_COMPUTE ) );
 
     D3D12_COMPUTE_PIPELINE_STATE_DESC desc;
     memset( &desc, 0u, sizeof( desc ) );
@@ -285,8 +272,7 @@ namespace Fancy {
       return it->second;
 
     ID3D12PipelineState * pso = nullptr;
-    ASSERT_HRESULT(
-        RenderCore::GetPlatformDX12()->GetDevice()->CreateComputePipelineState( &desc, IID_PPV_ARGS( &pso ) ) );
+    ASSERT_HRESULT( RenderCore::GetPlatformDX12()->GetDevice()->CreateComputePipelineState( &desc, IID_PPV_ARGS( &pso ) ) );
     myComputePsoCache[ hash ] = pso;
 
     return pso;

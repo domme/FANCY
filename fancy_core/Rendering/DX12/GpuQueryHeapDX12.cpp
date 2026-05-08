@@ -7,8 +7,7 @@
 #if FANCY_ENABLE_DX12
 
 namespace Fancy {
-  GpuQueryHeapDX12::GpuQueryHeapDX12( GpuQueryType aQueryType, uint aNumQueries )
-      : GpuQueryHeap( aQueryType, aNumQueries ) {
+  GpuQueryHeapDX12::GpuQueryHeapDX12( GpuQueryType aQueryType, uint aNumQueries ) : GpuQueryHeap( aQueryType, aNumQueries ) {
     D3D12_QUERY_HEAP_DESC heapDesc;
     memset( &heapDesc, 0, sizeof( heapDesc ) );
     heapDesc.Count = aNumQueries;

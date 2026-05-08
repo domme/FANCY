@@ -29,8 +29,7 @@ namespace Fancy {
     TempBufferResource() : myBuffer( nullptr ), myReadView( nullptr ), myWriteView( nullptr ) {}
 
     TempBufferResource( const TempBufferResource & anOther )
-        : myBuffer( anOther.myBuffer ), myReadView( anOther.myReadView ), myWriteView( anOther.myWriteView ),
-          myKeepAlive( anOther.myKeepAlive ) {}
+        : myBuffer( anOther.myBuffer ), myReadView( anOther.myReadView ), myWriteView( anOther.myWriteView ), myKeepAlive( anOther.myKeepAlive ) {}
 
     TempBufferResource & operator=( const TempBufferResource & anOther ) {
       myBuffer = anOther.myBuffer;
@@ -59,8 +58,7 @@ namespace Fancy {
   struct TempTextureResource {
     friend class TempResourcePool;
 
-    TempTextureResource()
-        : myTexture( nullptr ), myReadView( nullptr ), myWriteView( nullptr ), myRenderTargetView( nullptr ) {}
+    TempTextureResource() : myTexture( nullptr ), myReadView( nullptr ), myWriteView( nullptr ), myRenderTargetView( nullptr ) {}
 
     TempTextureResource( const TempTextureResource & anOther ) = default;
     TempTextureResource & operator=( const TempTextureResource & anOther ) = default;

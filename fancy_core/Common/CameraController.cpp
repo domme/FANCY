@@ -8,15 +8,14 @@
 namespace Fancy {
   //---------------------------------------------------------------------------//
   CameraController::CameraController( Camera * aCamera )
-      : myMoveSpeed( 30.0f ), myCamera( aCamera ), myMouseSensitivity( 0.1f, 0.1f ), myLastMousePos( 0, 0 ),
-        myFocusPoint( 0.0f ), myFocusPointDistance( 10.0f ) {}
+      : myMoveSpeed( 30.0f ), myCamera( aCamera ), myMouseSensitivity( 0.1f, 0.1f ), myLastMousePos( 0, 0 ), myFocusPoint( 0.0f ),
+        myFocusPointDistance( 10.0f ) {}
   //---------------------------------------------------------------------------//
   CameraController::~CameraController() {}
   //---------------------------------------------------------------------------//
   void CameraController::Update( float aDeltaTime, const Fancy::InputState & anInputState ) {
     Mode currentMode = Mode::FPS;
-    if ( anInputState.myModifierKeyMask & InputState::MOD_KEY_ALT ||
-         anInputState.myModifierKeyMask & InputState::MOD_KEY_SHIFT )
+    if ( anInputState.myModifierKeyMask & InputState::MOD_KEY_ALT || anInputState.myModifierKeyMask & InputState::MOD_KEY_SHIFT )
       currentMode = Mode::TRACKBALL;
 
     if ( currentMode == Mode::TRACKBALL ) {
@@ -77,8 +76,7 @@ namespace Fancy {
       glm::quat pitchQuat( glm::float3( pitch, 0.0f, 0.0f ) );
       glm::quat yawQuat( glm::float3( 0.0f, yaw, 0.0f ) );
       myCamera->myOrientation = yawQuat * myCamera->myOrientation * pitchQuat;
-      myCamera->myPosition =
-          myFocusPoint + ( myCamera->myOrientation * glm::float3( 0.0f, 0.0f, -1.0f ) ) * myFocusPointDistance;
+      myCamera->myPosition = myFocusPoint + ( myCamera->myOrientation * glm::float3( 0.0f, 0.0f, -1.0f ) ) * myFocusPointDistance;
     }
   }
   //---------------------------------------------------------------------------//
