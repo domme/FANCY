@@ -142,10 +142,10 @@ namespace Fancy {
 
     // Emits a D3D12 texture barrier to transition a texture between physical layouts.
     // Use only at render pass boundaries (e.g. RenderTarget->ShaderResource) or for presentation.
-    // Do NOT use for UAV->UAV same-layout hazards (use GlobalBarrier instead).
-    // fromUsage: the layout the texture is currently in
-    // toUsage:   the layout the texture needs to be in after this barrier
-    virtual void TextureBarrier( Texture * aTexture, TextureBarrierUsage aFromUsage, TextureBarrierUsage aToUsage ) = 0;
+    // IMPORTANT: Sync and cache-flush must be handled via a preceding GlobalBarrier call.
+    // fromLayout: the layout the texture is currently in
+    // toLayout:   the layout the texture needs to be in after this barrier
+    virtual void TextureBarrier( Texture * aTexture, TextureLayout aFromLayout, TextureLayout aToLayout ) = 0;
 
     void         PreExecute();
     virtual void PostExecute( uint64 aFenceVal );

@@ -67,7 +67,7 @@ namespace Fancy {
     void     EndMarkerRegion() override;
 
     void GlobalBarrier( BarrierSyncScope waitFor, BarrierSyncScope unblocks, CacheFlush flush ) override;
-    void TextureBarrier( Texture * aTexture, TextureBarrierUsage aFromUsage, TextureBarrierUsage aToUsage ) override;
+    void TextureBarrier( Texture * aTexture, TextureLayout aFromLayout, TextureLayout aToLayout ) override;
 
     void Close() override;
 

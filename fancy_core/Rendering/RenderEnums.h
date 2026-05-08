@@ -309,20 +309,20 @@ namespace Fancy {
     RenderTargetWrite, // Flush ROP / render target caches to L2
   };
   //---------------------------------------------------------------------------//
-  // Usage states for TextureBarrier: physical texture layout changes.
-  // Use sparingly — only at render-pass boundaries and for presentation.
+  // Physical texture layout for TextureBarrier. Sync and cache-flush must be
+  // handled separately via a preceding GlobalBarrier call.
   //---------------------------------------------------------------------------//
-  enum class TextureBarrierUsage {
-    Undefined,      // Discard previous contents, no sync before
-    ShaderResource, // SRV read (queue-specific layout selected internally)
-    UAV,            // UAV read/write (queue-specific layout selected internally)
+  enum class TextureLayout {
+    Undefined,      // Discard previous contents
+    ShaderResource, // SRV read (queue-specific layout selected at the DX12 level)
+    UAV,            // UAV read/write (queue-specific layout selected at the DX12 level)
     RenderTarget,   // Render target write
     DepthWrite,     // Depth-stencil write
     DepthRead,      // Depth-stencil read-only
     Common,         // COMMON layout — valid for any queue and any access
     Present,        // Present to swap chain (== COMMON layout numerically)
-    CopyDest,       // Copy destination (queue-specific layout selected internally)
-    CopySource,     // Copy source (queue-specific layout selected internally)
+    CopyDest,       // Copy destination (queue-specific layout selected at the DX12 level)
+    CopySource,     // Copy source (queue-specific layout selected at the DX12 level)
   };
   //---------------------------------------------------------------------------//
   enum class VertexInputRate {

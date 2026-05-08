@@ -54,51 +54,19 @@ namespace Fancy {
       }
     }
     //---------------------------------------------------------------------------//
-    D3D12_BARRIER_LAYOUT locResolveTextureBarrierLayout( TextureBarrierUsage aUsage, CommandListType aCommandListType ) {
-      switch ( aUsage ) {
-        case TextureBarrierUsage::Undefined:      return D3D12_BARRIER_LAYOUT_UNDEFINED;
-        case TextureBarrierUsage::ShaderResource: return BarrierUtilsDX12::GetShaderResourceLayout( aCommandListType );
-        case TextureBarrierUsage::UAV:            return BarrierUtilsDX12::GetUAVLayout( aCommandListType );
-        case TextureBarrierUsage::RenderTarget:   return D3D12_BARRIER_LAYOUT_RENDER_TARGET;
-        case TextureBarrierUsage::DepthWrite:     return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE;
-        case TextureBarrierUsage::DepthRead:      return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ;
-        case TextureBarrierUsage::Common:         return D3D12_BARRIER_LAYOUT_COMMON;
-        case TextureBarrierUsage::Present:        return D3D12_BARRIER_LAYOUT_PRESENT;
-        case TextureBarrierUsage::CopyDest:       return BarrierUtilsDX12::GetCopyDestLayout( aCommandListType );
-        case TextureBarrierUsage::CopySource:     return BarrierUtilsDX12::GetCopySourceLayout( aCommandListType );
-        default: ASSERT( false );                 return D3D12_BARRIER_LAYOUT_UNDEFINED;
-      }
-    }
-    //---------------------------------------------------------------------------//
-    D3D12_BARRIER_ACCESS locResolveTextureBarrierAccess( TextureBarrierUsage aUsage ) {
-      switch ( aUsage ) {
-        case TextureBarrierUsage::Undefined:      return D3D12_BARRIER_ACCESS_NO_ACCESS;
-        case TextureBarrierUsage::ShaderResource: return D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
-        case TextureBarrierUsage::UAV:            return D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
-        case TextureBarrierUsage::RenderTarget:   return D3D12_BARRIER_ACCESS_RENDER_TARGET;
-        case TextureBarrierUsage::DepthWrite:     return D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE;
-        case TextureBarrierUsage::DepthRead:      return D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ;
-        case TextureBarrierUsage::Common:         return D3D12_BARRIER_ACCESS_COMMON;
-        case TextureBarrierUsage::Present:        return D3D12_BARRIER_ACCESS_COMMON;
-        case TextureBarrierUsage::CopyDest:       return D3D12_BARRIER_ACCESS_COPY_DEST;
-        case TextureBarrierUsage::CopySource:     return D3D12_BARRIER_ACCESS_COPY_SOURCE;
-        default: ASSERT( false );                 return D3D12_BARRIER_ACCESS_NO_ACCESS;
-      }
-    }
-    //---------------------------------------------------------------------------//
-    D3D12_BARRIER_SYNC locResolveTextureBarrierSync( TextureBarrierUsage aUsage ) {
-      switch ( aUsage ) {
-        case TextureBarrierUsage::Undefined:      return D3D12_BARRIER_SYNC_NONE;
-        case TextureBarrierUsage::ShaderResource: return D3D12_BARRIER_SYNC_ALL_SHADING;
-        case TextureBarrierUsage::UAV:            return D3D12_BARRIER_SYNC_ALL_SHADING;
-        case TextureBarrierUsage::RenderTarget:   return D3D12_BARRIER_SYNC_RENDER_TARGET;
-        case TextureBarrierUsage::DepthWrite:     return D3D12_BARRIER_SYNC_DEPTH_STENCIL;
-        case TextureBarrierUsage::DepthRead:      return D3D12_BARRIER_SYNC_DEPTH_STENCIL;
-        case TextureBarrierUsage::Common:         return D3D12_BARRIER_SYNC_ALL;
-        case TextureBarrierUsage::Present:        return D3D12_BARRIER_SYNC_ALL;
-        case TextureBarrierUsage::CopyDest:       return D3D12_BARRIER_SYNC_COPY;
-        case TextureBarrierUsage::CopySource:     return D3D12_BARRIER_SYNC_COPY;
-        default: ASSERT( false );                 return D3D12_BARRIER_SYNC_NONE;
+    D3D12_BARRIER_LAYOUT locResolveTextureLayout( TextureLayout aLayout, CommandListType aCommandListType ) {
+      switch ( aLayout ) {
+        case TextureLayout::Undefined:      return D3D12_BARRIER_LAYOUT_UNDEFINED;
+        case TextureLayout::ShaderResource: return BarrierUtilsDX12::GetShaderResourceLayout( aCommandListType );
+        case TextureLayout::UAV:            return BarrierUtilsDX12::GetUAVLayout( aCommandListType );
+        case TextureLayout::RenderTarget:   return D3D12_BARRIER_LAYOUT_RENDER_TARGET;
+        case TextureLayout::DepthWrite:     return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE;
+        case TextureLayout::DepthRead:      return D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ;
+        case TextureLayout::Common:         return D3D12_BARRIER_LAYOUT_COMMON;
+        case TextureLayout::Present:        return D3D12_BARRIER_LAYOUT_PRESENT;
+        case TextureLayout::CopyDest:       return BarrierUtilsDX12::GetCopyDestLayout( aCommandListType );
+        case TextureLayout::CopySource:     return BarrierUtilsDX12::GetCopySourceLayout( aCommandListType );
+        default: ASSERT( false );           return D3D12_BARRIER_LAYOUT_UNDEFINED;
       }
     }
     //---------------------------------------------------------------------------//
@@ -682,15 +650,14 @@ namespace Fancy {
     AddGlobalBarrier( barrier );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::TextureBarrier( Texture * aTexture, TextureBarrierUsage aFromUsage,
-                                        TextureBarrierUsage aToUsage ) {
+  void CommandListDX12::TextureBarrier( Texture * aTexture, TextureLayout aFromLayout, TextureLayout aToLayout ) {
     D3D12_TEXTURE_BARRIER barrier = {};
-    barrier.SyncBefore   = locResolveTextureBarrierSync( aFromUsage );
-    barrier.SyncAfter    = locResolveTextureBarrierSync( aToUsage );
-    barrier.AccessBefore = locResolveTextureBarrierAccess( aFromUsage );
-    barrier.AccessAfter  = locResolveTextureBarrierAccess( aToUsage );
-    barrier.LayoutBefore = locResolveTextureBarrierLayout( aFromUsage, myCommandListType );
-    barrier.LayoutAfter  = locResolveTextureBarrierLayout( aToUsage, myCommandListType );
+    barrier.SyncBefore   = D3D12_BARRIER_SYNC_NONE;
+    barrier.SyncAfter    = D3D12_BARRIER_SYNC_NONE;
+    barrier.AccessBefore = D3D12_BARRIER_ACCESS_NO_ACCESS;
+    barrier.AccessAfter  = D3D12_BARRIER_ACCESS_NO_ACCESS;
+    barrier.LayoutBefore = locResolveTextureLayout( aFromLayout, myCommandListType );
+    barrier.LayoutAfter  = locResolveTextureLayout( aToLayout, myCommandListType );
     barrier.pResource    = aTexture->GetDX12Data()->myResource.Get();
     barrier.Subresources = CD3DX12_BARRIER_SUBRESOURCE_RANGE( 0xFFFFFFFF );
     AddTextureBarrier( barrier );
