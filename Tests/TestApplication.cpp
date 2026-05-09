@@ -39,34 +39,40 @@ void TestApplication::BeginFrame() {
 void TestApplication::Update() {
   Application::Update();
 
-  ImGui::Checkbox( "Log resource barriers", &RenderCore::ourDebugLogResourceBarriers );
+  ImGui::SetNextWindowPos( ImVec2( 10, 10 ), ImGuiCond_FirstUseEver );
+  ImGui::SetNextWindowSize( ImVec2( 400, 600 ), ImGuiCond_FirstUseEver );
+  if ( ImGui::Begin( "Tests", nullptr, ImGuiWindowFlags_NoMove ) ) {
+    ImGui::Checkbox( "Log resource barriers", &RenderCore::ourDebugLogResourceBarriers );
+    ImGui::Separator();
 
-  if ( ImGui::Checkbox( "Test Profiler", &test_profiler ) )
-    HandleTestDestroyCreate( test_profiler, myProfilerTest );
-  if ( ImGui::Checkbox( "Test ImGui", &test_imgui ) )
-    HandleTestDestroyCreate( test_imgui, myImGuiTest );
-  if ( ImGui::Checkbox( "Test Gpu Memory Allocations", &test_gpuMemoryAllocs ) )
-    HandleTestDestroyCreate( test_gpuMemoryAllocs, myGpuMemoryAllocatorTest );
-  if ( ImGui::Checkbox( "Test Async Compute", &test_asyncCompute ) )
-    HandleTestDestroyCreate( test_asyncCompute, myAsyncComputeTest );
-  if ( ImGui::Checkbox( "Test Mipmapping", &test_mipmapping ) )
-    HandleTestDestroyCreate( test_mipmapping, myMipmappingTest );
-  if ( ImGui::Checkbox( "Test Synchronization", &test_sychronization ) )
-    HandleTestDestroyCreate( test_sychronization, mySynchronizationTest );
-  if ( ImGui::Checkbox( "Test Shared Queue Resources", &test_sharedQueueResources ) )
-    HandleTestDestroyCreate( test_sharedQueueResources, mySharedQueueResourceUsageTest );
-  if ( RenderCore::GetPlatformCaps().mySupportsRaytracing && ImGui::Checkbox( "Test Raytracing", &test_raytracing ) )
-    HandleTestDestroyCreate( test_raytracing, myRaytracingTest );
+    if ( ImGui::Checkbox( "Test Profiler", &test_profiler ) )
+      HandleTestDestroyCreate( test_profiler, myProfilerTest );
+    if ( ImGui::Checkbox( "Test ImGui", &test_imgui ) )
+      HandleTestDestroyCreate( test_imgui, myImGuiTest );
+    if ( ImGui::Checkbox( "Test Gpu Memory Allocations", &test_gpuMemoryAllocs ) )
+      HandleTestDestroyCreate( test_gpuMemoryAllocs, myGpuMemoryAllocatorTest );
+    if ( ImGui::Checkbox( "Test Async Compute", &test_asyncCompute ) )
+      HandleTestDestroyCreate( test_asyncCompute, myAsyncComputeTest );
+    if ( ImGui::Checkbox( "Test Mipmapping", &test_mipmapping ) )
+      HandleTestDestroyCreate( test_mipmapping, myMipmappingTest );
+    if ( ImGui::Checkbox( "Test Synchronization", &test_sychronization ) )
+      HandleTestDestroyCreate( test_sychronization, mySynchronizationTest );
+    if ( ImGui::Checkbox( "Test Shared Queue Resources", &test_sharedQueueResources ) )
+      HandleTestDestroyCreate( test_sharedQueueResources, mySharedQueueResourceUsageTest );
+    if ( RenderCore::GetPlatformCaps().mySupportsRaytracing && ImGui::Checkbox( "Test Raytracing", &test_raytracing ) )
+      HandleTestDestroyCreate( test_raytracing, myRaytracingTest );
 
-  ImGui::Separator();
+    ImGui::Separator();
 
-  for ( Test * testItem : myTests ) {
-    if ( ImGui::TreeNode( testItem->GetName() ) ) {
-      testItem->OnUpdate( true );
-      ImGui::TreePop();
-    } else {
-      testItem->OnUpdate( false );
+    for ( Test * testItem : myTests ) {
+      if ( ImGui::TreeNode( testItem->GetName() ) ) {
+        testItem->OnUpdate( true );
+        ImGui::TreePop();
+      } else {
+        testItem->OnUpdate( false );
+      }
     }
+    ImGui::End();
   }
 }
 

@@ -20,8 +20,6 @@ void ImageData::Create( Fancy::TextureViewHandle aTexture ) {
     return;
 
   myTextureView = aTexture;
-  // Store the texture pointer info for later access
-  myTexture = {}; // Clear handle - we'll use the view to get the texture
   TextureViewProperties readProps;
   readProps.myFormat = textureView->GetProperties().myFormat;
   readProps.myDimension = GpuResourceDimension::TEXTURE_2D;
@@ -91,11 +89,10 @@ void Test_Mipmapping::OnUpdate( bool aDrawProperties ) {
       data.myIsDirty |= ImGui::ListBox( "Downsample Filter", &data.mySelectedFilter, locResampleFilterNames,
                                         ARRAY_LENGTH( locResampleFilterNames ) );
 
-      // TODO: Fix mipmap computation with Handle-based API
-      // if ( data.myIsDirty | myUpdateAlways ) {
-      //   Assets::ComputeMipmaps( data.myTexture, ( Assets::ResampleFilter ) data.mySelectedFilter );
-      //   data.myIsDirty = false;
-      // }
+      if ( data.myIsDirty | myUpdateAlways ) {
+        Assets::ComputeMipmaps( data.myTextureView.mySourceTexture, ( Assets::ResampleFilter ) data.mySelectedFilter );
+        data.myIsDirty = false;
+      }
 
       TextureView * mipTextureView = RenderCore::GetTextureView( data.myMipLevelReadViews[ data.mySelectedMipLevel ] );
       ImGui::Image( ( ImTextureID ) mipTextureView,

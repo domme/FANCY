@@ -37,6 +37,26 @@ namespace Fancy {
     }
   };
 
+  template <> struct ResourceHandle< TextureView > {
+    static constexpr uint kInvalidIndex = UINT32_MAX;
+    uint                  myIndex = kInvalidIndex;
+    uint                  myGeneration = 0u;
+    ResourceHandle< Texture > mySourceTexture;  // Track which texture this view came from
+
+    bool IsValid() const {
+      return myIndex != kInvalidIndex;
+    }
+    explicit operator bool() const {
+      return IsValid();
+    }
+    bool operator==( const ResourceHandle & o ) const {
+      return myIndex == o.myIndex && myGeneration == o.myGeneration;
+    }
+    bool operator!=( const ResourceHandle & o ) const {
+      return !( *this == o );
+    }
+  };
+
   using TextureHandle = ResourceHandle< Texture >;
   using GpuBufferHandle = ResourceHandle< GpuBuffer >;
   using TextureViewHandle = ResourceHandle< TextureView >;

@@ -1100,7 +1100,9 @@ TextureViewHandle RenderCore::CreateTextureView( Texture * aTexture, const Textu
   ASSERT( viewProps.mySubresourceRange.myFirstPlane < formatInfo.myNumPlanes );
   ASSERT( !viewProps.myIsShaderWritable || !viewProps.myIsRenderTarget, "UAV and RTV are mutually exclusive" );
   TextureView * view = ourPlatformImpl->CreateTextureView( aTexture, viewProps, aName );
-  return ourTextureViewPool.Add( view );
+  TextureViewHandle result = ourTextureViewPool.Add( view );
+  result.mySourceTexture = ourTexturePool.GetHandle( aTexture );
+  return result;
 }
 //---------------------------------------------------------------------------//
 

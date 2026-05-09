@@ -85,7 +85,20 @@ namespace Fancy {
       ASSERT( IsValid( aHandle ) );
       return mySlots[ aHandle.myIndex ].myResource;
     }
-  //---------------------------------------------------------------------------//
+    //---------------------------------------------------------------------------//
+    // Get handle from pointer
+    Handle GetHandle( T * aResource ) const {
+      for ( uint i = 0u; i < ( uint ) mySlots.size(); ++i ) {
+        if ( mySlots[ i ].myResource == aResource ) {
+          Handle handle;
+          handle.myIndex = i;
+          handle.myGeneration = mySlots[ i ].myGeneration;
+          return handle;
+        }
+      }
+      return Handle{};  // Return invalid handle if not found
+    }
+    //---------------------------------------------------------------------------//
     // Get by descriptor (cached pools only)
     Handle Get( const DescType & aDesc ) const {
       static_assert( !std::is_same< DescType, NoCacheType >::value,
