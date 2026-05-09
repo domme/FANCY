@@ -81,6 +81,7 @@ void TestApplication::Render() {
     testItem->OnRender();
 
   ImGui::Render();
+  ImGuiRendering::RenderDrawLists( ImGui::GetDrawData() );
 }
 
 void TestApplication::EndFrame() {
