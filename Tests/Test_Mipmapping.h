@@ -18,14 +18,12 @@ struct ImageData {
   ImageData() {}
   void Create( Fancy::TextureViewHandle aTexture );
   void Clear() {
-    myTexture = Fancy::TextureHandle{};
     myTextureView = Fancy::TextureViewHandle{};
     myMipLevelReadViews.clear();
     myMipLevelWriteViews.clear();
   }
   bool myIsSRGB = false;
 
-  Fancy::TextureHandle                      myTexture;
   Fancy::TextureViewHandle                  myTextureView;
   eastl::vector< Fancy::TextureViewHandle > myMipLevelReadViews;
   eastl::vector< Fancy::TextureViewHandle > myMipLevelWriteViews;
