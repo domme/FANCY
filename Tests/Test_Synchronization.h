@@ -1,6 +1,6 @@
 #pragma once
 #include "Test.h"
-#include "Rendering/GpuBuffer.h"
+#include "Rendering/ResourceHandle.h"
 
 class Test_Synchronization : public Test {
 public:
@@ -14,9 +14,9 @@ private:
 
   enum class Stage { IDLE = 0, WAITING_FOR_COPY, COPY_DONE };
 
-  Stage                                myStage = Stage::IDLE;
-  uint64                               myExpectedBufferValue = 0ull;
-  uint64                               myBufferCopyFence = 0ull;
-  Fancy::SharedPtr< Fancy::GpuBuffer > myUploadBuffer;
-  Fancy::SharedPtr< Fancy::GpuBuffer > myReadbackBuffer;
+  Stage                     myStage = Stage::IDLE;
+  uint64                    myExpectedBufferValue = 0ull;
+  uint64                    myBufferCopyFence = 0ull;
+  Fancy::GpuBufferHandle    myUploadBuffer;
+  Fancy::GpuBufferHandle    myReadbackBuffer;
 };

@@ -1,7 +1,7 @@
 #pragma once
 #include "Test.h"
 
-#include "Common/Ptr.h"
+#include "Rendering/ResourceHandle.h"
 #include "EASTL/vector.h"
 #include "EASTL/string.h"
 
@@ -12,23 +12,23 @@ namespace Fancy {
 }  // namespace Fancy
 
 struct ImageData {
-  ImageData( Fancy::SharedPtr< Fancy::TextureView > aTexture ) {
+  ImageData( Fancy::TextureViewHandle aTexture ) {
     Create( aTexture );
   }
   ImageData() {}
-  void Create( Fancy::SharedPtr< Fancy::TextureView > aTexture );
+  void Create( Fancy::TextureViewHandle aTexture );
   void Clear() {
-    myTexture.reset();
-    myTextureView.reset();
+    myTexture = Fancy::TextureHandle{};
+    myTextureView = Fancy::TextureViewHandle{};
     myMipLevelReadViews.clear();
     myMipLevelWriteViews.clear();
   }
   bool myIsSRGB = false;
 
-  Fancy::SharedPtr< Fancy::Texture >                      myTexture;
-  Fancy::SharedPtr< Fancy::TextureView >                  myTextureView;
-  eastl::vector< Fancy::SharedPtr< Fancy::TextureView > > myMipLevelReadViews;
-  eastl::vector< Fancy::SharedPtr< Fancy::TextureView > > myMipLevelWriteViews;
+  Fancy::TextureHandle                      myTexture;
+  Fancy::TextureViewHandle                  myTextureView;
+  eastl::vector< Fancy::TextureViewHandle > myMipLevelReadViews;
+  eastl::vector< Fancy::TextureViewHandle > myMipLevelWriteViews;
 
   eastl::string myName;
   bool          myIsWindowOpen;

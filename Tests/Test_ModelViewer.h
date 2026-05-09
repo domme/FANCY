@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Test.h"
-#include "Common/Ptr.h"
+#include "Rendering/ResourceHandle.h"
 #include "Common/Camera.h"
 #include "Common/CameraController.h"
 #include "IO/MeshImporter.h"
@@ -31,15 +31,14 @@ private:
 
   Fancy::Camera                    myCamera;
   Fancy::CameraController          myCameraController;
+  Fancy::ShaderPipelineHandle    myUnlitTexturedShader;
+  Fancy::ShaderPipelineHandle    myInstancedUnlitTexturedShader;
+  Fancy::ShaderPipelineHandle    myUnlitVertexColorShader;
+  Fancy::ShaderPipelineHandle    myDebugGeoShader;
+  Fancy::TextureSamplerHandle    mySampler;
+  Fancy::VertexInputLayoutHandle myInstancedVertexLayout;
+  Fancy::GpuBufferHandle         myInstancePositions;
+  Fancy::TextureViewHandle       myDepthStencilDsv;
   Fancy::SharedPtr< Fancy::Scene > myScene;
-
-  Fancy::SharedPtr< Fancy::ShaderPipeline >    myUnlitTexturedShader;
-  Fancy::SharedPtr< Fancy::ShaderPipeline >    myInstancedUnlitTexturedShader;
-  Fancy::SharedPtr< Fancy::ShaderPipeline >    myUnlitVertexColorShader;
-  Fancy::SharedPtr< Fancy::ShaderPipeline >    myDebugGeoShader;
-  Fancy::SharedPtr< Fancy::TextureSampler >    mySampler;
-  Fancy::SharedPtr< Fancy::VertexInputLayout > myInstancedVertexLayout;
-  Fancy::SharedPtr< Fancy::GpuBuffer >         myInstancePositions;
-  Fancy::SharedPtr< Fancy::TextureView >       myDepthStencilDsv;
-  int                                          myNumInstances;
+  int                            myNumInstances;
 };

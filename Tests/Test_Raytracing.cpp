@@ -46,7 +46,7 @@ Test_Raytracing::Test_Raytracing( Fancy::AssetManager * anAssetManager, Fancy::W
   RtAccelerationStructureInstanceData instanceData;
   instanceData.myInstanceId = 0;
   instanceData.mySbtHitGroupOffset = 0;
-  instanceData.myInstanceBLAS = myBLAS;
+  instanceData.myInstanceBLAS = RenderCore::GetRtAccelerationStructure( myBLAS );
   instanceData.myInstanceMask = UINT8_MAX;
   instanceData.myFlags = RT_INSTANCE_FLAG_TRIANGLE_CULL_DISABLE | RT_INSTANCE_FLAG_FORCE_OPAQUE;
   myTLAS = RenderCore::CreateRtTopLevelAccelerationStructure( &instanceData, 1u );
@@ -66,9 +66,12 @@ Test_Raytracing::Test_Raytracing( Fancy::AssetManager * anAssetManager, Fancy::W
   sbtProps.myNumMissShaderRecords = 5;
   sbtProps.myNumHitShaderRecords = 5;
   mySBT = RenderCore::CreateRtShaderTable( sbtProps );
-  mySBT->AddShaderRecord( myRtPso->GetRayGenShaderIdentifier( raygenIdx ) );
-  mySBT->AddShaderRecord( myRtPso->GetMissShaderIdentifier( missIdx ) );
-  mySBT->AddShaderRecord( myRtPso->GetHitShaderIdentifier( hitIdx ) );
+
+  RtShaderBindingTable * sbt = RenderCore::GetRtShaderBindingTable( mySBT );
+  RtPipelineState *     pso = RenderCore::GetRtPipelineState( myRtPso );
+  sbt->AddShaderRecord( pso->GetRayGenShaderIdentifier( raygenIdx ) );
+  sbt->AddShaderRecord( pso->GetMissShaderIdentifier( missIdx ) );
+  sbt->AddShaderRecord( pso->GetHitShaderIdentifier( hitIdx ) );
 }
 
 void Test_Raytracing::OnWindowResized( uint aWidth, uint aHeight ) {}
@@ -85,7 +88,7 @@ void Test_Raytracing::OnRender() {
   TempTextureResource rtOutputTex = RenderCore::AllocateTempTexture( texProps, 0u, "RT Test Result Texture" );
 
   CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
-  ctx->SetRaytracingPipelineState( myRtPso.get() );
+  ctx->SetRaytracingPipelineState( RenderCore::GetRtPipelineState( myRtPso ) );
 
   struct Consts {
     glm::float3 myCamCenter;
@@ -105,14 +108,15 @@ void Test_Raytracing::OnRender() {
   consts.myPixelToWorldScaleOffset.z = -viewportSize * 0.5f;
   consts.myPixelToWorldScaleOffset.w = -viewportSize * 0.5f;
   consts.myOutTexIndex = rtOutputTex.myWriteView->GetGlobalDescriptorIndex();
-  consts.myAsIndex = myTLAS->GetBufferRead()->GetGlobalDescriptorIndex();
+  consts.myAsIndex = RenderCore::GetRtAccelerationStructure( myTLAS )->GetBufferRead()->GetGlobalDescriptorIndex();
 
   ctx->BindConstantBuffer( &consts, sizeof( consts ), 0 );
 
   DispatchRaysDesc desc;
-  desc.myRayGenShaderTableRange = mySBT->GetRayGenRange();
-  desc.myMissShaderTableRange = mySBT->GetMissRange();
-  desc.myHitGroupTableRange = mySBT->GetHitRange();
+  RtShaderBindingTable * sbt = RenderCore::GetRtShaderBindingTable( mySBT );
+  desc.myRayGenShaderTableRange = sbt->GetRayGenRange();
+  desc.myMissShaderTableRange = sbt->GetMissRange();
+  desc.myHitGroupTableRange = sbt->GetHitRange();
   desc.myWidth = texProps.myTextureProperties.myWidth;
   desc.myHeight = texProps.myTextureProperties.myHeight;
   desc.myDepth = 1;

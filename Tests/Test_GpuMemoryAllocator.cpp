@@ -51,8 +51,10 @@ void Test_GpuMemoryAllocator::OnUpdate( bool aDrawProperties ) {
 
   ImGui::Text( "%d Buffers allocated:", myBuffers.size() );
 
-  for ( const SharedPtr< GpuBuffer > & buffer : myBuffers )
-    ImGui::Text( "\t%s", buffer->myName.c_str() );
+  for ( const Fancy::GpuBufferHandle & buffer : myBuffers ) {
+    GpuBuffer * bufPtr = RenderCore::GetBuffer( buffer );
+    ImGui::Text( "\t%s", bufPtr->myName.c_str() );
+  }
 
   ImGui::NewLine();
 

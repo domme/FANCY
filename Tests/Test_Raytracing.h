@@ -1,6 +1,6 @@
 #pragma once
 #include "Test.h"
-#include "Common/Ptr.h"
+#include "Rendering/ResourceHandle.h"
 
 using namespace Fancy;
 
@@ -24,9 +24,9 @@ public:
   void OnUpdate( bool aDrawProperties ) override;
   void OnRender() override;
 
-  SharedPtr< RtAccelerationStructure > myBLAS;
-  SharedPtr< RtAccelerationStructure > myTLAS;
+  Fancy::RtAccelerationStructureHandle myBLAS;
+  Fancy::RtAccelerationStructureHandle myTLAS;
 
-  SharedPtr< RtPipelineState >      myRtPso;
-  SharedPtr< RtShaderBindingTable > mySBT;
+  Fancy::RtPipelineStateHandle      myRtPso;
+  Fancy::RtShaderBindingTableHandle mySBT;
 };

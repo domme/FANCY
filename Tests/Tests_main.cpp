@@ -29,7 +29,7 @@ _Use_decl_annotations_ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR
 
   eastl::vector< eastl::string > commandLineArgStrings( numArgs );
   eastl::vector< const char * >  cStrings( numArgs );
-  for ( uint i = 0u; i < numArgs; ++i ) {
+  for ( int i = 0; i < numArgs; ++i ) {
     commandLineArgStrings[ i ] = StringUtil::ToNarrowString( commandLineArgs[ i ] );
     cStrings[ i ] = commandLineArgStrings[ i ].c_str();
   }
@@ -40,7 +40,7 @@ _Use_decl_annotations_ int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR
   WindowParameters         windowParams;
   windowParams.myWidth = 1280;
   windowParams.myHeight = 720;
-  myTestApp.reset( new TestApplication( hInstance, cStrings.data(), cStrings.size(), "Tests", renderProperties, windowParams ) );
+  myTestApp.reset( new TestApplication( hInstance, cStrings.data(), static_cast<uint>( cStrings.size() ), "Tests", renderProperties, windowParams ) );
 
   MSG msg = { 0 };
   while ( true ) {

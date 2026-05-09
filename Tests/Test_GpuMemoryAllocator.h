@@ -1,7 +1,6 @@
 #pragma once
 #include "Test.h"
-#include "Rendering/GpuBuffer.h"
-#include "Rendering/Texture.h"
+#include "Rendering/ResourceHandle.h"
 
 #include "EASTL/vector.h"
 
@@ -17,8 +16,8 @@ private:
   void RenderMemoryAllocatorLayouts();
   bool myAllocatorTypeVisible[ ( uint ) Fancy::GpuMemoryType::NUM ][ ( uint ) Fancy::CpuMemoryAccessType::NUM ];
 
-  int                                                   myBufferToAllocSizeMb;
-  float                                                 myScale;
-  eastl::vector< Fancy::SharedPtr< Fancy::GpuBuffer > > myBuffers;
-  eastl::vector< Fancy::SharedPtr< Fancy::Texture > >   myTextures;
+  int                                            myBufferToAllocSizeMb;
+  float                                          myScale;
+  eastl::vector< Fancy::GpuBufferHandle >       myBuffers;
+  eastl::vector< Fancy::TextureHandle >         myTextures;
 };

@@ -46,13 +46,15 @@ void Test_Synchronization::OnUpdate( bool aDrawProperties ) {
   switch ( myStage ) {
     case Stage::IDLE: {
       myExpectedBufferValue = Time::ourFrameIdx;
-      uint * bufferData = ( uint * ) myUploadBuffer->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
+      GpuBuffer * uploadBuf = RenderCore::GetBuffer( myUploadBuffer );
+      uint *     bufferData = ( uint * ) uploadBuf->Map( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
       for ( uint i = 0; i < kNumBufferElements; ++i )
         bufferData[ i ] = myExpectedBufferValue;
-      myUploadBuffer->Unmap( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
+      uploadBuf->Unmap( GpuResourceMapMode::WRITE_UNSYNCHRONIZED );
 
       CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
-      ctx->CopyBuffer( myReadbackBuffer.get(), 0ull, myUploadBuffer.get(), 0ull, myUploadBuffer->GetByteSize() );
+      GpuBuffer *   readbackBuf = RenderCore::GetBuffer( myReadbackBuffer );
+      ctx->CopyBuffer( readbackBuf, 0ull, uploadBuf, 0ull, uploadBuf->GetByteSize() );
       myBufferCopyFence = RenderCore::ExecuteAndFreeCommandList( ctx );
 
       myStage = Stage::WAITING_FOR_COPY;
@@ -62,14 +64,15 @@ void Test_Synchronization::OnUpdate( bool aDrawProperties ) {
         myStage = Stage::COPY_DONE;
     } break;
     case Stage::COPY_DONE: {
-      uint * bufferData = ( uint * ) myReadbackBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
-      bool   hasExpectedData = true;
-      uint   bufferValue = 0;
+      GpuBuffer * readbackBuf = RenderCore::GetBuffer( myReadbackBuffer );
+      uint *     bufferData = ( uint * ) readbackBuf->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
+      bool       hasExpectedData = true;
+      uint       bufferValue = 0;
       for ( uint i = 0; hasExpectedData && i < kNumBufferElements; ++i ) {
         bufferValue = bufferData[ i ];
         hasExpectedData &= bufferData[ i ] == myExpectedBufferValue;
       }
-      myReadbackBuffer->Unmap( GpuResourceMapMode::READ_UNSYNCHRONIZED );
+      readbackBuf->Unmap( GpuResourceMapMode::READ_UNSYNCHRONIZED );
 
       if ( hasExpectedData ) {
         ImGui::PushStyleColor( ImGuiCol_Text, 0xFF20a300 );
