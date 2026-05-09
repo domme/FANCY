@@ -293,20 +293,26 @@ namespace Fancy {
   // Sync scope for GlobalBarrier: which pipeline stages to wait for / unblock.
   //---------------------------------------------------------------------------//
   enum class BarrierSyncScope {
-    None,        // D3D12_BARRIER_SYNC_NONE — no sync
-    Compute,     // D3D12_BARRIER_SYNC_COMPUTE_SHADING
-    Graphics,    // D3D12_BARRIER_SYNC_DRAW
-    AllShading,  // D3D12_BARRIER_SYNC_ALL_SHADING
-    Copy,        // D3D12_BARRIER_SYNC_COPY
-    All,         // D3D12_BARRIER_SYNC_ALL
+    None,            // D3D12_BARRIER_SYNC_NONE — no sync
+    Compute,         // D3D12_BARRIER_SYNC_COMPUTE_SHADING
+    Graphics,        // D3D12_BARRIER_SYNC_DRAW
+    AllShading,      // D3D12_BARRIER_SYNC_ALL_SHADING
+    Copy,            // D3D12_BARRIER_SYNC_COPY
+    ExecuteIndirect, // D3D12_BARRIER_SYNC_EXECUTE_INDIRECT
+    All,             // D3D12_BARRIER_SYNC_ALL
   };
   //---------------------------------------------------------------------------//
   // Cache flush scope for GlobalBarrier: what access types to make coherent.
   //---------------------------------------------------------------------------//
   enum class CacheFlush {
-    None,               // Execution-only sync — no cache invalidation
-    ShaderWrite,        // Flush L1 shader caches to L2 after UAV/shader writes
-    RenderTargetWrite,  // Flush ROP / render target caches to L2
+    None,                   // Execution-only sync — no cache invalidation
+    ShaderWrite,            // UAV/shader write → UAV/SRV read (flushes L1 shader caches)
+    RenderTargetWrite,      // Render target write → SRV read (flushes ROP caches)
+    DepthStencilWrite,      // DSV write → SRV read (e.g. shadow map, deferred depth)
+    IndirectArgument,       // UAV write → indirect argument read (compute → ExecuteIndirect)
+    CopyDestToShader,       // Copy write → shader read or write (e.g. after upload via staging copy)
+    ShaderWriteToCopySource,// UAV write → copy source read (e.g. readback)
+    All,                    // All writes → all reads/writes (catch-all for debugging)
   };
   //---------------------------------------------------------------------------//
   // Physical texture layout for TextureBarrier. Sync and cache-flush must be

@@ -44,21 +44,14 @@ namespace Fancy {
     //---------------------------------------------------------------------------//
     D3D12_BARRIER_SYNC locResolveBarrierSyncScope( BarrierSyncScope aScope ) {
       switch ( aScope ) {
-        case BarrierSyncScope::None:
-          return D3D12_BARRIER_SYNC_NONE;
-        case BarrierSyncScope::Compute:
-          return D3D12_BARRIER_SYNC_COMPUTE_SHADING;
-        case BarrierSyncScope::Graphics:
-          return D3D12_BARRIER_SYNC_DRAW;
-        case BarrierSyncScope::AllShading:
-          return D3D12_BARRIER_SYNC_ALL_SHADING;
-        case BarrierSyncScope::Copy:
-          return D3D12_BARRIER_SYNC_COPY;
-        case BarrierSyncScope::All:
-          return D3D12_BARRIER_SYNC_ALL;
-        default:
-          ASSERT( false );
-          return D3D12_BARRIER_SYNC_ALL;
+        case BarrierSyncScope::None:            return D3D12_BARRIER_SYNC_NONE;
+        case BarrierSyncScope::Compute:         return D3D12_BARRIER_SYNC_COMPUTE_SHADING;
+        case BarrierSyncScope::Graphics:        return D3D12_BARRIER_SYNC_DRAW;
+        case BarrierSyncScope::AllShading:      return D3D12_BARRIER_SYNC_ALL_SHADING;
+        case BarrierSyncScope::Copy:            return D3D12_BARRIER_SYNC_COPY;
+        case BarrierSyncScope::ExecuteIndirect: return D3D12_BARRIER_SYNC_EXECUTE_INDIRECT;
+        case BarrierSyncScope::All:             return D3D12_BARRIER_SYNC_ALL;
+        default: ASSERT( false );               return D3D12_BARRIER_SYNC_ALL;
       }
     }
     //---------------------------------------------------------------------------//
@@ -616,17 +609,37 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   void CommandListDX12::GlobalBarrier( BarrierSyncScope waitFor, BarrierSyncScope unblocks, CacheFlush flush ) {
     D3D12_BARRIER_ACCESS accessBefore = D3D12_BARRIER_ACCESS_NO_ACCESS;
-    D3D12_BARRIER_ACCESS accessAfter = D3D12_BARRIER_ACCESS_NO_ACCESS;
+    D3D12_BARRIER_ACCESS accessAfter  = D3D12_BARRIER_ACCESS_NO_ACCESS;
     switch ( flush ) {
       case CacheFlush::None:
         break;
       case CacheFlush::ShaderWrite:
         accessBefore = D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
-        accessAfter = ( D3D12_BARRIER_ACCESS ) ( D3D12_BARRIER_ACCESS_UNORDERED_ACCESS | D3D12_BARRIER_ACCESS_SHADER_RESOURCE );
+        accessAfter  = ( D3D12_BARRIER_ACCESS )( D3D12_BARRIER_ACCESS_UNORDERED_ACCESS | D3D12_BARRIER_ACCESS_SHADER_RESOURCE );
         break;
       case CacheFlush::RenderTargetWrite:
         accessBefore = D3D12_BARRIER_ACCESS_RENDER_TARGET;
-        accessAfter = D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
+        accessAfter  = D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
+        break;
+      case CacheFlush::DepthStencilWrite:
+        accessBefore = D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE;
+        accessAfter  = D3D12_BARRIER_ACCESS_SHADER_RESOURCE;
+        break;
+      case CacheFlush::IndirectArgument:
+        accessBefore = D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
+        accessAfter  = D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT;
+        break;
+      case CacheFlush::CopyDestToShader:
+        accessBefore = D3D12_BARRIER_ACCESS_COPY_DEST;
+        accessAfter  = ( D3D12_BARRIER_ACCESS )( D3D12_BARRIER_ACCESS_SHADER_RESOURCE | D3D12_BARRIER_ACCESS_UNORDERED_ACCESS );
+        break;
+      case CacheFlush::ShaderWriteToCopySource:
+        accessBefore = D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
+        accessAfter  = D3D12_BARRIER_ACCESS_COPY_SOURCE;
+        break;
+      case CacheFlush::All:
+        accessBefore = D3D12_BARRIER_ACCESS_COMMON;
+        accessAfter  = D3D12_BARRIER_ACCESS_COMMON;
         break;
     }
 
