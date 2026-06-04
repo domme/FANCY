@@ -100,6 +100,13 @@ function(fancy_copy_runtime_dlls target)
             "$<TARGET_FILE_DIR:${target}>"
         COMMENT "Copying D3D12Core.dll to output dir"
     )
+    # d3d12SDKLayers.dll only ships in the debug Agility SDK bin — required for -DebugLayer
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E $<IF:$<CONFIG:Debug>,copy_if_different,true>
+            "${FANCY_VCPKG_BIN_DEBUG}/d3d12SDKLayers.dll"
+            "$<TARGET_FILE_DIR:${target}>"
+        COMMENT "Copying d3d12SDKLayers.dll to output dir (Debug only)"
+    )
 
     # WinPixEventRuntime (single binary, no debug variant; downloaded separately)
     set(_winpix_dll "${FANCY_ROOT}/external/WinPixEventRuntime/bin/x64/WinPixEventRuntime.dll")

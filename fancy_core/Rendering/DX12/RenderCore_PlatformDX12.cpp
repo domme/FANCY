@@ -866,6 +866,7 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
       debugInterface->SetEnableGPUBasedValidation( gpuValidation );
     } else {
       LOG_ERROR( "Failed to initialize DX12 debug layer" );
+      assert( false );
     }
   }
 
