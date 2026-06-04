@@ -1,9 +1,27 @@
 cmake_minimum_required(VERSION 4.3)
 project(Tests)
 
-file(GLOB TESTS_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
+set(TESTS_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/TestApplication.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/TestApplication.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Tests_main.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_Profiler.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_Profiler.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_GpuMemoryAllocator.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_GpuMemoryAllocator.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_Synchronization.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_Synchronization.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_AsyncCompute.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_AsyncCompute.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_Raytracing.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_Raytracing.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_SharedQueueResourceUsage.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_SharedQueueResourceUsage.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_ImGui.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_ImGui.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_Mipmapping.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_Mipmapping.cpp"
 )
 
 # Organize source files into filters based on directory structure

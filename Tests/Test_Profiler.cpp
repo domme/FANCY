@@ -68,9 +68,9 @@ Test_Profiler::Test_Profiler( Fancy::AssetManager * anAssetManager, Fancy::Windo
   props.myIsShaderWritable = false;
   props.myBindFlags = ( uint ) GpuBufferBindFlags::SHADER_BUFFER;
   myDummyGpuBuffer1 = RenderCore::CreateBuffer( props, "TestItem_Profiler_DummyBuffer1" );
-  ASSERT( myDummyGpuBuffer1 != nullptr, "Test Profiler failed: Unable to create gpu dummy buffer" );
+  ASSERT( myDummyGpuBuffer1.IsValid(), "Test Profiler failed: Unable to create gpu dummy buffer" );
   myDummyGpuBuffer2 = RenderCore::CreateBuffer( props, "TestItem_Profiler_DummyBuffer1" );
-  ASSERT( myDummyGpuBuffer2 != nullptr, "Test Profiler failed: Unable to create gpu dummy buffer" );
+  ASSERT( myDummyGpuBuffer2.IsValid(), "Test Profiler failed: Unable to create gpu dummy buffer" );
 }
 
 Test_Profiler::~Test_Profiler() {
@@ -89,5 +89,5 @@ void Test_Profiler::OnUpdate( bool aDrawProperties ) {
 }
 
 void Test_Profiler::OnRender() {
-  LongGpuCopy( myDummyGpuBuffer1.get(), myDummyGpuBuffer2.get() );
+  LongGpuCopy( RenderCore::GetBuffer( myDummyGpuBuffer1 ), RenderCore::GetBuffer( myDummyGpuBuffer2 ) );
 }

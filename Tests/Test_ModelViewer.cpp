@@ -16,7 +16,7 @@
 #include "Rendering/Texture.h"
 #include "Common/StringUtil.h"
 #include "imgui.h"
-#include "IO/AssetManager.h"
+#include "IO/Assets.h"
 #include "Rendering/GpuBufferProperties.h"
 #include "Rendering/GpuBuffer.h"
 #include "IO/Material.h"

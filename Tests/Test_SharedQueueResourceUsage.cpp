@@ -32,10 +32,11 @@ Test_SharedQueueResourceUsage::Test_SharedQueueResourceUsage( Fancy::AssetManage
   GpuBufferViewProperties viewProps;
   viewProps.myFormat = DataFormat::R_32UI;
   viewProps.myIsShaderWritable = true;
-  myBufferWrite = RenderCore::CreateBufferView( myBuffer, viewProps, "Shared Queue Test Buffer UAV" );
+  GpuBuffer * buf = RenderCore::GetBuffer( myBuffer );
+  myBufferWrite = RenderCore::CreateBufferView( buf, viewProps, "Shared Queue Test Buffer UAV" );
 
   viewProps.myIsShaderWritable = false;
-  myBufferRead = RenderCore::CreateBufferView( myBuffer, viewProps, "Shared Queue Test Buffer SRV" );
+  myBufferRead = RenderCore::CreateBufferView( buf, viewProps, "Shared Queue Test Buffer SRV" );
 
   ShaderPipelineDesc pipelineDesc;
   ShaderDesc &       shaderDesc = pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
@@ -61,17 +62,18 @@ void Test_SharedQueueResourceUsage::OnUpdate( bool aDrawProperties ) {
   } cbuf;
 
   CommandList * graphicsContext = RenderCore::BeginCommandList( CommandListType::Graphics );
-  graphicsContext->SetShaderPipeline( myWriteBufferShader.get() );
+  graphicsContext->SetShaderPipeline( RenderCore::GetShaderPipeline( myWriteBufferShader ) );
 
-  cbuf.myDstBufferIndex = myBufferWrite->GetGlobalDescriptorIndex();
+  cbuf.myDstBufferIndex = RenderCore::GetBufferView( myBufferWrite )->GetGlobalDescriptorIndex();
   graphicsContext->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-  graphicsContext->PrepareResourceShaderAccess( myBufferWrite.get() );
+  graphicsContext->PrepareResourceShaderAccess( RenderCore::GetBufferView( myBufferWrite ) );
   graphicsContext->Dispatch( glm::int3( kNumBufferElements, 1, 1 ) );
-  graphicsContext->TransitionResource( myBuffer.get(), ResourceTransition::TO_SHARED_CONTEXT_READ );
+  graphicsContext->TransitionResource( RenderCore::GetBuffer( myBuffer ), ResourceTransition::TO_SHARED_CONTEXT_READ );
   const uint64 setValueFence = RenderCore::ExecuteAndFreeCommandList( graphicsContext );
 
+  GpuBuffer * buf = RenderCore::GetBuffer( myBuffer );
   GpuBufferResourceProperties props;
-  props.myBufferProperties = myBuffer->GetProperties();
+  props.myBufferProperties = buf->GetProperties();
   props.myFormat = DataFormat::R_32UI;
   props.myIsShaderWritable = true;
   TempBufferResource tempBuffer = RenderCore::AllocateTempBuffer( props, 0u, "Temp buffer" );
@@ -79,18 +81,18 @@ void Test_SharedQueueResourceUsage::OnUpdate( bool aDrawProperties ) {
   // Use the resource on the compute context in multiple readonly operations
   RenderCore::GetCommandQueue( CommandListType::Compute )->StallForFence( setValueFence );
   CommandList * computeContext = RenderCore::BeginCommandList( CommandListType::Compute );
-  computeContext->SetShaderPipeline( myCopyBufferShader.get() );
+  computeContext->SetShaderPipeline( RenderCore::GetShaderPipeline( myCopyBufferShader ) );
 
-  cbuf.mySrcBufferIndex = myBufferRead->GetGlobalDescriptorIndex();
+  cbuf.mySrcBufferIndex = RenderCore::GetBufferView( myBufferRead )->GetGlobalDescriptorIndex();
   cbuf.myDstBufferIndex = tempBuffer.myWriteView->GetGlobalDescriptorIndex();
   computeContext->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-  computeContext->PrepareResourceShaderAccess( myBufferRead.get() );
+  computeContext->PrepareResourceShaderAccess( RenderCore::GetBufferView( myBufferRead ) );
   computeContext->PrepareResourceShaderAccess( tempBuffer.myWriteView );
   computeContext->Dispatch( glm::int3( kNumBufferElements, 1, 1 ) );
 
   computeContext->ResourceUAVbarrier();
 
-  computeContext->CopyBuffer( tempBuffer.myBuffer, 0u, myBuffer.get(), 0u, sizeof( uint ) * kNumBufferElements );
+  computeContext->CopyBuffer( tempBuffer.myBuffer, 0u, buf, 0u, sizeof( uint ) * kNumBufferElements );
 
   const uint64 copyBufferFence = RenderCore::ExecuteAndFreeCommandList( computeContext );
 }

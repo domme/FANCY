@@ -1,7 +1,6 @@
 #pragma once
 #include "Test.h"
-#include "Rendering/GpuBuffer.h"
-#include "Rendering/ShaderPipeline.h"
+#include "Rendering/ResourceHandle.h"
 
 class Test_SharedQueueResourceUsage : public Test {
 public:
@@ -12,10 +11,10 @@ public:
   void OnRender() override;
 
 private:
-  Fancy::SharedPtr< Fancy::GpuBufferView > myBufferWrite;
-  Fancy::SharedPtr< Fancy::GpuBufferView > myBufferRead;
-  Fancy::SharedPtr< Fancy::GpuBuffer >     myBuffer;
+  Fancy::GpuBufferViewHandle   myBufferWrite;
+  Fancy::GpuBufferViewHandle   myBufferRead;
+  Fancy::GpuBufferHandle       myBuffer;
 
-  Fancy::SharedPtr< Fancy::ShaderPipeline > myWriteBufferShader;
-  Fancy::SharedPtr< Fancy::ShaderPipeline > myCopyBufferShader;
+  Fancy::ShaderPipelineHandle myWriteBufferShader;
+  Fancy::ShaderPipelineHandle myCopyBufferShader;
 };

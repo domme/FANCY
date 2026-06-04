@@ -10,10 +10,8 @@
 #include "Test_Synchronization.h"
 #include "Test_AsyncCompute.h"
 #include "Test_Mipmapping.h"
-#include "Test_ModelViewer.h"
 #include "Test_Raytracing.h"
 #include "Test_SharedQueueResourceUsage.h"
-#include "Test_HazardTracking.h"
 #include "Rendering/RenderOutput.h"
 
 namespace Fancy {
@@ -42,8 +40,8 @@ private:
       myTests.erase_first_unsorted( aTestPtr.get() );
       aTestPtr.reset();
     } else {
-      aTestPtr = eastl::make_unique< T >( myAssetManager.get(), myRenderOutput->GetWindow(), myRenderOutput.get(),
-                                          &myInputState );
+      RenderOutput * renderOutput = RenderCore::GetRenderOutput( myRenderOutput );
+      aTestPtr = eastl::make_unique< T >( nullptr, renderOutput->GetWindow(), renderOutput, &myInputState );
       myTests.push_back( aTestPtr.get() );
     }
   }
@@ -54,9 +52,7 @@ private:
   bool test_sychronization = false;
   bool test_asyncCompute = false;
   bool test_mipmapping = false;
-  bool test_modelviewer = false;
   bool test_sharedQueueResources = false;
-  bool test_hazardTracking = false;
   bool test_raytracing = false;
 
   Fancy::UniquePtr< Test_Profiler >                 myProfilerTest;
@@ -65,9 +61,7 @@ private:
   Fancy::UniquePtr< Test_Synchronization >          mySynchronizationTest;
   Fancy::UniquePtr< Test_AsyncCompute >             myAsyncComputeTest;
   Fancy::UniquePtr< Test_Mipmapping >               myMipmappingTest;
-  Fancy::UniquePtr< Test_ModelViewer >              myModelViewerTest;
   Fancy::UniquePtr< Test_SharedQueueResourceUsage > mySharedQueueResourceUsageTest;
-  Fancy::UniquePtr< Test_HazardTracking >           myHazardTrackingTest;
   Fancy::UniquePtr< Test_Raytracing >               myRaytracingTest;
 
   eastl::vector< Test * > myTests;

@@ -49,7 +49,4 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/FancyHelpers.cmake")
 add_subdirectory(fancy_core)
 add_subdirectory(fancy_imgui)
 
-# Tests is only built when Fancy is the root project (standalone solution)
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    add_subdirectory(Tests)
-endif()
+add_subdirectory(Tests)

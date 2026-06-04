@@ -49,12 +49,8 @@ void TestApplication::Update() {
     HandleTestDestroyCreate( test_gpuMemoryAllocs, myGpuMemoryAllocatorTest );
   if ( ImGui::Checkbox( "Test Async Compute", &test_asyncCompute ) )
     HandleTestDestroyCreate( test_asyncCompute, myAsyncComputeTest );
-  if ( ImGui::Checkbox( "Test Hazard Tracking", &test_hazardTracking ) )
-    HandleTestDestroyCreate( test_hazardTracking, myHazardTrackingTest );
   if ( ImGui::Checkbox( "Test Mipmapping", &test_mipmapping ) )
     HandleTestDestroyCreate( test_mipmapping, myMipmappingTest );
-  if ( ImGui::Checkbox( "Test Model Viewer", &test_modelviewer ) )
-    HandleTestDestroyCreate( test_modelviewer, myModelViewerTest );
   if ( ImGui::Checkbox( "Test Synchronization", &test_sychronization ) )
     HandleTestDestroyCreate( test_sychronization, mySynchronizationTest );
   if ( ImGui::Checkbox( "Test Shared Queue Resources", &test_sharedQueueResources ) )

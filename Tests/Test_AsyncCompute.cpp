@@ -30,18 +30,19 @@ Test_AsyncCompute::Test_AsyncCompute( Fancy::AssetManager * anAssetManager, Fanc
     data = 0;
 
   myBuffer = RenderCore::CreateBuffer( props, "Async compute test buffer", initialData.data() );
-  ASSERT( myBuffer );
+  ASSERT( myBuffer.IsValid() );
 
   GpuBufferViewProperties viewProps;
   viewProps.myFormat = DataFormat::R_32UI;
   viewProps.myIsShaderWritable = true;
-  myBufferUAV = RenderCore::CreateBufferView( myBuffer, viewProps, "Async compute text buffer UAV" );
-  ASSERT( myBufferUAV );
+  GpuBuffer * buf = RenderCore::GetBuffer( myBuffer );
+  myBufferUAV = RenderCore::CreateBufferView( buf, viewProps, "Async compute text buffer UAV" );
+  ASSERT( myBufferUAV.IsValid() );
 
   props.myIsShaderWritable = false;
   props.myCpuAccess = CpuMemoryAccessType::CPU_READ;
   myReadbackBuffer = RenderCore::CreateBuffer( props, "Async compute test readback buffer", initialData.data() );
-  ASSERT( myReadbackBuffer );
+  ASSERT( myReadbackBuffer.IsValid() );
 
   ShaderPipelineDesc pipelineDesc;
   ShaderDesc &       shaderDesc = pipelineDesc.myShader[ ( uint ) ShaderStage::SHADERSTAGE_COMPUTE ];
@@ -49,11 +50,11 @@ Test_AsyncCompute::Test_AsyncCompute( Fancy::AssetManager * anAssetManager, Fanc
   shaderDesc.myPath = "fancy/resources/shaders/Tests/ModifyBuffer.hlsl";
   shaderDesc.myMainFunction = "main_increment";
   myIncrementBufferShader = RenderCore::CreateShaderPipeline( pipelineDesc );
-  ASSERT( myIncrementBufferShader );
+  ASSERT( myIncrementBufferShader.IsValid() );
 
   shaderDesc.myMainFunction = "main_set";
   mySetBufferValueShader = RenderCore::CreateShaderPipeline( pipelineDesc );
-  ASSERT( mySetBufferValueShader );
+  ASSERT( mySetBufferValueShader.IsValid() );
 }
 
 Test_AsyncCompute::~Test_AsyncCompute() {
@@ -74,7 +75,7 @@ void Test_AsyncCompute::OnUpdate( bool aDrawProperties ) {
   switch ( myStage ) {
     case Stage::IDLE: {
       CommandList * graphicsContext = RenderCore::BeginCommandList( CommandListType::Graphics );
-      graphicsContext->SetShaderPipeline( mySetBufferValueShader.get() );
+      graphicsContext->SetShaderPipeline( RenderCore::GetShaderPipeline( mySetBufferValueShader ) );
 
       struct CBuffer {
         uint myValue;
@@ -82,22 +83,25 @@ void Test_AsyncCompute::OnUpdate( bool aDrawProperties ) {
         uint mySrcBufferIndex;
       };
       myExpectedBufferValue = ( uint ) Time::ourFrameIdx;
-      CBuffer cbuf = { ( uint ) myExpectedBufferValue, myBufferUAV->GetGlobalDescriptorIndex(), 0 };
+      CBuffer cbuf = { ( uint ) myExpectedBufferValue, RenderCore::GetBufferView( myBufferUAV )->GetGlobalDescriptorIndex(), 0 };
       graphicsContext->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-      graphicsContext->PrepareResourceShaderAccess( myBufferUAV.get() );
+      graphicsContext->PrepareResourceShaderAccess(  RenderCore::GetBufferView( myBufferUAV ) );
       graphicsContext->Dispatch( glm::int3( kNumBufferElements, 1, 1 ) );
       const uint64 setValueFence = RenderCore::ExecuteAndResetCommandList( graphicsContext );
 
       CommandList * computeContext = RenderCore::BeginCommandList( CommandListType::Compute );
       RenderCore::GetCommandQueue( CommandListType::Compute )->StallForFence( setValueFence );
-      computeContext->SetShaderPipeline( myIncrementBufferShader.get() );
+      computeContext->SetShaderPipeline( RenderCore::GetShaderPipeline( myIncrementBufferShader ) );
       computeContext->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-      computeContext->PrepareResourceShaderAccess( myBufferUAV.get() );
+      computeContext->PrepareResourceShaderAccess(  RenderCore::GetBufferView( myBufferUAV ) );
       computeContext->Dispatch( glm::int3( kNumBufferElements, 1, 1 ) );
       const uint64 incrementValueFence = RenderCore::ExecuteAndFreeCommandList( computeContext );
 
       RenderCore::GetCommandQueue( CommandListType::Graphics )->StallForFence( incrementValueFence );
-      graphicsContext->CopyBuffer( myReadbackBuffer.get(), 0ull, myBuffer.get(), 0ull, myBuffer->GetByteSize() );
+      graphicsContext = RenderCore::BeginCommandList( CommandListType::Graphics );
+      GpuBuffer * readbackBuf = RenderCore::GetBuffer( myReadbackBuffer );
+      GpuBuffer * srcBuf = RenderCore::GetBuffer( myBuffer );
+      graphicsContext->CopyBuffer( readbackBuf, 0ull, srcBuf, 0ull, srcBuf->GetByteSize() );
       myBufferCopyFence = RenderCore::ExecuteAndFreeCommandList( graphicsContext );
 
       myStage = Stage::WAITING_FOR_READBACK_COPY;
@@ -109,14 +113,15 @@ void Test_AsyncCompute::OnUpdate( bool aDrawProperties ) {
     case Stage::COPY_DONE: {
       const uint expectedValue = myExpectedBufferValue + 1;
 
-      uint * bufferData = ( uint * ) myReadbackBuffer->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
-      bool   hasExpectedData = true;
-      uint   bufferValue = 0;
+      GpuBuffer * readbackBuf = RenderCore::GetBuffer( myReadbackBuffer );
+      uint *     bufferData = ( uint * ) readbackBuf->Map( GpuResourceMapMode::READ_UNSYNCHRONIZED );
+      bool       hasExpectedData = true;
+      uint       bufferValue = 0;
       for ( uint i = 0; hasExpectedData && i < kNumBufferElements; ++i ) {
         bufferValue = bufferData[ i ];
         hasExpectedData &= bufferData[ i ] == expectedValue;
       }
-      myReadbackBuffer->Unmap( GpuResourceMapMode::READ_UNSYNCHRONIZED );
+      readbackBuf->Unmap( GpuResourceMapMode::READ_UNSYNCHRONIZED );
 
       if ( hasExpectedData ) {
         ImGui::PushStyleColor( ImGuiCol_Text, 0xFF20a300 );

@@ -1,7 +1,6 @@
 #pragma once
 #include "Test.h"
-#include "Rendering/GpuBuffer.h"
-#include "Rendering/ShaderPipeline.h"
+#include "Rendering/ResourceHandle.h"
 
 class Test_AsyncCompute : public Test {
 public:
@@ -22,10 +21,10 @@ private:
   uint64 myExpectedBufferValue = 0ull;
   uint64 myBufferCopyFence = 0ull;
 
-  Fancy::SharedPtr< Fancy::GpuBufferView > myBufferUAV;
-  Fancy::SharedPtr< Fancy::GpuBuffer >     myBuffer;
-  Fancy::SharedPtr< Fancy::GpuBuffer >     myReadbackBuffer;
+  Fancy::GpuBufferViewHandle myBufferUAV;
+  Fancy::GpuBufferHandle     myBuffer;
+  Fancy::GpuBufferHandle     myReadbackBuffer;
 
-  Fancy::SharedPtr< Fancy::ShaderPipeline > mySetBufferValueShader;
-  Fancy::SharedPtr< Fancy::ShaderPipeline > myIncrementBufferShader;
+  Fancy::ShaderPipelineHandle mySetBufferValueShader;
+  Fancy::ShaderPipelineHandle myIncrementBufferShader;
 };

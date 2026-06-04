@@ -1,5 +1,5 @@
 #pragma once
-#include "Rendering/GpuBuffer.h"
+#include "Rendering/ResourceHandle.h"
 #include "ProfilerWindow.h"
 #include "Test.h"
 
@@ -12,8 +12,8 @@ public:
   void OnRender() override;
 
 private:
-  bool                                 myShowProfilerWindow = false;
-  Fancy::ProfilerWindow                myProfilerWindow;
-  Fancy::SharedPtr< Fancy::GpuBuffer > myDummyGpuBuffer1;
-  Fancy::SharedPtr< Fancy::GpuBuffer > myDummyGpuBuffer2;
+  bool                         myShowProfilerWindow = false;
+  Fancy::ProfilerWindow        myProfilerWindow;
+  Fancy::GpuBufferHandle       myDummyGpuBuffer1;
+  Fancy::GpuBufferHandle       myDummyGpuBuffer2;
 };
