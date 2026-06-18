@@ -102,40 +102,32 @@ namespace Fancy {
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
     }
 
-    D3D12_RESOURCE_STATES readStateMask = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
-                                          D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE |
-                                          D3D12_RESOURCE_STATE_COPY_SOURCE;
-    D3D12_RESOURCE_STATES initialStates = readStateMask;
-    D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
-    if ( myProperties.myIsShaderWritable )
-      writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-    if ( myProperties.bIsDepthStencil ) {
-      writeStateMask |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
-      readStateMask |= D3D12_RESOURCE_STATE_DEPTH_READ;
-      initialStates = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-    } else if ( myProperties.myIsRenderTarget ) {
-      writeStateMask |= D3D12_RESOURCE_STATE_RENDER_TARGET;
-      initialStates = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    }
-
-    // If we can directly initialize the texture, start in the COPY_DST state so we can avoid one barrier
+    uint initialTextureState = GPU_TEXTURE_STATE_SHADER_READ_NON_PIXEL;  // Default for shader-visible textures
     const bool hasInitData = someInitialDatas != nullptr && aNumInitialDatas > 0u;
     if ( hasInitData )
-      initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
+      initialTextureState = GPU_TEXTURE_STATE_COPY_DEST;
+    else if ( myProperties.bIsDepthStencil )
+      initialTextureState = GPU_TEXTURE_STATE_DEPTH_WRITE;
+    else if ( myProperties.myIsRenderTarget )
+      initialTextureState = GPU_TEXTURE_STATE_RENDER_TARGET;
+    if ( myProperties.myIsShaderWritable )
+      initialTextureState |= GPU_TEXTURE_STATE_SHADER_WRITE;
+
+    // Get enhanced barrier layout from new state enum (replaces legacy D3D12_RESOURCE_STATES)
+    D3D12_BARRIER_LAYOUT initialLayout = GetTextureLayoutFromState( initialTextureState );
 
     mySubresources =
         SubresourceRange( 0u, myProperties.myNumMipLevels, 0u, myProperties.GetArraySize(), 0, formatInfo.myNumPlanes );
 
-    GpuSubresourceHazardDataDX12 subHazardData;
-    subHazardData.myContext = CommandListType::Graphics;
-    subHazardData.myStates = initialStates;
+    GpuSubresourceBarrierStateDX12 subState;
+    subState.myState   = initialTextureState;
+    subState.myContext = CommandListType::Graphics;
 
-    GpuResourceHazardDataDX12 * hazardData = &dataDx12.myHazardData;
-    *hazardData = GpuResourceHazardDataDX12();
-    hazardData->mySubresources.resize( mySubresources.GetNumSubresources(), subHazardData );
-    hazardData->myReadStates = readStateMask;
-    hazardData->myWriteStates = writeStateMask;
-    hazardData->myAllSubresourcesSameStates = true;
+    GpuResourceBarrierDataDX12 * hazardData = &dataDx12.myHazardData;
+    *hazardData = GpuResourceBarrierDataDX12();
+    hazardData->mySubresources.resize( mySubresources.GetNumSubresources(), subState );
+    hazardData->myAllSubresourcesSameState = true;
+    // myCanChangeStates stays true (default)
 
     const bool useOptimizeClearValue = ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ) != 0u ||
                                        ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL ) != 0u;
@@ -152,9 +144,9 @@ namespace Fancy {
     }
 
     RenderCore_PlatformDX12 *            dx12Platform = RenderCore::GetPlatformDX12();
-    ID3D12Device *                       device = dx12Platform->GetDevice();
+    ID3D12Device12 *                     device12 = dx12Platform->GetDevice();
     const CpuMemoryAccessType            gpuMemAccess = ( CpuMemoryAccessType ) myProperties.myAccessType;
-    const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device->GetResourceAllocationInfo( 0u, 1u, &resourceDesc );
+    const D3D12_RESOURCE_ALLOCATION_INFO allocInfo = device12->GetResourceAllocationInfo( 0u, 1u, &resourceDesc );
 
     const GpuMemoryType           memoryType = ( myProperties.myIsRenderTarget || myProperties.bIsDepthStencil )
                                                    ? GpuMemoryType::RENDERTARGET
@@ -164,9 +156,24 @@ namespace Fancy {
     ASSERT( gpuMemory.myHeap != nullptr );
 
     const uint64 alignedHeapOffset = MathUtil::Align( gpuMemory.myOffsetInHeap, allocInfo.Alignment );
-    ASSERT_HRESULT( device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates,
-                                                  useOptimizeClearValue ? &clearValue : nullptr,
-                                                  IID_PPV_ARGS( &dataDx12.myResource ) ) );
+    
+    // Use CreatePlacedResource2 with enhanced barrier layout (no legacy D3D12_RESOURCE_STATES)
+    // Initialize D3D12_RESOURCE_DESC1 with the resource description
+    D3D12_RESOURCE_DESC1 resourceDesc1 = {};
+    resourceDesc1.Dimension = resourceDesc.Dimension;
+    resourceDesc1.Alignment = resourceDesc.Alignment;
+    resourceDesc1.Width = resourceDesc.Width;
+    resourceDesc1.Height = resourceDesc.Height;
+    resourceDesc1.DepthOrArraySize = resourceDesc.DepthOrArraySize;
+    resourceDesc1.MipLevels = resourceDesc.MipLevels;
+    resourceDesc1.Format = resourceDesc.Format;
+    resourceDesc1.SampleDesc = resourceDesc.SampleDesc;
+    resourceDesc1.Layout = resourceDesc.Layout;
+    resourceDesc1.Flags = resourceDesc.Flags;
+    resourceDesc1.SamplerFeedbackMipRegion = {};
+    ASSERT_HRESULT( device12->CreatePlacedResource2( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc1, initialLayout,
+                                                      useOptimizeClearValue ? &clearValue : nullptr, 0, nullptr,
+                                                      IID_PPV_ARGS( &dataDx12.myResource ) ) );
     dataDx12.myGpuMemory = gpuMemory;
 
     // TODO: Decide between placed and committed resources depending on size and alignment requirements (maybe also
@@ -204,7 +211,7 @@ namespace Fancy {
     ID3D12Resource *            texResource = GetDX12Data()->myResource.Get();
     const D3D12_RESOURCE_DESC & texResourceDesc = texResource->GetDesc();
 
-    ID3D12Device * device = RenderCore::GetPlatformDX12()->GetDevice();
+    ID3D12Device12 * device = RenderCore::GetPlatformDX12()->GetDevice();
 
     const int startSubresourceIndex = GetSubresourceIndex( SubresourceLocation(
         aSubresourceRange.myFirstMipLevel, aSubresourceRange.myFirstArrayIndex, aSubresourceRange.myFirstPlane ) );

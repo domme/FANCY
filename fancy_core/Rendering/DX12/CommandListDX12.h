@@ -82,13 +82,19 @@ namespace Fancy {
     void Dispatch( const glm::int3 & aNumThreads ) override;
     void DispatchRays( const DispatchRaysDesc & aDesc ) override;
 
-    void TrackResourceTransition( const GpuResource * aResource, D3D12_RESOURCE_STATES aNewState,
-                                  bool aIsSharedReadState = false );
-    void TrackSubresourceTransition( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
-                                     D3D12_RESOURCE_STATES aNewState, bool aToSharedReadState = false );
-    void AddBarrier( const D3D12_RESOURCE_BARRIER & aBarrier );
+    void TrackTextureTransition( const GpuResource * aResource, uint aNewState,
+                                 bool aToSharedReadState = false );
+    void TrackTextureSubresourceTransition( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
+                                           uint aNewState, bool aToSharedReadState = false );
+    void TrackBufferTransition( const GpuResource * aResource, uint aNewState,
+                                bool aToSharedReadState = false );
+    void TrackBufferSubresourceTransition( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
+                                          uint aNewState, bool aToSharedReadState = false );
 
-    ID3D12GraphicsCommandList6 * GetDX12CommandList() const {
+    void AddTextureBarrier( const D3D12_TEXTURE_BARRIER & aBarrier );
+    void AddBufferBarrier( const D3D12_BUFFER_BARRIER & aBarrier );
+
+    ID3D12GraphicsCommandList7 * GetDX12CommandList() const {
       return myCommandList;
     }
 
@@ -104,31 +110,29 @@ namespace Fancy {
     void ApplyRenderTargets();
     void ApplyTopologyType();
     void ApplyResourceBindings();
+    void AddBarrier( const D3D12_RESOURCE_BARRIER & aBarrier );
 
-    bool                  GetLocalSubresourceStates( const GpuResource * aResource, SubresourceLocation aSubresource,
-                                                     D3D12_RESOURCE_STATES & aStatesOut );
-    D3D12_RESOURCE_STATES ResolveValidateDstStates( const GpuResource * aResource, D3D12_RESOURCE_STATES aDstStates );
-    bool                  ValidateSubresourceTransition( const GpuResource * aResource, uint aSubresourceIndex,
-                                                         D3D12_RESOURCE_STATES aDstStates );
+    bool ValidateSubresourceTransition( const GpuResource * aResource, uint aSubresourceIndex,
+                                        uint aDstState, bool aIsTexture, bool & aIsWAWOut );
 
-    ID3D12GraphicsCommandList6 *                                             myCommandList;
-    ID3D12CommandAllocator *                                                 myCommandAllocator;
-    eastl::fixed_vector< D3D12_RESOURCE_BARRIER, kNumCachedBarriers, false > myPendingBarriers;
-    eastl::fixed_vector< uint64, 16 >                                        myLocalBuffersToBind;
-    eastl::fixed_vector< uint64, 16 >                                        myLocalRWBuffersToBind;
-    eastl::fixed_vector< uint64, 16 >                                        myLocalCBuffersToBind;
-
-    D3D12_RESOURCE_STATES myResourceStateMask;
+    ID3D12GraphicsCommandList7 *                                            myCommandList;
+    ID3D12CommandAllocator *                                                myCommandAllocator;
+    eastl::fixed_vector< D3D12_TEXTURE_BARRIER, kNumCachedBarriers, false > myPendingTextureBarriers;
+    eastl::fixed_vector< D3D12_BUFFER_BARRIER, kNumCachedBarriers, false >  myPendingBufferBarriers;
+    eastl::fixed_vector< uint64, 16 >                                       myLocalBuffersToBind;
+    eastl::fixed_vector< uint64, 16 >                                       myLocalRWBuffersToBind;
+    eastl::fixed_vector< uint64, 16 >                                       myLocalCBuffersToBind;
 
     struct SubresourceHazardData {
-      SubresourceHazardData() : myWasWritten( false ), myWasUsed( false ), myIsSharedReadState( false ) {}
+      SubresourceHazardData()
+        : myWasWritten( false ), myWasUsed( false ), myIsSharedReadState( false ),
+          myFirstDstState( GPU_TEXTURE_STATE_UNDEFINED ), myState( GPU_TEXTURE_STATE_UNDEFINED ) {}
 
-      // TODO: Those two could be reduced to only 24 bits
-      D3D12_RESOURCE_STATES myFirstDstStates = ( D3D12_RESOURCE_STATES ) 0;
-      D3D12_RESOURCE_STATES myStates = ( D3D12_RESOURCE_STATES ) 0;
-      uint                  myWasWritten : 1;
-      uint                  myWasUsed : 1;
-      uint                  myIsSharedReadState : 1;
+      uint myFirstDstState;   // First target state on this command list (used for patching)
+      uint myState;           // Current local state on this command list
+      uint myWasWritten : 1;
+      uint myWasUsed : 1;
+      uint myIsSharedReadState : 1;
     };
     struct LocalHazardData {
       eastl::fixed_vector< SubresourceHazardData, 16 > mySubresources;

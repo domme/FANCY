@@ -67,7 +67,7 @@ namespace Fancy {
 
     void InitNullDescriptors();
 
-    ID3D12Device8 * GetDevice() const {
+    ID3D12Device12 * GetDevice() const {
       return ourDevice.Get();
     }
 
@@ -126,7 +126,11 @@ namespace Fancy {
 
     CommandQueueDX12 * GetCommandQueueDX12( CommandListType aCommandListType );
 
-    Microsoft::WRL::ComPtr< ID3D12Device8 > ourDevice;
+    bool SupportsEnhancedBarriers() const {
+      return mySupportsEnhancedBarriers;
+    }
+
+    Microsoft::WRL::ComPtr< ID3D12Device12 > ourDevice;
 
     UniquePtr< StaticDescriptorAllocatorDX12 >   myStaticDescriptorAllocators[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
     UniquePtr< ShaderVisibleDescriptorHeapDX12 > myShaderVisibleDescriptorHeap;
@@ -142,6 +146,8 @@ namespace Fancy {
     DescriptorDX12 myCBVNullDescriptor;
 
     PipelineStateCacheDX12 myPipelineStateCache;
+
+    bool mySupportsEnhancedBarriers;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

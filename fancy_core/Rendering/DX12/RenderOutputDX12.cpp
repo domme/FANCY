@@ -47,18 +47,16 @@ namespace Fancy {
       eastl::wstring wName = StringUtil::ToWideString( resource.myName );
       dataDx12.myResource->SetName( wName.c_str() );
 
-      GpuSubresourceHazardDataDX12 subHazardData;
-      subHazardData.myContext = CommandListType::Graphics;
-      subHazardData.myStates = D3D12_RESOURCE_STATE_PRESENT;
+      GpuSubresourceBarrierStateDX12 subState;
+      subState.myContext = CommandListType::Graphics;
+      subState.myState = GPU_TEXTURE_STATE_PRESENT;
 
       resource.mySubresources = SubresourceRange( 0u, 1u, 0u, 1u, 0u, 1u );
 
-      GpuResourceHazardDataDX12 * hazardData = &dataDx12.myHazardData;
-      hazardData->myReadStates = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
-                                 D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_COPY_SOURCE;
-      hazardData->myWriteStates = D3D12_RESOURCE_STATE_RENDER_TARGET | D3D12_RESOURCE_STATE_COPY_DEST;
-      hazardData->mySubresources.push_back( subHazardData );
+      GpuResourceBarrierDataDX12 * hazardData = &dataDx12.myHazardData;
+      hazardData->mySubresources.push_back( subState );
       hazardData->myCanChangeStates = true;
+      hazardData->myAllSubresourcesSameState = true;
 
       resource.myDx12Data = dataDx12;
 
@@ -82,7 +80,7 @@ namespace Fancy {
   void RenderOutputDX12::Present() {
     CommandList *     ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
     CommandListDX12 * ctxDx12 = static_cast< CommandListDX12 * >( ctx );
-    ctxDx12->TrackResourceTransition( GetBackbuffer(), D3D12_RESOURCE_STATE_PRESENT );
+    ctxDx12->TrackTextureTransition( GetBackbuffer(), GPU_TEXTURE_STATE_PRESENT );
     RenderCore::ExecuteAndFreeCommandList( ctx );
 
     mySwapChain->Present( 0, 0 );

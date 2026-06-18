@@ -61,72 +61,75 @@ namespace Fancy {
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
     resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-    resourceDesc.Flags =
-        someProperties.myIsShaderWritable ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
+    // For enhanced barriers: RTAS resources need both the RTAS flag and UAV flag
+    if ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE )
+      resourceDesc.Flags = D3D12_RESOURCE_FLAG_RAYTRACING_ACCELERATION_STRUCTURE | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+    else if ( someProperties.myIsShaderWritable )
+      resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+    else
+      resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-    D3D12_RESOURCE_STATES readStateMask =
-        D3D12_RESOURCE_STATE_GENERIC_READ | D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-    D3D12_RESOURCE_STATES writeStateMask = D3D12_RESOURCE_STATE_COPY_DEST;
-    if ( someProperties.myIsShaderWritable )
-      writeStateMask |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    // Determine initial buffer state based on properties
+    uint initialBufferState = GPU_BUFFER_STATE_SHADER_READ_NON_PIXEL;
+    bool canChangeStates    = true;
 
-    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::VERTEX_BUFFER ) &&
-         !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::CONSTANT_BUFFER ) )
-      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::INDEX_BUFFER ) )
-      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_INDEX_BUFFER;
-    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::SHADER_BUFFER ) ) {
-      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-
-      if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_SHADER_BINDING_TABLE ) )
-        readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    }
-    if ( !( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE ) )
-      readStateMask = readStateMask & ~D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-
-    // In most cases, UAV resources will directly be used as such so start with that as an initial state
-    D3D12_RESOURCE_STATES initialStates = someProperties.myIsShaderWritable
-                                              ? D3D12_RESOURCE_STATE_UNORDERED_ACCESS
-                                              : ( D3D12_RESOURCE_STATE_GENERIC_READ & readStateMask ) & writeStateMask;
-    bool                  canChangeStates = true;
-    if ( someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE )  // Upload heap
-    {
-      canChangeStates = false;
-      initialStates = D3D12_RESOURCE_STATE_GENERIC_READ;
-    } else if ( someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ )  // Readback heap
-    {
-      canChangeStates = false;
-      initialStates = D3D12_RESOURCE_STATE_COPY_DEST;
+    if ( someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE ) {
+      canChangeStates    = false;
+      initialBufferState = GPU_BUFFER_STATE_COPY_SOURCE;   // Upload heap: always GENERIC_READ equivalent
+    } else if ( someProperties.myCpuAccess == CpuMemoryAccessType::CPU_READ ) {
+      canChangeStates    = false;
+      initialBufferState = GPU_BUFFER_STATE_COPY_DEST;
+    } else if ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE ) {
+      initialBufferState = GPU_BUFFER_STATE_RT_ACCELERATION_STRUCTURE;
+    } else if ( someProperties.myIsShaderWritable ) {
+      initialBufferState = GPU_BUFFER_STATE_SHADER_WRITE;
+    } else if ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::CONSTANT_BUFFER ) {
+      initialBufferState = GPU_BUFFER_STATE_CONSTANT_BUFFER;
+    } else if ( someProperties.myBindFlags & ( ( uint ) GpuBufferBindFlags::VERTEX_BUFFER |
+                                               ( uint ) GpuBufferBindFlags::INDEX_BUFFER ) ) {
+      initialBufferState = GPU_BUFFER_STATE_VERTEX_INDEX;
+    } else if ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::SHADER_BUFFER ) {
+      initialBufferState = GPU_BUFFER_STATE_SHADER_READ_ALL;
+    } else if ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_SHADER_BINDING_TABLE ) {
+      initialBufferState = GPU_BUFFER_STATE_RT_SBT;
     }
 
-    if ( someProperties.myBindFlags & ( uint ) GpuBufferBindFlags::RT_ACCELERATION_STRUCTURE_STORAGE ) {
-      initialStates = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-      writeStateMask |= D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
-    }
+    GpuSubresourceBarrierStateDX12 subState;
+    subState.myState   = initialBufferState;
+    subState.myContext = CommandListType::Graphics;
 
-    GpuSubresourceHazardDataDX12 subHazardData;
-    subHazardData.myContext = CommandListType::Graphics;
-    subHazardData.myStates = initialStates;
-
-    GpuResourceHazardDataDX12 * hazardData = &dataDx12.myHazardData;
-    *hazardData = GpuResourceHazardDataDX12();
+    GpuResourceBarrierDataDX12 * hazardData = &dataDx12.myHazardData;
+    *hazardData = GpuResourceBarrierDataDX12();
     hazardData->myCanChangeStates = canChangeStates;
-    hazardData->mySubresources.push_back( subHazardData );
-    hazardData->myReadStates = readStateMask;
-    hazardData->myWriteStates = writeStateMask;
+    hazardData->mySubresources.push_back( subState );
 
     mySubresources = SubresourceRange( 0u, 1u, 0u, 1u, 0u, 1u );
 
     RenderCore_PlatformDX12 * dx12Platform = RenderCore::GetPlatformDX12();
-    ID3D12Device *            device = dx12Platform->GetDevice();
+    ID3D12Device12 *          device12 = dx12Platform->GetDevice();
 
     GpuMemoryAllocationDX12 gpuMemory = dx12Platform->AllocateGpuMemory(
         GpuMemoryType::BUFFER, someProperties.myCpuAccess, pitch, myAlignment, myName.c_str() );
     ASSERT( gpuMemory.myHeap != nullptr );
 
     const uint64 alignedHeapOffset = MathUtil::Align( gpuMemory.myOffsetInHeap, myAlignment );
-    ASSERT_HRESULT( device->CreatePlacedResource( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc, initialStates,
-                                                  nullptr, IID_PPV_ARGS( &dataDx12.myResource ) ) );
+    
+    // Use CreatePlacedResource2 with enhanced barrier layout (no legacy D3D12_RESOURCE_STATES)
+    // Initialize D3D12_RESOURCE_DESC1 with the resource description
+    D3D12_RESOURCE_DESC1 resourceDesc1 = {};
+    resourceDesc1.Dimension = resourceDesc.Dimension;
+    resourceDesc1.Alignment = resourceDesc.Alignment;
+    resourceDesc1.Width = resourceDesc.Width;
+    resourceDesc1.Height = resourceDesc.Height;
+    resourceDesc1.DepthOrArraySize = resourceDesc.DepthOrArraySize;
+    resourceDesc1.MipLevels = resourceDesc.MipLevels;
+    resourceDesc1.Format = resourceDesc.Format;
+    resourceDesc1.SampleDesc = resourceDesc.SampleDesc;
+    resourceDesc1.Layout = resourceDesc.Layout;
+    resourceDesc1.Flags = resourceDesc.Flags;
+    resourceDesc1.SamplerFeedbackMipRegion = {};
+    ASSERT_HRESULT( device12->CreatePlacedResource2( gpuMemory.myHeap, alignedHeapOffset, &resourceDesc1, D3D12_BARRIER_LAYOUT_UNDEFINED,
+                                                      nullptr, 0, nullptr, IID_PPV_ARGS( &dataDx12.myResource ) ) );
 
     eastl::wstring wName = StringUtil::ToWideString( myName );
     dataDx12.myResource->SetName( wName.c_str() );

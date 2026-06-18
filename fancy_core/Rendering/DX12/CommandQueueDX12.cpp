@@ -98,106 +98,93 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void CommandQueueDX12::ResolveResourceHazardData( CommandList * aCommandList ) {
-    eastl::fixed_vector< D3D12_RESOURCE_BARRIER, 64 > patchingBarriers;
+    eastl::fixed_vector< D3D12_TEXTURE_BARRIER, 64 > patchTexBarriers;
+    eastl::fixed_vector< D3D12_BUFFER_BARRIER, 64 >  patchBufBarriers;
 
     CommandListDX12 * cmdListDx12 = static_cast< CommandListDX12 * >( aCommandList );
 
     for ( auto it : cmdListDx12->myLocalHazardData ) {
       const GpuResource * resource = it.first;
+      const bool isTexture = resource->IsTexture();
 
-      GpuResourceHazardDataDX12 &              globalHazardData = resource->GetDX12Data()->myHazardData;
-      const CommandListDX12::LocalHazardData & localHazardData = it.second;
-      ASSERT( globalHazardData.mySubresources.size() == localHazardData.mySubresources.size() );
+      GpuResourceBarrierDataDX12 & globalData = resource->GetDX12Data()->myHazardData;
+      const CommandListDX12::LocalHazardData & localData = it.second;
+      ASSERT( globalData.mySubresources.size() == localData.mySubresources.size() );
 
-      eastl::fixed_vector< D3D12_RESOURCE_BARRIER, 64 > subresourceTransitions;
-      for ( uint subIdx = 0u; subIdx < ( uint ) localHazardData.mySubresources.size(); ++subIdx ) {
-        GpuSubresourceHazardDataDX12 &                 globalSubData = globalHazardData.mySubresources[ subIdx ];
-        const CommandListDX12::SubresourceHazardData & localSubData = localHazardData.mySubresources[ subIdx ];
+      for ( uint subIdx = 0u; subIdx < ( uint ) localData.mySubresources.size(); ++subIdx ) {
+        GpuSubresourceBarrierStateDX12 & globalSub = globalData.mySubresources[ subIdx ];
+        const CommandListDX12::SubresourceHazardData & localSub = localData.mySubresources[ subIdx ];
 
-        if ( !localSubData.myWasUsed )
-          continue;
+        if ( !localSub.myWasUsed ) continue;
 
-        const D3D12_RESOURCE_STATES oldGlobalStates = globalSubData.myStates;
+        const uint oldGlobalState = globalSub.myState;
 
-        if ( localSubData.myIsSharedReadState ) {
-          ASSERT( !localSubData.myWasWritten );
-          globalSubData.myContext = CommandListType::SHARED_READ;
-        }
+        // Update global state tracking
+        if ( localSub.myIsSharedReadState )
+          globalSub.myContext = CommandListType::SHARED_READ;
+        globalSub.myState = localSub.myState;
+        if ( localSub.myWasWritten )
+          globalSub.myContext = aCommandList->GetType();
 
-        globalSubData.myStates = localSubData.myStates;
-        if ( localSubData.myWasWritten )
-          globalSubData.myContext = aCommandList->GetType();
-
-        if ( oldGlobalStates == localSubData.myFirstDstStates ) {
+        if ( oldGlobalState == localSub.myFirstDstState ) {
 #if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-          if ( RenderCore::ourDebugLogResourceBarriers )
-            LOG_DEBUG( "Patching subresource transition: %s (subresource %d): No transition needed (global state %s == "
-                       "first dst state on commandlist %s)",
-                       resource->GetName(), subIdx, DebugUtilsDX12::ResourceStatesToString( oldGlobalStates ).c_str(),
-                       DebugUtilsDX12::ResourceStatesToString( localSubData.myFirstDstStates ).c_str() );
+          // TODO: Add logging with new state names
 #endif
           continue;
         }
 
-        D3D12_RESOURCE_BARRIER barrier = {};
-        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Transition.StateBefore = oldGlobalStates;
-        barrier.Transition.StateAfter = localSubData.myFirstDstStates;
-        barrier.Transition.Subresource = subIdx;
-        barrier.Transition.pResource = resource->GetDX12Data()->myResource.Get();
-
-#if FANCY_RENDERER_LOG_RESOURCE_BARRIERS
-        if ( RenderCore::ourDebugLogResourceBarriers )
-          LOG_DEBUG( "Patching subresource transition: %s (subresource %d): %s -> %s", resource->GetName(), subIdx,
-                     DebugUtilsDX12::ResourceStatesToString( barrier.Transition.StateBefore ).c_str(),
-                     DebugUtilsDX12::ResourceStatesToString( barrier.Transition.StateAfter ).c_str() );
-#endif
-
-        subresourceTransitions.push_back( barrier );
-      }
-
-      if ( !subresourceTransitions.empty() ) {
-        bool canTransitionAllSubresources =
-            ( uint ) subresourceTransitions.size() == globalHazardData.mySubresources.size();
-        if ( canTransitionAllSubresources ) {
-          const D3D12_RESOURCE_BARRIER & firstBarrier = subresourceTransitions.front();
-          for ( uint i = 1u; canTransitionAllSubresources && i < ( uint ) subresourceTransitions.size(); ++i ) {
-            canTransitionAllSubresources &=
-                firstBarrier.Transition.StateBefore == subresourceTransitions[ i ].Transition.StateBefore &&
-                firstBarrier.Transition.StateAfter == subresourceTransitions[ i ].Transition.StateAfter;
-          }
-        }
-
-        if ( canTransitionAllSubresources ) {
-          D3D12_RESOURCE_BARRIER barrier = subresourceTransitions.front();
-          barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-          patchingBarriers.push_back( barrier );
+        if ( isTexture ) {
+          TextureBarrierParams beforeParams = GetTextureBarrierParams( oldGlobalState );
+          TextureBarrierParams afterParams  = GetTextureBarrierParams( localSub.myFirstDstState );
+          D3D12_TEXTURE_BARRIER barrier = {};
+          barrier.SyncBefore   = beforeParams.mySync;
+          barrier.AccessBefore = beforeParams.myAccess;
+          barrier.LayoutBefore = beforeParams.myLayout;
+          barrier.SyncAfter    = afterParams.mySync;
+          barrier.AccessAfter  = afterParams.myAccess;
+          barrier.LayoutAfter  = afterParams.myLayout;
+          barrier.pResource    = resource->GetDX12Data()->myResource.Get();
+          barrier.Subresources.IndexOrFirstMipLevel = subIdx;
+          barrier.Subresources.NumMipLevels = 1u;
+          barrier.Subresources.FirstArraySlice = 0u;
+          barrier.Subresources.NumArraySlices = 1u;
+          barrier.Subresources.FirstPlane = 0u;
+          barrier.Subresources.NumPlanes = 1u;
+          barrier.Flags        = D3D12_TEXTURE_BARRIER_FLAG_NONE;
+          patchTexBarriers.push_back( barrier );
         } else {
-          patchingBarriers.reserve( patchingBarriers.size() + subresourceTransitions.size() );
-          for ( uint i = 0u; i < subresourceTransitions.size(); ++i )
-            patchingBarriers.push_back( subresourceTransitions[ i ] );
+          BufferBarrierParams beforeParams = GetBufferBarrierParams( oldGlobalState );
+          BufferBarrierParams afterParams  = GetBufferBarrierParams( localSub.myFirstDstState );
+          D3D12_BUFFER_BARRIER barrier = {};
+          barrier.SyncBefore   = beforeParams.mySync;
+          barrier.AccessBefore = beforeParams.myAccess;
+          barrier.SyncAfter    = afterParams.mySync;
+          barrier.AccessAfter  = afterParams.myAccess;
+          barrier.pResource    = resource->GetDX12Data()->myResource.Get();
+          barrier.Offset       = 0;
+          barrier.Size         = UINT64_MAX;
+          patchBufBarriers.push_back( barrier );
         }
-
-        bool                  allSubresourcesSameState = true;
-        D3D12_RESOURCE_STATES firstState = globalHazardData.mySubresources[ 0 ].myStates;
-        CommandListType       firstContext = globalHazardData.mySubresources[ 0 ].myContext;
-        for ( uint subIdx = 1u; allSubresourcesSameState && subIdx < globalHazardData.mySubresources.size(); ++subIdx )
-          allSubresourcesSameState &= ( firstState == globalHazardData.mySubresources[ subIdx ].myStates &&
-                                        firstContext == globalHazardData.mySubresources[ subIdx ].myContext );
-
-        globalHazardData.myAllSubresourcesSameStates = allSubresourcesSameState;
       }
+
+      // Update myAllSubresourcesSameState
+      bool allSame = true;
+      uint firstState = globalData.mySubresources[ 0 ].myState;
+      for ( uint s = 1u; allSame && s < ( uint ) globalData.mySubresources.size(); ++s )
+        allSame = globalData.mySubresources[ s ].myState == firstState;
+      globalData.myAllSubresourcesSameState = allSame;
     }
 
-    if ( !patchingBarriers.empty() ) {
+    if ( !patchTexBarriers.empty() || !patchBufBarriers.empty() ) {
       CommandList *     ctx = RenderCore::BeginCommandList( myType );
       CommandListDX12 * ctxDx12 = static_cast< CommandListDX12 * >( ctx );
-
-      for ( uint i = 0u; i < patchingBarriers.size(); ++i )
-        ctxDx12->AddBarrier( patchingBarriers[ i ] );
-
+      for ( uint i = 0; i < patchTexBarriers.size(); ++i ) {
+        ctxDx12->AddTextureBarrier( patchTexBarriers[ i ] );
+      }
+      for ( uint i = 0; i < patchBufBarriers.size(); ++i ) {
+        ctxDx12->AddBufferBarrier( patchBufBarriers[ i ] );
+      }
       ctxDx12->FlushBarriers();
-
       ExecuteAndFreeCommandList( ctx );
     }
   }

@@ -882,6 +882,7 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
     uint            i = 0;
     IDXGIAdapter1 * adapter;
     eastl::string   defaultAdapterName;
+    eastl::string   selectedAdapterName;  // Track selected adapter name for later logging
     while ( dxgiFactory->EnumAdapters1( i, &adapter ) != DXGI_ERROR_NOT_FOUND ) {
       DXGI_ADAPTER_DESC1 desc;
       adapter->GetDesc1( &desc );
@@ -894,6 +895,7 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
       gpuName.make_lower();
       if ( selectedAdapter == nullptr && gpuName.find( adapterType ) != eastl::string::npos ) {
         selectedAdapter = adapter;
+        selectedAdapterName = gpuName;
         LOG_INFO( "Selecting adapter %s", gpuName.c_str() );
       }
 
@@ -902,10 +904,12 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
 
     if ( !adapterType.empty() && selectedAdapter == nullptr ) {
       LOG_WARNING( "Unable to find GPU type %s - falling back to default GPU instead", adapterType.c_str() );
+      selectedAdapterName = defaultAdapterName;
     }
 
     if ( selectedAdapter == nullptr ) {
       LOG_INFO( "Using default GPU %s", defaultAdapterName.c_str() );
+      selectedAdapterName = defaultAdapterName;
     }
   }
 
@@ -914,10 +918,42 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
   const char *      featureLevelStr[] = { "12_2", "12_1" };
 
   for ( uint i = 0; i < ARRAY_LENGTH( supportedFeatureLevels ); ++i ) {
-    HRESULT result = D3D12CreateDevice( selectedAdapter, supportedFeatureLevels[ i ], IID_PPV_ARGS( &ourDevice ) );
+    Microsoft::WRL::ComPtr< ID3D12Device > tempDevice;
+    HRESULT result = D3D12CreateDevice( selectedAdapter, supportedFeatureLevels[ i ], IID_PPV_ARGS( &tempDevice ) );
     if ( result == S_OK ) {
       LOG_INFO( "Created D3D device with feature level %s", featureLevelStr[ i ] );
-      break;
+      
+      // Query for ID3D12Device12 to get enhanced barriers support
+      if ( SUCCEEDED( tempDevice->QueryInterface( IID_PPV_ARGS( &ourDevice ) ) ) ) {
+        LOG_INFO( "Using ID3D12Device12 (Enhanced Barriers supported)" );
+        break;
+      } else {
+        LOG_WARNING( "ID3D12Device12 not available on this system" );
+        LOG_WARNING( "Enhanced barriers require Windows 11 22H2 or later" );
+      }
+    }
+  }
+  
+  ASSERT( ourDevice != nullptr, "Failed to create D3D12 device with enhanced barrier support. Ensure Windows 11 22H2 or later is installed." );
+
+  // Initialize enhanced barriers support flag
+  {
+    D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12 = {};
+    HRESULT hr = ourDevice->CheckFeatureSupport( D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof( options12 ) );
+    if ( SUCCEEDED( hr ) ) {
+      mySupportsEnhancedBarriers = options12.EnhancedBarriersSupported;
+      if ( options12.EnhancedBarriersSupported ) {
+        LOG_INFO( "Enhanced Barriers: SUPPORTED ✓" );
+      } else {
+        LOG_ERROR( "Enhanced Barriers: NOT SUPPORTED ✗" );
+        LOG_ERROR( "D3D12 Enhanced Barriers (D3D12_OPTIONS12.EnhancedBarriersSupported) are required but not supported by your GPU/driver." );
+        LOG_ERROR( "RTX 3050 with updated NVIDIA drivers should support this feature." );
+        LOG_ERROR( "Please check: 1) GPU driver version, 2) Windows 11 (Windows 10 has limited support), 3) GPU mode (ensure RTX is primary)" );
+      }
+    } else {
+      LOG_WARNING( "Could not query D3D12_FEATURE_D3D12_OPTIONS12 (HRESULT: 0x%08X)", hr );
+      LOG_ERROR( "Enhanced Barriers support check failed. This may indicate a driver or OS compatibility issue." );
+      mySupportsEnhancedBarriers = false;
     }
   }
 
@@ -926,7 +962,13 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
     if ( SUCCEEDED( ourDevice->QueryInterface( IID_PPV_ARGS( &infoQueue ) ) ) ) {
       D3D12_MESSAGE_SEVERITY severityIds[] = { D3D12_MESSAGE_SEVERITY_INFO };
 
-      D3D12_MESSAGE_ID denyIds[] = { D3D12_MESSAGE_ID_COPY_DESCRIPTORS_INVALID_RANGES };
+      D3D12_MESSAGE_ID denyIds[] = {
+        D3D12_MESSAGE_ID_COPY_DESCRIPTORS_INVALID_RANGES,
+        // Patch command lists contain only barriers (pre-execution resource transitions). D3D12
+        // recommends ACCESS_NO_ACCESS in barrier-only lists as an optimization, but implementing
+        // proper split barriers would require significant architectural changes. Suppress for now.
+        D3D12_MESSAGE_ID_NON_OPTIMAL_BARRIER_ONLY_EXECUTE_COMMAND_LISTS,
+      };
 
       D3D12_INFO_QUEUE_FILTER filter = {};
       filter.DenyList.NumSeverities = ARRAYSIZE( severityIds );
