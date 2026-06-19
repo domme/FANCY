@@ -4,6 +4,7 @@
 #include "Rendering/ResourceHandle.h"
 #include "Common/Camera.h"
 #include "Common/CameraController.h"
+#include "Common/Ptr.h"
 #include "IO/MeshImporter.h"
 
 namespace Fancy {
@@ -39,7 +40,7 @@ private:
   Fancy::TextureSamplerHandle    mySampler;
   Fancy::VertexInputLayoutHandle myInstancedVertexLayout;
   Fancy::GpuBufferHandle         myInstancePositions;
-  Fancy::TextureViewHandle       myDepthStencilDsv;
-  Fancy::SharedPtr< Fancy::Scene > myScene;
-  int                            myNumInstances;
+  Fancy::TextureViewHandle     myDepthStencilDsv;
+  Fancy::UniquePtr< Fancy::Scene > myScene;
+  int                          myNumInstances;
 };

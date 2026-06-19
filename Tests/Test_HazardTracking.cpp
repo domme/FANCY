@@ -22,10 +22,12 @@ Test_HazardTracking::Test_HazardTracking( Fancy::AssetManager * anAssetManager, 
     TextureViewProperties viewProps;
     viewProps.mySubresourceRange = SubresourceRange( i, 1, 0, 1, 0, 1 );
 
-    myTexMipRead[ i ] = RenderCore::CreateTextureView( myTex, viewProps, "Hazard tracking test texture read" );
+    myTexMipRead[ i ] =
+        RenderCore::CreateTextureView( RenderCore::GetTexture( myTex ), viewProps, "Hazard tracking test texture read" );
 
     viewProps.myIsShaderWritable = true;
-    myTexMipWrite[ i ] = RenderCore::CreateTextureView( myTex, viewProps, "Hazard tracking test texture write" );
+    myTexMipWrite[ i ] =
+        RenderCore::CreateTextureView( RenderCore::GetTexture( myTex ), viewProps, "Hazard tracking test texture write" );
   }
 
   GpuBufferProperties bufProps;
@@ -52,10 +54,12 @@ Test_HazardTracking::Test_HazardTracking( Fancy::AssetManager * anAssetManager, 
     bufViewProps.mySize = viewSizes[ i ];
     bufViewProps.myFormat = DataFormat::R_32UI;
 
-    myBufferRead[ i ] = RenderCore::CreateBufferView( myBuffer, bufViewProps, "Hazard tracking test buffer read" );
+    myBufferRead[ i ] =
+        RenderCore::CreateBufferView( RenderCore::GetBuffer( myBuffer ), bufViewProps, "Hazard tracking test buffer read" );
 
     bufViewProps.myIsShaderWritable = true;
-    myBufferWrite[ i ] = RenderCore::CreateBufferView( myBuffer, bufViewProps, "Hazard tracking test buffer write" );
+    myBufferWrite[ i ] = RenderCore::CreateBufferView( RenderCore::GetBuffer( myBuffer ), bufViewProps,
+                                                       "Hazard tracking test buffer write" );
   }
 
   ShaderPipelineDesc pipelineDesc;
@@ -85,25 +89,27 @@ void Test_HazardTracking::OnUpdate( bool aDrawProperties ) {
   };
 
   for ( uint i = 0u; i < 3; ++i ) {
-    ctx->SetShaderPipeline( myBufferToMipShader.get() );
+    ctx->SetShaderPipeline( RenderCore::GetShaderPipeline( myBufferToMipShader ) );
 
-    cBuffer cbuf = { myBufferRead[ i ]->GetGlobalDescriptorIndex(), myTexMipWrite[ i ]->GetGlobalDescriptorIndex() };
+    cBuffer cbuf = { RenderCore::GetBufferView( myBufferRead[ i ] )->GetGlobalDescriptorIndex(),
+                     RenderCore::GetTextureView( myTexMipWrite[ i ] )->GetGlobalDescriptorIndex() };
     ctx->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
 
-    ctx->PrepareResourceShaderAccess( myBufferRead[ i ].get() );
-    ctx->PrepareResourceShaderAccess( myTexMipWrite[ i ].get() );
+    ctx->PrepareResourceShaderAccess( RenderCore::GetBufferView( myBufferRead[ i ] ) );
+    ctx->PrepareResourceShaderAccess( RenderCore::GetTextureView( myTexMipWrite[ i ] ) );
     ctx->Dispatch( dispatchSizes[ i ] );
   }
 
   RenderCore::ExecuteAndResetCommandList( ctx, SyncMode::BLOCKING );
 
   for ( uint i = 0u; i < 3; ++i ) {
-    ctx->SetShaderPipeline( myMipToBufferShader.get() );
+    ctx->SetShaderPipeline( RenderCore::GetShaderPipeline( myMipToBufferShader ) );
 
-    cBuffer cbuf = { myBufferWrite[ i ]->GetGlobalDescriptorIndex(), myTexMipRead[ i ]->GetGlobalDescriptorIndex() };
+    cBuffer cbuf = { RenderCore::GetBufferView( myBufferWrite[ i ] )->GetGlobalDescriptorIndex(),
+                     RenderCore::GetTextureView( myTexMipRead[ i ] )->GetGlobalDescriptorIndex() };
     ctx->BindConstantBuffer( &cbuf, sizeof( cbuf ), 0 );
-    ctx->PrepareResourceShaderAccess( myTexMipRead[ i ].get() );
-    ctx->PrepareResourceShaderAccess( myBufferWrite[ i ].get() );
+    ctx->PrepareResourceShaderAccess( RenderCore::GetTextureView( myTexMipRead[ i ] ) );
+    ctx->PrepareResourceShaderAccess( RenderCore::GetBufferView( myBufferWrite[ i ] ) );
     ctx->Dispatch( dispatchSizes[ i ] );
   }
 

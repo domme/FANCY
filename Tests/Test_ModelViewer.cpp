@@ -26,9 +26,9 @@ using namespace Fancy;
 
 bool ourDrawInstanced = false;
 
-static SharedPtr< ShaderPipeline > locLoadShader( const char * aShaderPath, const char * aMainVtxFunction = "main",
-                                                  const char * aMainFragmentFunction = "main",
-                                                  const char * someDefines = nullptr ) {
+static ShaderPipelineHandle locLoadShader( const char * aShaderPath, const char * aMainVtxFunction = "main",
+                                           const char * aMainFragmentFunction = "main",
+                                           const char * someDefines = nullptr ) {
   eastl::vector< eastl::string > defines;
   if ( someDefines )
     StringUtil::Tokenize( someDefines, ",", defines );
@@ -56,17 +56,17 @@ Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy:
                                     Fancy::RenderOutput * aRenderOutput, Fancy::InputState * anInputState )
     : Test( anAssetManager, aWindow, aRenderOutput, anInputState, "Model Viewer" ), myCameraController( &myCamera ) {
   myUnlitTexturedShader = locLoadShader( "fancy/resources/shaders/Unlit_Textured.hlsl" );
-  ASSERT( myUnlitTexturedShader != nullptr );
+  ASSERT( myUnlitTexturedShader.IsValid() );
 
   myInstancedUnlitTexturedShader =
       locLoadShader( "fancy/resources/shaders/Unlit_Textured.hlsl", "main", "main", "INSTANCED" );
-  ASSERT( myInstancedUnlitTexturedShader != nullptr );
+  ASSERT( myInstancedUnlitTexturedShader.IsValid() );
 
   myUnlitVertexColorShader = locLoadShader( "fancy/resources/shaders/Unlit_Colored.hlsl" );
-  ASSERT( myUnlitVertexColorShader != nullptr );
+  ASSERT( myUnlitVertexColorShader.IsValid() );
 
   myDebugGeoShader = locLoadShader( "fancy/resources/shaders/DebugGeo_Colored.hlsl" );
-  ASSERT( myDebugGeoShader != nullptr );
+  ASSERT( myDebugGeoShader.IsValid() );
 
   TextureSamplerProperties samplerProps;
   samplerProps.myAddressModeX = SamplerAddressMode::REPEAT;
@@ -101,7 +101,7 @@ Test_ModelViewer::Test_ModelViewer( Fancy::AssetManager * anAssetManager, Fancy:
   const bool   importSuccess = importer.Import( "fancy/resources/models/cube.obj", vertexAttributes, sceneData );
   ASSERT( importSuccess );
 
-  myScene = eastl::make_shared< Scene >( sceneData, myAssetManager );
+  myScene = eastl::make_unique< Scene >( sceneData );
 
   VertexInputLayoutProperties instancedVertexLayoutProps = sceneData.myVertexInputLayoutProperties;
   instancedVertexLayoutProps.myAttributes.push_back(
@@ -152,7 +152,8 @@ void Test_ModelViewer::OnUpdate( bool aDrawProperties ) {
 
 void Test_ModelViewer::OnRender() {
   CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics );
-  ctx->ClearDepthStencilTarget( myDepthStencilDsv.get(), 1.0f, 0u, ( uint ) DepthStencilClearFlags::CLEAR_ALL );
+  ctx->ClearDepthStencilTarget( RenderCore::GetTextureView( myDepthStencilDsv ), 1.0f, 0u,
+                                ( uint ) DepthStencilClearFlags::CLEAR_ALL );
 
   RenderGrid( ctx );
   RenderScene( ctx );
@@ -174,22 +175,23 @@ void Test_ModelViewer::UpdateDepthbuffer() {
   dsTexProps.myHeight = height;
   dsTexProps.myNumMipLevels = 1u;
 
-  SharedPtr< Texture > dsTexture = RenderCore::CreateTexture( dsTexProps, "Backbuffer DepthStencil Texture" );
-  ASSERT( dsTexture != nullptr );
+  TextureHandle dsTexture = RenderCore::CreateTexture( dsTexProps, "Backbuffer DepthStencil Texture" );
+  ASSERT( dsTexture.IsValid() );
 
   TextureViewProperties props;
   props.myDimension = GpuResourceDimension::TEXTURE_2D;
   props.myIsRenderTarget = true;
   props.myFormat = DataFormat::D_24UNORM_S_8UI;
-  props.mySubresourceRange = dsTexture->mySubresources;
-  myDepthStencilDsv = RenderCore::CreateTextureView( dsTexProps, props, "DepthStencil Texture" );
-  ASSERT( myDepthStencilDsv != nullptr );
+  props.mySubresourceRange = RenderCore::GetTexture( dsTexture )->mySubresources;
+  myDepthStencilDsv =
+      RenderCore::CreateTextureView( RenderCore::GetTexture( dsTexture ), props, "DepthStencil Texture" );
+  ASSERT( myDepthStencilDsv.IsValid() );
 }
 
 void Test_ModelViewer::RenderGrid( Fancy::CommandList * ctx ) {
   ctx->SetViewport( glm::uvec4( 0, 0, myWindow->GetWidth(), myWindow->GetHeight() ) );
   ctx->SetClipRect( glm::uvec4( 0, 0, myWindow->GetWidth(), myWindow->GetHeight() ) );
-  ctx->SetRenderTarget( myOutput->GetBackbufferRtv(), myDepthStencilDsv.get() );
+  ctx->SetRenderTarget( myOutput->GetBackbufferRtv(), RenderCore::GetTextureView( myDepthStencilDsv ) );
 
   ctx->SetDepthStencilState( nullptr );
   ctx->SetBlendState( nullptr );
@@ -197,7 +199,7 @@ void Test_ModelViewer::RenderGrid( Fancy::CommandList * ctx ) {
   ctx->SetFillMode( FillMode::SOLID );
   ctx->SetWindingOrder( WindingOrder::CCW );
 
-  ctx->SetShaderPipeline( myDebugGeoShader.get() );
+  ctx->SetShaderPipeline( RenderCore::GetShaderPipeline( myDebugGeoShader ) );
 
   struct Cbuffer_DebugGeo {
     glm::float4x4 myWorldViewProj;
@@ -230,7 +232,7 @@ void Test_ModelViewer::RenderGrid( Fancy::CommandList * ctx ) {
 void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
   ctx->SetViewport( glm::uvec4( 0, 0, myWindow->GetWidth(), myWindow->GetHeight() ) );
   ctx->SetClipRect( glm::uvec4( 0, 0, myWindow->GetWidth(), myWindow->GetHeight() ) );
-  ctx->SetRenderTarget( myOutput->GetBackbufferRtv(), myDepthStencilDsv.get() );
+  ctx->SetRenderTarget( myOutput->GetBackbufferRtv(), RenderCore::GetTextureView( myDepthStencilDsv ) );
 
   ctx->SetDepthStencilState( nullptr );
   ctx->SetBlendState( nullptr );
@@ -239,30 +241,35 @@ void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
   ctx->SetWindingOrder( WindingOrder::CCW );
 
   ctx->SetTopologyType( TopologyType::TRIANGLE_LIST );
-  ctx->SetShaderPipeline( ourDrawInstanced ? myInstancedUnlitTexturedShader.get() : myUnlitTexturedShader.get() );
+  ctx->SetShaderPipeline( ourDrawInstanced ? RenderCore::GetShaderPipeline( myInstancedUnlitTexturedShader )
+                                           : RenderCore::GetShaderPipeline( myUnlitTexturedShader ) );
 
   const uint numInstances = ourDrawInstanced ? ( uint ) myNumInstances : 1u;
 
   auto RenderMesh = [ ctx, numInstances, this ]( Mesh * mesh ) {
-    for ( SharedPtr< MeshPart > & meshPart : mesh->myParts ) {
-      const VertexInputLayout * layout = meshPart->myVertexInputLayout.get();
-      ctx->SetVertexInputLayout( ourDrawInstanced ? myInstancedVertexLayout.get() : layout );
+    for ( uint partIdx = 0u; partIdx < mesh->myParts.size(); ++partIdx ) {
+      MeshPart * meshPart = mesh->myParts[ partIdx ].get();
+      const VertexInputLayout * layout = RenderCore::GetVertexInputLayout( meshPart->myVertexInputLayout );
+      ctx->SetVertexInputLayout( ourDrawInstanced ? RenderCore::GetVertexInputLayout( myInstancedVertexLayout ) : layout );
+
+      GpuBuffer * vertexBuffer = RenderCore::GetBuffer( meshPart->myVertexBuffer );
+      GpuBuffer * instanceBuffer = RenderCore::GetBuffer( myInstancePositions );
+      GpuBuffer * indexBuffer = RenderCore::GetBuffer( meshPart->myIndexBuffer );
 
       uint64            offsets[] = { 0u, 0u };
-      uint64            sizes[] = { meshPart->myVertexBuffer->GetByteSize(), myInstancePositions->GetByteSize() };
-      const GpuBuffer * buffers[] = { meshPart->myVertexBuffer.get(), myInstancePositions.get() };
+      uint64            sizes[] = { vertexBuffer->GetByteSize(), instanceBuffer->GetByteSize() };
+      const GpuBuffer * buffers[] = { vertexBuffer, instanceBuffer };
       ctx->BindVertexBuffers( buffers, offsets, sizes, ourDrawInstanced ? 2u : 1u );
-      ctx->BindIndexBuffer( meshPart->myIndexBuffer.get(),
-                            meshPart->myIndexBuffer->GetProperties().myElementSizeBytes );
+      ctx->BindIndexBuffer( indexBuffer, indexBuffer->GetProperties().myElementSizeBytes );
 
-      ctx->Render( meshPart->myIndexBuffer->GetProperties().myNumElements, numInstances, 0, 0, 0 );
+      ctx->Render( indexBuffer->GetProperties().myNumElements, numInstances, 0, 0, 0 );
     }
   };
 
   for ( SceneMeshInstance & meshInstance : myScene->myInstances ) {
-    Mesh *        mesh = myScene->myMeshes[ meshInstance.myMeshIndex ].get();
+    Mesh *        mesh = Assets::GetMesh( myScene->myMeshes[ meshInstance.myMeshIndex ] );
     glm::float4x4 transform = meshInstance.myTransform;
-    Material *    material = myScene->myMaterials[ meshInstance.myMaterialIndex ].get();
+    Material *    material = Assets::GetMaterial( myScene->myMaterials[ meshInstance.myMaterialIndex ] );
 
     struct Cbuffer_PerObject {
       glm::float4x4 myWorldViewProj;
@@ -270,9 +277,10 @@ void Test_ModelViewer::RenderScene( Fancy::CommandList * ctx ) {
       uint          mySamplerIndex;
     };
     Cbuffer_PerObject cbuffer_perObject{ myCamera.myViewProj * transform, UINT_MAX,
-                                         mySampler->GetGlobalDescriptorIndex() };
+                                         RenderCore::GetTextureSampler( mySampler )->GetGlobalDescriptorIndex() };
 
-    const GpuResourceView * diffuseTex = material->myTextures[ ( uint ) MaterialTextureType::BASE_COLOR ].get();
+    const GpuResourceView * diffuseTex =
+        RenderCore::GetTextureView( material->myTextures[ ( uint ) MaterialTextureType::BASE_COLOR ] );
     if ( diffuseTex ) {
       ctx->PrepareResourceShaderAccess( diffuseTex );
       cbuffer_perObject.myTextureIndex = diffuseTex->GetGlobalDescriptorIndex();
