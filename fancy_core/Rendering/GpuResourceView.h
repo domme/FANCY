@@ -5,6 +5,9 @@
 #if FANCY_ENABLE_DX12
 #include "DX12/GpuResourceViewDataDX12.h"
 #endif
+#if FANCY_ENABLE_VK
+#include "Vulkan/GpuResourceViewDataVk.h"
+#endif
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -39,6 +42,9 @@ namespace Fancy {
 
 #if FANCY_ENABLE_DX12
     GpuResourceViewDataDX12 myDX12Data;
+#endif
+#if FANCY_ENABLE_VK
+    GpuResourceViewDataVk myVkData;
 #endif
 
     SubresourceRange    mySubresourceRange;

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.3)
 project(fancy_core)
 
-# Collect all source files, excluding the Vulkan backend (not configured in this build)
+# Collect all source files
 file(GLOB_RECURSE FANCY_CORE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Common/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Common/*.h"
@@ -14,9 +14,6 @@ file(GLOB_RECURSE FANCY_CORE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/dds.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/fancy_core_precompile.h"
 )
-# Exclude the Vulkan backend
-list(FILTER FANCY_CORE_SOURCES EXCLUDE REGEX ".*/Rendering/Vulkan/.*")
-
 # Organize source files into filters based on directory structure
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${FANCY_CORE_SOURCES})
 
@@ -41,6 +38,8 @@ target_link_libraries(fancy_core
         Microsoft::DirectXShaderCompiler
         Microsoft::DirectX-Headers
         Microsoft::DirectX12-Agility
+        Vulkan::Vulkan
+        unofficial::spirv-reflect
         WinPixEventRuntime
         dxgi
         d3d12

@@ -8,6 +8,9 @@
 #include <atomic>
 
 #include "Rendering/RenderCore.h"
+#if FANCY_ENABLE_VK
+#include "Rendering/Vulkan/RenderCore_PlatformVk.h"
+#endif
 
 namespace Fancy {
   namespace Priv_DxcShaderCompiler {
@@ -103,7 +106,21 @@ namespace Fancy {
       std::atomic< int > myRefCount = 1;
     };
 
-    //---------------------------------------------------------------------------//
+#if FANCY_ENABLE_VK
+      StaticString< 32 > GetVkTargetEnvArg() {
+        uint majorVersion = 1u;
+        uint minorVersion = 1u;
+
+        RenderCore_PlatformVk * platformVk = RenderCore::GetPlatformVk();
+        if ( platformVk != nullptr ) {
+          platformVk->GetVulkanVersion( majorVersion, minorVersion );
+        }
+
+        return StaticString< 32 >( "-fspv-target-env=vulkan%d.%d", majorVersion, minorVersion );
+      }
+#endif
+
+      //---------------------------------------------------------------------------//
   }  // namespace Priv_DxcShaderCompiler
   //---------------------------------------------------------------------------//
   DxcShaderCompiler::DxcShaderCompiler() {
@@ -151,6 +168,22 @@ namespace Fancy {
 
     AddArgument( L"/Zpc" );  // Pack matrices in column-major order
 
+    eastl::wstring vkTargetEnvArg;
+    if ( aConfig.mySpirv ) {
+      AddArgument( L"-spirv" );
+      AddArgument( L"-fvk-use-dx-layout" );
+      AddArgument( L"-fvk-use-dx-position-w" );
+
+      if ( aDesc.myShaderStage == ( uint ) ShaderStage::SHADERSTAGE_VERTEX ) {
+        AddArgument( L"-fvk-invert-y" );
+      }
+
+#if FANCY_ENABLE_VK
+      vkTargetEnvArg = StringUtil::ToWideString( Priv_DxcShaderCompiler::GetVkTargetEnvArg().GetBuffer() );
+      AddArgument( vkTargetEnvArg.c_str() );
+#endif
+    }
+
     if ( aConfig.myDebug ) {
       AddArgument( L"/Zi" );            // Enable debug information
       AddArgument( L"/o0" );            // Optimization level 0
@@ -167,6 +200,11 @@ namespace Fancy {
 
     defineNames.push_back( L"DXC_COMPILER" );
     defines.push_back( { defineNames[ defineNames.size() - 1 ].c_str(), nullptr } );
+
+    if ( aConfig.mySpirv ) {
+      defineNames.push_back( L"VULKAN" );
+      defines.push_back( { defineNames[ defineNames.size() - 1 ].c_str(), nullptr } );
+    }
 
     const char * stageDefine =
         ShaderCompiler::ShaderStageToDefineString( static_cast< ShaderStage >( aDesc.myShaderStage ) );

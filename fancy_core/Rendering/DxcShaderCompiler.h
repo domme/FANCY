@@ -19,6 +19,7 @@ namespace Fancy {
 
     struct Config {
       bool          myDebug = true;
+      bool          mySpirv = false;
       eastl::string myProfile;
     };
 

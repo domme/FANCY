@@ -8,6 +8,9 @@
 #if FANCY_ENABLE_DX12
 #include "DX12/ShaderDX12.h"
 #endif
+#if FANCY_ENABLE_VK
+#include "Vulkan/ShaderVk.h"
+#endif
 
 namespace Fancy {
   struct RtShaderCompiledData;
@@ -24,6 +27,9 @@ namespace Fancy {
 
 #if FANCY_ENABLE_DX12
     ShaderCompiledDataDX12 myDx12Data;
+#endif
+#if FANCY_ENABLE_VK
+    ShaderCompiledDataVk myVkData;
 #endif
   };
   //---------------------------------------------------------------------------//

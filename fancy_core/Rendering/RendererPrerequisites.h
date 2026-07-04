@@ -51,6 +51,7 @@ namespace Fancy {
     bool         myHasAsyncCompute = false;
     bool         myHasAsyncCopy = false;
     bool         mySupportsRaytracing = false;
+
   };
   //---------------------------------------------------------------------------//
   struct RenderPlatformProperties {

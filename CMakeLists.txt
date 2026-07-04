@@ -41,6 +41,8 @@ find_package(xxHash            CONFIG REQUIRED)
 find_package(directx-dxc       CONFIG REQUIRED)
 find_package(directx-headers   CONFIG REQUIRED)
 find_package(directx12-agility CONFIG REQUIRED)
+find_package(Vulkan            REQUIRED)
+find_package(unofficial-spirv-reflect CONFIG REQUIRED)
 
 # Load helpers and external imported targets
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/WinPixEventRuntime.cmake")

@@ -38,6 +38,7 @@ namespace Fancy {
   struct DepthStencilStateProperties;
   struct BlendStateProperties;
   class RenderCore_PlatformDX12;
+  class RenderCore_PlatformVk;
   class ShaderPipeline;
   class BlendState;
   class DepthStencilState;
@@ -175,6 +176,7 @@ namespace Fancy {
     static const RenderPlatformCaps & GetPlatformCaps();
     static RenderCore_Platform *      GetPlatform();
     static RenderCore_PlatformDX12 *  GetPlatformDX12();
+    static RenderCore_PlatformVk *    GetPlatformVk();
 
     static GpuRingBuffer * AllocateRingBuffer( CpuMemoryAccessType aCpuAccess, uint someBindFlags,
                                                uint64 aNeededByteSize, const char * aName = nullptr );

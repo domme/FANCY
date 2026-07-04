@@ -9,6 +9,8 @@
     "xxhash",
     "directx-dxc",
     "directx-headers",
-    "directx12-agility"
+    "directx12-agility",
+    "vulkan",
+    "spirv-reflect"
   ]
 }

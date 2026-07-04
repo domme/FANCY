@@ -7,6 +7,9 @@
 #if FANCY_ENABLE_DX12
 #include "DX12/GpuResourceDataDX12.h"
 #endif
+#if FANCY_ENABLE_VK
+#include "Vulkan/GpuResourceDataVk.h"
+#endif
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
@@ -20,6 +23,7 @@ namespace Fancy {
   public:
     friend struct GpuResourceDestructor;
     friend class RenderOutputDX12;
+    friend class RenderOutputVk;
 
     GpuResource( GpuResource && anOther ) = default;
 
@@ -31,6 +35,9 @@ namespace Fancy {
       mySubresources = anOtherResource.mySubresources;
 #if FANCY_ENABLE_DX12
       myDx12Data = anOtherResource.myDx12Data;
+#endif
+#if FANCY_ENABLE_VK
+      myVkData = anOtherResource.myVkData;
 #endif
     }
 
@@ -53,6 +60,14 @@ namespace Fancy {
     }
     GpuResourceDataDX12 * GetDX12Data() {
       return &myDx12Data;
+    }
+#endif
+#if FANCY_ENABLE_VK
+    const GpuResourceDataVk * GetVkData() const {
+      return &myVkData;
+    }
+    GpuResourceDataVk * GetVkData() {
+      return &myVkData;
     }
 #endif
 
@@ -79,6 +94,9 @@ namespace Fancy {
 
 #if FANCY_ENABLE_DX12
     GpuResourceDataDX12 myDx12Data;
+#endif
+#if FANCY_ENABLE_VK
+    GpuResourceDataVk myVkData;
 #endif
   protected:
     virtual ~GpuResource() = default;
