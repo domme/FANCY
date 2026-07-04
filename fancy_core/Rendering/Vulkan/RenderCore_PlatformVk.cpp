@@ -85,10 +85,24 @@ namespace Fancy
         LOG("%s (spec version %d, implementation version %d)", prop.layerName, prop.specVersion, prop.implementationVersion);
     }
 
-    uint64 locEvaluateDevice(const VkPhysicalDeviceProperties& someProps, const VkPhysicalDeviceFeatures& someFeatures)
+    uint64 locEvaluateDevice(const VkPhysicalDeviceProperties& someProps, const VkPhysicalDeviceFeatures& someFeatures, const VkPhysicalDeviceMemoryProperties& someMemProps)
     {
       uint64 score = 0u;
 
+      // Strongly prefer discrete GPUs. 1000 GB is safely larger than any device's VRAM,
+      // so this weight guarantees a discrete GPU always outscores an integrated one.
+      if (someProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        score += 1000ull * 1024ull * 1024ull * 1024ull;
+
+      // Use total device-local VRAM to rank GPUs of the same device type.
+      // More VRAM generally indicates a more capable GPU.
+      for (uint32_t i = 0u; i < someMemProps.memoryHeapCount; ++i)
+      {
+        if (someMemProps.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+          score += someMemProps.memoryHeaps[i].size;
+      }
+
+      // Use capability limits as a fine-grained tiebreaker.
       score += someProps.limits.maxImageDimension1D;
       score += someProps.limits.maxImageDimension2D;
       score += someProps.limits.maxImageDimension3D;
@@ -851,6 +865,12 @@ namespace Fancy
       vkEnumeratePhysicalDevices(myInstance, &numDevices, devices.data());
 
       LOG("Picking a suitable Vulkan device...");
+
+      // Parse GpuType argument to driver vendor filter (if provided)
+      RenderPlatformDriverVendor gpuTypeFilter = RenderPlatformDriverVendor::OTHER;
+      bool hasGpuTypeFilter = false;
+      ResolveGpuTypeArg(gpuTypeFilter, hasGpuTypeFilter);
+
       uint64 highestScore = 0ull;
       uint highestScoreIdx = 0u;
       for (uint i = 0u, e = (uint)devices.size(); i < e; ++i)
@@ -863,7 +883,32 @@ namespace Fancy
         VkPhysicalDeviceFeatures deviceFeatures;
         vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-        const uint64 score = locEvaluateDevice(deviceProps, deviceFeatures);
+        VkPhysicalDeviceMemoryProperties deviceMemProps;
+        vkGetPhysicalDeviceMemoryProperties(device, &deviceMemProps);
+
+        // Detect device vendor
+        RenderPlatformDriverVendor deviceVendor = RenderPlatformDriverVendor::OTHER;
+        switch (deviceProps.vendorID)
+        {
+          case 0x1002u: deviceVendor = RenderPlatformDriverVendor::AMD;    break;
+          case 0x10DEu: deviceVendor = RenderPlatformDriverVendor::NVIDIA; break;
+          default:      deviceVendor = RenderPlatformDriverVendor::OTHER;  break;
+        }
+
+        // Skip device if it doesn't match the GpuType filter
+        if (hasGpuTypeFilter && deviceVendor != gpuTypeFilter)
+        {
+          LOG("Skipping device %d (%s) - vendor mismatch (expected %s, got %s)", i, deviceProps.deviceName,
+              gpuTypeFilter == RenderPlatformDriverVendor::AMD    ? "AMD"
+            : gpuTypeFilter == RenderPlatformDriverVendor::NVIDIA ? "NVIDIA"
+            : "Other",
+              deviceVendor == RenderPlatformDriverVendor::AMD    ? "AMD"
+            : deviceVendor == RenderPlatformDriverVendor::NVIDIA ? "NVIDIA"
+            : "Other");
+          continue;
+        }
+
+        const uint64 score = locEvaluateDevice(deviceProps, deviceFeatures, deviceMemProps);
         LOG("Device %d (%s) - score: %llu", i, deviceProps.deviceName, score);
 
         if (score > highestScore)
@@ -873,11 +918,44 @@ namespace Fancy
         }
       }
 
+      if (hasGpuTypeFilter && highestScore == 0ull)
+      {
+        LOG_WARNING("Unable to find GPU matching GpuType filter - falling back to default device scoring");
+        for (uint i = 0u, e = (uint)devices.size(); i < e; ++i)
+        {
+          VkPhysicalDeviceProperties deviceProps;
+          vkGetPhysicalDeviceProperties(devices[i], &deviceProps);
+          VkPhysicalDeviceFeatures deviceFeatures;
+          vkGetPhysicalDeviceFeatures(devices[i], &deviceFeatures);
+          VkPhysicalDeviceMemoryProperties deviceMemProps;
+          vkGetPhysicalDeviceMemoryProperties(devices[i], &deviceMemProps);
+
+          const uint64 score = locEvaluateDevice(deviceProps, deviceFeatures, deviceMemProps);
+          LOG("Device %d (%s) - score: %llu", i, deviceProps.deviceName, score);
+          if (score > highestScore)
+          {
+            highestScoreIdx = i;
+            highestScore = score;
+          }
+        }
+      }
+
       LOG("...Picked device %d as Vulkan render device", highestScoreIdx);
       myPhysicalDevice = devices[highestScoreIdx];
       vkGetPhysicalDeviceFeatures(myPhysicalDevice, &myPhysicalDeviceFeatures);
       vkGetPhysicalDeviceProperties(myPhysicalDevice, &myPhysicalDeviceProperties);
       vkGetPhysicalDeviceMemoryProperties(myPhysicalDevice, &myPhysicalDeviceMemoryProperties);
+
+      // Detect driver vendor from PCI SIG vendor ID
+      switch (myPhysicalDeviceProperties.vendorID)
+      {
+        case 0x1002u: myCaps.myDriverVendor = RenderPlatformDriverVendor::AMD;    break;
+        case 0x10DEu: myCaps.myDriverVendor = RenderPlatformDriverVendor::NVIDIA; break;
+        default:      myCaps.myDriverVendor = RenderPlatformDriverVendor::OTHER;  break;
+      }
+      LOG("Driver vendor: %s", myCaps.myDriverVendor == RenderPlatformDriverVendor::AMD    ? "AMD"
+                             : myCaps.myDriverVendor == RenderPlatformDriverVendor::NVIDIA ? "NVIDIA"
+                             : "Other");
 
       uint numDeviceExtensions = 0;
       vkEnumerateDeviceExtensionProperties(myPhysicalDevice, nullptr, &numDeviceExtensions, nullptr);
@@ -1012,7 +1090,7 @@ namespace Fancy
       vk12Features.drawIndirectCount = true;
       vk12Features.storageBuffer8BitAccess = true;
       vk12Features.uniformAndStorageBuffer8BitAccess = true;
-      vk12Features.storagePushConstant8 = false;  // Not supported on AMD windows drivers apparently...
+      vk12Features.storagePushConstant8 = myCaps.myDriverVendor != RenderPlatformDriverVendor::AMD;
       vk12Features.shaderBufferInt64Atomics = true;
       vk12Features.shaderSharedInt64Atomics = true;
       vk12Features.shaderFloat16 = true;
@@ -1047,11 +1125,11 @@ namespace Fancy
       vk12Features.hostQueryReset = true;
       vk12Features.timelineSemaphore = true;
       vk12Features.bufferDeviceAddress = true;
-      vk12Features.bufferDeviceAddressCaptureReplay = true;
+      vk12Features.bufferDeviceAddressCaptureReplay = myCaps.myDriverVendor != RenderPlatformDriverVendor::AMD;
       vk12Features.bufferDeviceAddressMultiDevice = true;
       vk12Features.vulkanMemoryModel = true;
       vk12Features.vulkanMemoryModelDeviceScope = true;
-      vk12Features.vulkanMemoryModelAvailabilityVisibilityChains = true;
+      vk12Features.vulkanMemoryModelAvailabilityVisibilityChains = myCaps.myDriverVendor != RenderPlatformDriverVendor::AMD;
       vk12Features.shaderOutputViewportIndex = true;
       vk12Features.shaderOutputLayer = true;
       vk12Features.subgroupBroadcastDynamicId = true;

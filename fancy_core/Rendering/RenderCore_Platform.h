@@ -1,7 +1,6 @@
 #pragma once
 
 #include "RendererPrerequisites.h"
-#include "Common/Ptr.h"
 
 namespace Fancy {
   struct RtAccelerationStructureInstanceData;
@@ -89,5 +88,8 @@ namespace Fancy {
     RenderPlatformProperties myProperties;
     RenderPlatformType       myType;
   };
+  //---------------------------------------------------------------------------//
+  // Helper function to resolve GpuType command-line argument to RenderPlatformDriverVendor
+  RenderPlatformDriverVendor ResolveGpuTypeArg( RenderPlatformDriverVendor & outVendor, bool & outHasFilter );
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

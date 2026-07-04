@@ -871,9 +871,12 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
   }
 
   IDXGIAdapter1 * selectedAdapter = nullptr;
-  const char *    adapterTypeStr = CommandLine::GetInstance()->GetStringValue( "GpuType" );
-  eastl::string   adapterType = adapterTypeStr;
-  adapterType.make_lower();
+  uint32_t        selectedVendorId = 0u;
+
+  // Parse GpuType argument to driver vendor filter (if provided)
+  RenderPlatformDriverVendor gpuTypeFilter = RenderPlatformDriverVendor::OTHER;
+  bool hasGpuTypeFilter = false;
+  ResolveGpuTypeArg(gpuTypeFilter, hasGpuTypeFilter);
 
   {
     Microsoft::WRL::ComPtr< IDXGIFactory4 > dxgiFactory;
@@ -882,6 +885,7 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
     uint            i = 0;
     IDXGIAdapter1 * adapter;
     eastl::string   defaultAdapterName;
+    uint32_t        defaultVendorId = 0u;
     eastl::string   selectedAdapterName;  // Track selected adapter name for later logging
     while ( dxgiFactory->EnumAdapters1( i, &adapter ) != DXGI_ERROR_NOT_FOUND ) {
       DXGI_ADAPTER_DESC1 desc;
@@ -889,27 +893,56 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
       eastl::string gpuName = StringUtil::ToNarrowString( desc.Description );
       LOG_INFO( "Found GPU %i: %s (dedicated VRAM: %i MB)", i, gpuName.c_str(), desc.DedicatedVideoMemory / SIZE_MB );
 
-      if ( i == 0 )
-        defaultAdapterName = gpuName;
+      // Detect adapter vendor
+      RenderPlatformDriverVendor adapterVendor = RenderPlatformDriverVendor::OTHER;
+      switch ( desc.VendorId )
+      {
+        case 0x1002u: adapterVendor = RenderPlatformDriverVendor::AMD;    break;
+        case 0x10DEu: adapterVendor = RenderPlatformDriverVendor::NVIDIA; break;
+        default:      adapterVendor = RenderPlatformDriverVendor::OTHER;  break;
+      }
 
-      gpuName.make_lower();
-      if ( selectedAdapter == nullptr && gpuName.find( adapterType ) != eastl::string::npos ) {
-        selectedAdapter = adapter;
-        selectedAdapterName = gpuName;
-        LOG_INFO( "Selecting adapter %s", gpuName.c_str() );
+      if ( i == 0 )
+      {
+        defaultAdapterName = gpuName;
+        defaultVendorId = desc.VendorId;
+      }
+
+      // Skip adapter if it doesn't match the GpuType filter
+      if ( selectedAdapter == nullptr )
+      {
+        if ( hasGpuTypeFilter && adapterVendor != gpuTypeFilter )
+        {
+          LOG_INFO( "Skipping adapter %i (%s) - vendor mismatch (expected %s, got %s)", i, gpuName.c_str(),
+                    gpuTypeFilter == RenderPlatformDriverVendor::AMD    ? "AMD"
+                  : gpuTypeFilter == RenderPlatformDriverVendor::NVIDIA ? "NVIDIA"
+                  : "Other",
+                    adapterVendor == RenderPlatformDriverVendor::AMD    ? "AMD"
+                  : adapterVendor == RenderPlatformDriverVendor::NVIDIA ? "NVIDIA"
+                  : "Other" );
+        }
+        else
+        {
+          selectedAdapter = adapter;
+          selectedAdapterName = gpuName;
+          selectedVendorId = desc.VendorId;
+          LOG_INFO( "Selecting adapter %s", gpuName.c_str() );
+        }
       }
 
       ++i;
     }
 
-    if ( !adapterType.empty() && selectedAdapter == nullptr ) {
-      LOG_WARNING( "Unable to find GPU type %s - falling back to default GPU instead", adapterType.c_str() );
+    if ( hasGpuTypeFilter && selectedAdapter == nullptr ) {
+      LOG_WARNING( "Unable to find GPU matching GpuType filter - falling back to default GPU instead" );
       selectedAdapterName = defaultAdapterName;
+      selectedVendorId = defaultVendorId;
     }
 
     if ( selectedAdapter == nullptr ) {
       LOG_INFO( "Using default GPU %s", defaultAdapterName.c_str() );
       selectedAdapterName = defaultAdapterName;
+      selectedVendorId = defaultVendorId;
     }
   }
 
@@ -999,6 +1032,17 @@ RenderCore_PlatformDX12::RenderCore_PlatformDX12( const RenderPlatformProperties
   // TODO: Check if there's a way to detect missing HW-support and disable the missing queues
   myCaps.myHasAsyncCompute = true;
   myCaps.myHasAsyncCopy = true;
+
+  // Detect driver vendor from PCI SIG vendor ID
+  switch (selectedVendorId)
+  {
+    case 0x1002u: myCaps.myDriverVendor = RenderPlatformDriverVendor::AMD;    break;
+    case 0x10DEu: myCaps.myDriverVendor = RenderPlatformDriverVendor::NVIDIA; break;
+    default:      myCaps.myDriverVendor = RenderPlatformDriverVendor::OTHER;  break;
+  }
+  LOG_INFO("Driver vendor: %s", myCaps.myDriverVendor == RenderPlatformDriverVendor::AMD    ? "AMD"
+                              : myCaps.myDriverVendor == RenderPlatformDriverVendor::NVIDIA ? "NVIDIA"
+                              : "Other");
 
   D3D12_FEATURE_DATA_D3D12_OPTIONS5 options;
   HRESULT result = ourDevice->CheckFeatureSupport( D3D12_FEATURE_D3D12_OPTIONS5, &options, sizeof( options ) );

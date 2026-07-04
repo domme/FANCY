@@ -37,6 +37,12 @@ namespace Fancy {
     VULKAN,
   };
   //---------------------------------------------------------------------------//
+  enum class RenderPlatformDriverVendor {
+    AMD,
+    NVIDIA,
+    OTHER,
+  };
+  //---------------------------------------------------------------------------//
   struct RenderPlatformCaps {
     unsigned int myMaxNumVertexAttributes = 32u;
     unsigned int myCbufferPlacementAlignment = 1u;
@@ -51,6 +57,7 @@ namespace Fancy {
     bool         myHasAsyncCompute = false;
     bool         myHasAsyncCopy = false;
     bool         mySupportsRaytracing = false;
+    RenderPlatformDriverVendor myDriverVendor = RenderPlatformDriverVendor::OTHER;
 
   };
   //---------------------------------------------------------------------------//
