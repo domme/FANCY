@@ -49,6 +49,5 @@ fancy_apply_compile_options(fancy_core)
 
 set_target_properties(fancy_core PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${FANCY_ROOT}/lib/win64/$<CONFIG>/fancy_core"
-    COMPILE_PDB_OUTPUT_DIRECTORY "${FANCY_BUILD_TEMP}/win64/$<CONFIG>/fancy_core"
     MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
 )

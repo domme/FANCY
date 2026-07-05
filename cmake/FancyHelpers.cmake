@@ -34,9 +34,11 @@ endif()
 
 # Applies the common MSVC compile options that all Fancy targets must share.
 # IMPORTANT: PCH consumers (REUSE_FROM fancy_core) must have the same flags as the PCH creator.
+# NOTE: /MP is disabled with Visual Studio IDE generator (which handles its own parallelism).
+#       For command-line builds, consider using CMAKE_BUILD_PARALLEL_LEVEL or ninja.
 function(fancy_apply_compile_options target)
     target_compile_options(${target} PRIVATE
-        $<$<CXX_COMPILER_ID:MSVC>:/W3 /MP /Zc:__cplusplus>
+        /W3 /Zc:__cplusplus
     )
 endfunction()
 

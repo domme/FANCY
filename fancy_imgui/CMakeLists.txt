@@ -36,6 +36,5 @@ fancy_apply_compile_options(fancy_imgui)
 
 set_target_properties(fancy_imgui PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${FANCY_ROOT}/lib/win64/$<CONFIG>/fancy_imgui"
-    COMPILE_PDB_OUTPUT_DIRECTORY "${FANCY_BUILD_TEMP}/win64/$<CONFIG>/fancy_imgui"
     MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
 )
