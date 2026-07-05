@@ -11,6 +11,7 @@
 #define FANCY_RENDERER_SUPPORT_CONDITIONAL_RENDERING 0
 #define FANCY_RENDERER_SUPPORT_VRS 0
 #define FANCY_RENDERER_SUPPORT_FRAGMENT_DENSITY_MAP 0
+#define FANCY_RENDERER_SUPPORT_DEVICE_GENERATED_COMMANDS 0
 
 namespace Fancy {
   //---------------------------------------------------------------------------//

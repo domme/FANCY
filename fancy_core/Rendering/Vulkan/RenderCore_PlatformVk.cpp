@@ -266,6 +266,7 @@ namespace Fancy
     case RG_8I:         return VK_FORMAT_R8G8_SINT;
     case R_8I:          return VK_FORMAT_R8_SINT;
     case D_24UNORM_S_8UI: return VK_FORMAT_D24_UNORM_S8_UINT;
+    case D_32FLOAT_S_8UI: return VK_FORMAT_D32_SFLOAT_S8_UINT;
     default: ASSERT(false, "Unsupported format"); return VK_FORMAT_R8G8B8A8_SRGB;
     }
   }
@@ -1145,6 +1146,7 @@ namespace Fancy
       
       VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeatures{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR };
       VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
+      VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR };
       if (myCaps.mySupportsRaytracing)
       {
         rtPipelineFeatures.rayTracingPipeline = true;
@@ -1162,6 +1164,10 @@ namespace Fancy
         asFeatures.descriptorBindingAccelerationStructureUpdateAfterBind = true;
         *ppNext = &asFeatures;
         ppNext = &asFeatures.pNext;
+
+        rayQueryFeatures.rayQuery = true;
+        *ppNext = &rayQueryFeatures;
+        ppNext = &rayQueryFeatures.pNext;
       }
 
       eastl::fixed_vector<const char*, 8> extensions;
@@ -1173,6 +1179,7 @@ namespace Fancy
         extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
         extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
         extensions.push_back(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
+        extensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
       }
 
       deviceCreateInfo.ppEnabledExtensionNames = extensions.data();
@@ -1195,7 +1202,7 @@ namespace Fancy
       myCaps.myRaytracingShaderRecordAlignment = rtDeviceProperties.shaderGroupHandleAlignment;
       myCaps.myRaytracingShaderTableAddressAlignment = rtDeviceProperties.shaderGroupBaseAlignment;
       myCaps.myRaytracingMaxShaderRecordSize = rtDeviceProperties.maxShaderGroupStride;
-      myCaps.myRaytracingMaxShaderRecordSize = rtDeviceProperties.maxRayRecursionDepth;
+      myCaps.myRaytracingMaxRecursionDepth = rtDeviceProperties.maxRayRecursionDepth;
     }
 
     constexpr float64 nsToMs = 1e-6;
@@ -1426,14 +1433,16 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void RenderCore_PlatformVk::InitPipelineStageMasks()
   {
-    myPipelineStageMask[(uint)CommandListType::Graphics] =
+    myPipelineStageMask[(uint)CommandListType::Graphics ] =
       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT | VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT
       | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT
       | VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT | VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT
       | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT
       | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
       | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
-      | VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_NV
+#if FANCY_RENDERER_SUPPORT_DEVICE_GENERATED_COMMANDS
+      | VK_PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_EXT
+#endif
 #if FANCY_RENDERER_SUPPORT_CONDITIONAL_RENDERING
       | VK_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT
 #endif

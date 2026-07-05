@@ -99,6 +99,11 @@ namespace Fancy
       bufferInfo.usage |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
       readMask |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
     }
+    if (someProperties.myBindFlags & (uint) GpuBufferBindFlags::RT_SHADER_BINDING_TABLE)
+    {
+      bufferInfo.usage |= VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;
+      readMask |= VK_ACCESS_SHADER_READ_BIT;
+    }
 
     VkMemoryPropertyFlags memPropertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     if (someProperties.myCpuAccess == CpuMemoryAccessType::CPU_WRITE)  // Upload heap

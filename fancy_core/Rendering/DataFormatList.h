@@ -48,6 +48,8 @@ DECLARE_DATA_FORMAT( RG_8I, 16, 16, 0, 2, 1, false, false, false, 2, 0 )
 DECLARE_DATA_FORMAT( R_8I, 8, 8, 0, 1, 1, false, false, false, 2, 0 )
 DECLARE_DATA_FORMAT( D_24UNORM_S_8UI, 32, 32, 8, 2, 2, true, false, false, 0,
                      0 )  // TODO: NumComponents should probably be 1 here
+DECLARE_DATA_FORMAT( D_32FLOAT_S_8UI, 64, 32, 8, 2, 2, true, false, false, 0,
+                     0 )  // D32 float depth + 8-bit stencil (universally supported in Vulkan)
 DECLARE_DATA_FORMAT( BC1, 4, 4, 0, 4, 1, false, false, true, 0, 8 )
 DECLARE_DATA_FORMAT( BC1_SRGB, 4, 4, 0, 4, 1, false, true, true, 0, 8 )
 DECLARE_DATA_FORMAT( BC3, 8, 8, 0, 4, 1, false, false, true, 0, 16 )

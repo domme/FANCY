@@ -48,7 +48,7 @@ namespace Fancy {
       case BC7_SRGB:
         return BC7;
       default:
-        ASSERT( GetFormatInfo( aFormat ).mySRGB, "Missing implementation or no SRGB format available" );
+        ASSERT( GetFormatInfo( aFormat ).mySRGB == false, "Missing implementation or no non-SRGB format available" );
         return aFormat;
     }
   }

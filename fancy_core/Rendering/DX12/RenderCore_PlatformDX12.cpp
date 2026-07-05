@@ -245,6 +245,8 @@ DXGI_FORMAT RenderCore_PlatformDX12::ResolveFormat( DataFormat aFormat ) {
       return DXGI_FORMAT_R8_UINT;
     case DataFormat::D_24UNORM_S_8UI:
       return DXGI_FORMAT_D24_UNORM_S8_UINT;
+    case DataFormat::D_32FLOAT_S_8UI:
+      return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
     case DataFormat::BC1:
       return DXGI_FORMAT_BC1_UNORM;
     case DataFormat::BC1_SRGB:
@@ -313,7 +315,8 @@ DataFormat RenderCore_PlatformDX12::ResolveDXGIFormat( DXGI_FORMAT aFormat ) {
     case DXGI_FORMAT_R32G32_SINT:
       return RG_32I;
     // case DXGI_FORMAT_R32G8X24_TYPELESS: break;
-    //  case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+      return D_32FLOAT_S_8UI;
     // case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS: break;
     // case  DXGI_FORMAT_X32_TYPELESS_G8X24_UINT: break;
     // case DXGI_FORMAT_R10G10B10A2_TYPELESS: break;
