@@ -596,7 +596,7 @@ namespace Fancy
     uint64* bufferRowSizes = (uint64*)alloca(sizeof(uint64) * numSubresources);
     uint64* bufferSliceSizes = (uint64*)alloca(sizeof(uint64) * numSubresources);
     uint64* bufferSubresourceSizes = (uint64*)alloca(sizeof(uint64) * numSubresources);
-    uint* heights = (uint*)alloca(sizeof(uint) * numSubresources);
+    uint* numRows = (uint*)alloca(sizeof(uint) * numSubresources);  // Number of rows to copy (block-rows for compressed formats, pixel-rows otherwise)
     uint* depths = (uint*)alloca(sizeof(uint) * numSubresources);
 
     uint i = 0;
@@ -621,7 +621,7 @@ namespace Fancy
       bufferRowSizes[i] = alignedRowSize;
       bufferSliceSizes[i] = alignedSliceSize;
       bufferSubresourceSizes[i] = alignedSubresourceSize;
-      heights[i] = height;
+      numRows[i] = heightBlocksOrPixels;
       depths[i] = depth;
       ++i;
     }
@@ -639,7 +639,7 @@ namespace Fancy
       ASSERT(rowSizes[i] == srcData.myRowSizeBytes);
 
       const uint depth = depths[i];
-      const uint height = heights[i];
+      const uint rowsToCopy = numRows[i];
 
       const uint64 dstRowSize = bufferRowSizes[i];
       const uint64 dstSliceSize = bufferSliceSizes[i];
@@ -651,7 +651,7 @@ namespace Fancy
       {
         uint8* dstRowData = dstSliceData;
         const uint8* srcRowData = srcSliceData;
-        for (uint h = 0; h < height; ++h)
+        for (uint h = 0; h < rowsToCopy; ++h)
         {
           memcpy(dstRowData, srcRowData, srcData.myRowSizeBytes);
 

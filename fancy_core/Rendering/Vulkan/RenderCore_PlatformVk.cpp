@@ -267,6 +267,16 @@ namespace Fancy
     case R_8I:          return VK_FORMAT_R8_SINT;
     case D_24UNORM_S_8UI: return VK_FORMAT_D24_UNORM_S8_UINT;
     case D_32FLOAT_S_8UI: return VK_FORMAT_D32_SFLOAT_S8_UINT;
+    case BC1:           return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+    case BC1_SRGB:      return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
+    case BC3:           return VK_FORMAT_BC3_UNORM_BLOCK;
+    case BC3_SRGB:      return VK_FORMAT_BC3_SRGB_BLOCK;
+    case BC4:           return VK_FORMAT_BC4_UNORM_BLOCK;
+    case BC4_SNORM:     return VK_FORMAT_BC4_SNORM_BLOCK;
+    case BC5:           return VK_FORMAT_BC5_UNORM_BLOCK;
+    case BC5_SNORM:     return VK_FORMAT_BC5_SNORM_BLOCK;
+    case BC7:           return VK_FORMAT_BC7_UNORM_BLOCK;
+    case BC7_SRGB:      return VK_FORMAT_BC7_SRGB_BLOCK;
     default: ASSERT(false, "Unsupported format"); return VK_FORMAT_R8G8B8A8_SRGB;
     }
   }
