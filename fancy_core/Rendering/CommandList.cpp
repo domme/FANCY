@@ -83,10 +83,10 @@ namespace Fancy {
   }  // namespace Priv_CommandList
   //---------------------------------------------------------------------------//
   CommandList::CommandList( CommandListType aType )
-      : myCommandListType( aType ), myViewportParams( 0, 0, 1, 1 ), myClipRect( 0, 0, 1, 1 ), myIsOpen( true ),
-        myViewportDirty( true ), myClipRectDirty( true ), myTopologyDirty( true ), myRenderTargetsDirty( true ),
-        myRenderTargets{ nullptr }, myDepthStencilTarget( nullptr ), myRaytracingPipelineState( nullptr ),
-        myRaytracingPipelineStateDirty( false ), myMarkerRegionStackDepth( 0u ) {}
+      : myCommandListType( aType ), myViewportParams( 0, 0, 1, 1 ), myClipRect( 0, 0, 1, 1 ), myIsOpen( true ), myHazardTrackingEnabled( true ),
+        myViewportDirty( true ), myClipRectDirty( true ), myTopologyDirty( true ), myRenderTargetsDirty( true ), myRenderTargets{ nullptr },
+        myDepthStencilTarget( nullptr ), myRaytracingPipelineState( nullptr ), myRaytracingPipelineStateDirty( false ),
+        myMarkerRegionStackDepth( 0u ) {}
   //---------------------------------------------------------------------------//
   void CommandList::CopyTextureToBuffer( const GpuBuffer * aDstBuffer, uint64 aDstOffset, const Texture * aSrcTexture,
                                          const SubresourceLocation & aSrcSubresource ) {
@@ -375,6 +375,10 @@ namespace Fancy {
     memset( myRenderTargets, 0u, sizeof( myRenderTargets ) );
 
     myIsOpen = true;
+  }
+  //---------------------------------------------------------------------------//
+  void CommandList::SetHazardTrackingEnabled( bool anEnabled ) {
+    myHazardTrackingEnabled = anEnabled;
   }
   //---------------------------------------------------------------------------//
   void CommandList::SetViewport( const glm::uvec4 & uViewportParams ) {

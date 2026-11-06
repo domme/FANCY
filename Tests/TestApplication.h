@@ -12,6 +12,7 @@
 #include "Test_Mipmapping.h"
 #include "Test_Raytracing.h"
 #include "Test_SharedQueueResourceUsage.h"
+#include "Test_FrameGraph.h"
 #include "Rendering/RenderOutput.h"
 
 namespace Fancy {
@@ -54,6 +55,7 @@ private:
   bool test_mipmapping = false;
   bool test_sharedQueueResources = false;
   bool test_raytracing = false;
+  bool test_frameGraph = false;
 
   Fancy::UniquePtr< Test_Profiler >                 myProfilerTest;
   Fancy::UniquePtr< Test_ImGui >                    myImGuiTest;
@@ -63,6 +65,7 @@ private:
   Fancy::UniquePtr< Test_Mipmapping >               myMipmappingTest;
   Fancy::UniquePtr< Test_SharedQueueResourceUsage > mySharedQueueResourceUsageTest;
   Fancy::UniquePtr< Test_Raytracing >               myRaytracingTest;
+  Fancy::UniquePtr< Test_FrameGraph > myFrameGraphTest;
 
   eastl::vector< Test * > myTests;
 

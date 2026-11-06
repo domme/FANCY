@@ -300,6 +300,40 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   enum ShaderResourceAccess { SHADER_RESOURCE_ACCESS_SRV, SHADER_RESOURCE_ACCESS_UAV, SHADER_RESOURCE_ACCESS_RTAS };
   //---------------------------------------------------------------------------//
+  /// How a resource is accessed, for explicit barriers (CommandList::TransitionResourceForAccess()).
+  /// Shader accesses are per stage, so they can map to tight sync scopes.
+  // TODO: Merge with ShaderResourceAccess (stage-less SRV/UAV/RTAS, used by PrepareResourceShaderAccess())
+  enum ResourceAccess {
+    RESOURCE_ACCESS_NONE = 0,
+
+    // Render targets and depth
+    RESOURCE_ACCESS_RENDER_TARGET,
+    RESOURCE_ACCESS_DEPTH_WRITE,
+    RESOURCE_ACCESS_DEPTH_READ,
+
+    // Shader reads (SRV)
+    RESOURCE_ACCESS_VERTEX_SHADER_READ,
+    RESOURCE_ACCESS_FRAGMENT_SHADER_READ,
+    RESOURCE_ACCESS_COMPUTE_SHADER_READ,
+    RESOURCE_ACCESS_RAYTRACING_SHADER_READ,
+
+    // Shader writes (UAV)
+    RESOURCE_ACCESS_VERTEX_SHADER_WRITE,
+    RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE,
+    RESOURCE_ACCESS_COMPUTE_SHADER_WRITE,
+    RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE,
+
+    // Copies
+    RESOURCE_ACCESS_COPY_SRC,
+    RESOURCE_ACCESS_COPY_DST,
+
+    // Buffers only
+    RESOURCE_ACCESS_VERTEX_BUFFER,
+    RESOURCE_ACCESS_INDEX_BUFFER,
+    RESOURCE_ACCESS_INDIRECT_ARGUMENT,
+    RESOURCE_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ,
+  };
+  //---------------------------------------------------------------------------//
   enum class VertexInputRate {
     PER_VERTEX = 0,
     PER_INSTANCE,

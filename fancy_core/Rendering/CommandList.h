@@ -140,6 +140,15 @@ namespace Fancy {
 
     virtual void ResourceUAVbarrier( const GpuResource ** someResources = nullptr, uint aNumResources = 0u ) = 0;
 
+    /// Explicit barrier for lists without hazard tracking: transitions all subresources of aResource into the state needed for anAccess.
+    /// Like with automatic tracking, the first transition of a resource on this list is patched from its global state at submit time,
+    /// and its last state is written back.
+    virtual void TransitionResourceForAccess( const GpuResource * aResource, ResourceAccess anAccess ) = 0;
+
+    /// With hazard tracking disabled, commands don't record any barriers. They have to be issued explicitly via
+    /// TransitionResourceForAccess(). Set when the list is handed out by RenderCore::BeginCommandList().
+    void SetHazardTrackingEnabled( bool anEnabled );
+
     virtual void Close() = 0;
 
     virtual void FlushBarriers() = 0;
@@ -150,7 +159,7 @@ namespace Fancy {
     bool IsOpen() const {
       return myIsOpen;
     }
-    void               SetClipRect( const glm::uvec4 & aRectangle );  /// x, y, width, height
+    void SetClipRect( const glm::uvec4 & aRectangle );  /// left, top, right, bottom
     const GpuBuffer *  GetBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, const void * someData, uint64 aDataSize,
                                   uint64 anAlignment = 0 );
     const GpuBuffer *  GetMappedBuffer( uint64 & anOffsetOut, GpuBufferUsage aType, uint8 ** someDataPtrOut,
@@ -207,6 +216,7 @@ namespace Fancy {
     glm::uvec4    myViewportParams;
     glm::uvec4    myClipRect;
     bool          myIsOpen;
+    bool myHazardTrackingEnabled;
     bool          myViewportDirty;
     bool          myClipRectDirty;
     bool          myTopologyDirty;

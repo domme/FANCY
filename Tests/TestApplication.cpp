@@ -61,6 +61,8 @@ void TestApplication::Update() {
       HandleTestDestroyCreate( test_sharedQueueResources, mySharedQueueResourceUsageTest );
     if ( RenderCore::GetPlatformCaps().mySupportsRaytracing && ImGui::Checkbox( "Test Raytracing", &test_raytracing ) )
       HandleTestDestroyCreate( test_raytracing, myRaytracingTest );
+    if ( ImGui::Checkbox( "Test Frame Graph", &test_frameGraph ) )
+      HandleTestDestroyCreate( test_frameGraph, myFrameGraphTest );
 
     ImGui::Separator();
 

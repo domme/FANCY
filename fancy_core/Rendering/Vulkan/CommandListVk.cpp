@@ -804,6 +804,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint /* someUsageFlags = 0u*/)
   {
+    ASSERT( myHazardTrackingEnabled, "Command lists without hazard tracking need explicit barriers via TransitionResourceForAccess()" );
     VkImageLayout newLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     VkAccessFlags newAccessFlags = 0u;
     bool toSharedRead = false;
@@ -825,6 +826,7 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::PrepareResourceShaderAccess(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceAccess aTransition)
   {
+    ASSERT( myHazardTrackingEnabled, "Command lists without hazard tracking need explicit barriers via TransitionResourceForAccess()" );
     const bool isBuffer = aResource->GetType() == GpuResourceType::BUFFER;
 
     switch (aTransition)
@@ -931,14 +933,120 @@ namespace Fancy
   {
     TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewAccessFlags, aNewImageLayout, aToSharedReadState);
   }
+  //---------------------------------------------------------------------------//
+  void CommandListVk::TransitionResourceForAccess( const GpuResource * aResource, ResourceAccess anAccess ) {
+    ASSERT( aResource != nullptr );
+
+    const bool isBuffer = aResource->IsBuffer();
+    VkAccessFlags accessFlags = 0u;
+    VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+    switch ( anAccess ) {
+      case RESOURCE_ACCESS_RENDER_TARGET:
+        ASSERT( !isBuffer );
+        accessFlags = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        break;
+      case RESOURCE_ACCESS_DEPTH_WRITE:
+        ASSERT( !isBuffer );
+        accessFlags = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        break;
+      case RESOURCE_ACCESS_DEPTH_READ:
+        ASSERT( !isBuffer );
+        accessFlags = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+        imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        break;
+      case RESOURCE_ACCESS_VERTEX_SHADER_READ:
+      case RESOURCE_ACCESS_FRAGMENT_SHADER_READ:
+      case RESOURCE_ACCESS_COMPUTE_SHADER_READ:
+      case RESOURCE_ACCESS_RAYTRACING_SHADER_READ:
+        accessFlags = VK_ACCESS_SHADER_READ_BIT;
+        imageLayout = isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        break;
+      case RESOURCE_ACCESS_VERTEX_SHADER_WRITE:
+      case RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE:
+      case RESOURCE_ACCESS_COMPUTE_SHADER_WRITE:
+      case RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE:
+        accessFlags = VK_ACCESS_SHADER_WRITE_BIT;
+        imageLayout = isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_GENERAL;
+        break;
+      case RESOURCE_ACCESS_COPY_SRC:
+        accessFlags = VK_ACCESS_TRANSFER_READ_BIT;
+        imageLayout = isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        break;
+      case RESOURCE_ACCESS_COPY_DST:
+        accessFlags = VK_ACCESS_TRANSFER_WRITE_BIT;
+        imageLayout = isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        break;
+      case RESOURCE_ACCESS_VERTEX_BUFFER:
+        ASSERT( isBuffer );
+        accessFlags = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+        break;
+      case RESOURCE_ACCESS_INDEX_BUFFER:
+        ASSERT( isBuffer );
+        accessFlags = VK_ACCESS_INDEX_READ_BIT;
+        break;
+      case RESOURCE_ACCESS_INDIRECT_ARGUMENT:
+        ASSERT( isBuffer );
+        accessFlags = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+        break;
+      case RESOURCE_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ:
+        ASSERT( isBuffer );
+        accessFlags = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+        break;
+      default:
+        ASSERT( false, "Access %s not supported", RenderCore::GetResourceAccessName( anAccess ) );
+        return;
+    }
+
+    // Two writes with the same access in a row: the tracker sees no state change, but the second write still has to wait for the first one
+    eastl::fixed_hash_map< const GpuResource *, LocalHazardData, kNumExpectedResourcesPerDispatch >::iterator localDataIt =
+        myLocalHazardData.find( aResource );
+    if ( RenderCore::IsWriteAccess( anAccess ) && localDataIt != myLocalHazardData.end() ) {
+      bool isSameWrite = true;
+      for ( const SubresourceHazardData & subresourceData : localDataIt->second.mySubresources ) {
+        isSameWrite &= subresourceData.myWasUsed && subresourceData.myAccessFlags == accessFlags && subresourceData.myImageLayout == imageLayout;
+      }
+
+      if ( isSameWrite ) {
+        if ( isBuffer ) {
+          BufferMemoryBarrierData barrier;
+          barrier.myBuffer = aResource->GetVkData()->myBufferData.myBuffer;
+          barrier.myBufferSize = static_cast< const GpuBuffer * >( aResource )->GetByteSize();
+          barrier.mySrcAccessMask = accessFlags;
+          barrier.myDstAccessMask = accessFlags;
+          AddBarrier( barrier );
+        } else {
+          ImageMemoryBarrierData barrier;
+          barrier.myImage = aResource->GetVkData()->myImage;
+          barrier.myFormat = static_cast< const Texture * >( aResource )->GetProperties().myFormat;
+          barrier.mySrcAccessMask = accessFlags;
+          barrier.myDstAccessMask = accessFlags;
+          barrier.mySrcLayout = imageLayout;
+          barrier.myDstLayout = imageLayout;
+          barrier.mySubresourceRange = aResource->GetSubresources();
+          AddBarrier( barrier );
+        }
+        return;
+      }
+    }
+
+    TrackSubresourceTransitionInternal( aResource, aResource->GetSubresources(), accessFlags, imageLayout, false );
+  }
 //---------------------------------------------------------------------------//
-  void CommandListVk::TrackSubresourceTransition(
-    const GpuResource* aResource, 
-    const SubresourceRange& aSubresourceRange, 
-    VkAccessFlags aNewAccessFlags, 
-    VkImageLayout aNewImageLayout, 
-    bool aToSharedReadState)
-  {
+  void CommandListVk::TrackSubresourceTransition( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
+                                                  VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, bool aToSharedReadState ) {
+    // Barriers on lists without hazard tracking are issued explicitly via TransitionResourceForAccess()
+    if ( !myHazardTrackingEnabled ) {
+      return;
+    }
+
+    TrackSubresourceTransitionInternal( aResource, aSubresourceRange, aNewAccessFlags, aNewImageLayout, aToSharedReadState );
+  }
+  //---------------------------------------------------------------------------//
+  void CommandListVk::TrackSubresourceTransitionInternal( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
+                                                          VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, bool aToSharedReadState ) {
     if (aResource->IsBuffer())
     {
       ASSERT(aSubresourceRange.GetNumSubresources() == 1u);

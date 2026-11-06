@@ -1291,12 +1291,100 @@ uint RenderCore::GetQueryTypeDataSize( GpuQueryType aType ) {
   return ourPlatformImpl->GetQueryTypeDataSize( aType );
 }
 //---------------------------------------------------------------------------//
-CommandList * RenderCore::BeginCommandList( CommandListType aType ) {
+bool RenderCore::IsWriteAccess( ResourceAccess anAccess ) {
+  switch ( anAccess ) {
+    case RESOURCE_ACCESS_RENDER_TARGET:
+    case RESOURCE_ACCESS_DEPTH_WRITE:
+    case RESOURCE_ACCESS_VERTEX_SHADER_WRITE:
+    case RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE:
+    case RESOURCE_ACCESS_COMPUTE_SHADER_WRITE:
+    case RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE:
+    case RESOURCE_ACCESS_COPY_DST:
+      return true;
+    default:
+      return false;
+  }
+}
+//---------------------------------------------------------------------------//
+bool RenderCore::IsShaderReadAccess( ResourceAccess anAccess ) {
+  return anAccess >= RESOURCE_ACCESS_VERTEX_SHADER_READ && anAccess <= RESOURCE_ACCESS_RAYTRACING_SHADER_READ;
+}
+//---------------------------------------------------------------------------//
+bool RenderCore::IsShaderWriteAccess( ResourceAccess anAccess ) {
+  return anAccess >= RESOURCE_ACCESS_VERTEX_SHADER_WRITE && anAccess <= RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE;
+}
+//---------------------------------------------------------------------------//
+GpuResourceViewType RenderCore::GetResourceAccessViewType( ResourceAccess anAccess ) {
+  if ( IsShaderReadAccess( anAccess ) ) {
+    return GpuResourceViewType::SRV;
+  }
+  if ( IsShaderWriteAccess( anAccess ) ) {
+    return GpuResourceViewType::UAV;
+  }
+  switch ( anAccess ) {
+    case RESOURCE_ACCESS_RENDER_TARGET:
+      return GpuResourceViewType::RTV;
+    case RESOURCE_ACCESS_DEPTH_WRITE:
+    case RESOURCE_ACCESS_DEPTH_READ:
+      return GpuResourceViewType::DSV;
+    case RESOURCE_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ:
+      return GpuResourceViewType::SRV_RT_AS;
+    default:
+      return GpuResourceViewType::NONE;
+  }
+}
+//---------------------------------------------------------------------------//
+const char * RenderCore::GetResourceAccessName( ResourceAccess anAccess ) {
+  switch ( anAccess ) {
+    case RESOURCE_ACCESS_NONE:
+      return "None";
+    case RESOURCE_ACCESS_RENDER_TARGET:
+      return "Render target";
+    case RESOURCE_ACCESS_DEPTH_WRITE:
+      return "Depth write";
+    case RESOURCE_ACCESS_DEPTH_READ:
+      return "Depth read";
+    case RESOURCE_ACCESS_VERTEX_SHADER_READ:
+      return "Vertex shader read";
+    case RESOURCE_ACCESS_FRAGMENT_SHADER_READ:
+      return "Fragment shader read";
+    case RESOURCE_ACCESS_COMPUTE_SHADER_READ:
+      return "Compute shader read";
+    case RESOURCE_ACCESS_RAYTRACING_SHADER_READ:
+      return "Raytracing shader read";
+    case RESOURCE_ACCESS_VERTEX_SHADER_WRITE:
+      return "Vertex shader write";
+    case RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE:
+      return "Fragment shader write";
+    case RESOURCE_ACCESS_COMPUTE_SHADER_WRITE:
+      return "Compute shader write";
+    case RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE:
+      return "Raytracing shader write";
+    case RESOURCE_ACCESS_COPY_SRC:
+      return "Copy source";
+    case RESOURCE_ACCESS_COPY_DST:
+      return "Copy destination";
+    case RESOURCE_ACCESS_VERTEX_BUFFER:
+      return "Vertex buffer";
+    case RESOURCE_ACCESS_INDEX_BUFFER:
+      return "Index buffer";
+    case RESOURCE_ACCESS_INDIRECT_ARGUMENT:
+      return "Indirect argument";
+    case RESOURCE_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ:
+      return "Raytracing acceleration structure read";
+    default:
+      return "Unknown";
+  }
+}
+//---------------------------------------------------------------------------//
+CommandList * RenderCore::BeginCommandList( CommandListType aType, bool anEnableHazardTracking /* = true */ ) {
   ASSERT( aType == CommandListType::Graphics || aType == CommandListType::Compute,
           "CommandList type %d not implemented", ( uint ) aType );
 
   CommandQueue * queue = GetCommandQueue( aType );
-  return queue->BeginCommandList();
+  CommandList * commandList = queue->BeginCommandList();
+  commandList->SetHazardTrackingEnabled( anEnableHazardTracking );
+  return commandList;
 }
 //---------------------------------------------------------------------------//
 uint64 RenderCore::ExecuteAndFreeCommandList( class CommandList * aCommandList, SyncMode aSyncMode ) {

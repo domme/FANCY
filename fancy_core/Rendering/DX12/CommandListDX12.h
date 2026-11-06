@@ -72,6 +72,7 @@ namespace Fancy {
     void PrepareResourceShaderAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
                                       ShaderResourceAccess aTransition ) override;
     void ResourceUAVbarrier( const GpuResource ** someResources = nullptr, uint aNumResources = 0u ) override;
+    void TransitionResourceForAccess( const GpuResource * aResource, ResourceAccess anAccess ) override;
 
     void Close() override;
 
@@ -111,6 +112,12 @@ namespace Fancy {
     void ApplyTopologyType();
     void ApplyResourceBindings();
     void AddBarrier( const D3D12_RESOURCE_BARRIER & aBarrier );
+
+    // Same as the Track* functions above, but also used on lists without hazard tracking
+    void TrackTextureSubresourceTransitionInternal( const GpuResource * aResource, const SubresourceRange & aSubresourceRange, uint aNewState,
+                                                    bool aToSharedReadState );
+    void TrackBufferSubresourceTransitionInternal( const GpuResource * aResource, const SubresourceRange & aSubresourceRange, uint aNewState,
+                                                   bool aToSharedReadState );
 
     bool ValidateSubresourceTransition( const GpuResource * aResource, uint aSubresourceIndex,
                                         uint aDstState, bool aIsTexture, bool & aIsWAWOut );

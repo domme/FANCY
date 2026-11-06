@@ -172,6 +172,13 @@ namespace Fancy {
     static RtShaderBindingTable *    GetRtShaderBindingTable( RtShaderBindingTableHandle aHandle );
     static RenderOutput *            GetRenderOutput( RenderOutputHandle aHandle );
 
+    static bool IsWriteAccess( ResourceAccess anAccess );
+    static bool IsShaderReadAccess( ResourceAccess anAccess );
+    static bool IsShaderWriteAccess( ResourceAccess anAccess );
+    /// The kind of view anAccess needs. NONE for accesses without a view (e.g. copies).
+    static GpuResourceViewType GetResourceAccessViewType( ResourceAccess anAccess );
+    static const char * GetResourceAccessName( ResourceAccess anAccess );
+
     static RenderPlatformType         GetPlatformType();
     static const RenderPlatformCaps & GetPlatformCaps();
     static RenderCore_Platform *      GetPlatform();
@@ -190,7 +197,9 @@ namespace Fancy {
     static ReadbackTask        ReadbackBuffer( GpuBuffer * aBuffer, uint64 anOffset, uint64 aSize,
                                                CommandListType aCommandListType = CommandListType::Graphics );
 
-    static CommandList * BeginCommandList( CommandListType aType );
+    /// anEnableHazardTracking = false: the list doesn't record any barriers for its commands. They need to be issued
+    /// explicitly via CommandList::TransitionResourceForAccess().
+    static CommandList * BeginCommandList( CommandListType aType, bool anEnableHazardTracking = true );
     static uint64        ExecuteAndFreeCommandList( CommandList * aCommandList, SyncMode aSyncMode = SyncMode::ASYNC );
     static uint64        ExecuteAndResetCommandList( CommandList * aCommandList, SyncMode aSyncMode = SyncMode::ASYNC );
 

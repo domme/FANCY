@@ -22,6 +22,8 @@ set(TESTS_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Test_ImGui.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Test_Mipmapping.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/Test_Mipmapping.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_FrameGraph.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Test_FrameGraph.cpp"
 )
 
 # Organize source files into filters based on directory structure
