@@ -4,6 +4,28 @@
 
 namespace Fancy {
   //---------------------------------------------------------------------------//
+  namespace Priv_TextureData {
+    bool IntervalsOverlap( uint aFirstA, uint aNumA, uint aFirstB, uint aNumB ) {
+      return aFirstA < aFirstB + aNumB && aFirstB < aFirstA + aNumA;
+    }
+    //---------------------------------------------------------------------------//
+    bool IntervalContains( uint aFirstA, uint aNumA, uint aFirstB, uint aNumB ) {
+      return aFirstB >= aFirstA && aFirstB + aNumB <= aFirstA + aNumA;
+    }
+  }  // namespace Priv_TextureData
+  //---------------------------------------------------------------------------//
+  bool SubresourceRange::Overlaps( const SubresourceRange & anOther ) const {
+    return Priv_TextureData::IntervalsOverlap( myFirstMipLevel, myNumMipLevels, anOther.myFirstMipLevel, anOther.myNumMipLevels ) &&
+           Priv_TextureData::IntervalsOverlap( myFirstArrayIndex, myNumArrayIndices, anOther.myFirstArrayIndex, anOther.myNumArrayIndices ) &&
+           Priv_TextureData::IntervalsOverlap( myFirstPlane, myNumPlanes, anOther.myFirstPlane, anOther.myNumPlanes );
+  }
+  //---------------------------------------------------------------------------//
+  bool SubresourceRange::Contains( const SubresourceRange & anOther ) const {
+    return Priv_TextureData::IntervalContains( myFirstMipLevel, myNumMipLevels, anOther.myFirstMipLevel, anOther.myNumMipLevels ) &&
+           Priv_TextureData::IntervalContains( myFirstArrayIndex, myNumArrayIndices, anOther.myFirstArrayIndex, anOther.myNumArrayIndices ) &&
+           Priv_TextureData::IntervalContains( myFirstPlane, myNumPlanes, anOther.myFirstPlane, anOther.myNumPlanes );
+  }
+  //---------------------------------------------------------------------------//
   bool SubresourceRange::IsEmpty() const {
     return myNumMipLevels == 0u && myNumArrayIndices == 0u && myNumPlanes == 0u;
   }

@@ -98,6 +98,11 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void CommandQueueDX12::ResolveResourceHazardData( CommandList * aCommandList ) {
+    // Lists without hazard tracking (frame graph) issue all of their barriers explicitly
+    if ( !aCommandList->IsHazardTrackingEnabled() ) {
+      return;
+    }
+
     eastl::fixed_vector< D3D12_TEXTURE_BARRIER, 64 > patchTexBarriers;
     eastl::fixed_vector< D3D12_BUFFER_BARRIER, 64 >  patchBufBarriers;
 
@@ -144,11 +149,12 @@ namespace Fancy {
           barrier.AccessAfter  = afterParams.myAccess;
           barrier.LayoutAfter  = afterParams.myLayout;
           barrier.pResource    = resource->GetDX12Data()->myResource.Get();
-          barrier.Subresources.IndexOrFirstMipLevel = subIdx;
+          const SubresourceLocation location = resource->GetSubresourceLocation( subIdx );
+          barrier.Subresources.IndexOrFirstMipLevel = location.myMipLevel;
           barrier.Subresources.NumMipLevels = 1u;
-          barrier.Subresources.FirstArraySlice = 0u;
+          barrier.Subresources.FirstArraySlice = location.myArrayIndex;
           barrier.Subresources.NumArraySlices = 1u;
-          barrier.Subresources.FirstPlane = 0u;
+          barrier.Subresources.FirstPlane = location.myPlaneIndex;
           barrier.Subresources.NumPlanes = 1u;
           barrier.Flags        = D3D12_TEXTURE_BARRIER_FLAG_NONE;
           patchTexBarriers.push_back( barrier );

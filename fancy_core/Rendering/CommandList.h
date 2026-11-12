@@ -140,14 +140,22 @@ namespace Fancy {
 
     virtual void ResourceUAVbarrier( const GpuResource ** someResources = nullptr, uint aNumResources = 0u ) = 0;
 
-    /// Explicit barrier for lists without hazard tracking: transitions all subresources of aResource into the state needed for anAccess.
-    /// Like with automatic tracking, the first transition of a resource on this list is patched from its global state at submit time,
-    /// and its last state is written back.
-    virtual void TransitionResourceForAccess( const GpuResource * aResource, ResourceAccess anAccess ) = 0;
+    /// Explicit barrier for lists without hazard tracking. Both accesses are known to the caller (e.g. computed when compiling a frame graph);
+    /// no tracked state is read or written.
+    virtual void TransitionResourceForAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange, ResourceAccess aSrcAccess,
+                                              ResourceAccess aDstAccess ) = 0;
 
-    /// With hazard tracking disabled, commands don't record any barriers. They have to be issued explicitly via
-    /// TransitionResourceForAccess(). Set when the list is handed out by RenderCore::BeginCommandList().
+    /// Legacy hazard tracking only: moves subresources into the state needed for anAccess on a list with hazard tracking. The frame graph uses this
+    /// on a separate list to hand external resources over to its own, untracked list.
+    virtual void TrackResourceAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange, ResourceAccess anAccess ) = 0;
+
+    /// With hazard tracking disabled, commands don't track any state; barriers have to be issued explicitly via TransitionResourceForAccess().
+    /// Only Vulkan clears record their own transitions, from and back to the access declared for the view. Set when the list is handed out by
+    /// RenderCore::BeginCommandList().
     void SetHazardTrackingEnabled( bool anEnabled );
+    bool IsHazardTrackingEnabled() const {
+      return myHazardTrackingEnabled;
+    }
 
     virtual void Close() = 0;
 

@@ -55,7 +55,6 @@ namespace Fancy {
 
       GpuResourceBarrierDataDX12 * hazardData = &dataDx12.myHazardData;
       hazardData->mySubresources.push_back( subState );
-      hazardData->myCanChangeStates = true;
       hazardData->myAllSubresourcesSameState = true;
 
       resource.myDx12Data = dataDx12;

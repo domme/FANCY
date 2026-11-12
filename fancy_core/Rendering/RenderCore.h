@@ -197,8 +197,8 @@ namespace Fancy {
     static ReadbackTask        ReadbackBuffer( GpuBuffer * aBuffer, uint64 anOffset, uint64 aSize,
                                                CommandListType aCommandListType = CommandListType::Graphics );
 
-    /// anEnableHazardTracking = false: the list doesn't record any barriers for its commands. They need to be issued
-    /// explicitly via CommandList::TransitionResourceForAccess().
+    /// anEnableHazardTracking = false: the list doesn't track any state for its commands; barriers need to be issued explicitly via
+    /// CommandList::TransitionResourceForAccess() (see CommandList::SetHazardTrackingEnabled()).
     static CommandList * BeginCommandList( CommandListType aType, bool anEnableHazardTracking = true );
     static uint64        ExecuteAndFreeCommandList( CommandList * aCommandList, SyncMode aSyncMode = SyncMode::ASYNC );
     static uint64        ExecuteAndResetCommandList( CommandList * aCommandList, SyncMode aSyncMode = SyncMode::ASYNC );

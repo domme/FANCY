@@ -14,22 +14,24 @@ namespace Fancy {
   struct FrameGraphCompiledTask {
     void * myRenderData = nullptr;
     bool myAccessesBackBuffer = false;
-    eastl::fixed_vector< FrameGraphBarrier, kFgMaxNumResourcesPerTask > myBarriers;
+    eastl::fixed_vector< FrameGraphBarrier, kFgMaxNumBarriersPerTask > myBarriers;
   };
   //---------------------------------------------------------------------------//
   /// The kinds of views a resource can have in the compiled graph
   enum FgViewKind { FG_VIEW_KIND_SRV, FG_VIEW_KIND_UAV, FG_VIEW_KIND_RTV, FG_VIEW_KIND_DSV, FG_VIEW_KIND_READ_ONLY_DSV, FG_VIEW_KIND_NUM };
   //---------------------------------------------------------------------------//
-  /// One view of a resource in the compiled graph
+  /// One view of a resource in the compiled graph, linked to the next view of the same resource
   struct FrameGraphCompiledView {
+    SubresourceRange mySubresources;
     TextureViewHandle myTextureView;
     GpuBufferViewHandle myBufferView;
     FgViewKind myKind = FG_VIEW_KIND_NUM;  // TODO: Add the format once accesses can request one (e.g. a float and a uint view)
+    uint myNextViewIndex = kFgInvalidIndex;
   };
   //---------------------------------------------------------------------------//
-  /// The views of one resource (FrameGraphResourceBase) in the compiled graph
+  /// One resource (FrameGraphResourceBase) in the compiled graph
   struct FrameGraphCompiledResource {
-    eastl::fixed_vector< FrameGraphCompiledView, kFgMaxNumViewsPerResource, false > myViews;
+    uint myFirstViewIndex = kFgInvalidIndex;  // Into FrameGraphBuilder::myCompiledViews
     uint myHandleIndex = kFgInvalidIndex;
     uint myHandleGeneration = 0u;
   };
@@ -70,11 +72,14 @@ namespace Fancy {
 
     void Reset();
 
-    /// Returns uninitialized memory for the task instance, see FgAddTask() (FrameGraphTaskHelper.h)
-    void * AddTask( const FgTaskCreateInfo & aCreateInfo );
+    /// Returns the index that identifies the task in Read() and Write(), and the uninitialized memory for the task instance in aTaskMemoryOut (see
+    /// FgAddTask() in FrameGraphTaskHelper.h). Tasks execute in the order they were added here, unless they don't depend on each other.
+    uint AddTask( const FgTaskCreateInfo & aCreateInfo, void ** aTaskMemoryOut );
 
-    FgResourceHandle Read( FgResourceHandle aHandle, ResourceAccess anAccess );
-    FgResourceHandle Write( FgResourceHandle aHandle, ResourceAccess anAccess );
+    /// Only record the access of a task, at any time before BuildFrameGraph(). BuildFrameGraph() derives the dependencies from the recorded accesses
+    /// in the order of the tasks, independent of the order of these calls.
+    void Read( uint aTaskIndex, FgResourceHandle aHandle, ResourceAccess anAccess );
+    void Write( uint aTaskIndex, FgResourceHandle aHandle, ResourceAccess anAccess );
 
     bool BuildFrameGraph();
 
@@ -87,22 +92,20 @@ namespace Fancy {
     uint GetNumCompiles() const;
     const eastl::fixed_vector< FrameGraphTask, kFgMaxNumTasks > & GetTasks() const;
     const eastl::fixed_vector< FrameGraphResourceBase, kFgMaxNumResources > & GetResourceBases() const;
-    const eastl::fixed_vector< FrameGraphResource, kFgMaxNumResources > & GetResources() const;
     const eastl::fixed_vector< FrameGraphDependency, kFgMaxNumTasks > & GetDependencies() const;
     const eastl::fixed_vector< uint, kFgMaxNumTasks > & GetTaskOrder() const;
 
   private:
     FgResourceHandle RegisterResource( GpuResource * aResource, const char * aName, uint aHandleIndex, uint aHandleGeneration );
-    FrameGraphTask & GetCurrentTask();
     void ValidateHandle( FgResourceHandle aHandle ) const;
-    FgResourceHandle AddVersion( uint aBaseIndex, uint aProducerTask );
-    void AddAccess( FgResourceHandle aHandle, ResourceAccess anAccess );
+    FgSubresourceState & GetSubresourceState( const FrameGraphResourceBase & aBase, const SubresourceLocation & aLocation );
+    void AddAccess( uint aTaskIndex, FgResourceHandle aHandle, ResourceAccess anAccess );
     void AddDependency( uint aSrcTask, uint aDstTask );
 
     void ComputeDeclarationHash();
     void Compile();
     void CompileTask( uint aTaskIndex );
-    GpuResourceView * GetCreateView( uint aBaseIndex, ResourceAccess anAccess );
+    GpuResourceView * GetCreateView( uint aBaseIndex, const SubresourceRange & aRange, ResourceAccess anAccess );
     const FrameGraphResourceBase & GetBase( FgResourceHandle aHandle ) const;
     bool IsBackBuffer( const GpuResource * aResource ) const;
 
@@ -113,7 +116,7 @@ namespace Fancy {
 
     // Declaration, recreated every frame
     eastl::fixed_vector< FrameGraphResourceBase, kFgMaxNumResources > myResourceBases;
-    eastl::fixed_vector< FrameGraphResource, kFgMaxNumResources > myResources;
+    eastl::fixed_vector< FgSubresourceState, kFgMaxNumSubresources > mySubresourceStates;
     eastl::fixed_vector< FrameGraphTask, kFgMaxNumTasks > myTasks;
     eastl::fixed_vector< FrameGraphDependency, kFgMaxNumTasks > myDependencies;
     eastl::fixed_vector< uint, kFgMaxNumTasks > myTaskOrder;
@@ -124,6 +127,9 @@ namespace Fancy {
     // Compiled graph, only recreated when the declaration hash changes
     eastl::fixed_vector< FrameGraphCompiledTask, kFgMaxNumTasks > myCompiledTasks;
     eastl::fixed_vector< FrameGraphCompiledResource, kFgMaxNumResources > myCompiledResources;
+    eastl::fixed_vector< FrameGraphCompiledView, kFgMaxNumResourceViewsPerFrame, false > myCompiledViews;
+    eastl::fixed_vector< FrameGraphBarrier, kFgMaxNumSubresources > myCompiledInitialAccesses;  // mySrcAccess is unused
+    eastl::fixed_vector< FrameGraphBarrier, kFgMaxNumSubresources > myCompiledFinalBarriers;
     uint64 myCompiledHash = 0u;
     uint myNumCompiles = 0u;
     bool myCompiledIsValid = false;

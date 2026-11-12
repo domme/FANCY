@@ -68,7 +68,9 @@ namespace Fancy
     void TransitionResource(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ResourceTransition aTransition, uint someUsageFlags = 0u) override;
     void PrepareResourceShaderAccess(const GpuResource* aResource, const SubresourceRange& aSubresourceRange, ShaderResourceAccess aTransition) override;
     void ResourceUAVbarrier(const GpuResource** someResources, uint aNumResources) override;
-    void TransitionResourceForAccess( const GpuResource * aResource, ResourceAccess anAccess ) override;
+    void TransitionResourceForAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange, ResourceAccess aSrcAccess,
+                                      ResourceAccess aDstAccess ) override;
+    void TrackResourceAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange, ResourceAccess anAccess ) override;
 
     void Close() override;
 
@@ -88,10 +90,6 @@ namespace Fancy
     void PrepareForRecord(bool aResetCommandList);
 
     bool ValidateSubresourceTransition(const GpuResource* aResource, uint aSubresourceIndex, VkAccessFlags aDstAccess, VkImageLayout aDstImageLayout);
-
-    // Same as TrackSubresourceTransition(), but also used on lists without hazard tracking
-    void TrackSubresourceTransitionInternal( const GpuResource * aResource, const SubresourceRange & aSubresourceRange, VkAccessFlags aNewAccessFlags,
-                                             VkImageLayout aNewImageLayout, bool aToSharedReadState );
 
     void ApplyViewportAndClipRect();
     void ApplyRenderTargets();

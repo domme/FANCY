@@ -67,10 +67,8 @@ struct GpuSubresourceBarrierStateDX12 {
 };
 
 struct GpuResourceBarrierDataDX12 {
-  GpuResourceBarrierDataDX12()
-    : myCanChangeStates( true ), myAllSubresourcesSameState( true ), myReadStates( 0u ), myWriteStates( 0u ) {}
+  GpuResourceBarrierDataDX12() : myAllSubresourcesSameState( true ), myReadStates( 0u ), myWriteStates( 0u ) {}
 
-  bool myCanChangeStates; // TODO: Double-check if this is still needed after transitioning to enhanced barriers. If not, remove it and simplify the code that currently checks it.
   bool myAllSubresourcesSameState;
   uint myReadStates;
   uint myWriteStates;

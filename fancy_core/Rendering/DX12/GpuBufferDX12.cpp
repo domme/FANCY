@@ -98,9 +98,10 @@ namespace Fancy {
     subState.myState   = initialBufferState;
     subState.myContext = CommandListType::Graphics;
 
+    dataDx12.myCanChangeStates = canChangeStates;
+
     GpuResourceBarrierDataDX12 * hazardData = &dataDx12.myHazardData;
     *hazardData = GpuResourceBarrierDataDX12();
-    hazardData->myCanChangeStates = canChangeStates;
     hazardData->mySubresources.push_back( subState );
 
     mySubresources = SubresourceRange( 0u, 1u, 0u, 1u, 0u, 1u );

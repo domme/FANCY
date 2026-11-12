@@ -21,10 +21,20 @@ namespace Fancy {
         ImGui::BulletText( "No resource accesses" );
       }
       for ( const FrameGraphTaskAccess & access : aTask.myAccesses ) {
-        const FrameGraphResource & resource = aFrameGraph.GetResources()[ access.myHandle.myResourceIndex ];
-        const FrameGraphResourceBase & base = aFrameGraph.GetResourceBases()[ resource.myBaseIndex ];
-        ImGui::BulletText( "%s %s v%d (%s)", RenderCore::IsWriteAccess( access.myAccess ) ? "Writes" : "Reads", base.myName.c_str(),
-                           resource.myVersion, RenderCore::GetResourceAccessName( access.myAccess ) );
+        const FgResourceHandle & handle = access.myHandle;
+        const SubresourceRange & range = handle.mySubresources;
+        const FrameGraphResourceBase & base = aFrameGraph.GetResourceBases()[ handle.myBaseIndex ];
+        const char * verb = RenderCore::IsWriteAccess( access.myAccess ) ? "Writes" : "Reads";
+        const char * accessName = RenderCore::GetResourceAccessName( access.myAccess );
+        if ( base.myResource->GetSubresources().myNumArrayIndices > 1u ) {
+          ImGui::BulletText( "%s %s mips %u-%u planes %u-%u slices %u-%u: %s", verb, base.myName.c_str(), range.myFirstMipLevel,
+                             range.myFirstMipLevel + range.myNumMipLevels - 1u, range.myFirstPlane, range.myFirstPlane + range.myNumPlanes - 1u,
+                             range.myFirstArrayIndex, range.myFirstArrayIndex + range.myNumArrayIndices - 1u, accessName );
+        } else {
+          ImGui::BulletText( "%s %s mips %u-%u planes %u-%u: %s", verb, base.myName.c_str(), range.myFirstMipLevel,
+                             range.myFirstMipLevel + range.myNumMipLevels - 1u, range.myFirstPlane, range.myFirstPlane + range.myNumPlanes - 1u,
+                             accessName );
+        }
       }
     }
   }  // namespace Priv_FrameGraphViewer

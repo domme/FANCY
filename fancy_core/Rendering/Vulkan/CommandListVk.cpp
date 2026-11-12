@@ -18,6 +18,7 @@
 #include "GpuQueryHeapVk.h"
 #include "PipelineLayoutVk.h"
 #include "RtPipelineStateVk.h"
+#include "Rendering/DepthStencilState.h"
 
 #if FANCY_ENABLE_VK
 
@@ -63,6 +64,68 @@ namespace Fancy
       ASSERT(accessWas0 || dstFlags != 0, "Dst access flags not supported by resource");
 
       return dstFlags;
+    }
+    //---------------------------------------------------------------------------//
+    bool locResolveResourceAccess( ResourceAccess anAccess, bool anIsBuffer, VkAccessFlags & someFlagsOut, VkImageLayout & aLayoutOut ) {
+      switch ( anAccess ) {
+        case RESOURCE_ACCESS_RENDER_TARGET:
+          ASSERT( !anIsBuffer );
+          someFlagsOut = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+          aLayoutOut = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+          break;
+        case RESOURCE_ACCESS_DEPTH_WRITE:
+          ASSERT( !anIsBuffer );
+          someFlagsOut = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+          aLayoutOut = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+          break;
+        case RESOURCE_ACCESS_DEPTH_READ:
+          ASSERT( !anIsBuffer );
+          someFlagsOut = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+          aLayoutOut = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+          break;
+        case RESOURCE_ACCESS_VERTEX_SHADER_READ:
+        case RESOURCE_ACCESS_FRAGMENT_SHADER_READ:
+        case RESOURCE_ACCESS_COMPUTE_SHADER_READ:
+        case RESOURCE_ACCESS_RAYTRACING_SHADER_READ:
+          someFlagsOut = VK_ACCESS_SHADER_READ_BIT;
+          aLayoutOut = anIsBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+          break;
+        case RESOURCE_ACCESS_VERTEX_SHADER_WRITE:
+        case RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE:
+        case RESOURCE_ACCESS_COMPUTE_SHADER_WRITE:
+        case RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE:
+          someFlagsOut = VK_ACCESS_SHADER_WRITE_BIT;
+          aLayoutOut = anIsBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_GENERAL;
+          break;
+        case RESOURCE_ACCESS_COPY_SRC:
+          someFlagsOut = VK_ACCESS_TRANSFER_READ_BIT;
+          aLayoutOut = anIsBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+          break;
+        case RESOURCE_ACCESS_COPY_DST:
+          someFlagsOut = VK_ACCESS_TRANSFER_WRITE_BIT;
+          aLayoutOut = anIsBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+          break;
+        case RESOURCE_ACCESS_VERTEX_BUFFER:
+          ASSERT( anIsBuffer );
+          someFlagsOut = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+          break;
+        case RESOURCE_ACCESS_INDEX_BUFFER:
+          ASSERT( anIsBuffer );
+          someFlagsOut = VK_ACCESS_INDEX_READ_BIT;
+          break;
+        case RESOURCE_ACCESS_INDIRECT_ARGUMENT:
+          ASSERT( anIsBuffer );
+          someFlagsOut = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+          break;
+        case RESOURCE_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ:
+          ASSERT( anIsBuffer );
+          someFlagsOut = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+          break;
+        default:
+          ASSERT( false, "Access %s not supported", RenderCore::GetResourceAccessName( anAccess ) );
+          return false;
+      }
+      return true;
     }
 //---------------------------------------------------------------------------//
     bool locValidateDstImageLayout(const GpuResource* aResource, VkImageLayout anImageLayout)
@@ -111,8 +174,14 @@ namespace Fancy
     VkImageSubresourceRange subRange = RenderCore_PlatformVk::ResolveSubresourceRange(aTextureView->mySubresourceRange, 
       aTextureView->GetTexture()->GetProperties().myFormat);
 
+    // Clears are transfer operations on Vulkan. Lists without hazard tracking know the state from the access declared for the view.
     const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    TrackSubresourceTransition(aTextureView->GetResource(), aTextureView->GetSubresourceRange(), VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout);
+    if ( myHazardTrackingEnabled ) {
+      TrackSubresourceTransition( aTextureView->GetResource(), aTextureView->GetSubresourceRange(), VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout );
+    } else {
+      TransitionResourceForAccess( aTextureView->GetResource(), aTextureView->GetSubresourceRange(), RESOURCE_ACCESS_RENDER_TARGET,
+                                   RESOURCE_ACCESS_COPY_DST );
+    }
     FlushBarriers();
 
 #if FANCY_HEAVY_DEBUG
@@ -124,6 +193,13 @@ namespace Fancy
 
     GpuResourceDataVk* dataVk = static_cast<TextureVk*>(aTextureView->GetTexture())->GetData();
     vkCmdClearColorImage(myCommandBuffer, dataVk->myImage, imageLayout, &clearColor, 1u, &subRange);
+
+    // Without hazard tracking, the explicitly declared access has to hold again afterwards (like on DX12, where a clear doesn't change the state)
+    if ( !myHazardTrackingEnabled ) {
+      TransitionResourceForAccess( aTextureView->GetResource(), aTextureView->GetSubresourceRange(), RESOURCE_ACCESS_COPY_DST,
+                                   RESOURCE_ACCESS_RENDER_TARGET );
+      FlushBarriers();
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ClearDepthStencilTarget(TextureView* aTextureView, float aDepthClear, uint8 aStencilClear, uint someClearFlags)
@@ -159,9 +235,15 @@ namespace Fancy
       subresources.myFirstPlane = 0u;
       subresources.myNumPlanes = 2u;
     }
-    
+
+    // Clears are transfer operations on Vulkan. Lists without hazard tracking know the state from the access declared for the view.
     const VkImageLayout imageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    TrackSubresourceTransition(aTextureView->GetResource(), subresources, VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout);
+    const ResourceAccess declaredAccess = aTextureView->GetProperties().myIsDepthReadOnly ? RESOURCE_ACCESS_DEPTH_READ : RESOURCE_ACCESS_DEPTH_WRITE;
+    if ( myHazardTrackingEnabled ) {
+      TrackSubresourceTransition( aTextureView->GetResource(), subresources, VK_ACCESS_TRANSFER_WRITE_BIT, imageLayout );
+    } else {
+      TransitionResourceForAccess( aTextureView->GetResource(), subresources, declaredAccess, RESOURCE_ACCESS_COPY_DST );
+    }
     FlushBarriers();
 
 #if FANCY_HEAVY_DEBUG
@@ -175,8 +257,14 @@ namespace Fancy
     clearValue.depth = aDepthClear;
     clearValue.stencil = aStencilClear;
 
-    VkImageSubresourceRange subRange = RenderCore_PlatformVk::ResolveSubresourceRange(aTextureView->mySubresourceRange, format);
+    VkImageSubresourceRange subRange = RenderCore_PlatformVk::ResolveSubresourceRange( subresources, format );
     vkCmdClearDepthStencilImage(myCommandBuffer, aTextureView->GetResource()->GetVkData()->myImage, imageLayout, &clearValue, 1u, &subRange);
+
+    // Without hazard tracking, the explicitly declared access has to hold again afterwards (like on DX12, where a clear doesn't change the state)
+    if ( !myHazardTrackingEnabled ) {
+      TransitionResourceForAccess( aTextureView->GetResource(), subresources, RESOURCE_ACCESS_COPY_DST, declaredAccess );
+      FlushBarriers();
+    }
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::CopyResource(GpuResource* aDstResource, GpuResource* aSrcResource)
@@ -217,7 +305,8 @@ namespace Fancy
       const uint baseHeight = srcTexProps.myHeight;
       const uint baseDepth = srcTexProps.IsArray() ? 1u : srcTexProps.myDepthOrArraySize;
 
-      const VkImageLayout srcImageLayout = RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, srcTexture, subresourceRange);
+      const VkImageLayout srcImageLayout = myHazardTrackingEnabled ? RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, srcTexture, subresourceRange)
+                                                                   : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
       const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
       TrackResourceTransition(srcTexture, VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout);
@@ -318,7 +407,8 @@ namespace Fancy
     VkBuffer dstBuffer = static_cast<const GpuBufferVk*>(aDstBuffer)->GetData()->myBufferData.myBuffer;
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
 
-    const VkImageLayout srcImageLayout = RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aSrcTexture, SubresourceRange(aSrcSubresource));
+    const VkImageLayout srcImageLayout = myHazardTrackingEnabled ? RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aSrcTexture, SubresourceRange(aSrcSubresource))
+                                                                 : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
     TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout);
     TrackResourceTransition(aDstBuffer, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED);
     FlushBarriers();
@@ -356,7 +446,8 @@ namespace Fancy
     VkImage dstImage = static_cast<const TextureVk*>(aDstTexture)->GetData()->myImage;
     VkImage srcImage = static_cast<const TextureVk*>(aSrcTexture)->GetData()->myImage;
 
-    const VkImageLayout srcImageLayout = RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aSrcTexture, SubresourceRange(aSrcSubresource));
+    const VkImageLayout srcImageLayout = myHazardTrackingEnabled ? RenderCore_PlatformVk::ResolveImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aSrcTexture, SubresourceRange(aSrcSubresource))
+                                                                 : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
     const VkImageLayout dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
     TrackSubresourceTransition(aSrcTexture, SubresourceRange(aSrcSubresource), VK_ACCESS_TRANSFER_READ_BIT, srcImageLayout);
@@ -934,105 +1025,53 @@ namespace Fancy
     TrackSubresourceTransition(aResource, aResource->GetSubresources(), aNewAccessFlags, aNewImageLayout, aToSharedReadState);
   }
   //---------------------------------------------------------------------------//
-  void CommandListVk::TransitionResourceForAccess( const GpuResource * aResource, ResourceAccess anAccess ) {
+  void CommandListVk::TransitionResourceForAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
+                                                   ResourceAccess aSrcAccess, ResourceAccess aDstAccess ) {
     ASSERT( aResource != nullptr );
+    ASSERT( aResource->GetSubresources().Contains( aSubresourceRange ) );
 
     const bool isBuffer = aResource->IsBuffer();
+    VkAccessFlags srcFlags = 0u;
+    VkAccessFlags dstFlags = 0u;
+    VkImageLayout srcLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    VkImageLayout dstLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    if ( !Priv_CommandListVk::locResolveResourceAccess( aSrcAccess, isBuffer, srcFlags, srcLayout ) ||
+         !Priv_CommandListVk::locResolveResourceAccess( aDstAccess, isBuffer, dstFlags, dstLayout ) ) {
+      return;
+    }
+
+    if ( srcFlags == dstFlags && srcLayout == dstLayout && !RenderCore::IsWriteAccess( aDstAccess ) ) {
+      return;
+    }
+
+    if ( isBuffer ) {
+      BufferMemoryBarrierData barrier;
+      barrier.myBuffer = aResource->GetVkData()->myBufferData.myBuffer;
+      barrier.myBufferSize = static_cast< const GpuBuffer * >( aResource )->GetByteSize();
+      barrier.mySrcAccessMask = srcFlags;
+      barrier.myDstAccessMask = dstFlags;
+      AddBarrier( barrier );
+    } else {
+      ImageMemoryBarrierData barrier;
+      barrier.myImage = aResource->GetVkData()->myImage;
+      barrier.myFormat = static_cast< const Texture * >( aResource )->GetProperties().myFormat;
+      barrier.mySrcAccessMask = srcFlags;
+      barrier.myDstAccessMask = dstFlags;
+      barrier.mySrcLayout = srcLayout;
+      barrier.myDstLayout = dstLayout;
+      barrier.mySubresourceRange = aSubresourceRange;
+      AddBarrier( barrier );
+    }
+  }
+  //---------------------------------------------------------------------------//
+  void CommandListVk::TrackResourceAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange, ResourceAccess anAccess ) {
+    ASSERT( aResource != nullptr );
+
     VkAccessFlags accessFlags = 0u;
     VkImageLayout imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-    switch ( anAccess ) {
-      case RESOURCE_ACCESS_RENDER_TARGET:
-        ASSERT( !isBuffer );
-        accessFlags = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        break;
-      case RESOURCE_ACCESS_DEPTH_WRITE:
-        ASSERT( !isBuffer );
-        accessFlags = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        break;
-      case RESOURCE_ACCESS_DEPTH_READ:
-        ASSERT( !isBuffer );
-        accessFlags = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-        imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-        break;
-      case RESOURCE_ACCESS_VERTEX_SHADER_READ:
-      case RESOURCE_ACCESS_FRAGMENT_SHADER_READ:
-      case RESOURCE_ACCESS_COMPUTE_SHADER_READ:
-      case RESOURCE_ACCESS_RAYTRACING_SHADER_READ:
-        accessFlags = VK_ACCESS_SHADER_READ_BIT;
-        imageLayout = isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        break;
-      case RESOURCE_ACCESS_VERTEX_SHADER_WRITE:
-      case RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE:
-      case RESOURCE_ACCESS_COMPUTE_SHADER_WRITE:
-      case RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE:
-        accessFlags = VK_ACCESS_SHADER_WRITE_BIT;
-        imageLayout = isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_GENERAL;
-        break;
-      case RESOURCE_ACCESS_COPY_SRC:
-        accessFlags = VK_ACCESS_TRANSFER_READ_BIT;
-        imageLayout = isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-        break;
-      case RESOURCE_ACCESS_COPY_DST:
-        accessFlags = VK_ACCESS_TRANSFER_WRITE_BIT;
-        imageLayout = isBuffer ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        break;
-      case RESOURCE_ACCESS_VERTEX_BUFFER:
-        ASSERT( isBuffer );
-        accessFlags = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-        break;
-      case RESOURCE_ACCESS_INDEX_BUFFER:
-        ASSERT( isBuffer );
-        accessFlags = VK_ACCESS_INDEX_READ_BIT;
-        break;
-      case RESOURCE_ACCESS_INDIRECT_ARGUMENT:
-        ASSERT( isBuffer );
-        accessFlags = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
-        break;
-      case RESOURCE_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ:
-        ASSERT( isBuffer );
-        accessFlags = VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
-        break;
-      default:
-        ASSERT( false, "Access %s not supported", RenderCore::GetResourceAccessName( anAccess ) );
-        return;
+    if ( Priv_CommandListVk::locResolveResourceAccess( anAccess, aResource->IsBuffer(), accessFlags, imageLayout ) ) {
+      TrackSubresourceTransition( aResource, aSubresourceRange, accessFlags, imageLayout );
     }
-
-    // Two writes with the same access in a row: the tracker sees no state change, but the second write still has to wait for the first one
-    eastl::fixed_hash_map< const GpuResource *, LocalHazardData, kNumExpectedResourcesPerDispatch >::iterator localDataIt =
-        myLocalHazardData.find( aResource );
-    if ( RenderCore::IsWriteAccess( anAccess ) && localDataIt != myLocalHazardData.end() ) {
-      bool isSameWrite = true;
-      for ( const SubresourceHazardData & subresourceData : localDataIt->second.mySubresources ) {
-        isSameWrite &= subresourceData.myWasUsed && subresourceData.myAccessFlags == accessFlags && subresourceData.myImageLayout == imageLayout;
-      }
-
-      if ( isSameWrite ) {
-        if ( isBuffer ) {
-          BufferMemoryBarrierData barrier;
-          barrier.myBuffer = aResource->GetVkData()->myBufferData.myBuffer;
-          barrier.myBufferSize = static_cast< const GpuBuffer * >( aResource )->GetByteSize();
-          barrier.mySrcAccessMask = accessFlags;
-          barrier.myDstAccessMask = accessFlags;
-          AddBarrier( barrier );
-        } else {
-          ImageMemoryBarrierData barrier;
-          barrier.myImage = aResource->GetVkData()->myImage;
-          barrier.myFormat = static_cast< const Texture * >( aResource )->GetProperties().myFormat;
-          barrier.mySrcAccessMask = accessFlags;
-          barrier.myDstAccessMask = accessFlags;
-          barrier.mySrcLayout = imageLayout;
-          barrier.myDstLayout = imageLayout;
-          barrier.mySubresourceRange = aResource->GetSubresources();
-          AddBarrier( barrier );
-        }
-        return;
-      }
-    }
-
-    TrackSubresourceTransitionInternal( aResource, aResource->GetSubresources(), accessFlags, imageLayout, false );
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::TrackSubresourceTransition( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
@@ -1042,11 +1081,6 @@ namespace Fancy
       return;
     }
 
-    TrackSubresourceTransitionInternal( aResource, aSubresourceRange, aNewAccessFlags, aNewImageLayout, aToSharedReadState );
-  }
-  //---------------------------------------------------------------------------//
-  void CommandListVk::TrackSubresourceTransitionInternal( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
-                                                          VkAccessFlags aNewAccessFlags, VkImageLayout aNewImageLayout, bool aToSharedReadState ) {
     if (aResource->IsBuffer())
     {
       ASSERT(aSubresourceRange.GetNumSubresources() == 1u);
@@ -1190,14 +1224,19 @@ namespace Fancy
         for (uint iBarrier = 1u; iBarrier < (uint) potentialSubresourceBarriers.size(); ++iBarrier)
         {
           const ImageMemoryBarrierData& nextBarrier = potentialSubresourceBarriers[iBarrier];
-          uint nextSubresourceIndex = aResource->GetSubresourceIndex(*nextBarrier.mySubresourceRange.Begin());
+          const SubresourceRange & nextRange = nextBarrier.mySubresourceRange;
+          uint nextSubresourceIndex =
+              aResource->GetSubresourceIndex( SubresourceLocation( nextRange.myFirstMipLevel, nextRange.myFirstArrayIndex, nextRange.myFirstPlane ) );
 
+          // Only merge along the mips of one array slice and plane, so that the merged range stays rectangular
           const bool canBatch = nextSubresourceIndex == currMaxSubresourceIndex + 1u &&
-            currBarrier.mySrcAccessMask == nextBarrier.mySrcAccessMask &&
-            currBarrier.mySrcLayout == nextBarrier.mySrcLayout;
+                                nextRange.myFirstArrayIndex == currBarrier.mySubresourceRange.myFirstArrayIndex &&
+                                nextRange.myFirstPlane == currBarrier.mySubresourceRange.myFirstPlane &&
+                                currBarrier.mySrcAccessMask == nextBarrier.mySrcAccessMask && currBarrier.mySrcLayout == nextBarrier.mySrcLayout;
 
-          if (!canBatch)
-          {
+          if ( canBatch ) {
+            ++currBarrier.mySubresourceRange.myNumMipLevels;
+          } else {
             AddBarrier(currBarrier);
             currBarrier = nextBarrier;
           }
@@ -1412,7 +1451,7 @@ namespace Fancy
 
     const bool hasDepthStencilTarget = myDepthStencilTarget != nullptr;
     const TextureViewProperties& dsvProps = myDepthStencilTarget->GetProperties();
-    if (hasDepthStencilTarget)
+    if (hasDepthStencilTarget && myHazardTrackingEnabled)  // Only feeds the hazard tracking, which also resolves the layout from global state
     {
       if (dsvProps.myIsDepthReadOnly == dsvProps.myIsStencilReadOnly)
       {
@@ -1446,7 +1485,7 @@ namespace Fancy
 
     RenderCore_PlatformVk* platform = RenderCore::GetPlatformVk();
 
-    VkRenderPass renderPass = platform->GetRenderPassCache().GetCreate(const_cast<const TextureView**>(myRenderTargets), numRtsToSet, myDepthStencilTarget);
+    VkRenderPass renderPass = platform->GetRenderPassCache().GetCreate(const_cast<const TextureView**>(myRenderTargets), numRtsToSet, myDepthStencilTarget, myHazardTrackingEnabled);
 
     glm::uvec2 framebufferRes(1u, 1u);
     const TextureView* firstRenderTarget = numRtsToSet > 0 ? myRenderTargets[0] : myDepthStencilTarget;
@@ -1474,6 +1513,11 @@ namespace Fancy
     VkPipeline pipeline = RenderCore::GetPlatformVk()->GetPipelineStateCache().GetCreateGraphicsPipeline(myGraphicsPipelineState, myRenderPass);
     
     vkCmdBindPipeline(myCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+    // The stencil reference is a dynamic state of all graphics pipelines
+    const uint stencilRef =
+        myGraphicsPipelineState.myDepthStencilState ? ( uint ) myGraphicsPipelineState.myDepthStencilState->GetProperties().myStencilRef : 0u;
+    vkCmdSetStencilReference( myCommandBuffer, VK_STENCIL_FACE_FRONT_AND_BACK, stencilRef );
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::ApplyComputePipelineState()

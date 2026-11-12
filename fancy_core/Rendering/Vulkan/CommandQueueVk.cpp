@@ -202,6 +202,10 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandQueueVk::ResolveResourceHazardData(CommandList* aCommandList)
   {
+    // Lists without hazard tracking (frame graph) issue all of their barriers explicitly
+    if ( !aCommandList->IsHazardTrackingEnabled() )
+      return;
+
     eastl::fixed_vector<CommandListVk::BufferMemoryBarrierData, 64> patchingBufferBarriers;
     eastl::fixed_vector<CommandListVk::ImageMemoryBarrierData, 64> patchingImageBarriers;
 
@@ -276,11 +280,13 @@ namespace Fancy
           {
             ASSERT(subIdx > 0);  // Otherwise subresourceImageBarriers should be empty.
             CommandListVk::ImageMemoryBarrierData& lastBarrier = subresourceImageBarriers.back();
-            couldMerge = lastBarrier.mySrcAccessMask == oldGlobalAccessMask &&
-              lastBarrier.mySrcLayout == oldGlobalImageLayout &&
-              lastBarrier.myDstAccessMask == localSubData.myFirstDstAccessFlags &&
-              lastBarrier.myDstLayout == localSubData.myFirstDstImageLayout &&
-              resource->GetSubresourceIndex(lastBarrier.mySubresourceRange.Last()) == subIdx - 1u;
+            // Only merge along the mips of one array slice and plane, so that the merged range stays rectangular
+            couldMerge = lastBarrier.mySrcAccessMask == oldGlobalAccessMask && lastBarrier.mySrcLayout == oldGlobalImageLayout &&
+                         lastBarrier.myDstAccessMask == localSubData.myFirstDstAccessFlags &&
+                         lastBarrier.myDstLayout == localSubData.myFirstDstImageLayout &&
+                         lastBarrier.mySubresourceRange.myFirstArrayIndex == subresource.myArrayIndex &&
+                         lastBarrier.mySubresourceRange.myFirstPlane == subresource.myPlaneIndex &&
+                         resource->GetSubresourceIndex( lastBarrier.mySubresourceRange.Last() ) == subIdx - 1u;
 
             if (couldMerge)
               lastBarrier.mySubresourceRange = SubresourceRange(lastBarrier.mySubresourceRange.First(), subresource);

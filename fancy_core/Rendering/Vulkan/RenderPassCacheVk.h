@@ -13,7 +13,9 @@ namespace Fancy
   public:
     ~RenderPassCacheVk() override;
 
-    VkRenderPass GetCreate(const TextureView** someRendertargets, uint aNumRenderTargets, const TextureView* aDepthStencilTarget);
+    // aResolveSharedReadLayouts: use GENERAL for depth-stencil targets in the SHARED_READ context of the legacy hazard tracking. Lists without hazard
+    // tracking (frame graph) pass false and get the plain layouts.
+    VkRenderPass GetCreate(const TextureView** someRendertargets, uint aNumRenderTargets, const TextureView* aDepthStencilTarget, bool aResolveSharedReadLayouts);
     void Clear() override;
   };
 

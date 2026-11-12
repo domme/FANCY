@@ -12,6 +12,8 @@ namespace Fancy {
     Microsoft::WRL::ComPtr< ID3D12Resource > myResource;
     GpuMemoryAllocationDX12                  myGpuMemory;
     mutable GpuResourceBarrierDataDX12       myHazardData;
+    // TODO: Double-check if this is still needed after transitioning to enhanced barriers. If not, remove it and simplify the code that checks it.
+    bool myCanChangeStates = true;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

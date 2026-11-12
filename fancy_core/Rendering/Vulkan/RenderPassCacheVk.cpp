@@ -35,7 +35,7 @@ namespace Fancy
     RenderPassCacheVk::Clear();
   }
 //---------------------------------------------------------------------------//
-  VkRenderPass RenderPassCacheVk::GetCreate(const TextureView** someRendertargets, uint aNumRenderTargets, const TextureView* aDepthStencilTarget)
+  VkRenderPass RenderPassCacheVk::GetCreate(const TextureView** someRendertargets, uint aNumRenderTargets, const TextureView* aDepthStencilTarget, bool aResolveSharedReadLayouts)
   {
     DataFormat rtFormats[RenderConstants::kMaxNumRenderTargets];
     for (uint i = 0u; i < aNumRenderTargets; ++i)
@@ -54,6 +54,7 @@ namespace Fancy
       // Read-only DSVs need to produce a different renderpass-hash 
       MathUtil::AddToMultiHash(dsvProps.myIsDepthReadOnly ? 1u : 0u);
       MathUtil::AddToMultiHash(dsvProps.myIsStencilReadOnly ? 1u : 0u);
+      MathUtil::AddToMultiHash(aResolveSharedReadLayouts ? 1u : 0u);
     }
     const uint64 hash = MathUtil::EndMultiHash();
 
@@ -109,7 +110,8 @@ namespace Fancy
       else if (dsvProps.myIsStencilReadOnly)
         layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;
 
-      layout = Private::ResolveImageLayout(layout, aDepthStencilTarget->GetResource(), aDepthStencilTarget->GetSubresourceRange());
+      if (aResolveSharedReadLayouts)
+        layout = Private::ResolveImageLayout(layout, aDepthStencilTarget->GetResource(), aDepthStencilTarget->GetSubresourceRange());
 
       attachmentDesc.initialLayout = layout;
       attachmentDesc.finalLayout = layout;

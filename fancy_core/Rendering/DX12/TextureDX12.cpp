@@ -110,8 +110,10 @@ namespace Fancy {
       initialTextureState = GPU_TEXTURE_STATE_DEPTH_WRITE;
     else if ( myProperties.myIsRenderTarget )
       initialTextureState = GPU_TEXTURE_STATE_RENDER_TARGET;
-    if ( myProperties.myIsShaderWritable )
+    // With initial data the texture has to start in the copy layout, a combined copy + UAV state would map to the UAV layout
+    if ( myProperties.myIsShaderWritable && !hasInitData ) {
       initialTextureState |= GPU_TEXTURE_STATE_SHADER_WRITE;
+    }
 
     // Get enhanced barrier layout from new state enum (replaces legacy D3D12_RESOURCE_STATES)
     D3D12_BARRIER_LAYOUT initialLayout = GetTextureLayoutFromState( initialTextureState );
@@ -127,7 +129,6 @@ namespace Fancy {
     *hazardData = GpuResourceBarrierDataDX12();
     hazardData->mySubresources.resize( mySubresources.GetNumSubresources(), subState );
     hazardData->myAllSubresourcesSameState = true;
-    // myCanChangeStates stays true (default)
 
     const bool useOptimizeClearValue = ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET ) != 0u ||
                                        ( resourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL ) != 0u;
@@ -338,7 +339,7 @@ namespace Fancy {
     } else if ( someProperties.myDimension == GpuResourceDimension::TEXTURE_2D_ARRAY ) {
       srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
       srvDesc.Texture2DArray.ResourceMinLODClamp = someProperties.myMinLodClamp;
-      srvDesc.Texture2DArray.ArraySize = subresourceRange.myNumMipLevels;
+      srvDesc.Texture2DArray.ArraySize = subresourceRange.myNumArrayIndices;
       srvDesc.Texture2DArray.FirstArraySlice = subresourceRange.myFirstArrayIndex;
       srvDesc.Texture2DArray.MipLevels = subresourceRange.myNumMipLevels;
       srvDesc.Texture2DArray.MostDetailedMip = subresourceRange.myFirstMipLevel;

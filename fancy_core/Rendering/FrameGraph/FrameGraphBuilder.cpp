@@ -25,7 +25,84 @@ namespace Fancy {
           return FG_VIEW_KIND_NUM;
       }
     }
+    //---------------------------------------------------------------------------//
+    /// The accesses of one subresource so far while compiling
+    struct FgSubresourceAccesses {
+      ResourceAccess myFirstAccess = RESOURCE_ACCESS_NONE;
+      ResourceAccess myLastAccess = RESOURCE_ACCESS_NONE;
+    };
+    //---------------------------------------------------------------------------//
+    /// Merges anOther into aRange if the result is a contiguous range again. anOther has to come after aRange in iteration order.
+    bool locTryMergeRanges( SubresourceRange & aRange, const SubresourceRange & anOther ) {
+      const bool sameMips = aRange.myFirstMipLevel == anOther.myFirstMipLevel && aRange.myNumMipLevels == anOther.myNumMipLevels;
+      const bool sameSlices = aRange.myFirstArrayIndex == anOther.myFirstArrayIndex && aRange.myNumArrayIndices == anOther.myNumArrayIndices;
+      const bool samePlanes = aRange.myFirstPlane == anOther.myFirstPlane && aRange.myNumPlanes == anOther.myNumPlanes;
+
+      if ( sameSlices && samePlanes && aRange.myFirstMipLevel + aRange.myNumMipLevels == anOther.myFirstMipLevel ) {
+        aRange.myNumMipLevels += anOther.myNumMipLevels;
+        return true;
+      }
+      if ( sameMips && samePlanes && aRange.myFirstArrayIndex + aRange.myNumArrayIndices == anOther.myFirstArrayIndex ) {
+        aRange.myNumArrayIndices += anOther.myNumArrayIndices;
+        return true;
+      }
+      if ( sameMips && sameSlices && aRange.myFirstPlane + aRange.myNumPlanes == anOther.myFirstPlane ) {
+        aRange.myNumPlanes += anOther.myNumPlanes;
+        return true;
+      }
+      return false;
+    }
+    //---------------------------------------------------------------------------//
+    /// Merges barriers (in subresource iteration order) with the same accesses into contiguous ranges
+    void locMergeBarriers( eastl::fixed_vector< FrameGraphBarrier, kFgMaxNumBarriersPerTask > & someBarriers ) {
+      bool hasMerged = true;
+      while ( hasMerged ) {
+        hasMerged = false;
+        for ( uint i = 0u; i < ( uint ) someBarriers.size(); ++i ) {
+          for ( uint k = i + 1u; k < ( uint ) someBarriers.size(); ) {
+            if ( someBarriers[ i ].mySrcAccess == someBarriers[ k ].mySrcAccess && someBarriers[ i ].myDstAccess == someBarriers[ k ].myDstAccess &&
+                 locTryMergeRanges( someBarriers[ i ].mySubresources, someBarriers[ k ].mySubresources ) ) {
+              someBarriers.erase( someBarriers.begin() + k );
+              hasMerged = true;
+            } else {
+              ++k;
+            }
+          }
+        }
+      }
+    }
   }  // namespace Priv_FrameGraphBuilder
+  //---------------------------------------------------------------------------//
+  bool FgResourceHandle::IsValid() const {
+    return myBaseIndex != kFgInvalidIndex;
+  }
+  //---------------------------------------------------------------------------//
+  FgResourceHandle FgResourceHandle::Mips( uint aFirstMip, uint aNumMips ) const {
+    FgResourceHandle result = *this;
+    result.mySubresources.myFirstMipLevel = aFirstMip;
+    result.mySubresources.myNumMipLevels = aNumMips;
+    ASSERT( mySubresources.Contains( result.mySubresources ), "Mips %u-%u are outside of the handle's subresources", aFirstMip,
+            aFirstMip + aNumMips - 1u );
+    return result;
+  }
+  //---------------------------------------------------------------------------//
+  FgResourceHandle FgResourceHandle::Planes( uint aFirstPlane, uint aNumPlanes ) const {
+    FgResourceHandle result = *this;
+    result.mySubresources.myFirstPlane = aFirstPlane;
+    result.mySubresources.myNumPlanes = aNumPlanes;
+    ASSERT( mySubresources.Contains( result.mySubresources ), "Planes %u-%u are outside of the handle's subresources", aFirstPlane,
+            aFirstPlane + aNumPlanes - 1u );
+    return result;
+  }
+  //---------------------------------------------------------------------------//
+  FgResourceHandle FgResourceHandle::ArraySlices( uint aFirstIndex, uint aNumIndices ) const {
+    FgResourceHandle result = *this;
+    result.mySubresources.myFirstArrayIndex = aFirstIndex;
+    result.mySubresources.myNumArrayIndices = aNumIndices;
+    ASSERT( mySubresources.Contains( result.mySubresources ), "Array slices %u-%u are outside of the handle's subresources", aFirstIndex,
+            aFirstIndex + aNumIndices - 1u );
+    return result;
+  }
   //---------------------------------------------------------------------------//
   FrameGraphCompileContext::FrameGraphCompileContext( FrameGraphBuilder * aBuilder, uint aTaskIndex )
       : myBuilder( aBuilder ), myTaskIndex( aTaskIndex ) {}
@@ -33,9 +110,8 @@ namespace Fancy {
   const FrameGraphTaskAccess * FrameGraphCompileContext::FindAccess( FgResourceHandle aHandle ) const {
     myBuilder->ValidateHandle( aHandle );
 
-    const uint baseIndex = myBuilder->myResources[ aHandle.myResourceIndex ].myBaseIndex;
     for ( const FrameGraphTaskAccess & access : myBuilder->myTasks[ myTaskIndex ].myAccesses ) {
-      if ( myBuilder->myResources[ access.myHandle.myResourceIndex ].myBaseIndex == baseIndex ) {
+      if ( access.myHandle.myBaseIndex == aHandle.myBaseIndex && access.myHandle.mySubresources == aHandle.mySubresources ) {
         return &access;
       }
     }
@@ -59,7 +135,7 @@ namespace Fancy {
     }
 
     ASSERT( base.myResource->IsTexture() == anIsTexture, "Resource %s is a %s", base.myName.c_str(), anIsTexture ? "buffer" : "texture" );
-    return myBuilder->GetCreateView( myBuilder->myResources[ aHandle.myResourceIndex ].myBaseIndex, access->myAccess );
+    return myBuilder->GetCreateView( aHandle.myBaseIndex, aHandle.mySubresources, access->myAccess );
   }
   //---------------------------------------------------------------------------//
   TextureView * FrameGraphCompileContext::GetRtv( FgResourceHandle aHandle ) const {
@@ -104,7 +180,7 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   const FrameGraphResourceBase & FrameGraphBuilder::GetBase( FgResourceHandle aHandle ) const {
-    return myResourceBases[ myResources[ aHandle.myResourceIndex ].myBaseIndex ];
+    return myResourceBases[ aHandle.myBaseIndex ];
   }
   //---------------------------------------------------------------------------//
   bool FrameGraphBuilder::IsBackBuffer( const GpuResource * aResource ) const {
@@ -147,7 +223,11 @@ namespace Fancy {
     base.myHandleGeneration = aHandleGeneration;
     myResourceBases.push_back( base );
 
-    return AddVersion( ( uint ) myResourceBases.size() - 1u, kFgInvalidIndex );
+    FgResourceHandle handle;
+    handle.mySubresources = aResource->GetSubresources();
+    handle.myBaseIndex = ( uint ) myResourceBases.size() - 1u;
+    handle.myFrameGraphGenerationIndex = myFrameGraphGenerationIndex;
+    return handle;
   }
   //---------------------------------------------------------------------------//
   void FrameGraphBuilder::Reset() {
@@ -155,7 +235,7 @@ namespace Fancy {
     myTaskAllocator.Reset();
 
     myResourceBases.clear();
-    myResources.clear();
+    mySubresourceStates.clear();
     myDependencies.clear();
     myTaskOrder.clear();
     myIsBuilt = false;
@@ -163,14 +243,15 @@ namespace Fancy {
     ++myFrameGraphGenerationIndex;
   }
   //---------------------------------------------------------------------------//
-  void * FrameGraphBuilder::AddTask( const FgTaskCreateInfo & aCreateInfo ) {
+  uint FrameGraphBuilder::AddTask( const FgTaskCreateInfo & aCreateInfo, void ** aTaskMemoryOut ) {
     ASSERT( !myIsBuilt, "Can't add tasks after the graph has been built. Call Reset() first" );
     ASSERT( aCreateInfo.myExecuteFunction != nullptr && aCreateInfo.myCompileFunction != nullptr );
 
     void * memory = myTaskAllocator.Allocate( aCreateInfo.myTaskSize, aCreateInfo.myTaskAlignment );
+    *aTaskMemoryOut = memory;
     ASSERT( memory != nullptr, "Out of task memory. Increase kFgTaskMemorySize" );
     if ( memory == nullptr ) {
-      return nullptr;
+      return kFgInvalidIndex;
     }
 
     FrameGraphTask task;
@@ -182,51 +263,41 @@ namespace Fancy {
     task.myExecuteFunction = aCreateInfo.myExecuteFunction;
     task.myCompileFunction = aCreateInfo.myCompileFunction;
     myTasks.push_back( task );
-    return memory;
-  }
-  //---------------------------------------------------------------------------//
-  FrameGraphTask & FrameGraphBuilder::GetCurrentTask() {
-    ASSERT( !myTasks.empty(), "Resource accesses need to be declared after adding a task" );
-    ASSERT( !myIsBuilt, "Can't change tasks after the graph has been built. Call Reset() first" );
-    return myTasks.back();
+    return ( uint ) myTasks.size() - 1u;
   }
   //---------------------------------------------------------------------------//
   void FrameGraphBuilder::ValidateHandle( FgResourceHandle aHandle ) const {
     ASSERT( aHandle.IsValid() );
     ASSERT( aHandle.myFrameGraphGenerationIndex == myFrameGraphGenerationIndex, "Resource handle from generation %d used in generation %d",
             aHandle.myFrameGraphGenerationIndex, myFrameGraphGenerationIndex );
-    ASSERT( aHandle.myResourceIndex < myResources.size() );
+    ASSERT( aHandle.myBaseIndex < myResourceBases.size() );
+    ASSERT( GetBase( aHandle ).myResource->GetSubresources().Contains( aHandle.mySubresources ), "Handle to %s lies outside of the resource",
+            GetBase( aHandle ).myName.c_str() );
   }
   //---------------------------------------------------------------------------//
-  FgResourceHandle FrameGraphBuilder::AddVersion( uint aBaseIndex, uint aProducerTask ) {
-    FrameGraphResourceBase & base = myResourceBases[ aBaseIndex ];
-
-    FrameGraphResource resource;
-    resource.myBaseIndex = aBaseIndex;
-    resource.myProducerTask = aProducerTask;
-
-    const uint resourceIndex = ( uint ) myResources.size();
-    if ( base.myLatestResourceIndex != kFgInvalidIndex ) {
-      FrameGraphResource & previousResource = myResources[ base.myLatestResourceIndex ];
-      resource.myVersion = previousResource.myVersion + 1u;
-      previousResource.myNextVersionResourceIndex = resourceIndex;
+  FgSubresourceState & FrameGraphBuilder::GetSubresourceState( const FrameGraphResourceBase & aBase, const SubresourceLocation & aLocation ) {
+    return mySubresourceStates[ aBase.myFirstSubresourceState + aBase.myResource->GetSubresourceIndex( aLocation ) ];
+  }
+  //---------------------------------------------------------------------------//
+  void FrameGraphBuilder::AddAccess( uint aTaskIndex, FgResourceHandle aHandle, ResourceAccess anAccess ) {
+    ASSERT( !myIsBuilt, "Can't change tasks after the graph has been built. Call Reset() first" );
+    ASSERT( aTaskIndex < myTasks.size(), "Invalid task index %u", aTaskIndex );
+    ASSERT( anAccess != RESOURCE_ACCESS_NONE, "Missing access for resource %s", GetBase( aHandle ).myName.c_str() );
+    if ( aTaskIndex >= myTasks.size() || anAccess == RESOURCE_ACCESS_NONE ) {
+      return;
     }
-    myResources.push_back( resource );
-    base.myLatestResourceIndex = resourceIndex;
 
-    FgResourceHandle handle;
-    handle.myResourceIndex = resourceIndex;
-    handle.myFrameGraphGenerationIndex = myFrameGraphGenerationIndex;
-    return handle;
-  }
-  //---------------------------------------------------------------------------//
-  void FrameGraphBuilder::AddAccess( FgResourceHandle aHandle, ResourceAccess anAccess ) {
-    FrameGraphTask & task = GetCurrentTask();
+    FrameGraphTask & task = myTasks[ aTaskIndex ];
 
-    // TODO: Allow this with non-overlapping subresource ranges
     for ( const FrameGraphTaskAccess & access : task.myAccesses ) {
-      ASSERT( myResources[ access.myHandle.myResourceIndex ].myBaseIndex != myResources[ aHandle.myResourceIndex ].myBaseIndex,
-              "Task %s accesses resource %s more than once", task.myName.c_str(), GetBase( aHandle ).myName.c_str() );
+      ASSERT( access.myHandle.myBaseIndex != aHandle.myBaseIndex || !access.myHandle.mySubresources.Overlaps( aHandle.mySubresources ),
+              "Task %s accesses overlapping subresources of %s more than once", task.myName.c_str(), GetBase( aHandle ).myName.c_str() );
+    }
+
+    if ( anAccess == RESOURCE_ACCESS_DEPTH_WRITE || anAccess == RESOURCE_ACCESS_DEPTH_READ ) {
+      const SubresourceRange & resourceRange = GetBase( aHandle ).myResource->GetSubresources();
+      ASSERT( aHandle.mySubresources.myFirstPlane == 0u && aHandle.mySubresources.myNumPlanes == resourceRange.myNumPlanes,
+              "Depth access to %s needs to cover all planes", GetBase( aHandle ).myName.c_str() );
     }
 
     FrameGraphTaskAccess access;
@@ -235,30 +306,21 @@ namespace Fancy {
     task.myAccesses.push_back( access );
   }
   //---------------------------------------------------------------------------//
-  FgResourceHandle FrameGraphBuilder::Read( FgResourceHandle aHandle, ResourceAccess anAccess ) {
+  void FrameGraphBuilder::Read( uint aTaskIndex, FgResourceHandle aHandle, ResourceAccess anAccess ) {
     ValidateHandle( aHandle );
     ASSERT( !RenderCore::IsWriteAccess( anAccess ), "Read() needs a read access, use Write() for %s", RenderCore::GetResourceAccessName( anAccess ) );
-
-    AddAccess( aHandle, anAccess );
-    myResources[ aHandle.myResourceIndex ].myConsumerTasks.push_back( ( uint ) myTasks.size() - 1u );
-    return aHandle;
+    AddAccess( aTaskIndex, aHandle, anAccess );
   }
   //---------------------------------------------------------------------------//
-  FgResourceHandle FrameGraphBuilder::Write( FgResourceHandle aHandle, ResourceAccess anAccess ) {
+  void FrameGraphBuilder::Write( uint aTaskIndex, FgResourceHandle aHandle, ResourceAccess anAccess ) {
     ValidateHandle( aHandle );
     ASSERT( RenderCore::IsWriteAccess( anAccess ), "Write() needs a write access, use Read() for %s", RenderCore::GetResourceAccessName( anAccess ) );
-    ASSERT( myResources[ aHandle.myResourceIndex ].myNextVersionResourceIndex == kFgInvalidIndex,
-            "Resource %s: only its latest version can be written (version %d is outdated)", GetBase( aHandle ).myName.c_str(),
-            myResources[ aHandle.myResourceIndex ].myVersion );
-
-    const FgResourceHandle newHandle = AddVersion( myResources[ aHandle.myResourceIndex ].myBaseIndex, ( uint ) myTasks.size() - 1u );
-    AddAccess( newHandle, anAccess );
-    return newHandle;
+    AddAccess( aTaskIndex, aHandle, anAccess );
   }
   //---------------------------------------------------------------------------//
   void FrameGraphBuilder::AddDependency( uint aSrcTask, uint aDstTask ) {
-    // Versions produced before the graph have no producer. A task can also consume the version it overwrites itself.
-    if ( aSrcTask == kFgInvalidIndex || aDstTask == kFgInvalidIndex || aSrcTask == aDstTask ) {
+    // Subresources written before the graph have no writer
+    if ( aSrcTask == kFgInvalidIndex ) {
       return;
     }
 
@@ -277,27 +339,37 @@ namespace Fancy {
   bool FrameGraphBuilder::BuildFrameGraph() {
     ASSERT( !myIsBuilt, "The graph has already been built. Call Reset() first" );
 
-    // For each version v of a resource:
-    // - Read after write: all consumers of v depend on the producer of v
-    // - Write after write: the producer of v + 1 depends on the producer of v
-    // - Write after read: the producer of v + 1 depends on all consumers of v
+    // Replay all accesses in setup order. Per subresource, a read depends on the last writer (read after write), a write on the last
+    // writer (write after write) and on all readers since (write after read).
     myDependencies.clear();
-    for ( const FrameGraphResource & resource : myResources ) {
-      for ( uint consumer : resource.myConsumerTasks ) {
-        AddDependency( resource.myProducerTask, consumer );
-      }
+    mySubresourceStates.clear();
+    for ( FrameGraphResourceBase & base : myResourceBases ) {
+      base.myFirstSubresourceState = ( uint ) mySubresourceStates.size();
+      mySubresourceStates.resize( mySubresourceStates.size() + base.myResource->GetSubresources().GetNumSubresources() );
+    }
 
-      if ( resource.myNextVersionResourceIndex != kFgInvalidIndex ) {
-        const uint nextProducer = myResources[ resource.myNextVersionResourceIndex ].myProducerTask;
-        AddDependency( resource.myProducerTask, nextProducer );
-        for ( uint consumer : resource.myConsumerTasks ) {
-          AddDependency( consumer, nextProducer );
+    for ( uint taskIdx = 0u, numTasks = ( uint ) myTasks.size(); taskIdx < numTasks; ++taskIdx ) {
+      for ( const FrameGraphTaskAccess & access : myTasks[ taskIdx ].myAccesses ) {
+        const FrameGraphResourceBase & base = GetBase( access.myHandle );
+        const bool isWrite = RenderCore::IsWriteAccess( access.myAccess );
+        for ( SubresourceIterator it = access.myHandle.mySubresources.Begin(); it != access.myHandle.mySubresources.End(); ++it ) {
+          FgSubresourceState & state = GetSubresourceState( base, *it );
+          AddDependency( state.myWriterTask, taskIdx );
+          if ( !isWrite ) {
+            state.myReaderTasks.push_back( taskIdx );
+            continue;
+          }
+
+          for ( uint reader : state.myReaderTasks ) {
+            AddDependency( reader, taskIdx );
+          }
+          state.myWriterTask = taskIdx;
+          state.myReaderTasks.clear();
         }
       }
     }
 
-    // Kahn's algorithm, picking the earliest added ready task. Reading an outdated version moves the consumer before
-    // the task that overwrote it.
+    // Kahn's algorithm, picking the earliest added ready task
     const uint numTasks = ( uint ) myTasks.size();
     eastl::fixed_vector< uint, kFgMaxNumTasks > numIncomingEdges( numTasks, 0u );
     for ( const FrameGraphDependency & dependency : myDependencies ) {
@@ -339,25 +411,26 @@ namespace Fancy {
     if ( !myCompiledResources.empty() ) {
       // Recompiling is rare (structure or resource changes), so simply make sure no frame in flight uses the views
       RenderCore::WaitForIdle( CommandListType::Graphics );
-      for ( const FrameGraphCompiledResource & compiledResource : myCompiledResources ) {
-        for ( const FrameGraphCompiledView & view : compiledResource.myViews ) {
-          if ( view.myTextureView.IsValid() ) {
-            RenderCore::DeleteTextureView( view.myTextureView );
-          }
-          if ( view.myBufferView.IsValid() ) {
-            RenderCore::DeleteBufferView( view.myBufferView );
-          }
+      for ( const FrameGraphCompiledView & view : myCompiledViews ) {
+        if ( view.myTextureView.IsValid() ) {
+          RenderCore::DeleteTextureView( view.myTextureView );
+        }
+        if ( view.myBufferView.IsValid() ) {
+          RenderCore::DeleteBufferView( view.myBufferView );
         }
       }
+      myCompiledViews.clear();
       myCompiledResources.clear();
     }
 
     myCompiledTasks.clear();
+    myCompiledInitialAccesses.clear();
+    myCompiledFinalBarriers.clear();
     myCompiledRenderDataAllocator.Reset();
     myCompiledIsValid = false;
   }
   //---------------------------------------------------------------------------//
-  GpuResourceView * FrameGraphBuilder::GetCreateView( uint aBaseIndex, ResourceAccess anAccess ) {
+  GpuResourceView * FrameGraphBuilder::GetCreateView( uint aBaseIndex, const SubresourceRange & aRange, ResourceAccess anAccess ) {
     using namespace Priv_FrameGraphBuilder;
 
     const FrameGraphResourceBase & base = myResourceBases[ aBaseIndex ];
@@ -368,47 +441,58 @@ namespace Fancy {
     ASSERT( viewKind != FG_VIEW_KIND_NUM, "Access %s doesn't need a view", RenderCore::GetResourceAccessName( anAccess ) );
     ASSERT( aBaseIndex < myCompiledResources.size() );
 
-    // At most kFgMaxNumViewsPerResource views per resource, so this search is bounded
     FrameGraphCompiledResource & compiledResource = myCompiledResources[ aBaseIndex ];
     ASSERT( compiledResource.myHandleIndex == base.myHandleIndex && compiledResource.myHandleGeneration == base.myHandleGeneration,
             "Resource %s changed since the graph was compiled", base.myName.c_str() );
-    for ( const FrameGraphCompiledView & existingView : compiledResource.myViews ) {
-      if ( existingView.myKind == viewKind ) {
+    for ( uint viewIndex = compiledResource.myFirstViewIndex; viewIndex != kFgInvalidIndex;
+          viewIndex = myCompiledViews[ viewIndex ].myNextViewIndex ) {
+      const FrameGraphCompiledView & existingView = myCompiledViews[ viewIndex ];
+      if ( existingView.myKind == viewKind && existingView.mySubresources == aRange ) {
         return isTexture ? static_cast< GpuResourceView * >( RenderCore::GetTextureView( existingView.myTextureView ) )
                          : RenderCore::GetBufferView( existingView.myBufferView );
       }
     }
 
-    ASSERT( !compiledResource.myViews.full(), "Too many views of resource %s. Increase kFgMaxNumViewsPerResource", base.myName.c_str() );
-    if ( compiledResource.myViews.full() ) {
+    ASSERT( !myCompiledViews.full(), "Too many views in the graph. Increase kFgMaxNumResourceViewsPerFrame" );
+    if ( myCompiledViews.full() ) {
       return nullptr;
     }
 
     FrameGraphCompiledView view;
     view.myKind = viewKind;
+    view.mySubresources = aRange;
+    view.myNextViewIndex = compiledResource.myFirstViewIndex;
 
     const char * viewTypeName = "SRV";
     if ( isTexture ) {
       Texture * texture = static_cast< Texture * >( base.myResource );
       const TextureProperties & textureProps = texture->GetProperties();
 
-      // TODO: Subresource ranges per access. Until then, SRVs see all subresources and the other views mip 0.
+      const bool isMultiPlane = texture->GetSubresources().myNumPlanes > 1u;
       TextureViewProperties props;
       props.myDimension = textureProps.myDimension;
       props.myFormat = textureProps.myFormat;
+      props.mySubresourceRange = aRange;
       switch ( viewType ) {
         case GpuResourceViewType::SRV:
-          props.mySubresourceRange = texture->GetSubresources();
+          ASSERT( !isMultiPlane || aRange.myNumPlanes == 1u, "SRV of %s needs to be a single plane", base.myName.c_str() );
           break;
         case GpuResourceViewType::UAV:
+          ASSERT( aRange.myNumMipLevels == 1u, "UAV of %s needs to be a single mip", base.myName.c_str() );
+          ASSERT( !isMultiPlane || aRange.myNumPlanes == 1u, "UAV of %s needs to be a single plane", base.myName.c_str() );
           props.myIsShaderWritable = true;
           viewTypeName = "UAV";
           break;
         case GpuResourceViewType::RTV:
+          ASSERT( aRange.myNumMipLevels == 1u, "RTV of %s needs to be a single mip", base.myName.c_str() );
           props.myIsRenderTarget = true;
           viewTypeName = "RTV";
           break;
         case GpuResourceViewType::DSV:
+          ASSERT( aRange.myNumMipLevels == 1u, "DSV of %s needs to be a single mip", base.myName.c_str() );
+          ASSERT( aRange.myFirstPlane == 0u && aRange.myNumPlanes == texture->GetSubresources().myNumPlanes, "DSV of %s needs to cover all planes",
+                  base.myName.c_str() );
+          props.myIsRenderTarget = true;
           props.myIsDepthReadOnly = isReadOnlyDepth;
           props.myIsStencilReadOnly = isReadOnlyDepth;
           viewTypeName = isReadOnlyDepth ? "Read-only DSV" : "DSV";
@@ -418,13 +502,20 @@ namespace Fancy {
           return nullptr;
       }
 
-      eastl::string name( eastl::string::CtorSprintf(), "%s (FrameGraph %s)", base.myName.c_str(), viewTypeName );
+      eastl::string name( eastl::string::CtorSprintf(), "%s (FrameGraph %s", base.myName.c_str(), viewTypeName );
+      if ( !( aRange == texture->GetSubresources() ) ) {
+        name.append_sprintf( " mips %u-%u planes %u-%u slices %u-%u", aRange.myFirstMipLevel, aRange.myFirstMipLevel + aRange.myNumMipLevels - 1u,
+                             aRange.myFirstPlane, aRange.myFirstPlane + aRange.myNumPlanes - 1u, aRange.myFirstArrayIndex,
+                             aRange.myFirstArrayIndex + aRange.myNumArrayIndices - 1u );
+      }
+      name.append( ")" );
       view.myTextureView = RenderCore::CreateTextureView( texture, props, name.c_str() );
       ASSERT( view.myTextureView.IsValid(), "Failed creating view %s", name.c_str() );
       if ( !view.myTextureView.IsValid() ) {
         return nullptr;
       }
-      compiledResource.myViews.push_back( view );
+      compiledResource.myFirstViewIndex = ( uint ) myCompiledViews.size();
+      myCompiledViews.push_back( view );
       return RenderCore::GetTextureView( view.myTextureView );
     }
 
@@ -452,7 +543,8 @@ namespace Fancy {
     if ( !view.myBufferView.IsValid() ) {
       return nullptr;
     }
-    compiledResource.myViews.push_back( view );
+    compiledResource.myFirstViewIndex = ( uint ) myCompiledViews.size();
+    myCompiledViews.push_back( view );
     return RenderCore::GetBufferView( view.myBufferView );
   }
   //---------------------------------------------------------------------------//
@@ -474,8 +566,14 @@ namespace Fancy {
       MathUtil::hash_combine( hash, ( uint64 ) task.myAccesses.size() );
 
       for ( const FrameGraphTaskAccess & access : task.myAccesses ) {
-        MathUtil::hash_combine( hash, ( uint64 ) myResources[ access.myHandle.myResourceIndex ].myBaseIndex );
-        MathUtil::hash_combine( hash, ( uint64 ) access.myHandle.myResourceIndex );
+        const SubresourceRange & range = access.myHandle.mySubresources;
+        MathUtil::hash_combine( hash, ( uint64 ) access.myHandle.myBaseIndex );
+        MathUtil::hash_combine( hash, ( uint64 ) range.myFirstMipLevel );
+        MathUtil::hash_combine( hash, ( uint64 ) range.myNumMipLevels );
+        MathUtil::hash_combine( hash, ( uint64 ) range.myFirstArrayIndex );
+        MathUtil::hash_combine( hash, ( uint64 ) range.myNumArrayIndices );
+        MathUtil::hash_combine( hash, ( uint64 ) range.myFirstPlane );
+        MathUtil::hash_combine( hash, ( uint64 ) range.myNumPlanes );
         MathUtil::hash_combine( hash, ( uint64 ) access.myAccess );
       }
     }
@@ -484,6 +582,8 @@ namespace Fancy {
   }
   //---------------------------------------------------------------------------//
   void FrameGraphBuilder::Compile() {
+    using namespace Priv_FrameGraphBuilder;
+
     ComputeDeclarationHash();
     if ( myCompiledIsValid && myCompiledHash == myDeclarationHash ) {
       return;
@@ -498,7 +598,7 @@ namespace Fancy {
       myCompiledResources[ i ].myHandleGeneration = myResourceBases[ i ].myHandleGeneration;
     }
 
-    eastl::fixed_vector< ResourceAccess, kFgMaxNumResources > lastAccess( myResourceBases.size(), RESOURCE_ACCESS_NONE );
+    eastl::fixed_vector< FgSubresourceAccesses, kFgMaxNumSubresources > subresourceAccesses( mySubresourceStates.size() );
 
     for ( uint taskIdx : myTaskOrder ) {
       const FrameGraphTask & task = myTasks[ taskIdx ];
@@ -509,30 +609,71 @@ namespace Fancy {
       CompileTask( taskIdx );
 
       for ( const FrameGraphTaskAccess & access : task.myAccesses ) {
-        const uint baseIndex = myResources[ access.myHandle.myResourceIndex ].myBaseIndex;
-        compiledTask.myAccessesBackBuffer |= IsBackBuffer( myResourceBases[ baseIndex ].myResource );
+        const uint baseIndex = access.myHandle.myBaseIndex;
+        const FrameGraphResourceBase & base = myResourceBases[ baseIndex ];
+        const bool isWrite = RenderCore::IsWriteAccess( access.myAccess );
+        compiledTask.myAccessesBackBuffer |= IsBackBuffer( base.myResource );
 
-        // First accesses are patched from the global state at submit time. Writes always need one (e.g. UAV -> UAV).
-        const ResourceAccess previousAccess = lastAccess[ baseIndex ];
-        if ( previousAccess != access.myAccess || RenderCore::IsWriteAccess( access.myAccess ) ) {
-          FrameGraphBarrier barrier;
-          barrier.myBaseIndex = baseIndex;
-          barrier.myAccess = access.myAccess;
-          compiledTask.myBarriers.push_back( barrier );
+        eastl::fixed_vector< FrameGraphBarrier, kFgMaxNumBarriersPerTask > barriers;
+        for ( SubresourceIterator it = access.myHandle.mySubresources.Begin(); it != access.myHandle.mySubresources.End(); ++it ) {
+          FgSubresourceAccesses & accesses = subresourceAccesses[ base.myFirstSubresourceState + base.myResource->GetSubresourceIndex( *it ) ];
+
+          if ( accesses.myLastAccess == RESOURCE_ACCESS_NONE ) {
+            // No barrier for the first access: Execute() brings the subresource into this state before the graph starts
+            accesses.myFirstAccess = access.myAccess;
+          } else if ( isWrite || accesses.myLastAccess != access.myAccess ) {
+            FrameGraphBarrier barrier;
+            barrier.mySubresources = SubresourceRange( *it );
+            barrier.myBaseIndex = baseIndex;
+            barrier.mySrcAccess = accesses.myLastAccess;
+            barrier.myDstAccess = access.myAccess;
+            barriers.push_back( barrier );
+          }
+
+          accesses.myLastAccess = access.myAccess;
         }
-        lastAccess[ baseIndex ] = access.myAccess;
+
+        locMergeBarriers( barriers );
+        compiledTask.myBarriers.insert( compiledTask.myBarriers.end(), barriers.begin(), barriers.end() );
       }
+    }
+
+    // The graph expects every subresource in the state of its first access and restores that state at its end
+    for ( uint baseIndex = 0u, numBases = ( uint ) myResourceBases.size(); baseIndex < numBases; ++baseIndex ) {
+      const FrameGraphResourceBase & base = myResourceBases[ baseIndex ];
+      const uint numSubresources = base.myResource->GetSubresources().GetNumSubresources();
+
+      eastl::fixed_vector< FrameGraphBarrier, kFgMaxNumBarriersPerTask > initialAccesses;
+      eastl::fixed_vector< FrameGraphBarrier, kFgMaxNumBarriersPerTask > finalBarriers;
+      for ( uint subresourceIndex = 0u; subresourceIndex < numSubresources; ++subresourceIndex ) {
+        const FgSubresourceAccesses & accesses = subresourceAccesses[ base.myFirstSubresourceState + subresourceIndex ];
+        if ( accesses.myFirstAccess == RESOURCE_ACCESS_NONE ) {
+          continue;
+        }
+
+        FrameGraphBarrier barrier;
+        barrier.mySubresources = SubresourceRange( base.myResource->GetSubresourceLocation( subresourceIndex ) );
+        barrier.myBaseIndex = baseIndex;
+        barrier.myDstAccess = accesses.myFirstAccess;
+        initialAccesses.push_back( barrier );
+
+        if ( accesses.myLastAccess != accesses.myFirstAccess ) {
+          barrier.mySrcAccess = accesses.myLastAccess;
+          finalBarriers.push_back( barrier );
+        }
+      }
+
+      locMergeBarriers( initialAccesses );
+      locMergeBarriers( finalBarriers );
+      myCompiledInitialAccesses.insert( myCompiledInitialAccesses.end(), initialAccesses.begin(), initialAccesses.end() );
+      myCompiledFinalBarriers.insert( myCompiledFinalBarriers.end(), finalBarriers.begin(), finalBarriers.end() );
     }
 
     myCompiledHash = myDeclarationHash;
     myCompiledIsValid = true;
     ++myNumCompiles;
 
-    uint numViews = 0u;
-    for ( const FrameGraphCompiledResource & compiledResource : myCompiledResources ) {
-      numViews += ( uint ) compiledResource.myViews.size();
-    }
-    LOG_INFO( "FrameGraph compiled (%d tasks, %d views)", ( int ) myTasks.size(), ( int ) numViews );
+    LOG_INFO( "FrameGraph compiled (%d tasks, %d views)", ( int ) myTasks.size(), ( int ) myCompiledViews.size() );
   }
   //---------------------------------------------------------------------------//
   void FrameGraphBuilder::CompileTask( uint aTaskIndex ) {
@@ -556,6 +697,15 @@ namespace Fancy {
       }
     }
 
+    // Hand the resources over from the legacy hazard tracking: afterwards, each subresource is in the state of its first access in the graph.
+    // Since the graph restores that state at its end, the tracked state stays correct without the graph's list having to report anything.
+    CommandList * handoverCtx = RenderCore::BeginCommandList( CommandListType::Graphics );
+    for ( const FrameGraphBarrier & initialAccess : myCompiledInitialAccesses ) {
+      handoverCtx->TrackResourceAccess( myResourceBases[ initialAccess.myBaseIndex ].myResource, initialAccess.mySubresources,
+                                        initialAccess.myDstAccess );
+    }
+    RenderCore::ExecuteAndFreeCommandList( handoverCtx );
+
     CommandList * ctx = RenderCore::BeginCommandList( CommandListType::Graphics, false );
 
     for ( uint taskIdx : myTaskOrder ) {
@@ -565,13 +715,23 @@ namespace Fancy {
       ctx->BeginMarkerRegion( task.myName.c_str() );
 
       for ( const FrameGraphBarrier & barrier : compiledTask.myBarriers ) {
-        ctx->TransitionResourceForAccess( myResourceBases[ barrier.myBaseIndex ].myResource, barrier.myAccess );
+        ctx->TransitionResourceForAccess( myResourceBases[ barrier.myBaseIndex ].myResource, barrier.mySubresources, barrier.mySrcAccess,
+                                          barrier.myDstAccess );
       }
+      // The compiled barriers belong to this task and are issued right before its work. Flushing them here keeps them apart from barriers the
+      // task records itself (e.g. Vulkan clears) and from the next task's barriers on the same subresources.
+      ctx->FlushBarriers();
 
       task.myExecuteFunction( ctx, task.myInstance, compiledTask.myRenderData );
 
       ctx->EndMarkerRegion();
     }
+
+    for ( const FrameGraphBarrier & barrier : myCompiledFinalBarriers ) {
+      ctx->TransitionResourceForAccess( myResourceBases[ barrier.myBaseIndex ].myResource, barrier.mySubresources, barrier.mySrcAccess,
+                                        barrier.myDstAccess );
+    }
+    ctx->FlushBarriers();
 
     RenderCore::ExecuteAndFreeCommandList( ctx );
   }
@@ -594,10 +754,6 @@ namespace Fancy {
   //---------------------------------------------------------------------------//
   const eastl::fixed_vector< FrameGraphResourceBase, kFgMaxNumResources > & FrameGraphBuilder::GetResourceBases() const {
     return myResourceBases;
-  }
-  //---------------------------------------------------------------------------//
-  const eastl::fixed_vector< FrameGraphResource, kFgMaxNumResources > & FrameGraphBuilder::GetResources() const {
-    return myResources;
   }
   //---------------------------------------------------------------------------//
   const eastl::fixed_vector< FrameGraphDependency, kFgMaxNumTasks > & FrameGraphBuilder::GetDependencies() const {

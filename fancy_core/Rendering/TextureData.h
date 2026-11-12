@@ -49,6 +49,8 @@ namespace Fancy {
           myNumPlanes( aLastLocation.myPlaneIndex - aFirstLocation.myPlaneIndex + 1 ) {}
 
     bool operator==( const SubresourceRange & anOther ) const;
+    bool Overlaps( const SubresourceRange & anOther ) const;
+    bool Contains( const SubresourceRange & anOther ) const;
 
     SubresourceIterator Begin() const;
     SubresourceIterator End() const;

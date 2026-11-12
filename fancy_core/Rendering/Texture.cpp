@@ -52,7 +52,10 @@ namespace Fancy {
 
     const DataFormatInfo & formatInfo = DataFormatInfo::GetFormatInfo( someViewProps.myFormat );
 
-    return static_cast< GlobalResourceType >( baseType + formatInfo.myIsUintInt );
+    const bool isStencilPlane = formatInfo.myIsDepthStencil && someViewProps.mySubresourceRange.myFirstPlane == 1u;
+
+    // myIsUintInt: 0 = float, 1 = uint, 2 = int. The stencil plane of a depth-stencil format is read as uint.
+    return static_cast< GlobalResourceType >( baseType + ( isStencilPlane ? 1u : ( uint ) formatInfo.myIsUintInt ) );
   }
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

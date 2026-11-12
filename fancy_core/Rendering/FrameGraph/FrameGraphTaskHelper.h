@@ -35,10 +35,11 @@ namespace Fancy {
     return createInfo;
   }
   //---------------------------------------------------------------------------//
-  template < class T > T & FgAddTask( FrameGraphBuilder & aBuilder, const char * aName, CommandListType aQueueType ) {
-    void * memory = aBuilder.AddTask( FgMakeTaskCreateInfo< T >( aName, aQueueType ) );
-    ASSERT( memory != nullptr, "Failed adding task %s", aName );
-    return *new ( memory ) T();
+  template < class T > uint FgAddTask( FrameGraphBuilder & aBuilder, const char * aName, CommandListType aQueueType, T ** aTaskOut ) {
+    void * memory = nullptr;
+    const uint taskIndex = aBuilder.AddTask( FgMakeTaskCreateInfo< T >( aName, aQueueType ), &memory );
+    *aTaskOut = memory != nullptr ? new ( memory ) T() : nullptr;
+    return taskIndex;
   }
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

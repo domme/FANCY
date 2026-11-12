@@ -2,6 +2,7 @@
 
 #include "Common/FancyCoreDefines.h"
 #include "Rendering/RenderEnums.h"
+#include "Rendering/TextureData.h"
 
 #include "EASTL/fixed_vector.h"
 #include "EASTL/fixed_string.h"
@@ -13,47 +14,46 @@ namespace Fancy {
   class FrameGraphBuilder;
   class FrameGraphCompileContext;
   //---------------------------------------------------------------------------//
+  /// The kFgMaxNum... values are inline capacities that may grow on the heap, except kFgMaxNumResourceViewsPerFrame, which is a hard limit
   enum FrameGraphConstants : uint {
     kFgInvalidIndex = UINT_MAX,
 
     kFgMaxNumTasks = 1024u,
     kFgMaxNumResources = 1024u,
     kFgMaxNumResourcesPerTask = 8u,
-    kFgMaxNumConsumersPerResource = 16u,
-    kFgMaxNumViewsPerResource = 8u,
+    kFgMaxNumBarriersPerTask = 16u,
+    kFgMaxNumSubresources = 1024u,
+    kFgMaxNumReadersPerSubresource = 4u,
+    kFgMaxNumResourceViewsPerFrame = kFgMaxNumResources * 8u,
     kFgTaskMemorySize = 64u * 1024u,
   };
   //---------------------------------------------------------------------------//
-  /// Handle to one version of a resource (an index into FrameGraphBuilder::GetResources()), only valid in the generation (frame) of the builder
-  /// it was created in
+  /// Handle to a range of subresources of a registered resource, only valid in the generation (frame) of the builder it was created in
   struct FgResourceHandle {
-    FgResourceHandle() : myResourceIndex( kFgInvalidIndex ), myFrameGraphGenerationIndex( 0u ) {}
+    SubresourceRange mySubresources;
+    uint myBaseIndex = kFgInvalidIndex;
+    uint myFrameGraphGenerationIndex = 0u;
 
-    bool IsValid() const {
-      return myResourceIndex != kFgInvalidIndex;
-    }
-
-    uint myResourceIndex;
-    uint myFrameGraphGenerationIndex;
+    bool IsValid() const;
+    FgResourceHandle Mips( uint aFirstMip, uint aNumMips = 1u ) const;
+    FgResourceHandle Planes( uint aFirstPlane, uint aNumPlanes = 1u ) const;
+    FgResourceHandle ArraySlices( uint aFirstIndex, uint aNumIndices = 1u ) const;
   };
   //---------------------------------------------------------------------------//
-  /// The data that exists once per resource, shared by all of its versions (not owning)
+  /// A resource registered in the builder (not owning)
   struct FrameGraphResourceBase {
     eastl::fixed_string< char, 64 > myName;
     GpuResource * myResource = nullptr;
-    uint myLatestResourceIndex = kFgInvalidIndex;
+    uint myFirstSubresourceState = kFgInvalidIndex;
     // The engine handle the resource was registered with. Invalid for the backbuffer.
     uint myHandleIndex = kFgInvalidIndex;
     uint myHandleGeneration = 0u;
   };
   //---------------------------------------------------------------------------//
-  /// One version of a resource: produced once, consumed by any number of tasks
-  struct FrameGraphResource {
-    uint myBaseIndex = kFgInvalidIndex;
-    uint myVersion = 0u;                    // 0 = registered, +1 for each write
-    uint myProducerTask = kFgInvalidIndex;  // Invalid if produced before the graph
-    uint myNextVersionResourceIndex = kFgInvalidIndex;
-    eastl::fixed_vector< uint, kFgMaxNumConsumersPerResource > myConsumerTasks;
+  /// Hazard state of one subresource while BuildFrameGraph() derives the dependencies
+  struct FgSubresourceState {
+    uint myWriterTask = kFgInvalidIndex;                                        // Invalid if written before the graph
+    eastl::fixed_vector< uint, kFgMaxNumReadersPerSubresource > myReaderTasks;  // Readers since the last write
   };
   //---------------------------------------------------------------------------//
   struct FrameGraphTaskAccess {
@@ -97,10 +97,12 @@ namespace Fancy {
     uint myDstTask = kFgInvalidIndex;
   };
   //---------------------------------------------------------------------------//
-  /// A transition issued before a task executes
+  /// A barrier issued before a task executes, between two accesses that are both known at compile time
   struct FrameGraphBarrier {
+    SubresourceRange mySubresources;
     uint myBaseIndex = kFgInvalidIndex;
-    ResourceAccess myAccess = RESOURCE_ACCESS_NONE;
+    ResourceAccess mySrcAccess = RESOURCE_ACCESS_NONE;
+    ResourceAccess myDstAccess = RESOURCE_ACCESS_NONE;
   };
   //---------------------------------------------------------------------------//
 }  // namespace Fancy

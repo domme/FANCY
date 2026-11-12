@@ -22,6 +22,7 @@
 #include "GpuQueryHeapDX12.h"
 #include "DebugUtilsDX12.h"
 #include "RtPipelineStateDX12.h"
+#include "Rendering/DepthStencilState.h"
 
 #include "WinPixEventRuntime/pix3.h"
 
@@ -76,6 +77,65 @@ namespace Fancy {
       range.FirstPlane = aLocation.myPlaneIndex;
       range.NumPlanes = 1u;
       return range;
+    }
+    //---------------------------------------------------------------------------//
+    uint locGetTextureState( ResourceAccess anAccess ) {
+      switch ( anAccess ) {
+        case RESOURCE_ACCESS_RENDER_TARGET:
+          return GPU_TEXTURE_STATE_RENDER_TARGET;
+        case RESOURCE_ACCESS_DEPTH_WRITE:
+          return GPU_TEXTURE_STATE_DEPTH_WRITE;
+        case RESOURCE_ACCESS_DEPTH_READ:
+          return GPU_TEXTURE_STATE_DEPTH_READ;
+        case RESOURCE_ACCESS_FRAGMENT_SHADER_READ:
+          return GPU_TEXTURE_STATE_SHADER_READ_PIXEL;
+        case RESOURCE_ACCESS_VERTEX_SHADER_READ:
+        case RESOURCE_ACCESS_COMPUTE_SHADER_READ:
+        case RESOURCE_ACCESS_RAYTRACING_SHADER_READ:
+          return GPU_TEXTURE_STATE_SHADER_READ_NON_PIXEL;
+        case RESOURCE_ACCESS_VERTEX_SHADER_WRITE:
+        case RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE:
+        case RESOURCE_ACCESS_COMPUTE_SHADER_WRITE:
+        case RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE:
+          return GPU_TEXTURE_STATE_SHADER_WRITE;
+        case RESOURCE_ACCESS_COPY_SRC:
+          return GPU_TEXTURE_STATE_COPY_SOURCE;
+        case RESOURCE_ACCESS_COPY_DST:
+          return GPU_TEXTURE_STATE_COPY_DEST;
+        default:
+          ASSERT( false, "Access %s not supported for textures", RenderCore::GetResourceAccessName( anAccess ) );
+          return GPU_TEXTURE_STATE_UNDEFINED;
+      }
+    }
+    //---------------------------------------------------------------------------//
+    uint locGetBufferState( ResourceAccess anAccess ) {
+      switch ( anAccess ) {
+        case RESOURCE_ACCESS_FRAGMENT_SHADER_READ:
+          return GPU_BUFFER_STATE_SHADER_READ_PIXEL;
+        case RESOURCE_ACCESS_VERTEX_SHADER_READ:
+        case RESOURCE_ACCESS_COMPUTE_SHADER_READ:
+        case RESOURCE_ACCESS_RAYTRACING_SHADER_READ:
+          return GPU_BUFFER_STATE_SHADER_READ_NON_PIXEL;
+        case RESOURCE_ACCESS_VERTEX_SHADER_WRITE:
+        case RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE:
+        case RESOURCE_ACCESS_COMPUTE_SHADER_WRITE:
+        case RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE:
+          return GPU_BUFFER_STATE_SHADER_WRITE;
+        case RESOURCE_ACCESS_COPY_SRC:
+          return GPU_BUFFER_STATE_COPY_SOURCE;
+        case RESOURCE_ACCESS_COPY_DST:
+          return GPU_BUFFER_STATE_COPY_DEST;
+        case RESOURCE_ACCESS_VERTEX_BUFFER:
+        case RESOURCE_ACCESS_INDEX_BUFFER:
+          return GPU_BUFFER_STATE_VERTEX_INDEX;
+        case RESOURCE_ACCESS_INDIRECT_ARGUMENT:
+          return GPU_BUFFER_STATE_INDIRECT_ARGUMENT;
+        case RESOURCE_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ:
+          return GPU_BUFFER_STATE_RT_ACCELERATION_STRUCTURE;
+        default:
+          ASSERT( false, "Access %s not supported for buffers", RenderCore::GetResourceAccessName( anAccess ) );
+          return GPU_BUFFER_STATE_UNDEFINED;
+      }
     }
   }  // namespace
   //---------------------------------------------------------------------------//
@@ -997,8 +1057,9 @@ namespace Fancy {
                                                         uint aDstState, bool aIsTexture, bool & aIsWAWOut ) {
     aIsWAWOut = false;
     const GpuResourceBarrierDataDX12 & globalData = aResource->GetDX12Data()->myHazardData;
-    if ( !globalData.myCanChangeStates )
+    if ( !aResource->GetDX12Data()->myCanChangeStates ) {
       return false;
+    }
 
     uint            currState = globalData.mySubresources[ aSubresourceIndex ].myState;
     CommandListType currContext = globalData.mySubresources[ aSubresourceIndex ].myContext;
@@ -1038,18 +1099,13 @@ namespace Fancy {
       return;
     }
 
-    TrackTextureSubresourceTransitionInternal( aResource, aSubresourceRange, aDstState, aToSharedReadState );
-  }
-  //---------------------------------------------------------------------------//
-  void CommandListDX12::TrackTextureSubresourceTransitionInternal( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
-                                                                   uint aDstState, bool aToSharedReadState ) {
     if ( aResource == nullptr )
       return;
     ASSERT( aResource->IsTexture() );
 
-    const GpuResourceBarrierDataDX12 & hazardData = aResource->GetDX12Data()->myHazardData;
-    if ( !hazardData.myCanChangeStates && !aToSharedReadState )
+    if ( !aResource->GetDX12Data()->myCanChangeStates && !aToSharedReadState ) {
       return;
+    }
 
     if ( myCommandListType == CommandListType::Compute ) {
       ASSERT( ( aDstState & ( GPU_TEXTURE_STATE_RENDER_TARGET | GPU_TEXTURE_STATE_DEPTH_WRITE |
@@ -1177,18 +1233,13 @@ namespace Fancy {
       return;
     }
 
-    TrackBufferSubresourceTransitionInternal( aResource, aSubresourceRange, aDstState, aToSharedReadState );
-  }
-  //---------------------------------------------------------------------------//
-  void CommandListDX12::TrackBufferSubresourceTransitionInternal( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
-                                                                  uint aDstState, bool aToSharedReadState ) {
     if ( aResource == nullptr )
       return;
     ASSERT( !aResource->IsTexture() );
 
-    const GpuResourceBarrierDataDX12 & hazardData = aResource->GetDX12Data()->myHazardData;
-    if ( !hazardData.myCanChangeStates && !aToSharedReadState )
+    if ( !aResource->GetDX12Data()->myCanChangeStates && !aToSharedReadState ) {
       return;
+    }
 
     if ( myCommandListType == CommandListType::DMA ) {
       ASSERT( ( aDstState & ~( GPU_BUFFER_STATE_COPY_SOURCE | GPU_BUFFER_STATE_COPY_DEST ) ) == 0u,
@@ -1278,84 +1329,58 @@ namespace Fancy {
     TrackBufferSubresourceTransition( aResource, aResource->GetSubresources(), aNewState, aToSharedReadState );
   }
   //---------------------------------------------------------------------------//
-  void CommandListDX12::TransitionResourceForAccess( const GpuResource * aResource, ResourceAccess anAccess ) {
+  void CommandListDX12::TransitionResourceForAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange,
+                                                     ResourceAccess aSrcAccess, ResourceAccess aDstAccess ) {
+    ASSERT( aResource != nullptr );
+    ASSERT( aResource->GetSubresources().Contains( aSubresourceRange ) );
+
+    if ( !aResource->GetDX12Data()->myCanChangeStates ) {
+      return;
+    }
+
+    const bool isTexture = aResource->IsTexture();
+    const uint srcState = isTexture ? locGetTextureState( aSrcAccess ) : locGetBufferState( aSrcAccess );
+    const uint dstState = isTexture ? locGetTextureState( aDstAccess ) : locGetBufferState( aDstAccess );
+    if ( srcState == dstState && !RenderCore::IsWriteAccess( aDstAccess ) ) {
+      return;
+    }
+
+    if ( isTexture ) {
+      const TextureBarrierParams srcParams = GetTextureBarrierParams( srcState );
+      const TextureBarrierParams dstParams = GetTextureBarrierParams( dstState );
+      D3D12_TEXTURE_BARRIER barrier = {};
+      barrier.SyncBefore = srcParams.mySync;
+      barrier.AccessBefore = srcParams.myAccess;
+      barrier.LayoutBefore = srcParams.myLayout;
+      barrier.SyncAfter = dstParams.mySync;
+      barrier.AccessAfter = dstParams.myAccess;
+      barrier.LayoutAfter = dstParams.myLayout;
+      barrier.pResource = aResource->GetDX12Data()->myResource.Get();
+      barrier.Subresources = locResolveBarrierSubresourceRange( aSubresourceRange );
+      barrier.Flags = D3D12_TEXTURE_BARRIER_FLAG_NONE;
+      AddTextureBarrier( barrier );
+    } else {
+      const BufferBarrierParams srcParams = GetBufferBarrierParams( srcState );
+      const BufferBarrierParams dstParams = GetBufferBarrierParams( dstState );
+      D3D12_BUFFER_BARRIER barrier = {};
+      barrier.SyncBefore = srcParams.mySync;
+      barrier.AccessBefore = srcParams.myAccess;
+      barrier.SyncAfter = dstParams.mySync;
+      barrier.AccessAfter = dstParams.myAccess;
+      barrier.pResource = aResource->GetDX12Data()->myResource.Get();
+      barrier.Offset = 0;
+      barrier.Size = UINT64_MAX;
+      AddBufferBarrier( barrier );
+    }
+  }
+  //---------------------------------------------------------------------------//
+  void CommandListDX12::TrackResourceAccess( const GpuResource * aResource, const SubresourceRange & aSubresourceRange, ResourceAccess anAccess ) {
     ASSERT( aResource != nullptr );
 
     if ( aResource->IsTexture() ) {
-      uint state = GPU_TEXTURE_STATE_UNDEFINED;
-      switch ( anAccess ) {
-        case RESOURCE_ACCESS_RENDER_TARGET:
-          state = GPU_TEXTURE_STATE_RENDER_TARGET;
-          break;
-        case RESOURCE_ACCESS_DEPTH_WRITE:
-          state = GPU_TEXTURE_STATE_DEPTH_WRITE;
-          break;
-        case RESOURCE_ACCESS_DEPTH_READ:
-          state = GPU_TEXTURE_STATE_DEPTH_READ;
-          break;
-        case RESOURCE_ACCESS_FRAGMENT_SHADER_READ:
-          state = GPU_TEXTURE_STATE_SHADER_READ_PIXEL;
-          break;
-        case RESOURCE_ACCESS_VERTEX_SHADER_READ:
-        case RESOURCE_ACCESS_COMPUTE_SHADER_READ:
-        case RESOURCE_ACCESS_RAYTRACING_SHADER_READ:
-          state = GPU_TEXTURE_STATE_SHADER_READ_NON_PIXEL;
-          break;
-        case RESOURCE_ACCESS_VERTEX_SHADER_WRITE:
-        case RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE:
-        case RESOURCE_ACCESS_COMPUTE_SHADER_WRITE:
-        case RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE:
-          state = GPU_TEXTURE_STATE_SHADER_WRITE;
-          break;
-        case RESOURCE_ACCESS_COPY_SRC:
-          state = GPU_TEXTURE_STATE_COPY_SOURCE;
-          break;
-        case RESOURCE_ACCESS_COPY_DST:
-          state = GPU_TEXTURE_STATE_COPY_DEST;
-          break;
-        default:
-          ASSERT( false, "Access %s not supported for textures", RenderCore::GetResourceAccessName( anAccess ) );
-          return;
-      }
-      TrackTextureSubresourceTransitionInternal( aResource, aResource->GetSubresources(), state, false );
+      TrackTextureSubresourceTransition( aResource, aSubresourceRange, locGetTextureState( anAccess ) );
     } else {
-      uint state = GPU_BUFFER_STATE_UNDEFINED;
-      switch ( anAccess ) {
-        case RESOURCE_ACCESS_FRAGMENT_SHADER_READ:
-          state = GPU_BUFFER_STATE_SHADER_READ_PIXEL;
-          break;
-        case RESOURCE_ACCESS_VERTEX_SHADER_READ:
-        case RESOURCE_ACCESS_COMPUTE_SHADER_READ:
-        case RESOURCE_ACCESS_RAYTRACING_SHADER_READ:
-          state = GPU_BUFFER_STATE_SHADER_READ_NON_PIXEL;
-          break;
-        case RESOURCE_ACCESS_VERTEX_SHADER_WRITE:
-        case RESOURCE_ACCESS_FRAGMENT_SHADER_WRITE:
-        case RESOURCE_ACCESS_COMPUTE_SHADER_WRITE:
-        case RESOURCE_ACCESS_RAYTRACING_SHADER_WRITE:
-          state = GPU_BUFFER_STATE_SHADER_WRITE;
-          break;
-        case RESOURCE_ACCESS_COPY_SRC:
-          state = GPU_BUFFER_STATE_COPY_SOURCE;
-          break;
-        case RESOURCE_ACCESS_COPY_DST:
-          state = GPU_BUFFER_STATE_COPY_DEST;
-          break;
-        case RESOURCE_ACCESS_VERTEX_BUFFER:
-        case RESOURCE_ACCESS_INDEX_BUFFER:
-          state = GPU_BUFFER_STATE_VERTEX_INDEX;
-          break;
-        case RESOURCE_ACCESS_INDIRECT_ARGUMENT:
-          state = GPU_BUFFER_STATE_INDIRECT_ARGUMENT;
-          break;
-        case RESOURCE_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ:
-          state = GPU_BUFFER_STATE_RT_ACCELERATION_STRUCTURE;
-          break;
-        default:
-          ASSERT( false, "Access %s not supported for buffers", RenderCore::GetResourceAccessName( anAccess ) );
-          return;
-      }
-      TrackBufferSubresourceTransitionInternal( aResource, aResource->GetSubresources(), state, false );
+      TrackBufferSubresourceTransition( aResource, aSubresourceRange, locGetBufferState( anAccess ) );
     }
   }
   //---------------------------------------------------------------------------//
@@ -1368,6 +1393,10 @@ namespace Fancy {
     ID3D12PipelineState * pso =
         RenderCore::GetPlatformDX12()->GetPipelineStateCache().GetCreateGraphicsPSO( myGraphicsPipelineState );
     myCommandList->SetPipelineState( pso );
+
+    if ( myGraphicsPipelineState.myDepthStencilState != nullptr ) {
+      myCommandList->OMSetStencilRef( ( uint ) myGraphicsPipelineState.myDepthStencilState->GetProperties().myStencilRef );
+    }
 
     // Graphics, compute and raytracing share the command list's pipeline state, so the others need to be set again
     myComputePipelineState.myIsDirty = true;
