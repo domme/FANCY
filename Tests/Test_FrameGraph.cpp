@@ -1,6 +1,7 @@
 #include "Test_FrameGraph.h"
 
 #include "imgui.h"
+#include "Common/Ptr.h"
 #include "Common/Window.h"
 #include "Rendering/CommandList.h"
 #include "Rendering/DepthStencilState.h"
@@ -11,6 +12,7 @@
 #include "Rendering/ShaderPipeline.h"
 #include "Rendering/Texture.h"
 #include "Rendering/TextureSampler.h"
+
 
 using namespace Fancy;
 
@@ -47,6 +49,7 @@ namespace Priv_Test_FrameGraph {
     uint myMipLevel;
     glm::uvec2 myDisplayOrigin;
     float myDisplayScale;
+    uint mySrcIsUav;
   };
   enum DisplayMode { kDisplayTexture = 0, kDisplayMip = 1, kDisplayStencil = 2, kDisplayDepth = 3 };
   //---------------------------------------------------------------------------//
@@ -63,7 +66,7 @@ namespace Priv_Test_FrameGraph {
       StoreColorsTask * task = nullptr;
       const uint taskIndex = FgAddTask< StoreColorsTask >( aBuilder, "Store quadrant colors", CommandListType::Compute, &task );
       task->myColorBuffer = aColorBuffer;
-      aBuilder.Write( taskIndex, task->myColorBuffer, RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
+      task->myColorBufferOut = aBuilder.Write( taskIndex, task->myColorBuffer, RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
       for ( uint i = 0u; i < kNumColors; ++i ) {
         task->myColors[ i ] = someColors[ i ];
       }
@@ -88,6 +91,7 @@ namespace Priv_Test_FrameGraph {
     }
 
     FgResourceHandle myColorBuffer;
+    FgResourceHandle myColorBufferOut;
     glm::float4 myColors[ kNumColors ];
     const ShaderPipeline * myPipeline = nullptr;
   };
@@ -104,7 +108,7 @@ namespace Priv_Test_FrameGraph {
       FillQuadrantComputeTask * task = nullptr;
       const uint taskIndex = FgAddTask< FillQuadrantComputeTask >( aBuilder, aName, CommandListType::Compute, &task );
       task->myTarget = aTarget;
-      aBuilder.Write( taskIndex, task->myTarget, RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
+      task->myTargetOut = aBuilder.Write( taskIndex, task->myTarget, RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
       task->myColorBuffer = aColorBuffer;
       aBuilder.Read( taskIndex, task->myColorBuffer, RESOURCE_ACCESS_COMPUTE_SHADER_READ );
       task->myRect = aRect;
@@ -131,6 +135,7 @@ namespace Priv_Test_FrameGraph {
     }
 
     FgResourceHandle myTarget;
+    FgResourceHandle myTargetOut;
     FgResourceHandle myColorBuffer;
     glm::uvec4 myRect;  // x, y, width, height
     uint myQuadrantIndex = 0u;
@@ -150,7 +155,7 @@ namespace Priv_Test_FrameGraph {
       FillQuadrantRasterTask * task = nullptr;
       const uint taskIndex = FgAddTask< FillQuadrantRasterTask >( aBuilder, aName, CommandListType::Graphics, &task );
       task->myTarget = aTarget;
-      aBuilder.Write( taskIndex, task->myTarget, RESOURCE_ACCESS_RENDER_TARGET );
+      task->myTargetOut = aBuilder.Write( taskIndex, task->myTarget, RESOURCE_ACCESS_RENDER_TARGET );
       task->myColorBuffer = aColorBuffer;
       aBuilder.Read( taskIndex, task->myColorBuffer, RESOURCE_ACCESS_FRAGMENT_SHADER_READ );
       task->myRect = aRect;
@@ -183,6 +188,7 @@ namespace Priv_Test_FrameGraph {
     }
 
     FgResourceHandle myTarget;
+    FgResourceHandle myTargetOut;
     FgResourceHandle myColorBuffer;
     glm::uvec4 myRect;  // x, y, width, height
     uint myQuadrantIndex = 0u;
@@ -190,45 +196,57 @@ namespace Priv_Test_FrameGraph {
     DepthStencilState * myDepthStencilState = nullptr;
   };
   //---------------------------------------------------------------------------//
-  class DownsampleMipTask {
+  // One task for the whole chain: a single write access covers mips 1 to n-1, and the task reads each of them back through its UAV
+  // for the next mip, with a UAV barrier in between
+  class DownsampleMipChainTask {
   public:
     struct RenderData {
       TextureView * mySrc = nullptr;
-      TextureView * myDst = nullptr;
+      TextureView * myDsts[ kNumMips - 1u ] = {};
     };
 
-    static DownsampleMipTask & Setup( FrameGraphBuilder & aBuilder, FgResourceHandle aMipChain, uint aMip, const ShaderPipeline * aPipeline ) {
-      eastl::string name( eastl::string::CtorSprintf(), "Downsample mip %d", aMip );
-      DownsampleMipTask * task = nullptr;
-      const uint taskIndex = FgAddTask< DownsampleMipTask >( aBuilder, name.c_str(), CommandListType::Compute, &task );
-      task->mySrc = aMipChain.Mips( aMip - 1u );
+    static DownsampleMipChainTask & Setup( FrameGraphBuilder & aBuilder, FgResourceHandle aMipChain, const ShaderPipeline * aPipeline ) {
+      DownsampleMipChainTask * task = nullptr;
+      const uint taskIndex = FgAddTask< DownsampleMipChainTask >( aBuilder, "Downsample mip chain", CommandListType::Compute, &task );
+      task->mySrc = aMipChain.Mips( 0u );
       aBuilder.Read( taskIndex, task->mySrc, RESOURCE_ACCESS_COMPUTE_SHADER_READ );
-      task->myDst = aMipChain.Mips( aMip );
-      aBuilder.Write( taskIndex, task->myDst, RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
-      task->myDstSize = kSubresourceTextureSize >> aMip;
+      task->myDst = aMipChain.Mips( 1u, kNumMips - 1u );
+      task->myMipChainOut = aBuilder.Write( taskIndex, task->myDst, RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
       task->myPipeline = aPipeline;
       return *task;
     }
 
-    static void Compile( const DownsampleMipTask & aTask, const FrameGraphCompileContext & aContext, RenderData & someRenderData ) {
+    static void Compile( const DownsampleMipChainTask & aTask, const FrameGraphCompileContext & aContext, RenderData & someRenderData ) {
       someRenderData.mySrc = aContext.GetSrv( aTask.mySrc );
-      someRenderData.myDst = aContext.GetUav( aTask.myDst );
+      for ( uint mip = 1u; mip < kNumMips; ++mip ) {
+        someRenderData.myDsts[ mip - 1u ] = aContext.GetUav( aTask.myDst.Mips( mip ) );
+      }
     }
 
-    static void Execute( CommandList * aCommandList, const DownsampleMipTask & aTask, const RenderData & someRenderData ) {
-      ShaderConsts consts = {};
-      consts.myDstSize = glm::uvec2( aTask.myDstSize );
-      consts.mySrcIndex = someRenderData.mySrc->GetGlobalDescriptorIndex();
-      consts.myDstIndex = someRenderData.myDst->GetGlobalDescriptorIndex();
-
+    static void Execute( CommandList * aCommandList, const DownsampleMipChainTask & aTask, const RenderData & someRenderData ) {
       aCommandList->SetShaderPipeline( aTask.myPipeline );
-      aCommandList->BindConstantBuffer( &consts, sizeof( consts ), 0 );
-      aCommandList->Dispatch( glm::int3( ( int ) aTask.myDstSize, ( int ) aTask.myDstSize, 1 ) );
+      for ( uint mip = 1u; mip < kNumMips; ++mip ) {
+        const bool srcIsUav = mip > 1u;
+        if ( srcIsUav ) {
+          aCommandList->ResourceUAVbarrier();
+        }
+
+        const uint dstSize = kSubresourceTextureSize >> mip;
+        ShaderConsts consts = {};
+        consts.myDstSize = glm::uvec2( dstSize );
+        const TextureView * src = srcIsUav ? someRenderData.myDsts[ mip - 2u ] : someRenderData.mySrc;
+        consts.mySrcIndex = src->GetGlobalDescriptorIndex();
+        consts.myDstIndex = someRenderData.myDsts[ mip - 1u ]->GetGlobalDescriptorIndex();
+        consts.mySrcIsUav = srcIsUav ? 1u : 0u;
+
+        aCommandList->BindConstantBuffer( &consts, sizeof( consts ), 0 );
+        aCommandList->Dispatch( glm::int3( ( int ) dstSize, ( int ) dstSize, 1 ) );
+      }
     }
 
     FgResourceHandle mySrc;
     FgResourceHandle myDst;
-    uint myDstSize = 0u;
+    FgResourceHandle myMipChainOut;
     const ShaderPipeline * myPipeline = nullptr;
   };
   //---------------------------------------------------------------------------//
@@ -243,7 +261,7 @@ namespace Priv_Test_FrameGraph {
       DrawStencilPatternTask * task = nullptr;
       const uint taskIndex = FgAddTask< DrawStencilPatternTask >( aBuilder, "Draw stencil pattern", CommandListType::Graphics, &task );
       task->myDepthStencil = aDepthStencil;
-      aBuilder.Write( taskIndex, task->myDepthStencil, RESOURCE_ACCESS_DEPTH_WRITE );
+      task->myDepthStencilOut = aBuilder.Write( taskIndex, task->myDepthStencil, RESOURCE_ACCESS_DEPTH_WRITE );
       task->myPipeline = aPipeline;
       for ( uint i = 0u; i < kNumStencilRects; ++i ) {
         task->myStencilStates[ i ] = someStencilStates[ i ];
@@ -274,8 +292,39 @@ namespace Priv_Test_FrameGraph {
     }
 
     FgResourceHandle myDepthStencil;
+    FgResourceHandle myDepthStencilOut;
     const ShaderPipeline * myPipeline = nullptr;
     DepthStencilState * myStencilStates[ kNumStencilRects ] = {};
+  };
+  //---------------------------------------------------------------------------//
+  /// Clears depth and stencil after the pattern was drawn. Only the old version of the depth-stencil texture still has the pattern.
+  class OverwriteDepthStencilTask {
+  public:
+    struct RenderData {
+      TextureView * myDepthStencil = nullptr;
+    };
+
+    static OverwriteDepthStencilTask & Setup( FrameGraphBuilder & aBuilder, FgResourceHandle aDepthStencil ) {
+      OverwriteDepthStencilTask * task = nullptr;
+      const uint taskIndex = FgAddTask< OverwriteDepthStencilTask >( aBuilder, "Overwrite depth-stencil", CommandListType::Graphics, &task );
+      task->myDepthStencil = aDepthStencil;
+      task->myDepthStencilOut = aBuilder.Write( taskIndex, task->myDepthStencil, RESOURCE_ACCESS_DEPTH_WRITE );
+      return *task;
+    }
+
+    static void Compile( const OverwriteDepthStencilTask & aTask, const FrameGraphCompileContext & aContext, RenderData & someRenderData ) {
+      someRenderData.myDepthStencil = aContext.GetDsv( aTask.myDepthStencil );
+    }
+
+    static void Execute( CommandList * aCommandList, const OverwriteDepthStencilTask & /*aTask*/, const RenderData & someRenderData ) {
+      aCommandList->SetRenderTargets( nullptr, 0u, someRenderData.myDepthStencil );
+      // Depth has to be 1.0, other values make DX12 warn about a clear value that differs from the optimized one
+      aCommandList->ClearDepthStencilTarget( someRenderData.myDepthStencil, 1.0f, 0,
+                                             ( uint ) DepthStencilClearFlags::CLEAR_DEPTH | ( uint ) DepthStencilClearFlags::CLEAR_STENCIL );
+    }
+
+    FgResourceHandle myDepthStencil;
+    FgResourceHandle myDepthStencilOut;
   };
   //---------------------------------------------------------------------------//
   class CopyStencilTask {
@@ -292,7 +341,7 @@ namespace Priv_Test_FrameGraph {
       task->mySrc = aDepthStencil.Planes( 1u );
       aBuilder.Read( taskIndex, task->mySrc, RESOURCE_ACCESS_COMPUTE_SHADER_READ );
       task->myDst = aStencilCopy;
-      aBuilder.Write( taskIndex, task->myDst, RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
+      task->myDstOut = aBuilder.Write( taskIndex, task->myDst, RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
       task->myPipeline = aPipeline;
       return *task;
     }
@@ -315,6 +364,7 @@ namespace Priv_Test_FrameGraph {
 
     FgResourceHandle mySrc;
     FgResourceHandle myDst;
+    FgResourceHandle myDstOut;
     const ShaderPipeline * myPipeline = nullptr;
   };
   //---------------------------------------------------------------------------//
@@ -343,7 +393,7 @@ namespace Priv_Test_FrameGraph {
       task->myDepth = aDepthStencil.Planes( 0u );
       aBuilder.Read( taskIndex, task->myDepth, RESOURCE_ACCESS_FRAGMENT_SHADER_READ );
       task->myBackBuffer = aBackBuffer;
-      aBuilder.Write( taskIndex, task->myBackBuffer, RESOURCE_ACCESS_RENDER_TARGET );
+      task->myBackBufferOut = aBuilder.Write( taskIndex, task->myBackBuffer, RESOURCE_ACCESS_RENDER_TARGET );
       task->myBackBufferSize = aBackBufferSize;
       task->myPipeline = aPipeline;
       task->myDepthStencilState = aDepthStencilState;
@@ -413,11 +463,49 @@ namespace Priv_Test_FrameGraph {
     FgResourceHandle myStencilCopy;
     FgResourceHandle myDepth;
     FgResourceHandle myBackBuffer;
+    FgResourceHandle myBackBufferOut;
     glm::uvec2 myBackBufferSize;
     const ShaderPipeline * myPipeline = nullptr;
     DepthStencilState * myDepthStencilState = nullptr;
   };
   //---------------------------------------------------------------------------//
+  /// A task without work, to test the graph structure
+  class DummyTask {
+  public:
+    struct RenderData {};
+
+    static void Compile( const DummyTask & /*aTask*/, const FrameGraphCompileContext & /*aContext*/, RenderData & /*someRenderData*/ ) {}
+    static void Execute( CommandList * /*aCommandList*/, const DummyTask & /*aTask*/, const RenderData & /*someRenderData*/ ) {}
+  };
+  //---------------------------------------------------------------------------//
+  uint locAddDummyTask( FrameGraphBuilder & aBuilder, const char * aName ) {
+    DummyTask * task = nullptr;
+    return FgAddTask< DummyTask >( aBuilder, aName, CommandListType::Compute, &task );
+  }
+  //---------------------------------------------------------------------------//
+  void locCheck( bool aCondition, const char * aMessage, bool & anAllPassed ) {
+    ASSERT( aCondition, "%s", aMessage );
+    anAllPassed &= aCondition;
+  }
+  //---------------------------------------------------------------------------//
+  bool locHasDependency( const FrameGraphBuilder & aBuilder, uint aSrcTask, uint aDstTask ) {
+    for ( const FrameGraphDependency & dependency : aBuilder.GetDependencies() ) {
+      if ( dependency.mySrcTask == aSrcTask && dependency.myDstTask == aDstTask ) {
+        return true;
+      }
+    }
+    return false;
+  }
+  //---------------------------------------------------------------------------//
+  uint locGetOrderPosition( const FrameGraphBuilder & aBuilder, uint aTask ) {
+    const eastl::fixed_vector< uint, kFgMaxNumTasks > & order = aBuilder.GetTaskOrder();
+    for ( uint i = 0u; i < ( uint ) order.size(); ++i ) {
+      if ( order[ i ] == aTask ) {
+        return i;
+      }
+    }
+    return kFgInvalidIndex;
+  }
 }  // namespace Priv_Test_FrameGraph
 //---------------------------------------------------------------------------//
 Test_FrameGraph::Test_FrameGraph( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput,
@@ -516,11 +604,75 @@ Test_FrameGraph::Test_FrameGraph( Fancy::AssetManager * anAssetManager, Fancy::W
     myStencilCopyTexture = RenderCore::CreateTexture( props, kStencilCopyTextureName );
     ASSERT( myStencilCopyTexture.IsValid() );
   }
+
+  RunBuilderChecks();
+}
+//---------------------------------------------------------------------------//
+void Test_FrameGraph::RunBuilderChecks() {
+  using namespace Priv_Test_FrameGraph;
+
+  bool allPassed = true;
+
+  // The builder is large, keep it off the stack. It's only built, never executed.
+  UniquePtr< FrameGraphBuilder > builder( new FrameGraphBuilder( myOutput ) );
+  const FgResourceHandle mipChain = builder->RegisterExisting( myMipChainTexture );
+  const FgResourceHandle depthStencil = builder->RegisterExisting( myDepthStencilTexture );
+  const uint mipChainBaseIndex = builder->GetResourceVersions()[ mipChain.myVersionIndex ].myBaseIndex;
+
+  // 1. Relaxed fork: two tasks write different mips on top of the same version
+  const uint taskA = locAddDummyTask( *builder, "A: writes mip 1" );
+  const uint taskB = locAddDummyTask( *builder, "B: writes mip 2" );
+  const FgResourceHandle writtenByA = builder->Write( taskA, mipChain.Mips( 1u ), RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
+  const FgResourceHandle writtenByB = builder->Write( taskB, mipChain.Mips( 2u ), RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
+  locCheck( writtenByA.IsValid() && writtenByB.IsValid(), "Writing different mips on top of the same version has to be allowed", allPassed );
+  locCheck( writtenByB.myVersionIndex == builder->GetLatestVersionIndices()[ mipChainBaseIndex ], "B's version has to be the latest", allPassed );
+
+  // 2. A reader of the latest version depends on both writers
+  const uint taskC = locAddDummyTask( *builder, "C: reads the latest version" );
+  builder->Read( taskC, writtenByB, RESOURCE_ACCESS_COMPUTE_SHADER_READ );
+
+  // 3. Old-version read: E is added after D, but reads the contents from before D's write
+  const uint taskD = locAddDummyTask( *builder, "D: writes mip 0" );
+  const FgResourceHandle writtenByD = builder->Write( taskD, writtenByB.Mips( 0u ), RESOURCE_ACCESS_COMPUTE_SHADER_WRITE );
+  const uint taskE = locAddDummyTask( *builder, "E: reads old mip 0" );
+  builder->Read( taskE, mipChain.Mips( 0u ), RESOURCE_ACCESS_COMPUTE_SHADER_READ );
+  locCheck( writtenByD.IsValid(), "D's write has to be allowed", allPassed );
+
+  // 4. The same on the stencil plane of the depth-stencil texture: G reads the version before H overwrites it
+  const uint taskF = locAddDummyTask( *builder, "F: writes depth-stencil" );
+  const FgResourceHandle writtenByF = builder->Write( taskF, depthStencil, RESOURCE_ACCESS_DEPTH_WRITE );
+  const uint taskH = locAddDummyTask( *builder, "H: overwrites depth-stencil" );
+  const FgResourceHandle writtenByH = builder->Write( taskH, writtenByF, RESOURCE_ACCESS_DEPTH_WRITE );
+  const uint taskG = locAddDummyTask( *builder, "G: reads old stencil" );
+  builder->Read( taskG, writtenByF.Planes( 1u ), RESOURCE_ACCESS_COMPUTE_SHADER_READ );
+  locCheck( writtenByF.IsValid() && writtenByH.IsValid(), "The depth-stencil writes have to be allowed", allPassed );
+
+  const bool isBuilt = builder->BuildFrameGraph();
+  locCheck( isBuilt, "The builder check graph has to be free of cycles", allPassed );
+  if ( !isBuilt ) {
+    LOG_ERROR( "FrameGraph builder checks failed" );
+    return;
+  }
+
+  locCheck( !locHasDependency( *builder, taskA, taskB ) && !locHasDependency( *builder, taskB, taskA ),
+            "The relaxed writers must not depend on each other", allPassed );
+  locCheck( locHasDependency( *builder, taskA, taskC ) && locHasDependency( *builder, taskB, taskC ),
+            "The reader has to depend on both writers", allPassed );
+  locCheck( locHasDependency( *builder, taskE, taskD ), "The old-version reader has to come before the later writer", allPassed );
+  locCheck( locGetOrderPosition( *builder, taskE ) < locGetOrderPosition( *builder, taskD ), "E has to be ordered before D", allPassed );
+  locCheck( locHasDependency( *builder, taskF, taskG ) && locHasDependency( *builder, taskG, taskH ), "Stencil reader: F -> G -> H", allPassed );
+  locCheck( locGetOrderPosition( *builder, taskG ) < locGetOrderPosition( *builder, taskH ), "G has to be ordered before H", allPassed );
+
+  if ( allPassed ) {
+    LOG_INFO( "FrameGraph builder checks passed" );
+  } else {
+    LOG_ERROR( "FrameGraph builder checks failed" );
+  }
 }
 //---------------------------------------------------------------------------//
 Test_FrameGraph::~Test_FrameGraph() {
   // The builder's views need to go before the resources
-  myFrameGraph.Reset();
+  myFrameGraph.ResetAndBeginSetup();
   myFrameGraph.ReleaseCompiledGraph();
   RenderCore::DeleteTexture( myQuadrantTexture );
   RenderCore::DeleteTexture( myMipChainTexture );
@@ -543,10 +695,11 @@ void Test_FrameGraph::CreateQuadrantTexture() {
   myQuadrantTexture = RenderCore::CreateTexture( props, kQuadrantTextureName );
   ASSERT( myQuadrantTexture.IsValid() );
 
-  // The compiled graph has views of the old texture, which need to go before it
+  // The compiled graph has views of the old texture, which need to go before it. The last setup still references it.
   if ( oldTexture.IsValid() ) {
     myFrameGraph.ReleaseCompiledGraph();
     RenderCore::DeleteTexture( oldTexture );
+    myNeedsSetup = true;
   }
 }
 //---------------------------------------------------------------------------//
@@ -564,9 +717,29 @@ void Test_FrameGraph::OnUpdate( bool aDrawProperties ) {
     ImGui::Text( "Declaration hash: %llx", ( unsigned long long ) myFrameGraph.GetDeclarationHash() );
     ImGui::Text( "Number of compiles: %d", myFrameGraph.GetNumCompiles() );
     ImGui::Checkbox( "Show Frame Graph viewer", &myShowFrameGraphViewer );
+    ImGui::Checkbox( "Skip setup every other frame", &mySkipSetupEveryOtherFrame );
   }
 
-  myFrameGraph.Reset();
+  // In a frame without setup, changes in the UI apply one frame later
+  const bool skipSetup = mySkipSetupEveryOtherFrame && !myNeedsSetup && myFrameIndex % 2u == 1u;
+  ++myFrameIndex;
+  myNeedsSetup = false;
+  if ( skipSetup ) {
+    myFrameGraph.DiscardBuildResults();
+    myFrameGraph.BuildFrameGraph();
+  } else {
+    SetupFrameGraph();
+  }
+
+  if ( myShowFrameGraphViewer ) {
+    myFrameGraphViewer.Render( myFrameGraph, &myShowFrameGraphViewer );
+  }
+}
+//---------------------------------------------------------------------------//
+void Test_FrameGraph::SetupFrameGraph() {
+  using namespace Priv_Test_FrameGraph;
+
+  myFrameGraph.ResetAndBeginSetup();
 
   const uint half = kQuadrantTextureSize / 2u;
   const glm::uvec4 rects[ kNumQuadrants ] = {
@@ -596,44 +769,51 @@ void Test_FrameGraph::OnUpdate( bool aDrawProperties ) {
   const FgResourceHandle stencilCopy = myFrameGraph.RegisterExisting( myStencilCopyTexture );
   const FgResourceHandle backBuffer = myFrameGraph.RegisterBackBuffer();
 
-  StoreColorsTask::Setup( myFrameGraph, colorBuffer, colors, RenderCore::GetShaderPipeline( myStoreColorsShader ) );
+  const StoreColorsTask & storeColorsTask =
+          StoreColorsTask::Setup( myFrameGraph, colorBuffer, colors, RenderCore::GetShaderPipeline( myStoreColorsShader ) );
+
+  // The fill tasks write the same texture one after another, so each continues from the version the previous one returned
+  FgResourceHandle quadrantsVersion = quadrants;
 
   for ( uint i = 0u; i < kNumQuadrants; ++i ) {
     if ( !myQuadrantEnabled[ i ] ) {
       continue;
     }
     if ( i % 2u == 0u ) {
-      FillQuadrantComputeTask::Setup( myFrameGraph, names[ i ], quadrants, colorBuffer, i, rects[ i ], fillComputeShader );
+      const FillQuadrantComputeTask & task = FillQuadrantComputeTask::Setup( myFrameGraph, names[ i ], quadrantsVersion,
+                                                                              storeColorsTask.myColorBufferOut, i, rects[ i ], fillComputeShader );
+      quadrantsVersion = task.myTargetOut;
     } else {
-      FillQuadrantRasterTask::Setup( myFrameGraph, names[ i ], quadrants, colorBuffer, i, rects[ i ], fillColorShader, depthTestOff );
+      const FillQuadrantRasterTask & task = FillQuadrantRasterTask::Setup( myFrameGraph, names[ i ], quadrantsVersion,
+                                                                            storeColorsTask.myColorBufferOut, i, rects[ i ], fillColorShader,
+                                                                            depthTestOff );
+      quadrantsVersion = task.myTargetOut;
     }
   }
 
-  const ShaderPipeline * downsampleShader = RenderCore::GetShaderPipeline( myDownsampleShader );
-  for ( uint mip = 1u; mip < kNumMips; ++mip ) {
-    DownsampleMipTask::Setup( myFrameGraph, mipChain, mip, downsampleShader );
-  }
+  const DownsampleMipChainTask & downsampleTask =
+          DownsampleMipChainTask::Setup( myFrameGraph, mipChain, RenderCore::GetShaderPipeline( myDownsampleShader ) );
 
   DepthStencilState * stencilStates[ kNumStencilRects ];
   for ( uint i = 0u; i < kNumStencilRects; ++i ) {
     stencilStates[ i ] = RenderCore::GetDepthStencilState( myStencilStates[ i ] );
   }
-  DrawStencilPatternTask::Setup( myFrameGraph, depthStencil, RenderCore::GetShaderPipeline( myFillStencilShader ), stencilStates );
-  CopyStencilTask::Setup( myFrameGraph, depthStencil, stencilCopy, RenderCore::GetShaderPipeline( myCopyStencilShader ) );
+  const DrawStencilPatternTask & patternTask =
+          DrawStencilPatternTask::Setup( myFrameGraph, depthStencil, RenderCore::GetShaderPipeline( myFillStencilShader ), stencilStates );
+  const OverwriteDepthStencilTask & overwriteTask = OverwriteDepthStencilTask::Setup( myFrameGraph, patternTask.myDepthStencilOut );
+  // Set up after the overwrite, but reads the version from before it: the graph has to run this task first
+  const CopyStencilTask & copyStencilTask = CopyStencilTask::Setup( myFrameGraph, patternTask.myDepthStencilOut, stencilCopy,
+                                                                    RenderCore::GetShaderPipeline( myCopyStencilShader ) );
 
-  BlitToBackBufferTask::Setup( myFrameGraph, quadrants, mipChain, stencilCopy, depthStencil, backBuffer,
-                               glm::uvec2( myWindow->GetWidth(), myWindow->GetHeight() ), RenderCore::GetShaderPipeline( myBlitShader ),
-                               depthTestOff );
+  BlitToBackBufferTask::Setup( myFrameGraph, quadrantsVersion, downsampleTask.myMipChainOut, copyStencilTask.myDstOut,
+                               overwriteTask.myDepthStencilOut, backBuffer, glm::uvec2( myWindow->GetWidth(), myWindow->GetHeight() ),
+                               RenderCore::GetShaderPipeline( myBlitShader ), depthTestOff );
 
   myFrameGraph.BuildFrameGraph();
-
-  if ( myShowFrameGraphViewer ) {
-    myFrameGraphViewer.Render( myFrameGraph, &myShowFrameGraphViewer );
-  }
 }
 //---------------------------------------------------------------------------//
 void Test_FrameGraph::OnRender() {
-  if ( myFrameGraph.IsBuilt() ) {
+  if ( myFrameGraph.IsDeclarationBuilt() ) {
     myFrameGraph.Execute();
   }
 }

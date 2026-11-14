@@ -20,6 +20,8 @@ namespace Fancy {
 
     kFgMaxNumTasks = 1024u,
     kFgMaxNumResources = 1024u,
+    kFgMaxNumResourceVersions = kFgMaxNumResources * 2u,
+    kFgMaxNumReadsPerBuild = 256u,
     kFgMaxNumResourcesPerTask = 8u,
     kFgMaxNumBarriersPerTask = 16u,
     kFgMaxNumSubresources = 1024u,
@@ -28,10 +30,11 @@ namespace Fancy {
     kFgTaskMemorySize = 64u * 1024u,
   };
   //---------------------------------------------------------------------------//
-  /// Handle to a range of subresources of a registered resource, only valid in the generation (frame) of the builder it was created in
+  /// Handle to a range of subresources of one version of a registered resource, only valid in the generation (frame) of the builder it was
+  /// created in. A version always describes the whole resource, the range only selects what is accessed.
   struct FgResourceHandle {
     SubresourceRange mySubresources;
-    uint myBaseIndex = kFgInvalidIndex;
+    uint myVersionIndex = kFgInvalidIndex;  // Into FrameGraphBuilder's resource versions
     uint myFrameGraphGenerationIndex = 0u;
 
     bool IsValid() const;
@@ -43,11 +46,19 @@ namespace Fancy {
   /// A resource registered in the builder (not owning)
   struct FrameGraphResourceBase {
     eastl::fixed_string< char, 64 > myName;
-    GpuResource * myResource = nullptr;
-    uint myFirstSubresourceState = kFgInvalidIndex;
+    GpuResource * myResource = nullptr;  // Null for the backbuffer, whose swap chain image changes every frame
+    SubresourceRange mySubresources;     // All subresources of the resource
     // The engine handle the resource was registered with. Invalid for the backbuffer.
     uint myHandleIndex = kFgInvalidIndex;
     uint myHandleGeneration = 0u;
+    bool myIsBackBuffer = false;
+  };
+  //---------------------------------------------------------------------------//
+  /// The contents of a whole resource after a write. Versions of a resource form a linear chain, version 0 is the state before the graph.
+  struct FrameGraphResourceVersion {
+    SubresourceRange myWrittenRange;  // The subresources changed compared to the previous version. Empty for version 0.
+    uint myBaseIndex = kFgInvalidIndex;
+    uint myVersion = 0u;  // Number within the resource, for display
   };
   //---------------------------------------------------------------------------//
   /// Hazard state of one subresource while BuildFrameGraph() derives the dependencies
@@ -59,6 +70,7 @@ namespace Fancy {
   struct FrameGraphTaskAccess {
     FgResourceHandle myHandle;
     ResourceAccess myAccess = RESOURCE_ACCESS_NONE;
+    uint myWrittenVersionIndex = kFgInvalidIndex;  // The version a write created
   };
   //---------------------------------------------------------------------------//
   /// Type-erased calls of a task class' static functions

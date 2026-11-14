@@ -40,7 +40,7 @@ This supersedes the Phase 0 prototype (explicit `Link()`, static-only tasks, `Ad
 - **Resources are virtual during setup.** Handles are empty shells. Views are created when the graph is compiled and handed to tasks only in `Execute()`.
 - **Per-frame task data vs. compiled data.** The task instance is recreated every frame and holds everything the compilation doesn't care about (handles, constants, pipelines). Its `RenderData` holds what the compilation produces (views); it lives in the compiled graph and survives across frames. `Execute()` gets both. Overlapping the setup of frame N with the execution of frame N-1 would use two builders.
 - **Compile on change.** `Setup()` runs every frame, which is cheap. `Compile()` (called by `Execute()`) first computes the hash of the declared structure and returns right away if it equals the hash of the compiled graph. Otherwise it rebuilds the barriers, views and render data.
-- **First version without allocation.** All resources are external. Every frame, after `Reset()` and before the tasks are set up, the caller registers them with `RegisterExisting( handle )`, which returns the handle of version 0 (produced before the graph, contents defined). The backbuffer is registered with `RegisterBackBuffer()`. Later, tasks can create resources themselves (`Create( desc )`).
+- **First version without allocation.** All resources are external. Every frame, after `ResetAndBeginSetup()` and before the tasks are set up, the caller registers them with `RegisterExisting( handle )`, which returns the handle of version 0 (produced before the graph, contents defined). The backbuffer is registered with `RegisterBackBuffer()`. Later, tasks can create resources themselves (`Create( desc )`).
 - **Naming:** larger classes use the `FrameGraph` prefix, small structs and helper types the `Fg` prefix (`FgResourceHandle`, `kFg...`). "Task" instead of "job".
 - **Layering.** The FrameGraph is built on top of the command lists and `RenderCore`, which know nothing about it. It should stay easy to move it into its own project on top of `fancy_core`. Generic pieces it needs, such as the access enum and its helpers, live in the rendering backend.
 - **Coexistence with the legacy tracker.** Hazard tracking becomes a property of each command list instead of a program-wide switch. The graph records on lists that have it turned off, and all other code keeps using automatic tracking.
@@ -83,7 +83,7 @@ public:
   - the FrameGraph handles and all per-frame data (constants, pipelines, ...) as members, set in `Setup()` every frame;
   - a `RenderData` struct (trivially destructible) with what the graph compiles, filled by `Compile()` when the graph is compiled;
   - `static Execute( CommandList *, const T &, const RenderData & )`.
-- **A task class must be trivially destructible.** Its instances are never destructed: `Reset()` just rewinds the task allocator.
+- **A task class must be trivially destructible.** Its instances are never destructed: `ResetAndBeginSetup()` just rewinds the task allocator.
 - **`uint AddTask( const FgTaskCreateInfo &, void ** aTaskMemoryOut )`** (not templated) allocates the task instance in the builder's task allocator, returns the task's index and writes the uninitialized memory to `aTaskMemoryOut`. All functions that declare something for a task take this index; nothing implicitly applies to the task added last, so a series of tasks can be added first and their accesses declared afterwards. The create info holds:
   - the name and the queue type;
   - size and alignment of the task and of its `RenderData`;
@@ -93,7 +93,7 @@ public:
   - `FgExecuteTask< T >` / `FgCompileTask< T >` are the casting functions;
   - `uint FgAddTask< T >( builder, name, queueType, T ** taskOut )` adds the task, placement-news a default-constructed `T` into its memory and returns the task index.
   The builder itself has no templates, so later generated tasks (see "Follow-ups") can fill the create info without the helper.
-- **`FrameGraphCompileContext`** resolves the task's handles in `Compile()`: `GetRtv()`, `GetDsv()`, `GetSrv()`, `GetUav()` for textures, `GetBufferSrv()`, `GetBufferUav()` for buffers, and `GetResource()`. It asserts that the task declared the access and that the view type matches the access, and creates views on demand.
+- **`FrameGraphCompileContext`** resolves the task's handles in `Compile()`: `GetRtv()`, `GetDsv()`, `GetSrv()`, `GetUav()` for textures, `GetBufferSrv()`, `GetBufferUav()` for buffers, and `GetResource()`. It asserts that the task declared the access and that the view type matches the access, and creates views on demand. A handle passed in may narrow a declared access (e.g. `GetUav( dst.Mips( 2 ) )` for a write of `dst.Mips( 1, 3 )`); the view gets the narrowed range.
 - Compute tasks record their queue type but run on the single graphics command list for now, with barriers using compute sync scopes. Async compute comes later.
 
 ### Resource API
@@ -114,7 +114,7 @@ Before the tasks are set up, the caller registers all external resources every f
 - For all other resources, `FrameGraphResourceBase` stores the engine handle's index and generation. Both go into the declaration hash, so a recreated resource (new generation, even at the same pool slot or address) recompiles the graph. The compiled graph keeps them per resource (`FrameGraphCompiledResource`) and asserts they still match when it hands out views.
 - `ReleaseCompiledGraph()` has to be called before destroying a resource that the compiled graph has views of.
 
-**`FgResourceHandle`:** a registered resource (`myBaseIndex`), a `SubresourceRange` and the builder's `myFrameGraphGenerationIndex` at creation. The generation index counts the builder's `Reset()` calls (i.e. frames), so a handle from a previous frame asserts.
+**`FgResourceHandle`:** a registered resource (`myBaseIndex`), a `SubresourceRange` and the builder's `myFrameGraphGenerationIndex` at creation. The generation index counts the builder's `ResetAndBeginSetup()` calls (i.e. frames), so a handle from a previous frame asserts.
 
 **Resource data:** each version is one `FrameGraphResource` (producer task, consumer tasks, next version, version number). The data that exists once per resource, shared by all its versions, lives in `FrameGraphResourceBase` (name, resource pointer, latest version; later subresources). A version points to its base by index.
 
@@ -332,7 +332,7 @@ struct FgResourceHandle {
 - Engine fix: a stencil-plane view of a depth-stencil format is placed in the uint bindless tables.
 
 ### Tests (in `Test_FrameGraph`, next to the quadrants)
-- **Mips:** `fgMipChain`, 256×256 RGBA8, 4 mips, mip 0 a checkerboard upload. Three `DownsampleMipTask`s (compute) each read `mips.Mips( n - 1 )` and write `mips.Mips( n )`.
+- **Mips:** `fgMipChain`, 256×256 RGBA8, 4 mips, mip 0 a checkerboard upload. One `DownsampleMipChainTask` (compute) reads `mips.Mips( 0 )` and writes `mips.Mips( 1, 3 )` with a single access. Inside the task it loops over the mips, reads mip n - 1 back through its UAV and puts a UAV barrier between the dispatches (`ResourceUAVbarrier()`, a global memory barrier on Vulkan). Like the single-pass variant (`cResolveFloatZ_AllMipsCS`) in the reference slides, the graph only sees one write of the whole range.
 - **Planes:** `fgDepthStencil`, 256×256 `D_32FLOAT_S_8UI`. `DrawStencilPatternTask` writes depth and stencil (clear, then rectangles with different stencil refs). `CopyStencilTask` (compute) reads `depthStencil.Planes( 1 )` and writes `fgStencilCopy` (`R8_UINT`).
 - **Display:** the blit task also reads the whole mip chain, the stencil copy and `depthStencil.Planes( 0 )`, and draws them next to the quadrants.
 
@@ -369,6 +369,65 @@ Compiled barriers are stored on the receiving task and flushed right before its 
 
 ### Later: async compute
 The per-subresource state is what async compute needs as well. Extension points: split barriers by previous (access, queue) per subresource; combine runs of reads into one read state; explicit source states in `FrameGraphBarrier`.
+
+## Redesign: whole-resource versions (decided 2026-11-12)
+
+Replaces the version-less handles from "Next phase: subresources". Motivation: the order of tasks follows from data flow only (who produces which contents, who reads them), not from the order tasks were added. Any handle names exact contents, so e.g. a frame debugger can display any handle and its display task is scheduled at the right time, and reading old contents (SSAO reading the normals before the decals) needs no extra API.
+
+### Model
+- **A version always describes a whole resource.** A subresource range is only a view of a version. A write through a range creates the next whole-resource version, in which only that range changed.
+- **One handle type.** `FgResourceHandle { SubresourceRange mySubresources; uint myVersionIndex; uint myFrameGraphGenerationIndex; }`, with `Mips()` / `Planes()` / `ArraySlices()` narrowing the range of the same version. A separate range type was considered, but every consumer (`Read()`, `Write()`, the compile context) takes a range anyway, and everything that produces a handle (registration, `Write()`) produces one over the whole resource.
+- **One linear chain of versions per resource.** Version 0 is created by registration (contents from before the graph). The latest version is always the one the last `Write()` returned, so no merge API (`GetLatest()`) is needed.
+- **Relaxed write rule:** a write through a handle of an older version is allowed if none of the subresources it writes was changed after that version (no later version's written range overlaps the handle's range). The write is appended to the end of the chain and returns the new latest version, which also contains the changes of the versions in between. If a later version did write an overlapping range, the write asserts (a real conflict: two writers of the same subresources from the same contents) and returns an invalid handle.
+- **Reads of any version are allowed**, including old ones. The reader is ordered after the producers of the contents it reads and before the tasks that overwrite them later.
+- Dependencies stay per subresource, so a chain like `v1 = Write( v0.Mips( 1 ) ); v2 = Write( v1.Mips( 2 ) )` creates no edge between the two writers unless their ranges or reads connect them.
+
+### API
+```cpp
+FgResourceHandle RegisterExisting( TextureHandle / GpuBufferHandle );  // version 0, whole resource
+FgResourceHandle RegisterBackBuffer();
+void Read( uint aTaskIndex, FgResourceHandle aHandle, ResourceAccess anAccess );
+FgResourceHandle Write( uint aTaskIndex, FgResourceHandle aHandle, ResourceAccess anAccess );  // returns the new version (whole resource)
+```
+Tasks keep the handle they accessed (for views in `Compile()`), plus the handle `Write()` returned to pass on.
+
+### Data
+- `FrameGraphResourceVersion { SubresourceRange myWrittenRange; uint myBaseIndex; uint myVersion; }` in the setup data's `myResourceVersions`. Version 0 has an empty written range. `myVersion` is the number within the resource (for display).
+- Relations are parallel arrays in the setup data (see "Phase data"): `myVersionProducerTasks` and `myVersionNextIndices` per version (invalid for version 0 / the latest), `myLatestVersionIndices` per resource base.
+- `FrameGraphTaskAccess` records the handle (version + range) and the access; for writes also the index of the version the write created.
+
+### Phase data (2026-11-13)
+Each phase only writes its own data and reads the data of the phases before it, so a phase can be redone without the ones before it. `FrameGraphBuilder` groups its members accordingly:
+- **`mySetupData`**, written by `Register...()`, `AddTask()`, `Read()`, `Write()`, cleared by `ResetAndBeginSetup()` (which also bumps the handle generation): task allocator and tasks, resource bases (name, resource, engine handle, backbuffer flag), versions and their relation arrays.
+- **`myBuildData`**, written by `BuildFrameGraph()`, cleared by `DiscardBuildResults()`: the first subresource index per base, the per-subresource hazard state, dependencies, task order, the declaration hash (derived from the setup data only) and `myHasResults`. `BuildFrameGraph()` computes the hash first and keeps the previous results if it is unchanged, the same way `Compile()` keeps the compiled graph. `ResetAndBeginSetup()` therefore keeps the results and only clears `myIsDeclarationBuilt`. That flag (the current declaration was built: it can't change anymore and can be executed) is a member of the builder outside the three structs, since `BuildFrameGraph()` writes it and `ResetAndBeginSetup()` / `DiscardBuildResults()` clear it.
+- **`myCompiledData`**, written by `Compile()` when the hash changed, cleared by `ReleaseCompiledGraph()`: render data allocator, compiled tasks, resources, views, initial accesses, final barriers, the declaration hash they belong to and `myHasResults`.
+
+A frame without setup calls `DiscardBuildResults()`, `BuildFrameGraph()` and `Execute()`; `DiscardBuildResults()` forces a real rebuild. The task instances and handles of the last setup stay valid. The registered resources must still exist; the caller has to run the setup again after recreating one.
+
+**Why reusing is safe:** the build reads only data the hash covers: per task (in order) its accesses with resource, accessed version number, created version number, range and access; per resource its engine handle, which fixes the subresource layout. The producer of a version is the task whose write hashes that created version, and a version's written range is the range of that write. Each resource is replayed on its own subresource state, so equal hashes give the same set of edges (only the order in which they're found can differ), and Kahn's algorithm with the "lowest ready task index" tie-break gives the same task order. The hash starts with the number of resources and tasks, so the two sequences can't be confused.
+
+**Compile() contract:** the compiled graph, including the tasks' render data, is reused while the hash is equal. A task's `Compile()` may therefore only depend on its declared accesses; views of narrowed handles (`GetUav( dst.Mips( k ) )`) have to be derived from the declared ranges alone. Per-frame data belongs in `Execute()`, which gets the current task instance.
+
+**Heavy debug check:** with `FANCY_RENDERER_DEBUG_FRAMEGRAPH` (`RendererPrerequisites.h`, follows `FANCY_HEAVY_DEBUG`), reusing build results rebuilds into a temporary `BuildData` and asserts the same task order, subresource layout and set of dependencies. Further expensive FrameGraph checks go under the same define. There is no such check for compiling.
+
+The backbuffer base stores no `GpuResource *`: the swap chain image changes every frame, so `GetResource( baseIndex )` resolves it whenever it's used.
+
+### BuildFrameGraph
+1. Per resource, replay its accesses in **version order** (not task order): for version K, first the write that created K (if any), then all reads of version K. The per-subresource writer/readers state is the same as before: a read gets an edge from the last writer of each subresource in its range and becomes a reader; a write gets edges from the last writer and all readers since, then becomes the writer and clears the readers.
+2. Reads of the same version can be processed in any order.
+3. Edges can now point backwards in task order (a task added later can run earlier), so the Kahn sort really reorders, and it reports cycles (e.g. a task that reads an old version of A and also depends on a task that overwrites A). A cycle is an error for now; renaming (with graph-created resources) could resolve it later.
+
+### Compile and execute
+Unchanged: they walk the sorted task order and track accesses per subresource, so barriers follow the real execution order. Views stay keyed by physical resource, kind and range. The declaration hash includes, per access, the base index, the version number of the accessed version, for writes the version number of the created version (it depends on the order of the `Write()` calls), the range and the access.
+
+### Viewer
+The tooltip shows the version number again next to the range.
+
+### Tests
+- The quadrant fill tasks write the same subresource, so they chain through the returned versions. Per-mip chaining through `Write()`'s result is covered by the builder checks; the visual mip test uses a single task for the whole chain.
+- **Old-version read (visual):** `OverwriteDepthStencilTask` clears depth (1.0) and stencil (0) after the stencil pattern; `CopyStencilTask` is set up after the overwrite but reads the version from before it. The graph has to run the copy first; the stencil panel must still show the pattern.
+- **Builder checks (no GPU work):** a function in `Test_FrameGraph` that builds a separate small graph with dummy tasks on the registered test textures, calls `BuildFrameGraph()` and asserts on the dependencies and the task order: a relaxed fork (two tasks writing different mips from the same version) is accepted, creates no edge between the two writers and returns a version containing both; a later reader of that version depends on both; an old-version read is ordered before the later writer.
+- **Frames without setup:** every other frame, the test only calls `DiscardBuildResults()` and `BuildFrameGraph()` on the declaration of the last setup (checkbox "Skip setup every other frame"). Recreating the quadrant texture forces a setup in the next frame.
 
 ## Next phase: graph-created resources and memory aliasing (planned 2026-11-08)
 
@@ -407,8 +466,8 @@ FgResourceHandle current = builder.GetTemporalLayer( history, 0 );   // written 
 FgResourceHandle previous = builder.GetTemporalLayer( history, 1 );  // last frame's contents (read only)
 if ( builder.IsTemporalLayerValid( history, 1 ) ) { ... }            // false after creation, desc changes or a reset
 ```
-- **Identity across frames:** declared every frame like everything else, matched by name. The builder keeps a persistent registry (not cleared by `Reset()`): name -> desc, layer count, N physical resources, rotation index, number of valid history frames.
-- **Rotation:** at `Reset()` (frame start) the rotation index advances, so layer k maps to physical copy `(rotation - k) mod N`. Layer 0 is this frame's copy (contents undefined until written, like a transient); layers 1..N-1 are previous frames and can only be read.
+- **Identity across frames:** declared every frame like everything else, matched by name. The builder keeps a persistent registry (not cleared by `ResetAndBeginSetup()`): name -> desc, layer count, N physical resources, rotation index, number of valid history frames.
+- **Rotation:** at `ResetAndBeginSetup()` (frame start) the rotation index advances, so layer k maps to physical copy `(rotation - k) mod N`. Layer 0 is this frame's copy (contents undefined until written, like a transient); layers 1..N-1 are previous frames and can only be read.
 - **History validity:** after creation, a desc change or `ResetTemporal( name )` (camera cut, teleport, resolution change), the number of valid history frames restarts at 0 and grows by one per frame up to N-1. Reading an invalid layer is allowed, but its contents are undefined; tasks check `IsTemporalLayerValid()` and fall back (e.g. no accumulation in the first frame). Split-screen later gets one registry entry per view.
 - **Compiled graph:** each layer is its own base in the graph (layer 0 behaves like a transient without aliasing, older layers like registered resources). The physical copy behind a layer changes every frame without changing the hash, so tasks that access temporal layers are recompiled every frame, like backbuffer tasks today (`myAccessesBackBuffer` becomes "accesses a per-frame resource"). Views per physical copy are cached, so this only costs view lookups.
 - **Barriers:** the physical copies persist across frames like registered resources, so the first access of each copy is patched from its global state at submit time, as today. Layer 0's first access discards (write after an undefined state); no aliasing barrier.

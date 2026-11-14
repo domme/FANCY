@@ -944,7 +944,16 @@ namespace Fancy
 //---------------------------------------------------------------------------//
   void CommandListVk::ResourceUAVbarrier(const GpuResource** /*someResources*/, uint /*aNumResources*/)
   {
-    // Nothing to do for vulkan?
+    FlushBarriers();
+
+    // Makes all previous shader writes visible to later shader reads and writes, like a global UAV barrier in DX12
+    VkMemoryBarrier memoryBarrier = {};
+    memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+    const VkPipelineStageFlags stageMask = RenderCore::GetPlatformVk()->GetPipelineStageMask(myCommandListType);
+    vkCmdPipelineBarrier(myCommandBuffer, stageMask, stageMask, 0u, 1u, &memoryBarrier, 0u, nullptr, 0u, nullptr);
   }
 //---------------------------------------------------------------------------//
   void CommandListVk::Close()

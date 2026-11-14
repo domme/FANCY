@@ -23,15 +23,17 @@ namespace Fancy {
       for ( const FrameGraphTaskAccess & access : aTask.myAccesses ) {
         const FgResourceHandle & handle = access.myHandle;
         const SubresourceRange & range = handle.mySubresources;
-        const FrameGraphResourceBase & base = aFrameGraph.GetResourceBases()[ handle.myBaseIndex ];
+        const FrameGraphResourceVersion & version = aFrameGraph.GetResourceVersions()[ handle.myVersionIndex ];
+        const FrameGraphResourceBase & base = aFrameGraph.GetResourceBases()[ version.myBaseIndex ];
         const char * verb = RenderCore::IsWriteAccess( access.myAccess ) ? "Writes" : "Reads";
         const char * accessName = RenderCore::GetResourceAccessName( access.myAccess );
-        if ( base.myResource->GetSubresources().myNumArrayIndices > 1u ) {
-          ImGui::BulletText( "%s %s mips %u-%u planes %u-%u slices %u-%u: %s", verb, base.myName.c_str(), range.myFirstMipLevel,
-                             range.myFirstMipLevel + range.myNumMipLevels - 1u, range.myFirstPlane, range.myFirstPlane + range.myNumPlanes - 1u,
-                             range.myFirstArrayIndex, range.myFirstArrayIndex + range.myNumArrayIndices - 1u, accessName );
+        if ( aFrameGraph.GetResource( version.myBaseIndex )->GetSubresources().myNumArrayIndices > 1u ) {
+          ImGui::BulletText( "%s %s v%u mips %u-%u planes %u-%u slices %u-%u: %s", verb, base.myName.c_str(), version.myVersion,
+                             range.myFirstMipLevel, range.myFirstMipLevel + range.myNumMipLevels - 1u, range.myFirstPlane,
+                             range.myFirstPlane + range.myNumPlanes - 1u, range.myFirstArrayIndex,
+                             range.myFirstArrayIndex + range.myNumArrayIndices - 1u, accessName );
         } else {
-          ImGui::BulletText( "%s %s mips %u-%u planes %u-%u: %s", verb, base.myName.c_str(), range.myFirstMipLevel,
+          ImGui::BulletText( "%s %s v%u mips %u-%u planes %u-%u: %s", verb, base.myName.c_str(), version.myVersion, range.myFirstMipLevel,
                              range.myFirstMipLevel + range.myNumMipLevels - 1u, range.myFirstPlane, range.myFirstPlane + range.myNumPlanes - 1u,
                              accessName );
         }
@@ -48,7 +50,7 @@ namespace Fancy {
       return;
     }
 
-    if ( !aFrameGraph.IsBuilt() ) {
+    if ( !aFrameGraph.IsDeclarationBuilt() ) {
       ImGui::Text( "The frame graph has not been built." );
       ImGui::End();
       return;

@@ -9,6 +9,9 @@
 /// compute UAV writes and render target draws), and a last task blits the texture to the backbuffer.
 /// Also tests subresources: a mip chain downsampled by compute tasks (one task per mip), and a depth-stencil texture whose stencil plane
 /// is drawn by a raster task and copied by a compute task. The blit task shows all of them.
+/// Tests the versions of the graph: the tasks chain through the versions their writes return, and the stencil copy reads the depth-stencil texture
+/// from before a task overwrites it, so the graph has to run the copy first. RunBuilderChecks() asserts the dependencies of small dummy graphs.
+/// Every other frame skips the setup and only rebuilds the graph from the declaration of the last setup.
 class Test_FrameGraph : public Test {
 public:
   Test_FrameGraph( Fancy::AssetManager * anAssetManager, Fancy::Window * aWindow, Fancy::RenderOutput * aRenderOutput,
@@ -20,12 +23,17 @@ public:
 
 private:
   void CreateQuadrantTexture();
+  void RunBuilderChecks();
+  void SetupFrameGraph();
 
   enum Consts { kNumQuadrants = 4 };
 
   Fancy::FrameGraphBuilder myFrameGraph;
   Fancy::FrameGraphViewer myFrameGraphViewer;
+  uint myFrameIndex = 0u;
   bool myShowFrameGraphViewer = true;
+  bool mySkipSetupEveryOtherFrame = true;
+  bool myNeedsSetup = true;  // The last setup references a resource that was recreated since
   bool myQuadrantEnabled[ kNumQuadrants ] = { true, true, true, true };
 
   Fancy::TextureHandle myQuadrantTexture;

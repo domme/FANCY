@@ -4,6 +4,7 @@
 #define FANCY_RENDERER_USE_VALIDATION 1
 #define FANCY_HEAVY_DEBUG 1
 #define FANCY_RENDERER_DEBUG_MEMORY_ALLOCS FANCY_HEAVY_DEBUG
+#define FANCY_RENDERER_DEBUG_FRAMEGRAPH FANCY_HEAVY_DEBUG  // Expensive checks of the FrameGraph, e.g. that reused build results are correct
 
 #define FANCY_RENDERER_LOG_RESOURCE_BARRIERS 1
 

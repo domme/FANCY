@@ -5,7 +5,7 @@
 // - FILL_QUADRANT_CS: fills a rectangle of a texture through a UAV, with its color read from the buffer
 // - FILL_COLOR: fullscreen triangle with its color read from the buffer. The rectangle is set through viewport and clip rect.
 // - BLIT: fullscreen triangle sampling a texture. myDisplayMode selects what is shown (see below).
-// - DOWNSAMPLE_CS: 2x2 box filter from the SRV of mip n-1 into the UAV of mip n
+// - DOWNSAMPLE_CS: 2x2 box filter from mip n-1 (SRV or UAV) into the UAV of mip n
 // - FILL_STENCIL: fullscreen triangle without color output, for drawing a stencil pattern with the stencil state
 // - COPY_STENCIL_CS: copies the stencil plane of a depth-stencil texture into an R8_UINT texture
 
@@ -25,6 +25,7 @@ cbuffer CB0 : register(b0, Space_LocalCBuffer)
   uint myMipLevel;      // BLIT mode 1
   uint2 myDisplayOrigin;// BLIT: first pixel of the rectangle
   float myDisplayScale; // BLIT modes 1-3: texels per pixel
+  uint mySrcIsUav;      // DOWNSAMPLE_CS: mySrcIndex is a UAV
 };
 
 //---------------------------------------------------------------------------//
@@ -50,6 +51,11 @@ void main(uint3 aDTid : SV_DispatchThreadID)
 //---------------------------------------------------------------------------//
 #if defined(DOWNSAMPLE_CS)
 
+float4 LoadSrc(int2 aTexel)
+{
+  return mySrcIsUav != 0 ? theRwTextures2D[mySrcIndex][aTexel] : theTextures2D[mySrcIndex][aTexel];
+}
+
 [numthreads(8, 8, 1)]
 void main(uint3 aDTid : SV_DispatchThreadID)
 {
@@ -57,8 +63,7 @@ void main(uint3 aDTid : SV_DispatchThreadID)
     return;
 
   int2 src = (int2) aDTid.xy * 2;
-  float4 sum = theTextures2D[mySrcIndex][src] + theTextures2D[mySrcIndex][src + int2(1, 0)]
-             + theTextures2D[mySrcIndex][src + int2(0, 1)] + theTextures2D[mySrcIndex][src + int2(1, 1)];
+  float4 sum = LoadSrc(src) + LoadSrc(src + int2(1, 0)) + LoadSrc(src + int2(0, 1)) + LoadSrc(src + int2(1, 1));
   theRwTextures2D[myDstIndex][aDTid.xy] = sum * 0.25;
 }
 
